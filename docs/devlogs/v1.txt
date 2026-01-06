@@ -7,6 +7,9 @@
 - Scoped app requirements and v1-v5 roadmap
 - Selected tech stack: React, PrimeReact, PWA
 - Established GPL v3 licensing
+- Designed database structure and entity schemas
+- Defined v1 page structure and UX flow
+- Added [DRAFT] features workflow for undecided items
 
 ### What's Unfinished
 - Design kanban entity schema

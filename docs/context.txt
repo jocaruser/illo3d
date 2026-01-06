@@ -98,9 +98,16 @@ Database Structure:
 - Client profiles (v2+)
 - Filament weight tracking: calculate remaining grams by weighing (original weight vs current weight), in addition to usage-based tracking (v2+)
 
+### [DRAFT] Features for v2+
+**Pieces Library:**
+- Dedicated page to manage saved pieces
+- Suggest similar pieces when creating new ones (by name/weight)
+- Save calculated pieces from budget calculator
+
 ### Next Steps
-- Design entity schemas (inventory, sales, kanban items)
-- Choose kanban library
+- Design kanban entity schema
+- Decide: Inventory page - tabs vs separate pages (depends on data volume)
+- Choose kanban library (react-beautiful-dnd, dnd-kit, or react-trello)
 - Set up project structure
 
 

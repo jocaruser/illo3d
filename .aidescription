@@ -10,8 +10,9 @@
 - Keep dev logs high-level (what we worked on, not how)
 - Track open conversations, unfinished work, and blockers
 - All details go in docs/context.txt, not in dev logs
-- Update docs/devlogs/v*.md daily with brief entries
+- Update docs/devlogs/v*.txt daily with brief entries
 - Always update today's devlog entry before committing to git
+- Update devlog in the same commit that contains the changes being documented
 
 ## File Management
 - NEVER create files unless absolutely necessary
@@ -36,6 +37,10 @@
 
 ### docs/requirements.md
 Tree structure: features → use cases with checkboxes
+- Finalized feature decisions with checkboxes
+- Draft/undecided features marked with [DRAFT] prefix
+- [DRAFT] items also remain in docs/context.txt "Open Conversations"
+
 Example:
 ## Version 1
 
@@ -44,6 +49,10 @@ Example:
 - [ ] User can log in
   - [ ] Remember me option
 - [ ] User can reset password
+
+### Feature: [DRAFT] Social Login
+- [ ] Login with Google
+- [ ] Login with Facebook
 
 ### docs/devlogs/v*.txt
 Daily entries, high-level accomplishments only
@@ -59,6 +68,9 @@ Example:
 
 ### docs/context.txt
 Sections: Open Conversations, Restrictions, Requirements, Bugs
+- Open/undecided decisions and discussions
+- [DRAFT] requirements from requirements.md
+- Current project status and next steps
 Keep concise, track current project state only
 
 ## Git Workflow

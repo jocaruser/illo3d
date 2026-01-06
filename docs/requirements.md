@@ -3,23 +3,30 @@
 ## Version 1 - MVP
 Critical features for basic operation
 
-### Feature: Inventory Management
-- [ ] Add/edit/delete filament items
-- [ ] Track: name, type, purchase date, grams, total cost, price per gram
-- [ ] Mark items as depleted
-- [ ] Add/edit/delete other items (lights, keychains, accessories)
-
-### Feature: Sales History
+### Feature: Home/Sales Page
+- [ ] Side navigation to all pages
+- [ ] Display sales table/list with filters and search
+- [ ] Click sale to expand and view pieces
+- [ ] "New Sale" button to create sales
 - [ ] Record sales with date, description, price
-- [ ] Track up to 4 colors/materials used per sale with grams
-- [ ] Auto-calculate material costs
-- [ ] Display running total of profits
+- [ ] Add pieces to sale (with quantities)
+- [ ] Auto-calculate total cost and profit
 
-### Feature: Budget Calculator
-- [ ] Calculate quote using inventory prices
-- [ ] Support multiple materials (up to 4)
-- [ ] Apply 1.1 markup to material costs
-- [ ] View calculated budget without saving to history
+### Feature: Inventory Management Page
+- [ ] Tabs for Filaments, Consumables, Printers
+- [ ] Add/edit/delete printers (name, max filaments, power cost)
+- [ ] Add/edit/delete filaments (name, type, purchase date, grams, total cost, price per gram)
+- [ ] Add/edit/delete consumables (name, purchase date, quantity, total cost, price per unit)
+- [ ] Mark items as depleted
+
+### Feature: Budget Calculator Page
+- [ ] Standalone page with calculator
+- [ ] Also accessible as modal from any page
+- [ ] Select printer for the piece
+- [ ] Add filaments (up to printer's max) with grams
+- [ ] Add consumables (unlimited) with quantities
+- [ ] Calculate total cost with markup
+- [ ] Show suggested price
 
 
 ## Version 2 - Improved Input
@@ -30,6 +37,13 @@ Ease data entry and bulk operations
 - [ ] Batch process .3mf files for past orders
 - [ ] Google Drive integration for data storage
 - [ ] Data import (format TBD)
+
+### Feature: [DRAFT] Pieces Library
+- [ ] Dedicated page to view/manage saved pieces
+- [ ] Reuse pieces in sales
+- [ ] When creating piece, show similar pieces by name and weight
+- [ ] Display piece details in floating window
+- [ ] Budget calculator can save pieces to library
 
 
 ## Version 3 - Kanban
