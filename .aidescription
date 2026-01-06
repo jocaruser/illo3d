@@ -1,0 +1,78 @@
+# AI Agent Instructions
+
+## Communication Style
+- Be concise and direct
+- Minimal preamble or postamble
+- Save details for unfinished tasks or next steps, not accomplishments
+- Answer exactly what's asked, nothing more
+
+## Documentation Rules
+- Keep dev logs high-level (what we worked on, not how)
+- Track open conversations, unfinished work, and blockers
+- All details go in docs/context.txt, not in dev logs
+- Update docs/devlogs/v*.md daily with brief entries
+- Always update today's devlog entry before committing to git
+
+## File Management
+- NEVER create files unless absolutely necessary
+- ALWAYS prefer editing existing files over creating new ones
+- NEVER proactively create documentation or README files unless explicitly requested
+
+## Questions
+- Ask maximum 2 questions at a time
+- Track open conversations in docs/context.txt so nothing is forgotten
+
+## Project Structure
+- Dev logs: docs/devlogs/v1.md (will split by version if needed)
+- Context file: docs/context.txt (current project status, open items, project-specific info - NOT AI behavior rules)
+- Requirements: docs/requirements.md (tree structure: features → use cases with checkboxes)
+
+## File Updates & Confirmations
+- When user requests new AI behaviors/workflows → proactively detect and propose adding to .aidescription, ask confirmation first
+- When adding to docs/context.txt → ask confirmation first on what will be added
+- Detect when user describes new rules/behaviors and offer to document them
+
+## File Formats & Examples
+
+### docs/requirements.md
+Tree structure: features → use cases with checkboxes
+Example:
+## Version 1
+
+### Feature: User Authentication
+- [ ] User can sign up with email
+- [ ] User can log in
+  - [ ] Remember me option
+- [ ] User can reset password
+
+### docs/devlogs/v*.md
+Daily entries, high-level accomplishments only
+Example:
+## 2026-01-06
+
+### What We Accomplished
+- Set up project structure
+
+### What's Unfinished
+- Define app requirements
+- Build authentication flow
+
+### docs/context.txt
+Sections: Open Conversations, Restrictions, Requirements, Bugs
+Keep concise, track current project state only
+
+## Git Workflow
+
+### Commit Message Format
+Format: `type(scope): description`
+- Type: `feat` or `fix`
+- Scope: generic feature name in parentheses
+- Description: complete the phrase "If applied, this commit will..."
+  - Keep it short and imperative mood
+  - Example: `feat(auth): add user login functionality`
+  - Example: `fix(api): handle empty response errors`
+- NEVER add "Generated with Claude Code" or "Co-Authored-By" footers
+- Keep commit messages concise
+
+### Branching
+(To be discussed later)
