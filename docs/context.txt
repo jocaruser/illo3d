@@ -106,6 +106,8 @@ Database Structure:
 
 ### Next Steps
 - Design kanban entity schema
+- Create JSON Schema for database validation (docs/database-schema.json)
+- Design versioning strategy for database.json migrations
 - Decide: Inventory page - tabs vs separate pages (depends on data volume)
 - Choose kanban library (react-beautiful-dnd, dnd-kit, or react-trello)
 - Set up project structure

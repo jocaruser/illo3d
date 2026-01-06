@@ -10,6 +10,7 @@
 - Designed database structure and entity schemas
 - Defined v1 page structure and UX flow
 - Added [DRAFT] features workflow for undecided items
+- Established code standards and documentation requirements
 
 ### What's Unfinished
 - Design kanban entity schema

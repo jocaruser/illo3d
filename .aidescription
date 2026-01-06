@@ -73,6 +73,33 @@ Sections: Open Conversations, Restrictions, Requirements, Bugs
 - Current project status and next steps
 Keep concise, track current project state only
 
+## Code Standards
+
+### Naming Conventions
+- Variables/functions: camelCase
+- Components/classes: PascalCase
+- Event handlers: use `on` prefix (e.g., onClick, onSubmit)
+
+### File Organization
+- One component per file
+- Component filename matches component name (PascalCase)
+- Type/interface location TBD (will discuss structure later)
+
+### Code Quality
+- No duplicated code - extract into reusable functions/components
+- Apply TDD (Test-Driven Development)
+- Refactor before committing
+- Don't patch bugs - debug root cause and fix properly
+- Clean, maintainable code over quick fixes
+
+### Documentation & Explanations
+- Explain what code does before committing
+- Maintain architecture diagrams (UML or similar) showing how components/classes interact
+- Maintain entity relationship diagram for database structure
+- Maintain JSON Schema (docs/database-schema.json) for database validation
+- Keep diagrams in docs/architecture/ folder
+- Update diagrams and schema when adding/changing major components or entities
+
 ## Git Workflow
 
 ### Commit Message Format
