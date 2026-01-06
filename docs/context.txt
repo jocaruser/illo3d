@@ -2,15 +2,40 @@
 
 ## Open Conversations
 
+### Tech Stack Decisions
+- **Framework**: React
+- **UI Library**: PrimeReact (free tier)
+- **App Type**: PWA (Progressive Web App)
+- **Hosting**: GitHub Pages
+- **Backend**: Google Drive API for storage
+- **Kanban**: Need to select library (react-beautiful-dnd, dnd-kit, or react-trello)
+
 ### Next Steps
-- Discuss and define app requirements
-- Scope v1 and v2 features
+- Choose kanban library for React
+- Design data models
+- Set up project structure
 
 
 ## Restrictions
 
+### Licensing Requirements
+- App must be completely free
+- Fully open source
+- All dependencies must have compatible open source licenses (MIT, Apache 2.0, etc.)
+- No paid/proprietary components allowed
+
+### Project License
+- GPL v3
+- Ensures forks remain open source
+
 
 ## Requirements
+
+### Reference Files
+- `docs/example/ILLO3d - inventario.csv` - Current inventory tracking (filaments, lights, accessories)
+- `docs/example/ILLO3d - historial.csv` - Sales history with material usage and costs
+- `docs/example/ILLO3d - Requerimientos.csv` - Original requirements notes
+- `docs/trello/fRol8dNO - illo-3d.json` - Current Trello board export (kanban structure)
 
 ### App Overview
 3D printing business management web app

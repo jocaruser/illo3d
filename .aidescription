@@ -23,7 +23,7 @@
 - Track open conversations in docs/context.txt so nothing is forgotten
 
 ## Project Structure
-- Dev logs: docs/devlogs/v1.md (will split by version if needed)
+- Dev logs: docs/devlogs/v1.txt (will split by version if needed)
 - Context file: docs/context.txt (current project status, open items, project-specific info - NOT AI behavior rules)
 - Requirements: docs/requirements.md (tree structure: features → use cases with checkboxes)
 
@@ -45,7 +45,7 @@ Example:
   - [ ] Remember me option
 - [ ] User can reset password
 
-### docs/devlogs/v*.md
+### docs/devlogs/v*.txt
 Daily entries, high-level accomplishments only
 Example:
 ## 2026-01-06
