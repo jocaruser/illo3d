@@ -9,6 +9,6 @@
 - Established GPL v3 licensing
 
 ### What's Unfinished
+- Design kanban entity schema
 - Choose kanban library
-- Design data models
 - Set up project structure

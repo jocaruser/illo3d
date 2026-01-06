@@ -10,9 +10,97 @@
 - **Backend**: Google Drive API for storage
 - **Kanban**: Need to select library (react-beautiful-dnd, dnd-kit, or react-trello)
 
+### Database Structure (Google Drive)
+File: `/illo3d-data/database.json`
+
+Version incompatibility: Show warning/error (no auto-migration for v1)
+
+Entity Schemas:
+
+Printer:
+{
+  "id": 1,
+  "name": "Printer Name",
+  "maxFilaments": 4,
+  "powerCost": 0
+}
+
+Filament:
+{
+  "id": 1,
+  "name": "negro basic eSun",
+  "type": "PLA",
+  "purchaseDate": "2026-01-03",
+  "gramsPerUnit": 1000,
+  "totalCost": 9.70,
+  "pricePerGram": 0.00970,
+  "depleted": false
+}
+
+Consumable:
+{
+  "id": 1,
+  "name": "Luz litopane",
+  "purchaseDate": "2025-11-20",
+  "quantity": 8,
+  "totalCost": 19.88,
+  "pricePerUnit": 2.49,
+  "depleted": false
+}
+
+Piece (item being printed/sold):
+{
+  "id": 1,
+  "name": "Litopane marco",
+  "printerId": 1,
+  "filaments": [
+    { "filamentId": 5, "grams": 28.09 },
+    { "filamentId": 7, "grams": 121.46 }
+  ],
+  "consumables": [
+    { "consumableId": 3, "quantity": 1 }
+  ],
+  "totalCost": 0,
+  "notes": ""
+}
+
+Sale:
+{
+  "id": 1,
+  "date": "2026-01-04",
+  "description": "Litopanes custom",
+  "pieces": [
+    { "pieceId": 1, "quantity": 2 }
+  ],
+  "price": 45.00,
+  "totalCost": 0,
+  "profit": 0
+}
+
+Database Structure:
+{
+  "version": "1.0.0",
+  "company": {
+    "name": "",
+    "defaultMarkup": 1.1,
+    "currency": "€",
+    "taxRate": 0
+  },
+  "printers": [],
+  "filaments": [],
+  "consumables": [],
+  "pieces": [],
+  "sales": [],
+  "kanban": []
+}
+
+### Future Considerations
+- Client profiles (v2+)
+- Filament weight tracking: calculate remaining grams by weighing (original weight vs current weight), in addition to usage-based tracking (v2+)
+
 ### Next Steps
-- Choose kanban library for React
-- Design data models
+- Design entity schemas (inventory, sales, kanban items)
+- Choose kanban library
 - Set up project structure
 
 
