@@ -12,5 +12,38 @@
 
 ## Requirements
 
+### App Overview
+3D printing business management web app
+- Hosted on GitHub Pages (static site)
+- Google Drive as backend for configs and .3mf files
+- No traditional backend
+
+### Core Features Identified
+1. **Inventory Management**
+   - Track filaments: name, type, purchase date, grams, cost, price per gram, depleted status
+   - Track other items: lights, keychains, accessories
+
+2. **Sales History**
+   - Record sales with date, description, price
+   - Track materials used per sale (up to 4 colors with grams)
+   - Calculate costs and profits
+
+3. **Budget Calculator**
+   - Calculate quotes without adding to sales history
+   - Formula: VLOOKUP price per gram × grams × 1.1 markup
+   - Support multiple colors per item
+
+4. **Kanban Board**
+   - Columns: pa pensare, PRECIO, POR HACER, HECHO, OBJETIVOS, DESCARATADO POR PRECIO
+   - Track tasks/orders in progress
+
+5. **Material Import**
+   - Parse .3mf files for material usage (uploaded to Google Drive)
+   - MakerWorld integration (v2)
+
+6. **Analytics/Graphs**
+   - v1: basic metrics (profits, sales over time)
+   - v2: advanced (most profitable items, trends)
+
 
 ## Bugs
