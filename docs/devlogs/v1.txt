@@ -16,3 +16,12 @@
 - Design kanban entity schema
 - Choose kanban library
 - Set up project structure
+
+## 2026-01-30
+
+### What We Accomplished
+- Updated requirements.md with v1–v5 feature structure
+- Added .cursor rules (loader.mdc) for project-wide AI guidance
+
+### What's Unfinished
+- (unchanged from above)

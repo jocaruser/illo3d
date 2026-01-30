@@ -1,0 +1,12 @@
+---
+description: Project AI instructions and context
+alwaysApply: true
+---
+
+# Project rules
+
+At the start of project-wide or ambiguous tasks, read:
+
+- **.aidescription** — AI agent instructions, doc rules, code standards, Git workflow
+- **docs/context.txt** — Open conversations, restrictions, DB structure, next steps
+- **docs/requirements.md** — Feature checklist (when implementing features)

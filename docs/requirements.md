@@ -53,6 +53,9 @@ Task and order management
 - [ ] Columns: pa pensare, PRECIO, POR HACER, HECHO, OBJETIVOS, DESCARATADO POR PRECIO
 - [ ] Create/edit/move cards
 - [ ] Track order status
+- [ ] Kanban displays sales in draft mode
+- [ ] Sales appear in kanban until marked as completed (removed from draft)
+- [ ] Completed sales move to sales history
 
 
 ## Version 4 - Integrations
