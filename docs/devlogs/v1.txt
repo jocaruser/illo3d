@@ -24,6 +24,11 @@
 - Added .cursor rules (loader.mdc) for project-wide AI guidance
 - Added filament colours sharing: export (image/PDF) in V1, colour field in Filament model
 - Added Unplanned - Crazy Ideas section; moved shareable Drive link there
+- Project skeleton: Vite + React + TS, Vitest + RTL + one smoke test, minimal App
+- Docker dev env (Dockerfile.dev, docker-compose); dev tools only inside Docker
+- Requirement and context: all dev tools run only inside Docker
+- docs/database-schema.json for entities
+- Cleaned back to bootstrap + test structure (no PrimeReact, router, PWA, layout yet)
 
 ### What's Unfinished
 - (unchanged from above)

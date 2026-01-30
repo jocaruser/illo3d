@@ -1,10 +1,16 @@
 # Requirements
 
+## Development
+- [x] All dev tools run only inside Docker (host needs only Docker; no npm, Node, etc. on the machine)
+
 ## Version 1 - MVP
 Critical features for basic operation
 
-### Feature: Home/Sales Page
+### Feature: Layout and theme
 - [ ] Side navigation to all pages
+- [ ] Light and dark theme with user toggle (preference persisted)
+
+### Feature: Home/Sales Page
 - [ ] Display sales table/list with filters and search
 - [ ] Click sale to expand and view pieces
 - [ ] "New Sale" button to create sales

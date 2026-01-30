@@ -4,11 +4,12 @@
 
 ### Tech Stack Decisions
 - **Framework**: React
-- **UI Library**: PrimeReact (free tier)
+- **UI Library**: PrimeReact (free tier); light and dark theme (e.g. Lara Light/Dark), user toggle, preference persisted
 - **App Type**: PWA (Progressive Web App)
 - **Hosting**: GitHub Pages
 - **Backend**: Google Drive API for storage
 - **Kanban**: Need to select library (react-beautiful-dnd, dnd-kit, or react-trello)
+- **Dev environment**: All dev tools only inside Docker; host needs only Docker (no npm/Node on laptop).
 
 ### Database Structure (Google Drive)
 File: `/illo3d-data/database.json`
@@ -142,29 +143,32 @@ Database Structure:
 - No traditional backend
 
 ### Core Features Identified
-1. **Inventory Management**
+1. **Layout and theme**
+   - Side navigation to all pages; light and dark theme with user toggle (preference persisted)
+
+2. **Inventory Management**
    - Track filaments: name, type, purchase date, grams, cost, price per gram, depleted status
    - Track other items: lights, keychains, accessories
 
-2. **Sales History**
+3. **Sales History**
    - Record sales with date, description, price
    - Track materials used per sale (up to 4 colors with grams)
    - Calculate costs and profits
 
-3. **Budget Calculator**
+4. **Budget Calculator**
    - Calculate quotes without adding to sales history
    - Formula: VLOOKUP price per gram × grams × 1.1 markup
    - Support multiple colors per item
 
-4. **Kanban Board**
+5. **Kanban Board**
    - Columns: pa pensare, PRECIO, POR HACER, HECHO, OBJETIVOS, DESCARATADO POR PRECIO
    - Track tasks/orders in progress
 
-5. **Material Import**
+6. **Material Import**
    - Parse .3mf files for material usage (uploaded to Google Drive)
    - MakerWorld integration (v2)
 
-6. **Analytics/Graphs**
+7. **Analytics/Graphs**
    - v1: basic metrics (profits, sales over time)
    - v2: advanced (most profitable items, trends)
 

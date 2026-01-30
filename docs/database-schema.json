@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://illo3d.local/schemas/database.json",
+  "title": "ILLO3D Database",
+  "description": "Root structure for /illo3d-data/database.json",
+  "type": "object",
+  "required": ["version", "company", "printers", "filaments", "consumables", "pieces", "sales", "kanban"],
+  "properties": {
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "company": { "$ref": "#/$defs/Company" },
+    "printers": { "type": "array", "items": { "$ref": "#/$defs/Printer" } },
+    "filaments": { "type": "array", "items": { "$ref": "#/$defs/Filament" } },
+    "consumables": { "type": "array", "items": { "$ref": "#/$defs/Consumable" } },
+    "pieces": { "type": "array", "items": { "$ref": "#/$defs/Piece" } },
+    "sales": { "type": "array", "items": { "$ref": "#/$defs/Sale" } },
+    "kanban": { "type": "array", "description": "Kanban entity schema TBD", "items": { "type": "object" } }
+  },
+  "$defs": {
+    "Company": {
+      "type": "object",
+      "required": ["name", "defaultMarkup", "currency", "taxRate"],
+      "properties": {
+        "name": { "type": "string" },
+        "defaultMarkup": { "type": "number" },
+        "currency": { "type": "string" },
+        "taxRate": { "type": "number" }
+      }
+    },
+    "Printer": {
+      "type": "object",
+      "required": ["id", "name", "maxFilaments", "powerCost"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "maxFilaments": { "type": "integer" },
+        "powerCost": { "type": "number" }
+      }
+    },
+    "Filament": {
+      "type": "object",
+      "required": ["id", "name", "type", "colour", "purchaseDate", "gramsPerUnit", "totalCost", "pricePerGram", "depleted"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "type": { "type": "string" },
+        "colour": { "type": "string" },
+        "purchaseDate": { "type": "string" },
+        "gramsPerUnit": { "type": "number" },
+        "totalCost": { "type": "number" },
+        "pricePerGram": { "type": "number" },
+        "depleted": { "type": "boolean" }
+      }
+    },
+    "Consumable": {
+      "type": "object",
+      "required": ["id", "name", "purchaseDate", "quantity", "totalCost", "pricePerUnit", "depleted"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "purchaseDate": { "type": "string" },
+        "quantity": { "type": "number" },
+        "totalCost": { "type": "number" },
+        "pricePerUnit": { "type": "number" },
+        "depleted": { "type": "boolean" }
+      }
+    },
+    "Piece": {
+      "type": "object",
+      "required": ["id", "name", "printerId", "filaments", "consumables", "totalCost", "notes"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "printerId": { "type": "integer" },
+        "filaments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["filamentId", "grams"],
+            "properties": { "filamentId": { "type": "integer" }, "grams": { "type": "number" } }
+          }
+        },
+        "consumables": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["consumableId", "quantity"],
+            "properties": { "consumableId": { "type": "integer" }, "quantity": { "type": "number" } }
+          }
+        },
+        "totalCost": { "type": "number" },
+        "notes": { "type": "string" }
+      }
+    },
+    "Sale": {
+      "type": "object",
+      "required": ["id", "date", "description", "pieces", "price", "totalCost", "profit"],
+      "properties": {
+        "id": { "type": "integer" },
+        "date": { "type": "string" },
+        "description": { "type": "string" },
+        "pieces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["pieceId", "quantity"],
+            "properties": { "pieceId": { "type": "integer" }, "quantity": { "type": "number" } }
+          }
+        },
+        "price": { "type": "number" },
+        "totalCost": { "type": "number" },
+        "profit": { "type": "number" }
+      }
+    }
+  }
+}
