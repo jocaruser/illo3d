@@ -30,6 +30,7 @@ Filament:
   "id": 1,
   "name": "negro basic eSun",
   "type": "PLA",
+  "colour": "Black",
   "purchaseDate": "2026-01-03",
   "gramsPerUnit": 1000,
   "totalCost": 9.70,

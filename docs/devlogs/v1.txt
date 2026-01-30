@@ -22,6 +22,8 @@
 ### What We Accomplished
 - Updated requirements.md with v1–v5 feature structure
 - Added .cursor rules (loader.mdc) for project-wide AI guidance
+- Added filament colours sharing: export (image/PDF) in V1, colour field in Filament model
+- Added Unplanned - Crazy Ideas section; moved shareable Drive link there
 
 ### What's Unfinished
 - (unchanged from above)

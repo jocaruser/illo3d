@@ -15,9 +15,10 @@ Critical features for basic operation
 ### Feature: Inventory Management Page
 - [ ] Tabs for Filaments, Consumables, Printers
 - [ ] Add/edit/delete printers (name, max filaments, power cost)
-- [ ] Add/edit/delete filaments (name, type, purchase date, grams, total cost, price per gram)
+- [ ] Add/edit/delete filaments (name, type, colour, purchase date, grams, total cost, price per gram)
 - [ ] Add/edit/delete consumables (name, purchase date, quantity, total cost, price per unit)
 - [ ] Mark items as depleted
+- [ ] Export (image/PDF) to share how many different filament colours are available
 
 ### Feature: Budget Calculator Page
 - [ ] Standalone page with calculator
@@ -75,3 +76,10 @@ Advanced insights and reporting
 - [ ] Material usage trends
 - [ ] Sales patterns
 - [ ] Profit margins over time
+
+
+## Unplanned - Crazy Ideas
+Decided and certain, but not scheduled. Uncertain ideas stay in docs/context.txt Open Conversations.
+
+### Feature: Shareable Filament Colours
+- [ ] Optional: public Drive file with filament colour codes for shareable link
