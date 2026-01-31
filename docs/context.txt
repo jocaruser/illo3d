@@ -10,6 +10,7 @@
 - **Backend**: Google Drive API for storage
 - **Kanban**: Need to select library (react-beautiful-dnd, dnd-kit, or react-trello)
 - **Dev environment**: All dev tools only inside Docker; host needs only Docker (no npm/Node on laptop).
+- **Design**: Colour palette in docs/design.md (logo-derived: green primary, blue secondary, orange accent; use with hierarchy).
 
 ### Database Structure (Google Drive)
 File: `/illo3d-data/database.json`

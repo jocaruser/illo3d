@@ -2,6 +2,8 @@
 
 ## Development
 - [x] All dev tools run only inside Docker (host needs only Docker; no npm, Node, etc. on the machine)
+- [ ] Always update docs/frontend-tree.md when adding, removing, or renaming frontend files (atoms, layouts, pages)
+- [ ] Never add a new atom or layout without checking docs/frontend-tree.md and codebase for an equivalent and asking permission
 
 ## Version 1 - MVP
 Critical features for basic operation

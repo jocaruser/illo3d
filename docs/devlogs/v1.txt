@@ -20,15 +20,10 @@
 ## 2026-01-30
 
 ### What We Accomplished
-- Updated requirements.md with v1–v5 feature structure
-- Added .cursor rules (loader.mdc) for project-wide AI guidance
-- Added filament colours sharing: export (image/PDF) in V1, colour field in Filament model
-- Added Unplanned - Crazy Ideas section; moved shareable Drive link there
-- Project skeleton: Vite + React + TS, Vitest + RTL + one smoke test, minimal App
-- Docker dev env (Dockerfile.dev, docker-compose); dev tools only inside Docker
-- Requirement and context: all dev tools run only inside Docker
-- docs/database-schema.json for entities
-- Cleaned back to bootstrap + test structure (no PrimeReact, router, PWA, layout yet)
+- Skeleton: Vite + React + TS, Vitest + RTL, Docker dev env, docs/database-schema.json
+- Atoms (Button, Input, Label) and layouts (Nav, VerticalCentered, HorizontalCentered, Box, List, InputLayout) with co-located CSS modules and tests
+- Login page with layout tree and Google OAuth placeholder; requirements and AI rules for frontend tree, palette, no new atom without check
+- docs/frontend-tree.md, docs/design.md (logo-derived colour palette), commit-flow rules (tests + devlog resummarize)
 
 ### What's Unfinished
-- (unchanged from above)
+- Design kanban entity schema; choose kanban library; set up project structure

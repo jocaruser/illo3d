@@ -7,12 +7,11 @@
 - Answer exactly what's asked, nothing more
 
 ## Documentation Rules
-- Keep dev logs high-level (what we worked on, not how)
+- Keep dev logs high-level (what we worked on, not how); do not overmention trivial or silly details
 - Track open conversations, unfinished work, and blockers
 - All details go in docs/context.txt, not in dev logs
-- Update docs/devlogs/v*.txt daily with brief entries
-- Always update today's devlog entry before committing to git
-- Update devlog in the same commit that contains the changes being documented
+- Before committing: recalculate and resummarize today's devlog entry (do not just append); one concise summary of the day
+- Devlog update goes in the same commit as the changes being documented
 
 ## File Management
 - NEVER create files unless absolutely necessary
@@ -27,11 +26,16 @@
 - Dev logs: docs/devlogs/v1.txt (will split by version if needed)
 - Context file: docs/context.txt (current project status, open items, project-specific info - NOT AI behavior rules)
 - Requirements: docs/requirements.md (tree structure: features → use cases with checkboxes)
+- Frontend tree: docs/frontend-tree.md (source of truth for src/ atoms, layouts, pages); update it in the same commit when changing frontend structure
+- Design: docs/design.md (colour palette and design rules; logo-derived, use with hierarchy)
 
 ## File Updates & Confirmations
 - When user requests new AI behaviors/workflows → proactively detect and propose adding to .aidescription, ask confirmation first
 - When adding to docs/context.txt → ask confirmation first on what will be added
 - Detect when user describes new rules/behaviors and offer to document them
+- Do not implement features or UI that are not in docs/requirements.md without asking first
+- For large or multi-step changes, propose the steps and get confirmation before proceeding
+- Do not add new npm dependencies without asking
 
 ## File Formats & Examples
 
@@ -84,6 +88,9 @@ Keep concise, track current project state only
 - One component per file
 - Component filename matches component name (PascalCase)
 - Type/interface location TBD (will discuss structure later)
+- Always update docs/frontend-tree.md when adding, removing, or renaming files under src/ (atoms, layouts, pages)
+- Before adding a new atom or layout: check docs/frontend-tree.md and the codebase for an equivalent; if one might exist or overlap, ask the user for permission before adding
+- Do not add a new atom or layout without this check and explicit approval
 
 ### Code Quality
 - No duplicated code - extract into reusable functions/components
@@ -91,6 +98,9 @@ Keep concise, track current project state only
 - Refactor before committing
 - Don't patch bugs - debug root cause and fix properly
 - Clean, maintainable code over quick fixes
+
+### Design
+- Use colours from docs/design.md only; implement via CSS variables (light/dark). Do not introduce new colours outside the palette without asking
 
 ### Documentation & Explanations
 - Explain what code does before committing
@@ -101,6 +111,10 @@ Keep concise, track current project state only
 - Update diagrams and schema when adding/changing major components or entities
 
 ## Git Workflow
+
+### Before commit
+- Run tests (must pass) before committing
+- Recalculate and resummarize today's devlog entry (concise, high-level; no trivial details); include it in the same commit
 
 ### Commit Message Format
 Format: `type(scope): description`
