@@ -27,3 +27,12 @@
 
 ### What's Unfinished
 - Design kanban entity schema; choose kanban library; set up project structure
+
+## 2026-01-31
+
+### What We Accomplished
+- GitHub Actions test workflow (push/PR to main); gh CLI in Docker for checking runs
+- Token for gh in ~/.config/illo3d/gh.env (outside project); .env in gitignore; docs/context and AI rules updated
+
+### What's Unfinished
+- Design kanban entity schema; choose kanban library; set up project structure

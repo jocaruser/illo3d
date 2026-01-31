@@ -1,5 +1,8 @@
 # Project Context
 
+## Local / secrets (not committed, not in project)
+- **GH_TOKEN**: Store outside the project so Cursor agents cannot read it. Example: create `~/.config/illo3d/gh.env` with one line `GH_TOKEN=ghp_...`. When running gh in the dev container, use: `docker compose run --rm --env-file "$HOME/.config/illo3d/gh.env" dev gh run list` (or `gh run view`). Do not put the token in a file inside the project; agents can read any file in the workspace.
+
 ## Open Conversations
 
 ### Tech Stack Decisions
