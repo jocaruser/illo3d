@@ -14,6 +14,7 @@ src/
 ├── test/
 │   └── setup.ts
 ├── contexts/
+│   ├── AuthContext.tsx
 │   └── ThemeContext.tsx
 ├── atoms/
 │   ├── Button.tsx, Button.module.css, Button.test.tsx
@@ -38,5 +39,5 @@ src/
 
 - **Atoms**: Smallest UI primitives (Button, Input, Label). One component per file; co-located `.module.css` and `.test.tsx`.
 - **Layouts**: Structure and spacing only (AppLayout, NavLayout, VerticalCenteredLayout, etc.). Use as building blocks; do not add logic.
-- **Contexts**: Theme (ThemeContext) for light/dark and persistence.
+- **Contexts**: Theme (ThemeContext) for light/dark and persistence; Auth (AuthContext) for login state and dummy token.
 - **Pages**: Screen-level components; compose atoms and layouts only.

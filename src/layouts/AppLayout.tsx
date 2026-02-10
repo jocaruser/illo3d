@@ -1,5 +1,6 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { NavLayout } from './NavLayout';
 import styles from './AppLayout.module.css';
 
@@ -7,11 +8,17 @@ const navItems = [
   { to: '/', label: 'Home' },
   { to: '/inventory', label: 'Inventory' },
   { to: '/budget', label: 'Budget' },
-  { to: '/login', label: 'Login' },
 ];
 
 export function AppLayout() {
   const { theme, toggleTheme } = useTheme();
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  function onLogout() {
+    logout();
+    navigate('/login');
+  }
 
   return (
     <div className={styles.root}>
@@ -27,6 +34,9 @@ export function AppLayout() {
               </li>
             ))}
           </ul>
+          <button type="button" onClick={onLogout}>
+            Log out
+          </button>
           <button type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}>
             {theme === 'light' ? 'Dark' : 'Light'}
           </button>

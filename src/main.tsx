@@ -5,9 +5,8 @@ import './index.css';
 
 const root = document.getElementById('root')!;
 const stored = localStorage.getItem('illo3d-theme');
-if (stored === 'dark' || stored === 'light') {
-  root.closest('html')?.setAttribute('data-theme', stored);
-}
+const theme = stored === 'dark' || stored === 'light' ? stored : 'dark';
+root.closest('html')?.setAttribute('data-theme', theme);
 
 createRoot(root).render(
   <StrictMode>

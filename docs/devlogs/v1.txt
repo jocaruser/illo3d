@@ -50,3 +50,14 @@
 
 ### What's Unfinished
 - (Unchanged) GitHub Action tests; kanban; project structure
+
+## 2026-01-31 (session: auth and shell)
+
+### What We Accomplished
+- Dark theme by default (ThemeContext, index.html, main.tsx)
+- Auth: AuthContext with token in localStorage; menu (AppLayout) only when logged in; protected routes redirect to /login when no token
+- Login placeholder: single button saves dummy token and navigates to home; LoginPage without nav; AppLayout shows Log out instead of Login
+- docs/frontend-tree.md (AuthContext); tests updated for AuthProvider and token
+
+### What's Unfinished
+- (Unchanged) GitHub Action tests; kanban; project structure
