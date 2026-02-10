@@ -4,10 +4,30 @@
   font-weight: 400;
 }
 
+[data-theme="light"] {
+  --color-primary: #2e8b57;
+  --color-secondary: #1e90ff;
+  --color-accent: #cc7a00;
+  --color-text: #1a1a1a;
+  --color-background: #ffffff;
+  --color-border: #e0e0e0;
+}
+
+[data-theme="dark"] {
+  --color-primary: #2e8b57;
+  --color-secondary: #1e90ff;
+  --color-accent: #b8860b;
+  --color-text: #e8e8e8;
+  --color-background: #2d2d2d;
+  --color-border: #555555;
+}
+
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
+  color: var(--color-text);
+  background-color: var(--color-background);
 }
 
 #root {

@@ -13,11 +13,14 @@ src/
 ├── vite-env.d.ts
 ├── test/
 │   └── setup.ts
+├── contexts/
+│   └── ThemeContext.tsx
 ├── atoms/
 │   ├── Button.tsx, Button.module.css, Button.test.tsx
 │   ├── Input.tsx, Input.module.css, Input.test.tsx
 │   └── Label.tsx, Label.module.css, Label.test.tsx
 ├── layouts/
+│   ├── AppLayout.tsx, AppLayout.module.css, AppLayout.test.tsx
 │   ├── NavLayout.tsx, NavLayout.module.css, NavLayout.test.tsx
 │   ├── VerticalCenteredLayout.tsx, .module.css, .test.tsx
 │   ├── HorizontalCenteredLayout.tsx, .module.css, .test.tsx
@@ -25,11 +28,15 @@ src/
 │   ├── ListLayout.tsx, .module.css, .test.tsx
 │   └── InputLayout.tsx, .module.css, .test.tsx
 └── pages/
+    ├── HomePage.tsx
+    ├── InventoryPage.tsx
+    ├── BudgetPage.tsx
     └── LoginPage.tsx, LoginPage.module.css, LoginPage.test.tsx
 ```
 
 ## Conventions
 
 - **Atoms**: Smallest UI primitives (Button, Input, Label). One component per file; co-located `.module.css` and `.test.tsx`.
-- **Layouts**: Structure and spacing only (NavLayout, VerticalCenteredLayout, etc.). Use as building blocks; do not add logic.
+- **Layouts**: Structure and spacing only (AppLayout, NavLayout, VerticalCenteredLayout, etc.). Use as building blocks; do not add logic.
+- **Contexts**: Theme (ThemeContext) for light/dark and persistence.
 - **Pages**: Screen-level components; compose atoms and layouts only.

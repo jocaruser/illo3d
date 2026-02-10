@@ -39,3 +39,14 @@
 ### What's Unfinished
 - GitHub Action tests still failing (investigate)
 - Design kanban entity schema; choose kanban library; set up project structure
+
+## 2026-01-31 (session: layout and theme)
+
+### What We Accomplished
+- Layout and theme slice (V1 shell): react-router-dom; BrowserRouter with routes (/, /inventory, /budget, /login); AppLayout with side nav (NavLayout), nav links (Home, Inventory, Budget, Login), theme toggle, and Outlet for route content
+- Theme: CSS variables for light/dark in index.css ([data-theme="light"] / [data-theme="dark"]) per design.md; ThemeContext with localStorage (illo3d-theme), toggle, and data-theme on document; initial theme applied in main.tsx before mount to avoid flash
+- Placeholder pages: HomePage, InventoryPage, BudgetPage (minimal heading + text); LoginPage kept at /login
+- docs/frontend-tree.md updated (contexts/ThemeContext, layouts/AppLayout, new pages); AppLayout.test.tsx for nav links, theme toggle, and outlet
+
+### What's Unfinished
+- (Unchanged) GitHub Action tests; kanban; project structure
