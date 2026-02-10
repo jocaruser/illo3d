@@ -33,6 +33,9 @@
 ### What We Accomplished
 - GitHub Actions test workflow (push/PR to main); gh CLI in Docker for checking runs
 - Token for gh in ~/.config/illo3d/gh.env (outside project); .env in gitignore; docs/context and AI rules updated
+- CRM: Version 2 Client profiles (requirements), Client entity and Sale.clientId (context + database-schema.json)
+- Backup strategy: decided (app copies, export, copy in Drive with triggers, import replace-only); documented in context and requirements (V3 Backup and data portability)
 
 ### What's Unfinished
+- GitHub Action tests still failing (investigate)
 - Design kanban entity schema; choose kanban library; set up project structure

@@ -38,7 +38,17 @@ Critical features for basic operation
 - [ ] Show suggested price
 
 
-## Version 2 - Improved Input
+## Version 2 - Client profiles (CRM)
+
+### Feature: Client profiles (CRM)
+- [ ] Clients page: list clients, add/edit/delete client profiles
+- [ ] Client profile: name and contact info (fields TBD, e.g. email, phone, notes)
+- [ ] Link sale to client: when creating/editing a sale, optionally select a client
+- [ ] View client's sales history: from a client profile, see list of their sales (date, description, price, profit)
+- [ ] Optional: filter sales list by client
+
+
+## Version 3 - Improved Input
 Ease data entry and bulk operations
 
 ### Feature: Bulk Data Tools
@@ -46,6 +56,12 @@ Ease data entry and bulk operations
 - [ ] Batch process .3mf files for past orders
 - [ ] Google Drive integration for data storage
 - [ ] Data import (format TBD)
+
+### Feature: Backup and data portability
+- [ ] Export: button to download database.json to device (optional: include list of linked .3mf paths or manifest)
+- [ ] Copy in Drive: write timestamped backup (e.g. database.backup.YYYY-MM-DD.json) into Backup folder; triggers: on demand, after save, others TBD
+- [ ] Import / restore: upload JSON file to replace current database (replace only; no merge)
+- [ ] (Optional) Restore from backup: list or pick a backup file from Drive Backup folder and replace current data with it
 
 ### Feature: [DRAFT] Pieces Library
 - [ ] Dedicated page to view/manage saved pieces
@@ -55,7 +71,7 @@ Ease data entry and bulk operations
 - [ ] Budget calculator can save pieces to library
 
 
-## Version 3 - Kanban
+## Version 4 - Kanban
 Task and order management
 
 ### Feature: Kanban Board
@@ -67,7 +83,7 @@ Task and order management
 - [ ] Completed sales move to sales history
 
 
-## Version 4 - Integrations
+## Version 5 - Integrations
 Automated material tracking
 
 ### Feature: Material Import
@@ -76,7 +92,7 @@ Automated material tracking
 - [ ] MakerWorld integration
 
 
-## Version 5 - Analytics
+## Version 6 - Analytics
 Advanced insights and reporting
 
 ### Feature: Graphs & Analytics

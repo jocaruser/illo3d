@@ -70,11 +70,21 @@ Piece (item being printed/sold):
   "notes": ""
 }
 
+Client:
+{
+  "id": 1,
+  "name": "Client Name",
+  "email": "",
+  "phone": "",
+  "notes": ""
+}
+
 Sale:
 {
   "id": 1,
   "date": "2026-01-04",
   "description": "Litopanes custom",
+  "clientId": 1,
   "pieces": [
     { "pieceId": 1, "quantity": 2 }
   ],
@@ -96,12 +106,13 @@ Database Structure:
   "filaments": [],
   "consumables": [],
   "pieces": [],
+  "clients": [],
   "sales": [],
   "kanban": []
 }
 
 ### Future Considerations
-- Client profiles (v2+)
+- Client profiles: see requirements.md Version 2
 - Filament weight tracking: calculate remaining grams by weighing (original weight vs current weight), in addition to usage-based tracking (v2+)
 
 ### [DRAFT] Features for v2+
@@ -111,12 +122,20 @@ Database Structure:
 - Save calculated pieces from budget calculator
 
 ### Next Steps
+- Define Client entity fields (contact, address, etc.) if needed
 - Design kanban entity schema
 - Create JSON Schema for database validation (docs/database-schema.json)
 - Design versioning strategy for database.json migrations
 - Decide: Inventory page - tabs vs separate pages (depends on data volume)
 - Choose kanban library (react-beautiful-dnd, dnd-kit, or react-trello)
 - Set up project structure
+
+### Backup strategy (data in Google Drive)
+- **Scope**: database.json (+ optionally .3mf references or a manifest); no traditional server, so backups are user/Drive-centric.
+- **We do the copies** — do not rely only on Drive version history; the app creates and manages backups.
+- **Export from app** — yes. Button to download database.json (and optionally a list of linked .3mf paths) to the user's device.
+- **Copy inside Drive** — yes. Timestamped copy (e.g. database.backup.2026-01-31.json) into a Backup folder in the same Drive. **Triggers (copy in Drive):** on demand (button), after save, others TBD (e.g. periodic, before major operations).
+- **Import / restore** — yes. User can upload a previously exported or backup JSON to replace current data. No merge for now; merge may be considered later.
 
 
 ## Restrictions

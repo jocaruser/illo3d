@@ -12,6 +12,7 @@
     "filaments": { "type": "array", "items": { "$ref": "#/$defs/Filament" } },
     "consumables": { "type": "array", "items": { "$ref": "#/$defs/Consumable" } },
     "pieces": { "type": "array", "items": { "$ref": "#/$defs/Piece" } },
+    "clients": { "type": "array", "items": { "$ref": "#/$defs/Client" } },
     "sales": { "type": "array", "items": { "$ref": "#/$defs/Sale" } },
     "kanban": { "type": "array", "description": "Kanban entity schema TBD", "items": { "type": "object" } }
   },
@@ -91,6 +92,17 @@
         "notes": { "type": "string" }
       }
     },
+    "Client": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    },
     "Sale": {
       "type": "object",
       "required": ["id", "date", "description", "pieces", "price", "totalCost", "profit"],
@@ -98,6 +110,7 @@
         "id": { "type": "integer" },
         "date": { "type": "string" },
         "description": { "type": "string" },
+        "clientId": { "type": "integer" },
         "pieces": {
           "type": "array",
           "items": {
