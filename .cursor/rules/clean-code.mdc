@@ -1,0 +1,12 @@
+---
+description: Clean code checklist (must follow)
+alwaysApply: true
+---
+
+# Clean code checklist
+
+- Use **Button** atom for all buttons (no raw `<button>`). Use **Input** and **Label** for form fields.
+- Export only what is needed; keep helpers and internal constants non-exported.
+- No duplicated patterns without a shared helper or a one-line comment explaining why.
+- Minimum change: do not refactor for clarity/style unless the user asks.
+- Before commit: tests pass; no raw button/input/label where atom fits; if adding context/shell/routing, add or update docs/architecture/ in the same commit.

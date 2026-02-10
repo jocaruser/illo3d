@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import { Button } from '../atoms/Button';
 import { NavLayout } from './NavLayout';
 import styles from './AppLayout.module.css';
 
@@ -34,12 +35,18 @@ export function AppLayout() {
               </li>
             ))}
           </ul>
-          <button type="button" onClick={onLogout}>
+          <Button variant="default" size="md" onClick={onLogout}>
             Log out
-          </button>
-          <button type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}>
+          </Button>
+          <Button
+            type="button"
+            variant="default"
+            size="md"
+            onClick={toggleTheme}
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+          >
             {theme === 'light' ? 'Dark' : 'Light'}
-          </button>
+          </Button>
         </NavLayout>
       </aside>
       <main className={styles.main}>

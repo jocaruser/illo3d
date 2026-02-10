@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useState } from 'react';
 
+// Pattern: stored context (key + getStored* + Provider + hook); shared helper not extracted to avoid over-engineering.
 const STORAGE_KEY = 'illo3d-token';
 
 type AuthContextValue = {

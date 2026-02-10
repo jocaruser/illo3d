@@ -108,7 +108,14 @@ Keep concise, track current project state only
 - Maintain entity relationship diagram for database structure
 - Maintain JSON Schema (docs/database-schema.json) for database validation
 - Keep diagrams in docs/architecture/ folder
-- Update diagrams and schema when adding/changing major components or entities
+- Update docs/architecture/ when adding/changing major components or flows (contexts, shell, auth, routing)
+
+### Clean code (must follow)
+- Use Button atom for all buttons; no raw <button>. Use Input and Label atoms for form fields. Do not add one-off styled elements that duplicate atom behaviour.
+- Export only what is needed (e.g. Provider + hook for contexts; the component for atoms). Keep helpers and internal constants non-exported.
+- If two or more modules share the same pattern, either extract a shared helper or add a one-line comment stating why duplication is intentional.
+- Change only what is required for the task. Do not refactor for clarity or style unless the user explicitly asks.
+- Before commit: run tests; confirm no raw <button>/<input>/<label> where an atom exists and fits; if the change adds a context, shell, or routing structure, add or update a diagram in docs/architecture/ in the same commit.
 
 ## Git Workflow
 

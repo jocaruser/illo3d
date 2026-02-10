@@ -7,6 +7,8 @@ alwaysApply: true
 
 Read these at the start of every task:
 
-- **.aidescription** — AI agent instructions, doc rules, code standards, Git workflow
+- **.aidescription** — AI agent instructions, doc rules, code standards, Git workflow (including "Clean code (must follow)")
 - **docs/context.txt** — Open conversations, restrictions, DB structure, next steps
 - **docs/requirements.md** — Feature checklist (when implementing features)
+
+Follow clean-code rules in .aidescription: use atoms consistently (no raw button/input/label); update docs/architecture/ when adding major structure.

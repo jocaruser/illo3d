@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
+// Pattern: stored context (key + getStored* + Provider + hook); shared helper not extracted to avoid over-engineering.
 const STORAGE_KEY = 'illo3d-theme';
 
 export type Theme = 'light' | 'dark';
