@@ -123,6 +123,9 @@ Keep concise, track current project state only
 - Run `npm run test:coverage` when touching tests or critical paths; coverage report in `coverage/` (see package.json scripts)
 - Recalculate and resummarize today's devlog entry (concise, high-level; no trivial details); include it in the same commit
 
+### After commit
+- Always push after committing. Never leave code only on local; push to the remote (e.g. origin) so work is backed up and visible.
+
 ### Commit Message Format
 Format: `type(scope): description`
 - Type: `feat` or `fix`
