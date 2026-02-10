@@ -85,16 +85,15 @@ Keep concise, track current project state only
 - Event handlers: use `on` prefix (e.g., onClick, onSubmit)
 
 ### File Organization
-- One component per file
-- Component filename matches component name (PascalCase)
-- Type/interface location TBD (will discuss structure later)
-- Always update docs/frontend-tree.md when adding, removing, or renaming files under src/ (atoms, layouts, pages)
-- Before adding a new atom or layout: check docs/frontend-tree.md and the codebase for an equivalent; if one might exist or overlap, ask the user for permission before adding
-- Do not add a new atom or layout without this check and explicit approval
+- One component per file; component filename matches component name (PascalCase)
+- Atoms, layouts, pages, and contexts: one per folder with `index.ts`; contexts must have co-located `.test.tsx` (same as atoms/layouts)
+- Always update docs/frontend-tree.md when adding, removing, or renaming under src/. In the tree, do not list files when the folder name already implies them (e.g. list `Button/` not the files inside)
+- Before adding a new atom, layout, or context: check docs/frontend-tree.md and the codebase for an equivalent; if one might exist or overlap, ask the user for permission. Do not add without this check and explicit approval
 
 ### Code Quality
 - No duplicated code - extract into reusable functions/components
-- Apply TDD (Test-Driven Development)
+- Always follow TDD: write or update the test first, then implement. Do not add a new atom, layout, or context without a co-located `.test.tsx` that passes
+- Frequently check for test warnings: run tests and inspect stderr/console; fix or suppress expected warnings (e.g. React error boundaries) so the suite stays clean
 - Refactor before committing
 - Don't patch bugs - debug root cause and fix properly
 - Clean, maintainable code over quick fixes
@@ -120,7 +119,8 @@ Keep concise, track current project state only
 ## Git Workflow
 
 ### Before commit
-- Run tests (must pass) before committing
+- Run tests (must pass) before committing; check for test warnings (stderr/console) and fix or document them
+- Run `npm run test:coverage` when touching tests or critical paths; coverage report in `coverage/` (see package.json scripts)
 - Recalculate and resummarize today's devlog entry (concise, high-level; no trivial details); include it in the same commit
 
 ### Commit Message Format

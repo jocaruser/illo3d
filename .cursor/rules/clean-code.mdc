@@ -5,8 +5,10 @@ alwaysApply: true
 
 # Clean code checklist
 
+- **TDD always**: Write or update the test first, then implement. No new atom, layout, or context without a co-located `.test.tsx` that passes.
 - Use **Button** atom for all buttons (no raw `<button>`). Use **Input** and **Label** for form fields.
+- Contexts: one per folder with `index.ts` and `.test.tsx` (same pattern as atoms/layouts).
 - Export only what is needed; keep helpers and internal constants non-exported.
 - No duplicated patterns without a shared helper or a one-line comment explaining why.
 - Minimum change: do not refactor for clarity/style unless the user asks.
-- Before commit: tests pass; no raw button/input/label where atom fits; if adding context/shell/routing, add or update docs/architecture/ in the same commit.
+- Before commit: tests pass; check for test warnings (stderr/console) and fix or suppress expected ones; run `test:coverage` when touching tests; no raw button/input/label where atom fits; if adding context/shell/routing, add or update docs/architecture/ in the same commit.

@@ -1,5 +1,9 @@
 # Project Context
 
+## Testing and coverage
+- **Tests**: `npm run test` (via Docker: `docker compose run --rm dev npm run test`). Check test output for warnings (stderr) and fix or suppress expected ones.
+- **Coverage**: `npm run test:coverage` writes report to `coverage/` (text summary, HTML, lcov). `coverage/` is gitignored. Run when touching tests or critical paths to keep track of coverage.
+
 ## Local / secrets (not committed, not in project)
 - **GH_TOKEN**: Store outside the project so Cursor agents cannot read it. Example: create `~/.config/illo3d/gh.env` with one line `GH_TOKEN=ghp_...`. When running gh in the dev container, use: `docker compose run --rm --env-file "$HOME/.config/illo3d/gh.env" dev gh run list` (or `gh run view`). Do not put the token in a file inside the project; agents can read any file in the workspace.
 
