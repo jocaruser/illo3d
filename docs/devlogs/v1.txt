@@ -61,3 +61,13 @@
 
 ### What's Unfinished
 - (Unchanged) GitHub Action tests; kanban; project structure
+
+## 2026-02-10
+
+### What We Accomplished
+- docs/mockups/ structure mirroring src/pages/ (HomePage, InventoryPage, BudgetPage)
+- HomePage mockups in repo; Inventory and Budget mockups added (light + dark each) with palette from design.md
+- README per mockup folder and docs/mockups/README.md updated with descriptions
+
+### What's Unfinished
+- (Unchanged) GitHub Action tests; kanban; project structure
