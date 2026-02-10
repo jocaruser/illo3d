@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useI18n } from '../../contexts/I18nContext';
 import { VerticalCenteredLayout } from '../../layouts/VerticalCenteredLayout';
 import { HorizontalCenteredLayout } from '../../layouts/HorizontalCenteredLayout';
 import { BoxLayout } from '../../layouts/BoxLayout';
@@ -10,6 +11,7 @@ import styles from './LoginPage.module.css';
 
 export function LoginPage() {
   const { login } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   function onPlaceholderLogin() {
@@ -22,10 +24,10 @@ export function LoginPage() {
       <HorizontalCenteredLayout>
         <BoxLayout>
           <ListLayout>
-            <h1 className={styles.heading}>Log in</h1>
+            <h1 className={styles.heading}>{t('auth.logIn')}</h1>
             <InputLayout>
               <Button variant="primary" onClick={onPlaceholderLogin}>
-                Log in (placeholder)
+                {t('auth.logInPlaceholder')}
               </Button>
             </InputLayout>
           </ListLayout>

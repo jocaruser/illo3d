@@ -5,10 +5,12 @@
 ```mermaid
 flowchart TB
   subgraph providers [Providers]
+    I18nProvider
     ThemeProvider
     AuthProvider
     BrowserRouter
   end
+  I18nProvider --> ThemeProvider
   ThemeProvider --> AuthProvider
   AuthProvider --> BrowserRouter
   BrowserRouter --> AppRoutes
@@ -56,3 +58,9 @@ flowchart LR
 
 - **Token key:** `illo3d-token` (AuthContext).
 - **Route protection:** No token → only `/login` renders LoginPage; all other paths redirect to `/login`. Token present → `/login` redirects to `/`; `/`, `/inventory`, `/budget` render AppLayout with Outlet.
+
+## Translations (i18n)
+
+- **I18nProvider** wraps the app; provides `t(key, params?)` via useI18n(). Locale files: `src/locales/en.json`, `es.json` (structure ready for Spanish; only EN filled for now).
+- **User-facing strings:** All UI copy goes through `t('key')`. Key names: `app.title`, `nav.*`, `auth.*`, `home.*`, `inventory.*`, `budget.*`.
+- **Configurable from data:** Currency, company name, markup, etc. come from database (e.g. company.currency) when loaded; do not use translation keys for those.

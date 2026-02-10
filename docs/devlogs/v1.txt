@@ -65,9 +65,8 @@
 ## 2026-02-10
 
 ### What We Accomplished
-- docs/mockups/ structure mirroring src/pages/ (HomePage, InventoryPage, BudgetPage)
-- HomePage mockups in repo; Inventory and Budget mockups added (light + dark each) with palette from design.md
-- README per mockup folder and docs/mockups/README.md updated with descriptions
+- docs/mockups/ structure mirroring src/pages/ (HomePage, InventoryPage, BudgetPage); mockups light + dark with palette
+- i18n: I18nContext, t(key), src/locales/en.json only (es removed; es locale falls back to en); all user-facing strings in layout and pages via t(); rules in .aidescription and clean-code.mdc; docs/context and architecture updated
 
 ### What's Unfinished
-- (Unchanged) GitHub Action tests; kanban; project structure
+- (Unchanged) GitHub Action tests; kanban; project structure. Login page mockup and implementation deferred.

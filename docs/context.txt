@@ -9,6 +9,10 @@
 
 ## Open Conversations
 
+### Translations (i18n)
+- Structure: src/locales/en.json, es.json; I18nContext with t(key) and optional params. Only English filled for now; es.json has same keys (ready for Spanish later).
+- User-facing strings via t(key); configurable values (currency, company name, etc.) from database/app state, not translation keys.
+
 ### Tech Stack Decisions
 - **Framework**: React
 - **UI Library**: PrimeReact (free tier); light and dark theme (e.g. Lara Light/Dark), user toggle, preference persisted

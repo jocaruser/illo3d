@@ -1,19 +1,21 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useI18n } from '../../contexts/I18nContext';
 import { Button } from '../../atoms/Button';
 import { NavLayout } from '../NavLayout';
 import styles from './AppLayout.module.css';
 
 const navItems = [
-  { to: '/', label: 'Home' },
-  { to: '/inventory', label: 'Inventory' },
-  { to: '/budget', label: 'Budget' },
+  { to: '/', labelKey: 'nav.home' as const },
+  { to: '/inventory', labelKey: 'nav.inventory' as const },
+  { to: '/budget', labelKey: 'nav.budget' as const },
 ];
 
 export function AppLayout() {
   const { theme, toggleTheme } = useTheme();
   const { logout } = useAuth();
+  const { t } = useI18n();
   const navigate = useNavigate();
 
   function onLogout() {
@@ -21,31 +23,33 @@ export function AppLayout() {
     navigate('/login');
   }
 
+  const themeLabel = theme === 'light' ? t('theme.dark') : t('theme.light');
+
   return (
     <div className={styles.root}>
       <aside className={styles.sidebar}>
         <NavLayout>
-          <h1>ILLO 3D</h1>
+          <h1>{t('app.title')}</h1>
           <ul className={styles.navLinks}>
-            {navItems.map(({ to, label }) => (
+            {navItems.map(({ to, labelKey }) => (
               <li key={to}>
                 <NavLink to={to} className={({ isActive }) => (isActive ? styles.active : '')} end={to === '/'}>
-                  {label}
+                  {t(labelKey)}
                 </NavLink>
               </li>
             ))}
           </ul>
           <Button variant="default" size="md" onClick={onLogout}>
-            Log out
+            {t('nav.logOut')}
           </Button>
           <Button
             type="button"
             variant="default"
             size="md"
             onClick={toggleTheme}
-            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
+            aria-label={t('nav.themeSwitch', { theme: themeLabel })}
           >
-            {theme === 'light' ? 'Dark' : 'Light'}
+            {themeLabel}
           </Button>
         </NavLayout>
       </aside>

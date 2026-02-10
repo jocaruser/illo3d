@@ -2,16 +2,19 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import { I18nProvider } from '../../contexts/I18nContext';
 import { AuthProvider } from '../../contexts/AuthContext';
 import { LoginPage } from './LoginPage';
 
 function renderLoginPage() {
   return render(
-    <AuthProvider>
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </AuthProvider>
+    </I18nProvider>
   );
 }
 

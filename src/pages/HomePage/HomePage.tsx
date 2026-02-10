@@ -1,8 +1,11 @@
+import { useI18n } from '../../contexts/I18nContext';
+
 export function HomePage() {
+  const { t } = useI18n();
   return (
     <main>
-      <h2>Home / Sales</h2>
-      <p>Sales list and new sale will go here.</p>
+      <h2>{t('home.title')}</h2>
+      <p>{t('home.description')}</p>
     </main>
   );
 }

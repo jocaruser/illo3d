@@ -1,0 +1,18 @@
+{
+  "app.title": "ILLO 3D",
+  "nav.home": "Home",
+  "nav.inventory": "Inventory",
+  "nav.budget": "Budget",
+  "nav.logOut": "Log out",
+  "nav.themeSwitch": "Switch to {{theme}} theme",
+  "theme.dark": "Dark",
+  "theme.light": "Light",
+  "auth.logIn": "Log in",
+  "auth.logInPlaceholder": "Log in (placeholder)",
+  "home.title": "Home / Sales",
+  "home.description": "Sales list and new sale will go here.",
+  "inventory.title": "Inventory",
+  "inventory.description": "Filaments, consumables, printers will go here.",
+  "budget.title": "Budget Calculator",
+  "budget.description": "Calculator will go here."
+}

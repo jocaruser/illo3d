@@ -1,23 +1,26 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { I18nProvider } from '../../contexts/I18nContext';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 import { AuthProvider } from '../../contexts/AuthContext';
 import { AppLayout } from './AppLayout';
 
 function renderAppLayout() {
   return render(
-    <ThemeProvider>
-      <AuthProvider>
-        <MemoryRouter initialEntries={['/']}>
+    <I18nProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <MemoryRouter initialEntries={['/']}>
           <Routes>
             <Route path="/" element={<AppLayout />}>
               <Route index element={<div>Home content</div>} />
             </Route>
           </Routes>
         </MemoryRouter>
-      </AuthProvider>
-    </ThemeProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </I18nProvider>
   );
 }
 

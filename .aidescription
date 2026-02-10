@@ -109,6 +109,10 @@ Keep concise, track current project state only
 - Keep diagrams in docs/architecture/ folder
 - Update docs/architecture/ when adding/changing major components or flows (contexts, shell, auth, routing)
 
+### Translations
+- User-facing strings: all text visible to the user (labels, buttons, headings, aria-labels, placeholders) must come from the translation function t(key) or from configurable data (e.g. company.currency, company.name from database). No raw literal strings in JSX for user-facing copy.
+- When adding new UI copy, add the key to locale JSON (en first) and use t('key') in the component. Key naming: app.*, nav.*, auth.*, home.*, inventory.*, budget.*, etc.
+
 ### Clean code (must follow)
 - Use Button atom for all buttons; no raw <button>. Use Input and Label atoms for form fields. Do not add one-off styled elements that duplicate atom behaviour.
 - Export only what is needed (e.g. Provider + hook for contexts; the component for atoms). Keep helpers and internal constants non-exported.

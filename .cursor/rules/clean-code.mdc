@@ -7,6 +7,7 @@ alwaysApply: true
 
 - **TDD always**: Write or update the test first, then implement. No new atom, layout, or context without a co-located `.test.tsx` that passes.
 - Use **Button** atom for all buttons (no raw `<button>`). Use **Input** and **Label** for form fields.
+- **Translations**: User-facing text only via t(key); configurable values (currency, company name, etc.) from app/database, not hardcoded.
 - Contexts: one per folder with `index.ts` and `.test.tsx` (same pattern as atoms/layouts).
 - Export only what is needed; keep helpers and internal constants non-exported.
 - No duplicated patterns without a shared helper or a one-line comment explaining why.

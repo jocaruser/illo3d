@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { I18nProvider } from './contexts/I18nContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AppLayout } from './layouts/AppLayout';
 import { HomePage } from './pages/HomePage';
@@ -24,13 +25,15 @@ function AppRoutes() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
-      </AuthProvider>
-    </ThemeProvider>
+    <I18nProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </AuthProvider>
+      </ThemeProvider>
+    </I18nProvider>
   );
 }
 
