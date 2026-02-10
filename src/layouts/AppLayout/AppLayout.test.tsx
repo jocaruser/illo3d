@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from '../contexts/ThemeContext';
-import { AuthProvider } from '../contexts/AuthContext';
+import { ThemeProvider } from '../../contexts/ThemeContext';
+import { AuthProvider } from '../../contexts/AuthContext';
 import { AppLayout } from './AppLayout';
 
 function renderAppLayout() {

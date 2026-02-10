@@ -28,4 +28,22 @@ describe('Button', () => {
     await user.click(screen.getByRole('button', { name: 'Submit' }));
     expect(onClick).not.toHaveBeenCalled();
   });
+
+  it('applies variant and size classes', () => {
+    const { container } = render(
+      <Button variant="primary" size="lg">
+        Save
+      </Button>
+    );
+    const btn = container.querySelector('button');
+    expect(btn?.className).toMatch(/primary/);
+    expect(btn?.className).toMatch(/lg/);
+  });
+
+  it('defaults to default variant and md size', () => {
+    const { container } = render(<Button>OK</Button>);
+    const btn = container.querySelector('button');
+    expect(btn?.className).toMatch(/default/);
+    expect(btn?.className).toMatch(/md/);
+  });
 });

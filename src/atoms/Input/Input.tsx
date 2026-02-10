@@ -1,3 +1,4 @@
+import type { ChangeEvent } from 'react';
 import styles from './Input.module.css';
 
 type InputProps = {
@@ -19,8 +20,9 @@ export function Input({
     <input
       id={id}
       type={type}
-      value={value}
-      onChange={onChange ? (e) => onChange(e.target.value) : undefined}
+      {...(onChange !== undefined
+        ? { value, onChange: (e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value) }
+        : { defaultValue: value })}
       placeholder={placeholder}
       aria-label={placeholder ?? id}
       className={styles.root}

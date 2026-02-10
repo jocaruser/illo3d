@@ -17,27 +17,55 @@ src/
 │   ├── AuthContext.tsx
 │   └── ThemeContext.tsx
 ├── atoms/
-│   ├── Button.tsx, Button.module.css, Button.test.tsx
-│   ├── Input.tsx, Input.module.css, Input.test.tsx
-│   └── Label.tsx, Label.module.css, Label.test.tsx
+│   ├── Button/
+│   │   ├── Button.tsx, Button.module.css, Button.test.tsx
+│   │   └── index.ts
+│   ├── Input/
+│   │   ├── Input.tsx, Input.module.css, Input.test.tsx
+│   │   └── index.ts
+│   └── Label/
+│       ├── Label.tsx, Label.module.css, Label.test.tsx
+│       └── index.ts
 ├── layouts/
-│   ├── AppLayout.tsx, AppLayout.module.css, AppLayout.test.tsx
-│   ├── NavLayout.tsx, NavLayout.module.css, NavLayout.test.tsx
-│   ├── VerticalCenteredLayout.tsx, .module.css, .test.tsx
-│   ├── HorizontalCenteredLayout.tsx, .module.css, .test.tsx
-│   ├── BoxLayout.tsx, .module.css, .test.tsx
-│   ├── ListLayout.tsx, .module.css, .test.tsx
-│   └── InputLayout.tsx, .module.css, .test.tsx
+│   ├── AppLayout/
+│   │   ├── AppLayout.tsx, AppLayout.module.css, AppLayout.test.tsx
+│   │   └── index.ts
+│   ├── NavLayout/
+│   │   ├── NavLayout.tsx, NavLayout.module.css, NavLayout.test.tsx
+│   │   └── index.ts
+│   ├── VerticalCenteredLayout/
+│   │   ├── VerticalCenteredLayout.tsx, .module.css, .test.tsx
+│   │   └── index.ts
+│   ├── HorizontalCenteredLayout/
+│   │   ├── HorizontalCenteredLayout.tsx, .module.css, .test.tsx
+│   │   └── index.ts
+│   ├── BoxLayout/
+│   │   ├── BoxLayout.tsx, .module.css, .test.tsx
+│   │   └── index.ts
+│   ├── ListLayout/
+│   │   ├── ListLayout.tsx, .module.css, .test.tsx
+│   │   └── index.ts
+│   └── InputLayout/
+│       ├── InputLayout.tsx, .module.css, .test.tsx
+│       └── index.ts
 └── pages/
-    ├── HomePage.tsx
-    ├── InventoryPage.tsx
-    ├── BudgetPage.tsx
-    └── LoginPage.tsx, LoginPage.module.css, LoginPage.test.tsx
+    ├── HomePage/
+    │   ├── HomePage.tsx
+    │   └── index.ts
+    ├── InventoryPage/
+    │   ├── InventoryPage.tsx
+    │   └── index.ts
+    ├── BudgetPage/
+    │   ├── BudgetPage.tsx
+    │   └── index.ts
+    └── LoginPage/
+        ├── LoginPage.tsx, LoginPage.module.css, LoginPage.test.tsx
+        └── index.ts
 ```
 
 ## Conventions
 
-- **Atoms**: Smallest UI primitives (Button, Input, Label). One component per file; co-located `.module.css` and `.test.tsx`.
-- **Layouts**: Structure and spacing only (AppLayout, NavLayout, VerticalCenteredLayout, etc.). Use as building blocks; do not add logic.
+- **Atoms**: Smallest UI primitives (Button, Input, Label). One component per folder; co-located `.module.css` and `.test.tsx`, with `index.ts` as the public export. Button has `variant` (primary, secondary, default) and `size` (sm, md, lg) and uses the design palette (CSS variables).
+- **Layouts**: Structure and spacing only (AppLayout, NavLayout, VerticalCenteredLayout, etc.). One layout per folder with `index.ts`. Use as building blocks; do not add logic.
 - **Contexts**: Theme (ThemeContext) for light/dark and persistence; Auth (AuthContext) for login state and dummy token.
-- **Pages**: Screen-level components; compose atoms and layouts only.
+- **Pages**: Screen-level components; one page per folder with `index.ts`; compose atoms and layouts only.

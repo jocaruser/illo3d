@@ -1,8 +1,8 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
-import { useTheme } from '../contexts/ThemeContext';
-import { useAuth } from '../contexts/AuthContext';
-import { Button } from '../atoms/Button';
-import { NavLayout } from './NavLayout';
+import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { Button } from '../../atoms/Button';
+import { NavLayout } from '../NavLayout';
 import styles from './AppLayout.module.css';
 
 const navItems = [
