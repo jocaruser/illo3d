@@ -1,4 +1,4 @@
-import styles from './Button.module.css';
+import { Button as PrimeButton } from 'primereact/button';
 
 type ButtonVariant = 'primary' | 'secondary' | 'default';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -13,6 +13,18 @@ type ButtonProps = {
   children: React.ReactNode;
 };
 
+const severityMap: Record<ButtonVariant, 'success' | 'secondary' | undefined> = {
+  primary: 'success',
+  secondary: 'secondary',
+  default: undefined,
+};
+
+const sizeMap: Record<ButtonSize, 'small' | 'large' | undefined> = {
+  sm: 'small',
+  md: undefined,
+  lg: 'large',
+};
+
 export function Button({
   type = 'button',
   disabled = false,
@@ -22,16 +34,16 @@ export function Button({
   'aria-label': ariaLabel,
   children,
 }: ButtonProps) {
-  const className = [styles.root, styles[variant], styles[size]].join(' ');
   return (
-    <button
+    <PrimeButton
       type={type}
       disabled={disabled}
       onClick={onClick}
-      className={className}
+      severity={severityMap[variant]}
+      size={sizeMap[size]}
       aria-label={ariaLabel}
     >
       {children}
-    </button>
+    </PrimeButton>
   );
 }

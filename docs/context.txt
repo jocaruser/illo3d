@@ -15,7 +15,7 @@
 
 ### Tech Stack Decisions
 - **Framework**: React
-- **UI Library**: PrimeReact (free tier); light and dark theme (e.g. Lara Light/Dark), user toggle, preference persisted
+- **UI Library**: PrimeReact (installed and in use); Lara Light/Dark theme, user toggle, preference persisted. Atoms (Button, Input, Checkbox) and TabsLayout/DataTable use PrimeReact components.
 - **App Type**: PWA (Progressive Web App)
 - **Hosting**: GitHub Pages
 - **Backend**: Google Drive API for storage

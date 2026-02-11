@@ -17,13 +17,16 @@ src/
 │   └── setup.ts
 ├── contexts/
 │   ├── I18nContext/
+│   ├── InventoryContext/
 │   ├── ThemeContext/
 │   └── AuthContext/
 ├── locales/
-│   ├── en.json
-│   └── es.json
+│   └── en.json
+├── types/
+│   └── inventory.ts
 ├── atoms/
 │   ├── Button/
+│   ├── Checkbox/
 │   ├── Input/
 │   └── Label/
 ├── layouts/
@@ -33,7 +36,8 @@ src/
 │   ├── HorizontalCenteredLayout/
 │   ├── BoxLayout/
 │   ├── ListLayout/
-│   └── InputLayout/
+│   ├── InputLayout/
+│   └── TabsLayout/
 └── pages/
     ├── HomePage/
     ├── InventoryPage/
@@ -43,7 +47,7 @@ src/
 
 ## Conventions
 
-- **Atoms**: Smallest UI primitives. One component per folder; co-located `.module.css` and `.test.tsx`; `index.ts` as public export. Button has `variant` and `size`; use design palette (CSS variables).
-- **Layouts**: Structure and spacing only. One per folder with `index.ts`. Use as building blocks; do not add logic.
-- **Contexts**: One context per folder with `index.ts` and `.test.tsx`. I18nContext (locale, t(key)); ThemeContext (light/dark, persistence); AuthContext (login state, dummy token).
+- **Atoms**: Smallest UI primitives. One component per folder; co-located `.module.css` and `.test.tsx`; `index.ts` as public export. Button, Input, Checkbox implemented with PrimeReact (thin wrappers); Label unchanged. Use design palette (CSS variables) where applicable.
+- **Layouts**: Structure and spacing only. One per folder with `index.ts`. TabsLayout uses PrimeReact TabView (tab strip only; panel area hidden). Inventory tables use PrimeReact DataTable in the page; no TableLayout. Use as building blocks; do not add logic.
+- **Contexts**: One context per folder with `index.ts` and `.test.tsx`. I18nContext (locale, t(key)); InventoryContext (printers, filaments, consumables, CRUD); ThemeContext (light/dark, persistence); AuthContext (login state, dummy token).
 - **Pages**: Screen-level; one per folder with `index.ts`; compose atoms and layouts only.

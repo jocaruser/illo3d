@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
+import { PrimeReactProvider } from 'primereact/api';
 import { I18nProvider } from '../../contexts/I18nContext';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 import { AuthProvider } from '../../contexts/AuthContext';
@@ -10,15 +11,17 @@ function renderAppLayout() {
   return render(
     <I18nProvider>
       <ThemeProvider>
-        <AuthProvider>
-          <MemoryRouter initialEntries={['/']}>
-          <Routes>
-            <Route path="/" element={<AppLayout />}>
-              <Route index element={<div>Home content</div>} />
-            </Route>
-          </Routes>
-        </MemoryRouter>
-        </AuthProvider>
+        <PrimeReactProvider>
+          <AuthProvider>
+            <MemoryRouter initialEntries={['/']}>
+            <Routes>
+              <Route path="/" element={<AppLayout />}>
+                <Route index element={<div>Home content</div>} />
+              </Route>
+            </Routes>
+          </MemoryRouter>
+          </AuthProvider>
+        </PrimeReactProvider>
       </ThemeProvider>
     </I18nProvider>
   );

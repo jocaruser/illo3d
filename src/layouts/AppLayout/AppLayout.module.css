@@ -34,6 +34,13 @@
 
 .navLinks a.active {
   font-weight: 600;
+  color: var(--color-secondary);
+  background: rgba(var(--color-secondary-rgb), 0.12);
+  border-radius: 4px;
+  padding-left: 0.5rem;
+  margin-left: -0.5rem;
+  padding-right: 0.5rem;
+  margin-right: -0.5rem;
 }
 
 .main {

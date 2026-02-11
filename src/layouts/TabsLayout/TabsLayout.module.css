@@ -1,0 +1,8 @@
+.tabStrip {
+  margin-bottom: 1rem;
+}
+
+/* Show only tab headers; hide panel content (content is rendered by page) */
+.tabStrip :global(.p-tabview-panels) {
+  display: none;
+}

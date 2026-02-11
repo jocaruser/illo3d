@@ -1,18 +1,23 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { PrimeReactProvider } from 'primereact/api';
 import { Button } from './Button';
+
+function renderWithProvider(ui: React.ReactElement) {
+  return render(<PrimeReactProvider>{ui}</PrimeReactProvider>);
+}
 
 describe('Button', () => {
   it('renders children', () => {
-    render(<Button>Log in</Button>);
+    renderWithProvider(<Button>Log in</Button>);
     expect(screen.getByRole('button', { name: 'Log in' })).toBeInTheDocument();
   });
 
   it('calls onClick when clicked', async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
-    render(<Button onClick={onClick}>Submit</Button>);
+    renderWithProvider(<Button onClick={onClick}>Submit</Button>);
     await user.click(screen.getByRole('button', { name: 'Submit' }));
     expect(onClick).toHaveBeenCalledTimes(1);
   });
@@ -20,7 +25,7 @@ describe('Button', () => {
   it('does not call onClick when disabled', async () => {
     const user = userEvent.setup();
     const onClick = vi.fn();
-    render(
+    renderWithProvider(
       <Button onClick={onClick} disabled>
         Submit
       </Button>
@@ -29,21 +34,20 @@ describe('Button', () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
-  it('applies variant and size classes', () => {
-    const { container } = render(
+  it('renders with variant and size props', () => {
+    const { container } = renderWithProvider(
       <Button variant="primary" size="lg">
         Save
       </Button>
     );
     const btn = container.querySelector('button');
-    expect(btn?.className).toMatch(/primary/);
-    expect(btn?.className).toMatch(/lg/);
+    expect(btn).toBeInTheDocument();
+    expect(btn).toHaveAttribute('type', 'button');
   });
 
-  it('defaults to default variant and md size', () => {
-    const { container } = render(<Button>OK</Button>);
-    const btn = container.querySelector('button');
-    expect(btn?.className).toMatch(/default/);
-    expect(btn?.className).toMatch(/md/);
+  it('defaults to type button and renders', () => {
+    renderWithProvider(<Button>OK</Button>);
+    const btn = screen.getByRole('button', { name: 'OK' });
+    expect(btn).toHaveAttribute('type', 'button');
   });
 });

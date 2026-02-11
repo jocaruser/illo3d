@@ -7,11 +7,13 @@ flowchart TB
   subgraph providers [Providers]
     I18nProvider
     ThemeProvider
+    PrimeReactProvider
     AuthProvider
     BrowserRouter
   end
   I18nProvider --> ThemeProvider
-  ThemeProvider --> AuthProvider
+  ThemeProvider --> PrimeReactProvider
+  PrimeReactProvider --> AuthProvider
   AuthProvider --> BrowserRouter
   BrowserRouter --> AppRoutes
 
@@ -64,3 +66,8 @@ flowchart LR
 - **I18nProvider** wraps the app; provides `t(key, params?)` via useI18n(). Locale files: `src/locales/en.json`, `es.json` (structure ready for Spanish; only EN filled for now).
 - **User-facing strings:** All UI copy goes through `t('key')`. Key names: `app.title`, `nav.*`, `auth.*`, `home.*`, `inventory.*`, `budget.*`.
 - **Configurable from data:** Currency, company name, markup, etc. come from database (e.g. company.currency) when loaded; do not use translation keys for those.
+
+## UI stack
+
+- **PrimeReact** (Lara theme, light/dark via ThemeContext). **PrimeReactProvider** wraps the app; theme CSS is loaded by `PrimeReactThemeLink` from ThemeProvider.
+- **Atoms** (Button, Input, Checkbox) are thin wrappers over PrimeReact; Label unchanged. **TabsLayout** uses TabView (tab strip only). **Inventory tables** use DataTable on the page; TableLayout was removed.

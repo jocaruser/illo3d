@@ -6,20 +6,36 @@
 
 [data-theme="light"] {
   --color-primary: #2e8b57;
+  --color-primary-rgb: 46, 139, 87;
   --color-secondary: #1e90ff;
+  --color-secondary-rgb: 30, 144, 255;
   --color-accent: #cc7a00;
   --color-text: #1a1a1a;
   --color-background: #ffffff;
+  --color-surface: #f5f5f5;
   --color-border: #e0e0e0;
+  /* PrimeReact Lara: align with project palette */
+  --p-primary-500: #2e8b57;
+  --p-primary-color: #2e8b57;
+  --p-highlight-500: #1e90ff;
+  --p-highlight-color: #1e90ff;
 }
 
 [data-theme="dark"] {
   --color-primary: #2e8b57;
+  --color-primary-rgb: 46, 139, 87;
   --color-secondary: #1e90ff;
+  --color-secondary-rgb: 30, 144, 255;
   --color-accent: #b8860b;
   --color-text: #e8e8e8;
   --color-background: #2d2d2d;
+  --color-surface: #3a3a3a;
   --color-border: #555555;
+  /* PrimeReact Lara dark: align with project palette */
+  --p-primary-500: #2e8b57;
+  --p-primary-color: #2e8b57;
+  --p-highlight-500: #1e90ff;
+  --p-highlight-color: #1e90ff;
 }
 
 body {

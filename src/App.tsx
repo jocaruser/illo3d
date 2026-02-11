@@ -1,12 +1,21 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ThemeProvider } from './contexts/ThemeContext';
+import { PrimeReactProvider } from 'primereact/api';
+import lightThemeUrl from 'primereact/resources/themes/lara-light-blue/theme.css?url';
+import darkThemeUrl from 'primereact/resources/themes/lara-dark-blue/theme.css?url';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { I18nProvider } from './contexts/I18nContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { InventoryProvider } from './contexts/InventoryContext';
 import { AppLayout } from './layouts/AppLayout';
 import { HomePage } from './pages/HomePage';
 import { InventoryPage } from './pages/InventoryPage';
 import { BudgetPage } from './pages/BudgetPage';
 import { LoginPage } from './pages/LoginPage';
+
+function PrimeReactThemeLink() {
+  const { theme } = useTheme();
+  return <link rel="stylesheet" href={theme === 'dark' ? darkThemeUrl : lightThemeUrl} />;
+}
 
 function AppRoutes() {
   const { isLoggedIn } = useAuth();
@@ -27,11 +36,16 @@ function App() {
   return (
     <I18nProvider>
       <ThemeProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </AuthProvider>
+        <PrimeReactThemeLink />
+        <PrimeReactProvider>
+          <AuthProvider>
+            <InventoryProvider>
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            </InventoryProvider>
+          </AuthProvider>
+        </PrimeReactProvider>
       </ThemeProvider>
     </I18nProvider>
   );

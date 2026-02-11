@@ -1,5 +1,4 @@
-import type { ChangeEvent } from 'react';
-import styles from './Input.module.css';
+import { InputText } from 'primereact/inputtext';
 
 type InputProps = {
   id: string;
@@ -17,15 +16,14 @@ export function Input({
   placeholder,
 }: InputProps) {
   return (
-    <input
+    <InputText
       id={id}
       type={type}
-      {...(onChange !== undefined
-        ? { value, onChange: (e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value) }
-        : { defaultValue: value })}
+      value={value}
+      onChange={onChange ? (e) => onChange(e.target.value) : undefined}
       placeholder={placeholder}
       aria-label={placeholder ?? id}
-      className={styles.root}
+      className="w-full"
     />
   );
 }

@@ -66,7 +66,8 @@
 
 ### What We Accomplished
 - docs/mockups/ structure mirroring src/pages/ (HomePage, InventoryPage, BudgetPage); mockups light + dark with palette
-- i18n: I18nContext, t(key), src/locales/en.json only (es removed; es locale falls back to en); all user-facing strings in layout and pages via t(); rules in .aidescription and clean-code.mdc; docs/context and architecture updated
+- i18n: I18nContext, t(key), src/locales/en.json only; user-facing strings via t(); rules and docs updated
+- PrimeReact: primereact + primeicons; Lara theme (light/dark); Button, Input, Checkbox as thin wrappers; TabsLayout with TabView; InventoryPage tables with DataTable; TableLayout removed; docs/architecture and frontend-tree updated
 
 ### What's Unfinished
 - (Unchanged) GitHub Action tests; kanban; project structure. Login page mockup and implementation deferred.
