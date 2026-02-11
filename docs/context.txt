@@ -15,6 +15,7 @@
 
 ### Tech Stack Decisions
 - **Framework**: React
+- **Auth**: Google OAuth via Google Identity Services (GIS); "Sign in with Google" on LoginPage. Client ID from env (`VITE_GOOGLE_CLIENT_ID`). ID token stored for session; no backend verification. Access token for Drive API will be added when integrating Drive.
 - **UI Library**: PrimeReact (installed and in use); Lara Light/Dark theme, user toggle, preference persisted. Atoms (Button, Input, Checkbox) and TabsLayout/DataTable use PrimeReact components.
 - **App Type**: PWA (Progressive Web App)
 - **Hosting**: GitHub Pages

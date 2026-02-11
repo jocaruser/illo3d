@@ -68,6 +68,7 @@
 - docs/mockups/ structure mirroring src/pages/ (HomePage, InventoryPage, BudgetPage); mockups light + dark with palette
 - i18n: I18nContext, t(key), src/locales/en.json only; user-facing strings via t(); rules and docs updated
 - PrimeReact: primereact + primeicons; Lara theme (light/dark); Button, Input, Checkbox as thin wrappers; TabsLayout with TabView; InventoryPage tables with DataTable; TableLayout removed; docs/architecture and frontend-tree updated
+- Auth: Sign in with Google via Google Identity Services (GIS); @react-oauth/google, client ID from VITE_GOOGLE_CLIENT_ID; LoginPage button and callback save ID token and navigate to /; AuthContext logout calls googleLogout; docs/architecture (app-shell-and-auth) and context.txt updated
 
 ### What's Unfinished
-- (Unchanged) GitHub Action tests; kanban; project structure. Login page mockup and implementation deferred.
+- (Unchanged) GitHub Action tests; kanban; project structure. Login page mockup deferred.

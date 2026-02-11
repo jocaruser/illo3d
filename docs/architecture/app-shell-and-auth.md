@@ -45,9 +45,9 @@ flowchart LR
   subgraph unauthenticated [Unauthenticated]
     A[User visits any path] --> B[Redirect to /login]
     B --> C[LoginPage]
-    C --> D[User clicks placeholder login]
-    D --> E[Save dummy token to localStorage]
-    E --> F[Navigate to /]
+    C --> D[User clicks Sign in with Google]
+    D --> E[GIS returns credential]
+    E --> F[Save token, navigate to /]
   end
 
   subgraph authenticated [Authenticated]
@@ -58,6 +58,7 @@ flowchart LR
   end
 ```
 
+- **Authentication:** Google Identity Services (GIS), client-only. User clicks "Sign in with Google" → GIS returns ID token → stored for session. No backend verification. Authorization (e.g. Drive access token) will be added when integrating Drive API.
 - **Token key:** `illo3d-token` (AuthContext).
 - **Route protection:** No token → only `/login` renders LoginPage; all other paths redirect to `/login`. Token present → `/login` redirects to `/`; `/`, `/inventory`, `/budget` render AppLayout with Outlet.
 

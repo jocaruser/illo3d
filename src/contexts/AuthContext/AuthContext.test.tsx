@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AuthProvider, useAuth } from './AuthContext';
 
+vi.mock('@react-oauth/google', () => ({ googleLogout: vi.fn() }));
+
 function AuthConsumer() {
   const { isLoggedIn, login, logout } = useAuth();
   return (

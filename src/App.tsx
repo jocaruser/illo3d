@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { PrimeReactProvider } from 'primereact/api';
 import lightThemeUrl from 'primereact/resources/themes/lara-light-blue/theme.css?url';
 import darkThemeUrl from 'primereact/resources/themes/lara-dark-blue/theme.css?url';
@@ -38,13 +39,15 @@ function App() {
       <ThemeProvider>
         <PrimeReactThemeLink />
         <PrimeReactProvider>
-          <AuthProvider>
-            <InventoryProvider>
-              <BrowserRouter>
-                <AppRoutes />
-              </BrowserRouter>
-            </InventoryProvider>
-          </AuthProvider>
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''}>
+            <AuthProvider>
+              <InventoryProvider>
+                <BrowserRouter>
+                  <AppRoutes />
+                </BrowserRouter>
+              </InventoryProvider>
+            </AuthProvider>
+          </GoogleOAuthProvider>
         </PrimeReactProvider>
       </ThemeProvider>
     </I18nProvider>

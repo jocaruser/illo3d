@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useState } from 'react';
+import { googleLogout } from '@react-oauth/google';
 
 // Pattern: stored context (key + getStored* + Provider + hook); shared helper not extracted to avoid over-engineering.
 const STORAGE_KEY = 'illo3d-token';
@@ -26,6 +27,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     setToken(null);
     localStorage.removeItem(STORAGE_KEY);
+    googleLogout();
   }, []);
 
   return (
