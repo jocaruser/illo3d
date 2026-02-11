@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 import { I18nProvider } from '../../contexts/I18nContext';
 import { AuthProvider } from '../../contexts/AuthContext';
+import { DriveProvider } from '../../contexts/DriveContext';
 import { LoginPage } from './LoginPage';
 
 const mockNavigate = vi.hoisted(() => vi.fn());
@@ -13,6 +14,7 @@ vi.mock('react-router-dom', async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
+const mockDriveOnSuccess = vi.hoisted(() => vi.fn());
 vi.mock('@react-oauth/google', () => ({
   GoogleOAuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   GoogleLogin: ({
@@ -30,6 +32,13 @@ vi.mock('@react-oauth/google', () => ({
       Sign in with Google
     </button>
   ),
+  useGoogleOneTapLogin: () => {},
+  useGoogleLogin: (opts: { onSuccess: (r: { access_token: string }) => void }) => {
+    return () => {
+      opts.onSuccess({ access_token: 'mock-drive-token' });
+      mockDriveOnSuccess();
+    };
+  },
   googleLogout: vi.fn(),
 }));
 
@@ -38,9 +47,11 @@ function renderLoginPage() {
     <I18nProvider>
       <PrimeReactProvider>
         <AuthProvider>
-          <MemoryRouter>
-            <LoginPage />
-          </MemoryRouter>
+          <DriveProvider>
+            <MemoryRouter>
+              <LoginPage />
+            </MemoryRouter>
+          </DriveProvider>
         </AuthProvider>
       </PrimeReactProvider>
     </I18nProvider>
@@ -59,11 +70,12 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: 'Sign in with Google' })).toBeInTheDocument();
   });
 
-  it('calls login with credential and navigates to / when Google sign-in succeeds', async () => {
+  it('calls login with credential, requests Drive, then navigates to / when Drive ready', async () => {
     const user = userEvent.setup();
     renderLoginPage();
     await user.click(screen.getByRole('button', { name: 'Sign in with Google' }));
     expect(localStorage.getItem('illo3d-token')).toBe('mock-google-token');
+    expect(mockDriveOnSuccess).toHaveBeenCalled();
     expect(mockNavigate).toHaveBeenCalledWith('/');
   });
 });

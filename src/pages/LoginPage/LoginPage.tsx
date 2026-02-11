@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDrive } from '../../contexts/DriveContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { VerticalCenteredLayout } from '../../layouts/VerticalCenteredLayout';
 import { HorizontalCenteredLayout } from '../../layouts/HorizontalCenteredLayout';
@@ -11,25 +12,47 @@ import { InputLayout } from '../../layouts/InputLayout';
 import styles from './LoginPage.module.css';
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, isLoggedIn } = useAuth();
+  const { isDriveReady, requestDriveAccess, driveError, clearDriveError } = useDrive();
   const { t } = useI18n();
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const hasRequestedDriveRef = useRef(false);
 
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   function onSuccess(credentialResponse: { credential?: string }) {
     setError(null);
+    clearDriveError();
     const token = credentialResponse.credential;
     if (token) {
       login(token);
-      navigate('/');
+      hasRequestedDriveRef.current = false;
     }
   }
 
   function onError() {
     setError(t('auth.errorSignIn'));
   }
+
+  useGoogleOneTapLogin({
+    onSuccess,
+    onError,
+    disabled: !!isLoggedIn,
+  });
+
+  useEffect(() => {
+    if (!isLoggedIn || isDriveReady) return;
+    if (hasRequestedDriveRef.current) return;
+    hasRequestedDriveRef.current = true;
+    requestDriveAccess();
+  }, [isLoggedIn, isDriveReady, requestDriveAccess]);
+
+  useEffect(() => {
+    if (isLoggedIn && isDriveReady) {
+      navigate('/');
+    }
+  }, [isLoggedIn, isDriveReady, navigate]);
 
   if (!clientId) {
     return (
@@ -54,6 +77,11 @@ export function LoginPage() {
         <BoxLayout>
           <ListLayout>
             <h1 className={styles.heading}>{t('auth.logIn')}</h1>
+            {isLoggedIn && !isDriveReady && (
+              <p className={styles.message} role="status">
+                {t('drive.grantAccess')}
+              </p>
+            )}
             <InputLayout>
               <GoogleLogin
                 onSuccess={onSuccess}
@@ -62,6 +90,11 @@ export function LoginPage() {
                 size="large"
               />
             </InputLayout>
+            {driveError && (
+              <p className={styles.error} role="alert">
+                {driveError}
+              </p>
+            )}
             {error && <p className={styles.error} role="alert">{error}</p>}
           </ListLayout>
         </BoxLayout>

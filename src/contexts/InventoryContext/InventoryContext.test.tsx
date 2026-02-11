@@ -92,6 +92,27 @@ describe('InventoryContext', () => {
     expect(result.current.printers).toHaveLength(0);
   });
 
+  it('loadFromDatabase replaces printers, filaments, consumables', () => {
+    const { result } = renderHook(() => useInventory(), { wrapper });
+    const db = {
+      version: '1.0.0',
+      company: { name: '', defaultMarkup: 1.1, currency: '€', taxRate: 0 },
+      printers: [{ id: 1, name: 'P1', maxFilaments: 2, powerCost: 0 }],
+      filaments: [],
+      consumables: [{ id: 1, name: 'C1', purchaseDate: '2026-01-01', quantity: 1, totalCost: 1, pricePerUnit: 1, depleted: false }],
+      pieces: [],
+      clients: [],
+      sales: [],
+      kanban: [],
+    };
+    act(() => result.current.loadFromDatabase(db));
+    expect(result.current.printers).toHaveLength(1);
+    expect(result.current.printers[0].name).toBe('P1');
+    expect(result.current.consumables).toHaveLength(1);
+    expect(result.current.consumables[0].name).toBe('C1');
+    expect(result.current.filaments).toHaveLength(0);
+  });
+
   it('useInventory throws when used outside InventoryProvider', () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     expect(() => renderHook(() => useInventory())).toThrow(

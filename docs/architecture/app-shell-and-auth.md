@@ -58,7 +58,7 @@ flowchart LR
   end
 ```
 
-- **Authentication:** Google Identity Services (GIS), client-only. User clicks "Sign in with Google" → GIS returns ID token → stored for session. No backend verification. Authorization (e.g. Drive access token) will be added when integrating Drive API.
+- **Authentication:** Google Identity Services (GIS), client-only. LoginPage uses One Tap and a "Sign in with Google" button; after sign-in, Drive scope is requested and the app navigates to / when Drive access is granted. ID token stored for session; Drive access token in DriveContext (cleared on logout). No backend verification.
 - **Token key:** `illo3d-token` (AuthContext).
 - **Route protection:** No token → only `/login` renders LoginPage; all other paths redirect to `/login`. Token present → `/login` redirects to `/`; `/`, `/inventory`, `/budget` render AppLayout with Outlet.
 

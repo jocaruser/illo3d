@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useTheme } from '../../contexts/ThemeContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDrive } from '../../contexts/DriveContext';
 import { useI18n } from '../../contexts/I18nContext';
 import { Button } from '../../atoms/Button';
 import { NavLayout } from '../NavLayout';
@@ -15,10 +16,12 @@ const navItems = [
 export function AppLayout() {
   const { theme, toggleTheme } = useTheme();
   const { logout } = useAuth();
+  const { clearDriveAccess } = useDrive();
   const { t } = useI18n();
   const navigate = useNavigate();
 
   function onLogout() {
+    clearDriveAccess();
     logout();
     navigate('/login');
   }

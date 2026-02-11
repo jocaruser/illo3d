@@ -19,11 +19,15 @@ src/
 │   ├── I18nContext/
 │   ├── InventoryContext/
 │   ├── ThemeContext/
-│   └── AuthContext/
+│   ├── AuthContext/
+│   └── DriveContext/
 ├── locales/
 │   └── en.json
 ├── types/
-│   └── inventory.ts
+│   ├── inventory.ts
+│   └── database.ts
+├── services/
+│   └── driveApi.ts
 ├── atoms/
 │   ├── Button/
 │   ├── Checkbox/
@@ -49,5 +53,5 @@ src/
 
 - **Atoms**: Smallest UI primitives. One component per folder; co-located `.module.css` and `.test.tsx`; `index.ts` as public export. Button, Input, Checkbox implemented with PrimeReact (thin wrappers); Label unchanged. Use design palette (CSS variables) where applicable.
 - **Layouts**: Structure and spacing only. One per folder with `index.ts`. TabsLayout uses PrimeReact TabView (tab strip only; panel area hidden). Inventory tables use PrimeReact DataTable in the page; no TableLayout. Use as building blocks; do not add logic.
-- **Contexts**: One context per folder with `index.ts` and `.test.tsx`. I18nContext (locale, t(key)); InventoryContext (printers, filaments, consumables, CRUD); ThemeContext (light/dark, persistence); AuthContext (login state, dummy token).
+- **Contexts**: One context per folder with `index.ts` and `.test.tsx`. I18nContext (locale, t(key)); InventoryContext (printers, filaments, consumables, CRUD, loadFromDatabase); ThemeContext (light/dark, persistence); AuthContext (login state, Google ID token); DriveContext (Drive access token, requestDriveAccess, lastLoadedDatabase for Load/Save).
 - **Pages**: Screen-level; one per folder with `index.ts`; compose atoms and layouts only.

@@ -1,11 +1,14 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { PrimeReactProvider } from 'primereact/api';
 import { I18nProvider } from '../../contexts/I18nContext';
 import { ThemeProvider } from '../../contexts/ThemeContext';
 import { AuthProvider } from '../../contexts/AuthContext';
+import { DriveProvider } from '../../contexts/DriveContext';
 import { AppLayout } from './AppLayout';
+
+vi.mock('@react-oauth/google', () => ({ useGoogleLogin: () => vi.fn(), googleLogout: vi.fn() }));
 
 function renderAppLayout() {
   return render(
@@ -13,13 +16,15 @@ function renderAppLayout() {
       <ThemeProvider>
         <PrimeReactProvider>
           <AuthProvider>
-            <MemoryRouter initialEntries={['/']}>
-            <Routes>
-              <Route path="/" element={<AppLayout />}>
-                <Route index element={<div>Home content</div>} />
-              </Route>
-            </Routes>
-          </MemoryRouter>
+            <DriveProvider>
+              <MemoryRouter initialEntries={['/']}>
+                <Routes>
+                  <Route path="/" element={<AppLayout />}>
+                    <Route index element={<div>Home content</div>} />
+                  </Route>
+                </Routes>
+              </MemoryRouter>
+            </DriveProvider>
           </AuthProvider>
         </PrimeReactProvider>
       </ThemeProvider>

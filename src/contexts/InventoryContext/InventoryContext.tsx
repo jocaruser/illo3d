@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { Printer, Filament, Consumable } from '../../types/inventory';
+import type { Database } from '../../types/database';
 
 type InventoryContextValue = {
   printers: Printer[];
@@ -14,6 +15,7 @@ type InventoryContextValue = {
   addConsumable: (data: Omit<Consumable, 'id'>) => void;
   updateConsumable: (id: number, data: Partial<Omit<Consumable, 'id'>>) => void;
   deleteConsumable: (id: number) => void;
+  loadFromDatabase: (db: Database) => void;
 };
 
 const InventoryContext = createContext<InventoryContextValue | null>(null);
@@ -58,6 +60,12 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
     setConsumables((prev) => prev.filter((c) => c.id !== id));
   }, []);
 
+  const loadFromDatabase = useCallback((db: Database) => {
+    setPrinters(db.printers ?? []);
+    setFilaments(db.filaments ?? []);
+    setConsumables(db.consumables ?? []);
+  }, []);
+
   const value = useMemo(
     () => ({
       printers,
@@ -72,6 +80,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
       addConsumable,
       updateConsumable,
       deleteConsumable,
+      loadFromDatabase,
     }),
     [
       printers,
@@ -86,6 +95,7 @@ export function InventoryProvider({ children }: { children: React.ReactNode }) {
       addConsumable,
       updateConsumable,
       deleteConsumable,
+      loadFromDatabase,
     ]
   );
 

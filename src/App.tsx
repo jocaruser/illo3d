@@ -6,6 +6,7 @@ import darkThemeUrl from 'primereact/resources/themes/lara-dark-blue/theme.css?u
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { I18nProvider } from './contexts/I18nContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { DriveProvider } from './contexts/DriveContext';
 import { InventoryProvider } from './contexts/InventoryContext';
 import { AppLayout } from './layouts/AppLayout';
 import { HomePage } from './pages/HomePage';
@@ -41,11 +42,13 @@ function App() {
         <PrimeReactProvider>
           <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''}>
             <AuthProvider>
-              <InventoryProvider>
-                <BrowserRouter>
-                  <AppRoutes />
-                </BrowserRouter>
-              </InventoryProvider>
+              <DriveProvider>
+                <InventoryProvider>
+                  <BrowserRouter>
+                    <AppRoutes />
+                  </BrowserRouter>
+                </InventoryProvider>
+              </DriveProvider>
             </AuthProvider>
           </GoogleOAuthProvider>
         </PrimeReactProvider>

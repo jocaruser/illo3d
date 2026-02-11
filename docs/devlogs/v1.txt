@@ -72,3 +72,13 @@
 
 ### What's Unfinished
 - (Unchanged) GitHub Action tests; kanban; project structure. Login page mockup deferred.
+
+## 2026-02-10 (session: Drive and login)
+
+### What We Accomplished
+- Google Drive integration: DriveContext (request Drive scope, store access token); driveApi service (app data folder: readDatabase, saveDatabase, buildDatabaseFromInventory); Database type and DEFAULT_DATABASE; InventoryContext loadFromDatabase; HomePage Load/Save from Drive (when token present)
+- Drive requested at login: after sign-in (One Tap or button), app requests Drive access and navigates to / only when Drive is granted; LoginPage uses useGoogleOneTapLogin and shows "Grant Drive access" message; logout clears Drive token (AppLayout clearDriveAccess)
+- Removed separate "Connect Google Drive" from Home; docs/architecture/drive-and-data.md, app-shell-and-auth and context.txt updated; frontend-tree (DriveContext, services, types/database)
+
+### What's Unfinished
+- (Unchanged) GitHub Action tests; kanban; project structure.

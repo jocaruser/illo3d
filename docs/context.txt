@@ -15,7 +15,7 @@
 
 ### Tech Stack Decisions
 - **Framework**: React
-- **Auth**: Google OAuth via Google Identity Services (GIS); "Sign in with Google" on LoginPage. Client ID from env (`VITE_GOOGLE_CLIENT_ID`). ID token stored for session; no backend verification. Access token for Drive API will be added when integrating Drive.
+- **Auth**: Google OAuth via Google Identity Services (GIS); "Sign in with Google" on LoginPage. Client ID from env (`VITE_GOOGLE_CLIENT_ID`). ID token stored for session; no backend verification. Drive access token requested separately via DriveContext (scope drive.appdata) for Load/Save database.json.
 - **UI Library**: PrimeReact (installed and in use); Lara Light/Dark theme, user toggle, preference persisted. Atoms (Button, Input, Checkbox) and TabsLayout/DataTable use PrimeReact components.
 - **App Type**: PWA (Progressive Web App)
 - **Hosting**: GitHub Pages
@@ -131,6 +131,7 @@ Database Structure:
 - Save calculated pieces from budget calculator
 
 ### Next Steps
+- **Google Cloud**: Enable "Google Drive API" in the same project as OAuth; add Drive scope to consent screen if needed. App uses app data folder (drive.appdata) for database.json.
 - Define Client entity fields (contact, address, etc.) if needed
 - Design kanban entity schema
 - Create JSON Schema for database validation (docs/database-schema.json)

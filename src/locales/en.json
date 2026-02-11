@@ -39,5 +39,13 @@
   "inventory.no": "No",
   "inventory.cancel": "Cancel",
   "budget.title": "Budget Calculator",
-  "budget.description": "Calculator will go here."
+  "budget.description": "Calculator will go here.",
+  "drive.grantAccess": "Grant Drive access to store your data.",
+  "drive.connect": "Connect Google Drive",
+  "drive.connected": "Drive connected",
+  "drive.load": "Load from Drive",
+  "drive.save": "Save to Drive",
+  "drive.loadSuccess": "Loaded from Drive",
+  "drive.saveSuccess": "Saved to Drive",
+  "drive.error": "Drive error"
 }
