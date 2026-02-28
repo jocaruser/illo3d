@@ -10,3 +10,4 @@ alwaysApply: true
 - **Linter must be flawless**: ESLint must report 0 problems. Fix any errors or warnings before considering work complete.
 - **Tests must pass**: The full test suite must pass with zero failures.
 - **Build must succeed**: TypeScript compilation and Vite build must complete with no errors or warnings.
+- **Check for unarchived changes before committing**: Before creating a git commit, run `openspec list --json`. If there are active (non-archived) changes, warn the user and ask for confirmation before proceeding with the commit.

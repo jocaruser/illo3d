@@ -1,4 +1,9 @@
-## ADDED Requirements
+# build-quality-gate Specification
+
+## Purpose
+Quality enforcement ensuring build, lint, and tests pass with zero errors, and all development commands go through Makefile targets.
+
+## Requirements
 
 ### Requirement: Build produces zero errors
 

@@ -1,4 +1,9 @@
-## ADDED Requirements
+# login-page Specification
+
+## Purpose
+Dedicated login page with illo3d branding and Google sign-in integration.
+
+## Requirements
 
 ### Requirement: Login page is publicly accessible
 

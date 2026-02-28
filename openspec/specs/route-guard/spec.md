@@ -1,4 +1,9 @@
-## ADDED Requirements
+# route-guard Specification
+
+## Purpose
+Route protection ensuring unauthenticated users are redirected to the login page, with return path preservation.
+
+## Requirements
 
 ### Requirement: Unauthenticated users are redirected to login
 
