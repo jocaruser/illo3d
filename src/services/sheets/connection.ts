@@ -1,5 +1,5 @@
 import { STORAGE_KEY_SPREADSHEET_ID } from './config'
-import { getAccessToken, sheetsFetch } from './client'
+import { getAccessToken } from './client'
 import { createSpreadsheet } from './createSpreadsheet'
 import { validateStructure } from './validateStructure'
 

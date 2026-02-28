@@ -2,10 +2,8 @@ import { describe, it, expect } from 'vitest'
 import type {
   Client,
   Job,
-  Piece,
   PieceItem,
   Inventory,
-  Expense,
   Transaction,
 } from './money'
 

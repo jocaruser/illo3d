@@ -1,7 +1,7 @@
 import { sheetsFetch } from './client'
 import { SHEET_HEADERS, type SheetName } from './config'
 
-function rowToObject<T extends Record<string, unknown>>(
+function rowToObject<T extends object>(
   headers: readonly string[],
   row: unknown[]
 ): T {
@@ -15,7 +15,7 @@ function rowToObject<T extends Record<string, unknown>>(
   return obj
 }
 
-export async function readSheetRows<T extends Record<string, unknown>>(
+export async function readSheetRows<T extends object>(
   spreadsheetId: string,
   sheetName: SheetName,
   accessToken: string

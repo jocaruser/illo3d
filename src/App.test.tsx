@@ -14,8 +14,8 @@ vi.mock('react-i18next', () => ({
 }))
 
 describe('App', () => {
-  it('renders illo3d title', () => {
+  it('renders login page when unauthenticated', () => {
     render(<App />)
-    expect(screen.getByText('illo3d')).toBeInTheDocument()
+    expect(screen.getByText('login.title')).toBeInTheDocument()
   })
 })

@@ -54,17 +54,13 @@ export async function sheetsFetch(
 ): Promise<Response> {
   const baseUrl = 'https://sheets.googleapis.com/v4'
   const url = path.startsWith('http') ? path : `${baseUrl}${path}`
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    })
-    return response
-  } catch (error) {
-    throw error
-  }
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+  return response
 }

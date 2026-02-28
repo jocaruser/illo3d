@@ -2,7 +2,6 @@ import {
   SPREADSHEET_NAME,
   SHEET_NAMES,
   SHEET_HEADERS,
-  type SheetName,
 } from './config'
 import { sheetsFetch } from './client'
 

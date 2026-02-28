@@ -1,0 +1,12 @@
+---
+description: Quality gate - build, lint, tests must pass; use Makefile commands only
+alwaysApply: true
+---
+
+# Quality Gate
+
+- **Use Makefile commands only**: Never run `pnpm`, `docker compose exec`, or similar directly. Use `make dev`, `make build`, `make lint`, `make test`, `make add PKG=...`, `make add-dev PKG=...`, etc.
+- **Validate before finishing**: After any code change, run `make build`, `make lint`, and `make test`. All must exit with code 0 and report zero errors.
+- **Linter must be flawless**: ESLint must report 0 problems. Fix any errors or warnings before considering work complete.
+- **Tests must pass**: The full test suite must pass with zero failures.
+- **Build must succeed**: TypeScript compilation and Vite build must complete with no errors or warnings.

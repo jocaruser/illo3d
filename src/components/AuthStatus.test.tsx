@@ -42,14 +42,12 @@ describe('AuthStatus', () => {
     })
   })
 
-  it('shows sign-in button when not authenticated', async () => {
+  it('renders nothing when not authenticated', () => {
     useAuthStore.setState({ isAuthenticated: false })
 
-    render(<AuthStatus />)
+    const { container } = render(<AuthStatus />)
 
-    await vi.waitFor(() => {
-      expect(screen.getByText('Sign in with Google')).toBeInTheDocument()
-    }, { timeout: 4000 })
+    expect(container.firstChild).toBeNull()
   })
 
   it('shows user info when authenticated', () => {
