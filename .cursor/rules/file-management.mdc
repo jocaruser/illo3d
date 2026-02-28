@@ -1,0 +1,9 @@
+---
+description: When to create or edit files
+alwaysApply: true
+---
+
+# File management
+
+- Do not create files unless absolutely necessary. Prefer editing existing files.
+- Do not proactively create documentation or README files unless the user explicitly requests them.

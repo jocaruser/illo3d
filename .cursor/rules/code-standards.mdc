@@ -1,0 +1,18 @@
+---
+description: Naming, file organization, code quality, design
+alwaysApply: true
+---
+
+# Code standards
+
+**Naming:** camelCase (variables, functions); PascalCase (components, classes); `on` prefix for event handlers (onClick, onSubmit).
+
+**File organization:** One component per file; filename matches component name. Atoms, layouts, pages, contexts: one per folder with `index.ts`; contexts (and atoms/layouts) have co-located `.test.tsx`. Update docs/frontend-tree.md when adding, removing, or renaming under src/; in the tree list folder names (e.g. `Button/`) not every file. Before adding a new atom, layout, or context: check docs/frontend-tree.md and codebase for an equivalent; if something might overlap, ask the user. Do not add without that check and explicit approval.
+
+**Code quality:** No duplicated code — extract shared helpers. Fix or suppress test warnings (stderr/console). Refactor before committing. Do not patch bugs — fix root cause. Prefer clean, maintainable code over quick fixes.
+
+**Design:** Use only colours from docs/design.md; implement via CSS variables (light/dark). Do not introduce new colours outside the palette without asking.
+
+**Translations:** User-facing strings (labels, buttons, headings, aria-labels, placeholders) must come from t(key) or from configurable data (e.g. company.currency). No raw literal strings in JSX for user-facing copy. When adding UI copy: add key to locale JSON (en first), use t('key'). Key naming: app.*, nav.*, auth.*, home.*, inventory.*, budget.*, etc.
+
+**Diagrams:** Keep in docs/architecture/. Maintain JSON Schema (docs/database-schema.json) for database validation.

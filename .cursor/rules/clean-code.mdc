@@ -12,5 +12,4 @@ alwaysApply: true
 - Export only what is needed; keep helpers and internal constants non-exported.
 - No duplicated patterns without a shared helper or a one-line comment explaining why.
 - Minimum change: do not refactor for clarity/style unless the user asks.
-- Before commit: tests pass; check for test warnings (stderr/console) and fix or suppress expected ones; run `test:coverage` when touching tests; no raw button/input/label where atom fits; if adding context/shell/routing, add or update docs/architecture/ in the same commit.
-- After commit: always push to remote; never store code only on local.
+- Before commit: tests pass; check test warnings; no raw button/input/label where atom fits; if adding context/shell/routing, update docs/architecture/ in the same commit. Commit message and devlog: see commit-and-devlog.mdc.

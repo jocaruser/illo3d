@@ -5,10 +5,18 @@ alwaysApply: true
 
 # Project rules
 
-Read these at the start of every task:
+At the start of every task, use these rules:
 
-- **.aidescription** — AI agent instructions, doc rules, code standards, Git workflow (including "Clean code (must follow)")
-- **docs/context.txt** — Open conversations, restrictions, DB structure, next steps
-- **docs/requirements.md** — Feature checklist (when implementing features)
+- **.aidescription** — index of all rules (this file and the list of .cursor/rules/*.mdc)
+- **docs/context.txt** — open conversations, restrictions, DB structure, next steps
+- **docs/requirements.md** — feature checklist (when implementing features)
 
-Follow clean-code rules in .aidescription: use atoms consistently (no raw button/input/label); update docs/architecture/ when adding major structure.
+Apply in every session:
+
+- **commit-and-devlog.mdc** — before/after every commit (message, devlog in same commit, push)
+- **clean-code.mdc** — TDD, atoms, translations, export, minimal change, docs/architecture when needed
+- **confirmations.mdc** — before implementing features not in requirements, adding deps, or editing context
+- **documentation.mdc** — devlog style, where docs live, when to update frontend-tree and architecture
+- **file-management.mdc** — prefer edit over create; no proactive docs
+- **communication.mdc** — concise; max 2 questions; track in context
+- **code-standards.mdc** — naming, file org, code quality, design, translations

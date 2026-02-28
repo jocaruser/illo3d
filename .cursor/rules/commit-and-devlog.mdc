@@ -1,0 +1,18 @@
+---
+description: Commit and devlog checklist (before/after every commit)
+alwaysApply: true
+---
+
+# Commit and devlog
+
+**Before every commit:**
+
+1. Run tests (must pass); check stderr/console for warnings and fix or suppress.
+2. Run `npm run test:coverage` when touching tests or critical paths.
+3. Recalculate and resummarize **today’s** entry in docs/devlogs/v1.txt (one concise summary of the day; high-level, no trivial details). Do not just append.
+4. Include the devlog update **in the same commit** as the code/docs changes.
+5. Commit message: short, imperative. Format `type(scope): description` (e.g. `feat(auth): add login`, `fix(api): handle empty response`). No footers (e.g. Co-Authored-By).
+
+**After every commit:** Push to remote. Never leave code only on local.
+
+**Devlog:** Keep entries high-level (what we did, not how). Details go in docs/context.txt, not in the devlog.

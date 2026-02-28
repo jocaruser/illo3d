@@ -1,145 +1,17 @@
 # AI Agent Instructions
 
-## Communication Style
-- Be concise and direct
-- Minimal preamble or postamble
-- Save details for unfinished tasks or next steps, not accomplishments
-- Answer exactly what's asked, nothing more
+All project rules live in **.cursor/rules/** (Cursor rule files). Read and follow them.
 
-## Documentation Rules
-- Keep dev logs high-level (what we worked on, not how); do not overmention trivial or silly details
-- Track open conversations, unfinished work, and blockers
-- All details go in docs/context.txt, not in dev logs
-- Before committing: recalculate and resummarize today's devlog entry (do not just append); one concise summary of the day
-- Devlog update goes in the same commit as the changes being documented
+**Entry point:** .cursor/rules/loader.mdc — lists what to read at the start of every task.
 
-## File Management
-- NEVER create files unless absolutely necessary
-- ALWAYS prefer editing existing files over creating new ones
-- NEVER proactively create documentation or README files unless explicitly requested
+**Rule files:**
+- loader.mdc — what to read first (.aidescription, context, requirements; commit-and-devlog; clean-code)
+- commit-and-devlog.mdc — before/after every commit (tests, devlog, message, push)
+- clean-code.mdc — TDD, atoms (Button/Input/Label), translations, export, minimal change, architecture
+- confirmations.mdc — ask before: features not in requirements, new deps, adding to context, large changes
+- documentation.mdc — devlog style, where docs live, when to update frontend-tree and architecture
+- file-management.mdc — prefer edit over create; no proactive README/docs
+- communication.mdc — concise; max 2 questions; track open items in context
+- code-standards.mdc — naming, file organization, code quality, design, translations, diagrams
 
-## Questions
-- Ask maximum 2 questions at a time
-- Track open conversations in docs/context.txt so nothing is forgotten
-
-## Project Structure
-- Dev logs: docs/devlogs/v1.txt (will split by version if needed)
-- Context file: docs/context.txt (current project status, open items, project-specific info - NOT AI behavior rules)
-- Requirements: docs/requirements.md (tree structure: features → use cases with checkboxes)
-- Frontend tree: docs/frontend-tree.md (source of truth for src/ atoms, layouts, pages); update it in the same commit when changing frontend structure
-- Design: docs/design.md (colour palette and design rules; logo-derived, use with hierarchy)
-
-## File Updates & Confirmations
-- When user requests new AI behaviors/workflows → proactively detect and propose adding to .aidescription, ask confirmation first
-- When adding to docs/context.txt → ask confirmation first on what will be added
-- Detect when user describes new rules/behaviors and offer to document them
-- Do not implement features or UI that are not in docs/requirements.md without asking first
-- For large or multi-step changes, propose the steps and get confirmation before proceeding
-- Do not add new npm dependencies without asking
-
-## File Formats & Examples
-
-### docs/requirements.md
-Tree structure: features → use cases with checkboxes
-- Finalized feature decisions with checkboxes
-- Draft/undecided features marked with [DRAFT] prefix
-- [DRAFT] items also remain in docs/context.txt "Open Conversations"
-
-Example:
-## Version 1
-
-### Feature: User Authentication
-- [ ] User can sign up with email
-- [ ] User can log in
-  - [ ] Remember me option
-- [ ] User can reset password
-
-### Feature: [DRAFT] Social Login
-- [ ] Login with Google
-- [ ] Login with Facebook
-
-### docs/devlogs/v*.txt
-Daily entries, high-level accomplishments only
-Example:
-## 2026-01-06
-
-### What We Accomplished
-- Set up project structure
-
-### What's Unfinished
-- Define app requirements
-- Build authentication flow
-
-### docs/context.txt
-Sections: Open Conversations, Restrictions, Requirements, Bugs
-- Open/undecided decisions and discussions
-- [DRAFT] requirements from requirements.md
-- Current project status and next steps
-Keep concise, track current project state only
-
-## Code Standards
-
-### Naming Conventions
-- Variables/functions: camelCase
-- Components/classes: PascalCase
-- Event handlers: use `on` prefix (e.g., onClick, onSubmit)
-
-### File Organization
-- One component per file; component filename matches component name (PascalCase)
-- Atoms, layouts, pages, and contexts: one per folder with `index.ts`; contexts must have co-located `.test.tsx` (same as atoms/layouts)
-- Always update docs/frontend-tree.md when adding, removing, or renaming under src/. In the tree, do not list files when the folder name already implies them (e.g. list `Button/` not the files inside)
-- Before adding a new atom, layout, or context: check docs/frontend-tree.md and the codebase for an equivalent; if one might exist or overlap, ask the user for permission. Do not add without this check and explicit approval
-
-### Code Quality
-- No duplicated code - extract into reusable functions/components
-- Always follow TDD: write or update the test first, then implement. Do not add a new atom, layout, or context without a co-located `.test.tsx` that passes
-- Frequently check for test warnings: run tests and inspect stderr/console; fix or suppress expected warnings (e.g. React error boundaries) so the suite stays clean
-- Refactor before committing
-- Don't patch bugs - debug root cause and fix properly
-- Clean, maintainable code over quick fixes
-
-### Design
-- Use colours from docs/design.md only; implement via CSS variables (light/dark). Do not introduce new colours outside the palette without asking
-
-### Documentation & Explanations
-- Explain what code does before committing
-- Maintain architecture diagrams (UML or similar) showing how components/classes interact
-- Maintain entity relationship diagram for database structure
-- Maintain JSON Schema (docs/database-schema.json) for database validation
-- Keep diagrams in docs/architecture/ folder
-- Update docs/architecture/ when adding/changing major components or flows (contexts, shell, auth, routing)
-
-### Translations
-- User-facing strings: all text visible to the user (labels, buttons, headings, aria-labels, placeholders) must come from the translation function t(key) or from configurable data (e.g. company.currency, company.name from database). No raw literal strings in JSX for user-facing copy.
-- When adding new UI copy, add the key to locale JSON (en first) and use t('key') in the component. Key naming: app.*, nav.*, auth.*, home.*, inventory.*, budget.*, etc.
-
-### Clean code (must follow)
-- Use Button atom for all buttons; no raw <button>. Use Input and Label atoms for form fields. Do not add one-off styled elements that duplicate atom behaviour.
-- Export only what is needed (e.g. Provider + hook for contexts; the component for atoms). Keep helpers and internal constants non-exported.
-- If two or more modules share the same pattern, either extract a shared helper or add a one-line comment stating why duplication is intentional.
-- Change only what is required for the task. Do not refactor for clarity or style unless the user explicitly asks.
-- Before commit: run tests; confirm no raw <button>/<input>/<label> where an atom exists and fits; if the change adds a context, shell, or routing structure, add or update a diagram in docs/architecture/ in the same commit.
-
-## Git Workflow
-
-### Before commit
-- Run tests (must pass) before committing; check for test warnings (stderr/console) and fix or document them
-- Run `npm run test:coverage` when touching tests or critical paths; coverage report in `coverage/` (see package.json scripts)
-- Recalculate and resummarize today's devlog entry (concise, high-level; no trivial details); include it in the same commit
-
-### After commit
-- Always push after committing. Never leave code only on local; push to the remote (e.g. origin) so work is backed up and visible.
-
-### Commit Message Format
-Format: `type(scope): description`
-- Type: `feat` or `fix`
-- Scope: generic feature name in parentheses
-- Description: complete the phrase "If applied, this commit will..."
-  - Keep it short and imperative mood
-  - Example: `feat(auth): add user login functionality`
-  - Example: `fix(api): handle empty response errors`
-- NEVER add "Generated with Claude Code" or "Co-Authored-By" footers
-- Keep commit messages concise
-
-### Branching
-(To be discussed later)
+**Reference:** docs/context.txt (Restrictions, Licensing, open conversations), docs/requirements.md (features), docs/design.md (palette). Do not add npm dependencies or implement features outside requirements without asking.

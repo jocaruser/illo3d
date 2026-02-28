@@ -1,0 +1,19 @@
+---
+description: Doc rules, project structure, and when to update docs
+alwaysApply: true
+---
+
+# Documentation
+
+**Devlog (docs/devlogs/v1.txt):** High-level only (what we worked on, not how). No trivial details. All details go in docs/context.txt. One concise summary per day; resummarize in same commit (see commit-and-devlog.mdc).
+
+**Where things live:**
+- docs/context.txt — project status, open items, restrictions (not AI behavior rules)
+- docs/requirements.md — features → use cases with checkboxes; [DRAFT] items also in context "Open Conversations"
+- docs/frontend-tree.md — source of truth for src/ atoms, layouts, pages
+- docs/design.md — colour palette; use with hierarchy
+- docs/architecture/ — diagrams for components, auth, routing; update when adding/changing major structure
+
+**Update in same commit when changing:** frontend structure → frontend-tree.md; context/shell/routing → docs/architecture/.
+
+**Formats:** requirements = tree with checkboxes; devlog = daily "What We Accomplished" / "What's Unfinished"; context = sections Open Conversations, Restrictions, Requirements, Bugs. Explain what code does before committing.

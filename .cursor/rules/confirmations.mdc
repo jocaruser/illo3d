@@ -1,0 +1,14 @@
+---
+description: Confirmations before implementing or changing project rules
+alwaysApply: true
+---
+
+# Confirmations
+
+Before doing any of the following, ask or get confirmation:
+
+- **Features/UI**: Do not implement features or UI that are not in docs/requirements.md without asking first.
+- **Dependencies**: Do not add new npm dependencies without asking.
+- **docs/context.txt**: When adding to context.txt, ask confirmation first on what will be added.
+- **Large changes**: For large or multi-step changes, propose the steps and get confirmation before proceeding.
+- **New rules**: When the user describes new rules or behaviors, offer to document them. When they request new AI behaviors or workflows, propose adding them (e.g. to .aidescription or a rule file) and ask confirmation first.

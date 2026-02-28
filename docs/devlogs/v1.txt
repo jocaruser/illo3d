@@ -82,3 +82,12 @@
 
 ### What's Unfinished
 - (Unchanged) GitHub Action tests; kanban; project structure.
+
+## 2026-02-28
+
+### What We Accomplished
+- Refactored AI rules: split .aidescription into separate .cursor/rules/*.mdc files (loader, commit-and-devlog, clean-code, code-standards, confirmations, communication, documentation, file-management); .aidescription now an index
+- Added .cursorignore and .vscode/launch.json
+
+### What's Unfinished
+- (Unchanged) GitHub Action tests; kanban; project structure.
