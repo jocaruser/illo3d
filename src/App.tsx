@@ -1,6 +1,9 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom'
 import { AuthStatus } from './components/AuthStatus'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { LoginPage } from './pages/LoginPage'
 import { TransactionsPage } from './pages/TransactionsPage'
+import { useAuthStore } from './stores/authStore'
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -26,23 +29,39 @@ function Layout({ children }: { children: React.ReactNode }) {
   )
 }
 
-function Home() {
-  return (
-    <div className="flex items-center justify-center py-20">
-      <p className="text-gray-600">Welcome to illo3d</p>
-    </div>
+function RootRedirect() {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  return isAuthenticated ? (
+    <Navigate to="/transactions" replace />
+  ) : (
+    <Navigate to="/login" replace />
   )
 }
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/transactions" element={<TransactionsPage />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <Layout>
+              <RootRedirect />
+            </Layout>
+          }
+        />
+        <Route
+          path="/transactions"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <TransactionsPage />
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+      </Routes>
     </BrowserRouter>
   )
 }

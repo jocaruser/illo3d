@@ -4,6 +4,10 @@
     "signedInAs": "Conectado como {{name}}",
     "signOut": "Cerrar sesión"
   },
+  "login": {
+    "title": "illo3d",
+    "tagline": "Tienda de impresión 3D con CRM y gestión financiera"
+  },
   "transactions": {
     "date": "Fecha",
     "type": "Tipo",
