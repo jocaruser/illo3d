@@ -1,0 +1,7 @@
+{
+  "auth": {
+    "signIn": "Iniciar sesión con Google",
+    "signedInAs": "Conectado como {{name}}",
+    "signOut": "Cerrar sesión"
+  }
+}

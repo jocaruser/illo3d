@@ -54,5 +54,6 @@ rules:
   tasks:
     - Break tasks into chunks implementable in under 2 hours
     - Include file paths when possible
+    - For docker interactions, use makefile commands
     - Order tasks by dependency
     - Each task should result in working, readable code
