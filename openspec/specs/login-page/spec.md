@@ -23,18 +23,26 @@ The system SHALL display the illo3d brand name and a brief tagline on the login 
 
 ### Requirement: Login page integrates Google sign-in
 
-The system SHALL display Google sign-in options on the login page: Google One Tap (when available) and a fallback "Sign in with Google" button. This replaces the sign-in UI previously in the header.
+The system SHALL display Google sign-in options on the login page: Google One Tap (when available) and a "Sign in with Google" button. The button SHALL render immediately when the page loads (without waiting for One Tap to fail or a timeout to expire). One Tap SHALL operate as a parallel enhancement alongside the visible button.
 
-#### Scenario: Google One Tap appears on login page
+#### Scenario: Google Sign-In button appears immediately
+
+- **WHEN** the login page loads
+- **THEN** the "Sign in with Google" button SHALL be visible as soon as the GIS script finishes loading, without any artificial delay
+
+#### Scenario: Google One Tap appears alongside the button
+
 - **WHEN** the login page loads and One Tap is available
-- **THEN** the Google One Tap prompt appears
+- **THEN** the Google One Tap prompt appears as an overlay while the sign-in button remains visible
 
-#### Scenario: Fallback sign-in button appears
+#### Scenario: Fallback sign-in button appears when One Tap unavailable
+
 - **WHEN** Google One Tap is unavailable or dismissed
-- **THEN** the login page displays a "Sign in with Google" button
+- **THEN** the login page continues to display the "Sign in with Google" button (already visible)
 
 #### Scenario: Successful sign-in from login page
-- **WHEN** the user completes Google sign-in (via One Tap or fallback)
+
+- **WHEN** the user completes Google sign-in (via One Tap or button)
 - **THEN** auth state updates and the user is redirected to the app
 
 ### Requirement: Authenticated users are redirected away from login

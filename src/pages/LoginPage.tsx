@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useGoogleOneTapLogin, GoogleLogin } from '@react-oauth/google'
 import { jwtDecode } from 'jwt-decode'
@@ -16,7 +16,6 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { login, isAuthenticated } = useAuthStore()
-  const [showFallback, setShowFallback] = useState(false)
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/transactions'
 
@@ -34,7 +33,6 @@ export function LoginPage() {
       picture: decoded.picture,
     }
     login(userData, { credential })
-    setShowFallback(false)
     navigate(from, { replace: true })
   }
 
@@ -44,20 +42,8 @@ export function LoginPage() {
         handleCredentialResponse(response.credential)
       }
     },
-    onError: () => {
-      setShowFallback(true)
-    },
     disabled: isAuthenticated,
   })
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isAuthenticated) {
-        setShowFallback(true)
-      }
-    }, 3000)
-    return () => clearTimeout(timer)
-  }, [isAuthenticated])
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-100 px-4">
@@ -66,22 +52,20 @@ export function LoginPage() {
           {t('login.title')}
         </h1>
         <p className="mb-8 text-center text-gray-600">{t('login.tagline')}</p>
-        {showFallback && (
-          <div className="flex justify-center">
-            <GoogleLogin
-              onSuccess={(response) => {
-                if (response.credential) {
-                  handleCredentialResponse(response.credential)
-                }
-              }}
-              onError={() => {
-                console.error('Google login failed')
-              }}
-              text="signin_with"
-              shape="rectangular"
-            />
-          </div>
-        )}
+        <div className="flex min-h-[44px] justify-center">
+          <GoogleLogin
+            onSuccess={(response) => {
+              if (response.credential) {
+                handleCredentialResponse(response.credential)
+              }
+            }}
+            onError={() => {
+              console.error('Google login failed')
+            }}
+            text="signin_with"
+            shape="rectangular"
+          />
+        </div>
       </div>
     </div>
   )
