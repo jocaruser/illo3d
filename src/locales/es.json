@@ -3,5 +3,22 @@
     "signIn": "Iniciar sesión con Google",
     "signedInAs": "Conectado como {{name}}",
     "signOut": "Cerrar sesión"
+  },
+  "transactions": {
+    "date": "Fecha",
+    "type": "Tipo",
+    "type.income": "Ingreso",
+    "type.expense": "Gasto",
+    "amount": "Importe",
+    "category": "Categoría",
+    "concept": "Concepto",
+    "client": "Cliente",
+    "balance": "Balance",
+    "empty": "Aún no hay transacciones. Añade datos en Google Sheets.",
+    "connecting": "Conectando a Google Sheets...",
+    "error": "Error",
+    "retry": "Reintentar",
+    "connect": "Conectar",
+    "connectPrompt": "Conecta Google Sheets para cargar transacciones."
   }
 }

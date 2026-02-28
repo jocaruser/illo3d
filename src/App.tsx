@@ -1,12 +1,23 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import { AuthStatus } from './components/AuthStatus'
+import { TransactionsPage } from './pages/TransactionsPage'
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-800">illo3d</h1>
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-6">
+            <Link to="/" className="text-xl font-bold text-gray-800">
+              illo3d
+            </Link>
+            <Link
+              to="/transactions"
+              className="text-sm text-gray-600 hover:text-gray-800"
+            >
+              Transactions
+            </Link>
+          </div>
           <AuthStatus />
         </div>
       </header>
@@ -29,6 +40,7 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/transactions" element={<TransactionsPage />} />
         </Routes>
       </Layout>
     </BrowserRouter>

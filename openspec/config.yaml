@@ -7,6 +7,7 @@ context: |
   Styling: Tailwind CSS
   Testing: Vitest, Testing Library
   i18n: i18next
+  Backend: doesn't exists, useGoogle Sheets
   Package manager: pnpm
 
   Domain: illo3d - 3D printing store with CRM and money account management
