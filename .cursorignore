@@ -1,0 +1,16 @@
+# Dependencies
+node_modules
+
+# Build artifacts
+dist
+
+# Secrets - NEVER read these
+.env
+.env.*
+
+# Lock files
+pnpm-lock.yaml
+package-lock.json
+
+# Coverage reports
+coverage

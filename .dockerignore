@@ -1,0 +1,9 @@
+.git
+node_modules
+dist
+.idea
+.vscode
+.cursor
+*.md
+LICENSE
+coverage

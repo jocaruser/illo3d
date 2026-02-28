@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+
+# Build output
+dist
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# IDE & OS
+.idea
+.vscode
+*.swp
+.DS_Store
+
+# Logs & debug
+logs
+*.log
+npm-debug.log*
+
+# Test & coverage
+coverage
+.pnpm-store
+
+openspec/changes/archive/
