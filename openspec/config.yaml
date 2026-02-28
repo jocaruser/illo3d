@@ -2,19 +2,57 @@ schema: spec-driven
 
 # Project context (optional)
 # This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Tech stack: TypeScript, React 18, Vite 6, TanStack Query, Zustand
+  Styling: Tailwind CSS
+  Testing: Vitest, Testing Library
+  i18n: i18next
+  Package manager: pnpm
+
+  Domain: illo3d - 3D printing store with CRM and money account management
+  - Customers can order 3D printing services
+  - CRM for managing customer relationships and orders
+  - Money account system for tracking payments and balances
+  - Target users: general public
+
+  Conventions:
+  - Functional React components only
+  - Path aliases: @/* -> src/*
+  - No semicolons (Prettier)
+  - Single quotes
+
+  Clean Code (Uncle Bob):
+  - Code should read like well-written prose
+  - Functions should do one thing and do it well
+  - Names should reveal intent (avoid abbreviations)
+  - Functions should be small (ideally < 20 lines)
+  - Avoid comments - write self-documenting code instead
+  - Keep abstractions at consistent levels within functions
+  - Follow the "newspaper" structure: high-level at top, details below
 
 # Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - Keep proposals concise (under 500 words)
+    - Always include a "Non-goals" section
+    - Focus on user value and problem being solved
+    - Consider impact on CRM, orders, or money accounts
+
+  specs:
+    - Include acceptance criteria
+    - Reference existing patterns in the codebase
+    - Consider i18n implications (multi-language support)
+    - Define data models clearly (customers, orders, accounts)
+
+  design:
+    - Prefer composition over inheritance
+    - Consider state management (Zustand for global, local for component)
+    - Functions should be named to read like sentences
+    - Keep components focused on single responsibility
+    - Structure code top-down: public API first, helpers below
+
+  tasks:
+    - Break tasks into chunks implementable in under 2 hours
+    - Include file paths when possible
+    - Order tasks by dependency
+    - Each task should result in working, readable code
