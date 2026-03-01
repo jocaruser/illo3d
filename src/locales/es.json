@@ -24,5 +24,25 @@
     "retry": "Reintentar",
     "connect": "Conectar",
     "connectPrompt": "Conecta Google Sheets para cargar transacciones."
+  },
+  "wizard": {
+    "title": "Configura tu tienda",
+    "createNew": "Crear nueva tienda",
+    "openExisting": "Abrir carpeta existente",
+    "cancel": "Cancelar",
+    "folderName": "Nombre de carpeta",
+    "folderNamePlaceholder": "Introduce el nombre de la carpeta",
+    "create": "Crear",
+    "back": "Atrás",
+    "creating": "Creando tu tienda...",
+    "opening": "Abriendo selector de carpetas...",
+    "success": "¡Enhorabuena!",
+    "successMessage": "Tu tienda \"{{name}}\" está lista.",
+    "continue": "Continuar",
+    "startTour": "Iniciar tour",
+    "errorNotShop": "Esta carpeta no es una tienda illo3d.",
+    "errorVersion": "Esta tienda fue creada con otra versión de la app y no puede abrirse.",
+    "errorPermissions": "No tienes permiso para acceder a los datos de esta tienda.",
+    "errorGeneric": "Algo ha ido mal. Por favor, inténtalo de nuevo."
   }
 }

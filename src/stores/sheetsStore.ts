@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-export type SheetsConnectionStatus = 'idle' | 'connecting' | 'connected' | 'error'
+export type SheetsConnectionStatus = 'connecting' | 'connected' | 'error'
 
 interface SheetsState {
   status: SheetsConnectionStatus
@@ -13,7 +13,7 @@ interface SheetsState {
 }
 
 export const useSheetsStore = create<SheetsState>((set) => ({
-  status: 'idle',
+  status: 'connecting',
   spreadsheetId: null,
   errorMessage: null,
   setConnecting: () =>
@@ -23,5 +23,5 @@ export const useSheetsStore = create<SheetsState>((set) => ({
   setError: (errorMessage) =>
     set({ status: 'error', errorMessage }),
   reset: () =>
-    set({ status: 'idle', spreadsheetId: null, errorMessage: null }),
+    set({ status: 'connecting', spreadsheetId: null, errorMessage: null }),
 }))

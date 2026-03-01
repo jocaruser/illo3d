@@ -1,7 +1,5 @@
 export const SPREADSHEET_NAME = 'illo3d-data'
 
-export const STORAGE_KEY_SPREADSHEET_ID = 'illo3d-spreadsheet-id'
-
 export const SHEET_NAMES = [
   'clients',
   'jobs',

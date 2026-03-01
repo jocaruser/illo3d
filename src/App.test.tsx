@@ -3,8 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import App from './App'
 
 vi.mock('@react-oauth/google', () => ({
-  useGoogleOneTapLogin: vi.fn(),
-  GoogleLogin: () => null,
+  useGoogleLogin: () => vi.fn(),
 }))
 
 vi.mock('react-i18next', () => ({

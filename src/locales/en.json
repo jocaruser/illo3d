@@ -24,5 +24,25 @@
     "retry": "Retry",
     "connect": "Connect",
     "connectPrompt": "Connect Google Sheets to load transactions."
+  },
+  "wizard": {
+    "title": "Set up your shop",
+    "createNew": "Create new shop",
+    "openExisting": "Open existing folder",
+    "cancel": "Cancel",
+    "folderName": "Folder name",
+    "folderNamePlaceholder": "Enter folder name",
+    "create": "Create",
+    "back": "Back",
+    "creating": "Creating your shop...",
+    "opening": "Opening folder picker...",
+    "success": "Congratulations!",
+    "successMessage": "Your shop \"{{name}}\" is ready.",
+    "continue": "Continue",
+    "startTour": "Start tour",
+    "errorNotShop": "This folder is not an illo3d shop.",
+    "errorVersion": "This shop was created with a different app version and cannot be opened.",
+    "errorPermissions": "You do not have permission to access this shop's data.",
+    "errorGeneric": "Something went wrong. Please try again."
   }
 }

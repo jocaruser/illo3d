@@ -47,14 +47,14 @@ The system SHALL display Google sign-in options on the login page: Google One Ta
 
 ### Requirement: Authenticated users are redirected away from login
 
-The system SHALL redirect authenticated users who navigate to `/login` to the default authenticated route (`/transactions`). If a return path was preserved from a prior redirect, the system SHALL redirect to that path instead.
+The system SHALL redirect authenticated users who navigate to `/login` to the default authenticated route. If an active shop exists, redirect to `/transactions`. If no active shop exists, the user will see the wizard overlay on the main layout. If a return path was preserved from a prior redirect, the system SHALL redirect to that path instead.
 
 #### Scenario: Authenticated user visits login page
 - **WHEN** an authenticated user navigates to `/login`
-- **THEN** the system redirects them to `/transactions`
+- **THEN** the system redirects them to `/` (which shows wizard if no shop, or app content if shop is active)
 
 #### Scenario: Authenticated user with preserved return path
-- **WHEN** an authenticated user arrives at `/login` with a preserved return path of `/transactions`
+- **WHEN** an authenticated user arrives at `/login` with a preserved return path
 - **THEN** the system redirects them to that return path
 
 ### Requirement: Login page text supports i18n

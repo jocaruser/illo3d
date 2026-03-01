@@ -19,7 +19,7 @@ describe('authStore', () => {
 
   it('should login with user and credentials', () => {
     const user = { email: 'test@example.com', name: 'Test User' }
-    const credentials = { credential: 'test-token' }
+    const credentials = { accessToken: 'test-token' }
 
     useAuthStore.getState().login(user, credentials)
 
@@ -31,7 +31,7 @@ describe('authStore', () => {
 
   it('should logout and clear state', () => {
     const user = { email: 'test@example.com', name: 'Test User' }
-    const credentials = { credential: 'test-token' }
+    const credentials = { accessToken: 'test-token' }
     useAuthStore.getState().login(user, credentials)
 
     useAuthStore.getState().logout()

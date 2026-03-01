@@ -8,7 +8,7 @@ export interface User {
 }
 
 export interface Credentials {
-  credential: string
+  accessToken: string
 }
 
 interface AuthState {

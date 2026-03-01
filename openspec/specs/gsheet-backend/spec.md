@@ -8,30 +8,29 @@ Conexión con Google Sheets como base de datos. Crear spreadsheet con hojas para
 
 ### Requirement: Spreadsheet is created on first use
 
-The system SHALL create a Google Spreadsheet named `illo3d-data` when the user first accesses the app and no spreadsheet exists. The spreadsheet SHALL contain empty sheets with headers for: clients, jobs, pieces, piece_items, inventory, expenses, transactions.
+The system SHALL create a Google Spreadsheet named `illo3d-data` when the user creates a new shop via the setup wizard. The spreadsheet SHALL contain empty sheets with headers for: clients, jobs, pieces, piece_items, inventory, expenses, transactions. The spreadsheet SHALL be moved into the shop's Drive folder after creation.
 
-#### Scenario: First time user creates spreadsheet
-- **WHEN** authenticated user accesses the app for the first time
-- **AND** no `illo3d-data` spreadsheet exists in their Drive
+#### Scenario: New shop creates spreadsheet in folder
+- **WHEN** the user creates a new shop via the wizard
 - **THEN** system creates the spreadsheet with all required sheets and headers
+- **AND** moves the spreadsheet into the shop's Drive folder
 
-#### Scenario: Existing spreadsheet is reused
-- **WHEN** authenticated user accesses the app
-- **AND** `illo3d-data` spreadsheet already exists
-- **THEN** system connects to the existing spreadsheet without creating a new one
+#### Scenario: Existing shop connects to its spreadsheet
+- **WHEN** the user opens an existing shop via the wizard
+- **THEN** system connects to the spreadsheet ID from the shop's metadata file
 
 ### Requirement: Spreadsheet ID is persisted
 
-The system SHALL store the spreadsheet ID in localStorage after creation or first connection. Subsequent sessions SHALL use this ID to reconnect without searching Drive.
+The system SHALL read the spreadsheet ID from the active shop in the shop store (persisted in `sessionStorage`). The spreadsheet ID originates from the `illo3d.metadata.json` file in the shop's Drive folder. The system SHALL NOT use `localStorage` for spreadsheet ID storage.
 
-#### Scenario: Spreadsheet ID saved after creation
-- **WHEN** system creates a new spreadsheet
-- **THEN** spreadsheet ID is saved to localStorage
+#### Scenario: Spreadsheet ID comes from shop store
+- **WHEN** the app needs the spreadsheet ID
+- **THEN** it reads from `shopStore.activeShop.spreadsheetId`
 
-#### Scenario: Reconnection uses stored ID
-- **WHEN** user returns to app in a new session
-- **AND** spreadsheet ID exists in localStorage
-- **THEN** system connects directly using the stored ID
+#### Scenario: Reconnection uses shop store
+- **WHEN** user returns to app in the same browser session
+- **AND** active shop exists in sessionStorage
+- **THEN** system connects directly using the shop's spreadsheet ID
 
 ### Requirement: Sheet structure is validated on connect
 

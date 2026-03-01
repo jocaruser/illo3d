@@ -9,3 +9,9 @@ services:
     environment:
       - NODE_ENV=development
     command: tail -f /dev/null
+    networks:
+      - illo3d-network
+
+networks:
+  illo3d-network:
+    driver: bridge

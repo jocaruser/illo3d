@@ -53,7 +53,7 @@ describe('AuthStatus', () => {
   it('shows user info when authenticated', () => {
     useAuthStore.setState({
       user: { email: 'user@example.com', name: 'John Doe', picture: 'https://example.com/pic.jpg' },
-      credentials: { credential: 'token' },
+      credentials: { accessToken: 'token' },
       isAuthenticated: true,
     })
 
@@ -66,7 +66,7 @@ describe('AuthStatus', () => {
   it('logs out when sign out is clicked', () => {
     useAuthStore.setState({
       user: { email: 'user@example.com', name: 'John Doe' },
-      credentials: { credential: 'token' },
+      credentials: { accessToken: 'token' },
       isAuthenticated: true,
     })
 

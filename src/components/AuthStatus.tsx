@@ -1,9 +1,11 @@
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '../stores/authStore'
+import { useShopStore } from '../stores/shopStore'
 
 export function AuthStatus() {
   const { t } = useTranslation()
   const { user, isAuthenticated, logout } = useAuthStore()
+  const clearActiveShop = useShopStore((s) => s.clearActiveShop)
 
   if (!isAuthenticated || !user) {
     return null
@@ -22,7 +24,10 @@ export function AuthStatus() {
         {t('auth.signedInAs', { name: user.name })}
       </span>
       <button
-        onClick={logout}
+        onClick={() => {
+          clearActiveShop()
+          logout()
+        }}
         className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
       >
         {t('auth.signOut')}

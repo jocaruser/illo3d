@@ -1,50 +1,24 @@
-const SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets'
+import { useAuthStore } from '@/stores/authStore'
 
 declare global {
   interface Window {
     google?: {
-      accounts: {
-        oauth2: {
-          initTokenClient: (config: {
-            client_id: string
-            scope: string
-            callback: (response: { access_token?: string; error?: string }) => void
-          }) => { requestAccessToken: () => void }
-        }
+      picker?: {
+        PickerBuilder: new () => unknown
+        DocsView: new (viewId?: string) => { setIncludeFolders: (v: boolean) => unknown; setSelectFolderEnabled: (v: boolean) => unknown }
+        Action: { PICKED: string }
       }
     }
+    gapi?: { load: (api: string, callback: () => void) => void }
   }
 }
 
 export function getAccessToken(): Promise<string> {
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-  if (!clientId) {
-    return Promise.reject(new Error('VITE_GOOGLE_CLIENT_ID is not configured'))
+  const accessToken = useAuthStore.getState().credentials?.accessToken
+  if (!accessToken) {
+    return Promise.reject(new Error('No access token available. Please sign in.'))
   }
-
-  const google = window.google
-  if (!google?.accounts?.oauth2) {
-    return Promise.reject(new Error('Google Identity Services not loaded'))
-  }
-
-  return new Promise((resolve, reject) => {
-    const tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: clientId,
-      scope: SHEETS_SCOPE,
-      callback: (response) => {
-        if (response.error) {
-          reject(new Error(response.error))
-          return
-        }
-        if (response.access_token) {
-          resolve(response.access_token)
-        } else {
-          reject(new Error('No access token received'))
-        }
-      },
-    })
-    tokenClient.requestAccessToken()
-  })
+  return Promise.resolve(accessToken)
 }
 
 export async function sheetsFetch(

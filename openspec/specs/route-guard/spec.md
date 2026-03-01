@@ -25,6 +25,20 @@ The system SHALL allow authenticated users (where `isAuthenticated` is `true` in
 - **WHEN** an authenticated user navigates to `/transactions`
 - **THEN** the page renders normally without redirection
 
+### Requirement: Wizard overlay appears for authenticated users without active shop
+
+The system SHALL show the setup wizard modal overlay when a user is authenticated but has no active shop. This applies to all protected routes — the underlying page may render but the wizard overlay blocks interaction until a shop is selected.
+
+#### Scenario: Authenticated user without shop sees wizard overlay
+- **WHEN** an authenticated user navigates to any protected route
+- **AND** no active shop is set in the shop store
+- **THEN** the wizard modal overlay appears on top of the page content
+
+#### Scenario: Authenticated user with shop accesses routes normally
+- **WHEN** an authenticated user navigates to any protected route
+- **AND** an active shop is set in the shop store
+- **THEN** the page renders normally without the wizard overlay
+
 ### Requirement: Route guard reads auth state reactively
 
 The system SHALL use the Zustand auth store's `isAuthenticated` state to determine access. If the user signs out while on a protected route, the system SHALL redirect them to `/login`.

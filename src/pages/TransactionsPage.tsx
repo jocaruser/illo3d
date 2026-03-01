@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { useSheetsStore } from '@/stores/sheetsStore'
+import { useShopStore } from '@/stores/shopStore'
 import { connect } from '@/services/sheets/connection'
 import { useTransactions } from '@/hooks/useTransactions'
 import { useClients } from '@/hooks/useClients'
@@ -9,9 +11,10 @@ import { EmptyState } from '@/components/EmptyState'
 import { calculateBalance } from '@/utils/money'
 
 export function TransactionsPage() {
+  const activeShop = useShopStore((s) => s.activeShop)
+  const spreadsheetId = activeShop?.spreadsheetId ?? null
   const {
     status,
-    spreadsheetId,
     errorMessage,
     setConnecting,
     setConnected,
@@ -22,9 +25,22 @@ export function TransactionsPage() {
     useTransactions(spreadsheetId)
   const { data: clients = [] } = useClients(spreadsheetId)
 
-  const handleRetry = async () => {
+  useEffect(() => {
+    if (!spreadsheetId) return
     setConnecting()
-    const result = await connect()
+    connect(spreadsheetId).then((result) => {
+      if (result.ok) {
+        setConnected(result.spreadsheetId)
+      } else {
+        setError(result.error)
+      }
+    })
+  }, [spreadsheetId, setConnecting, setConnected, setError])
+
+  const handleRetry = async () => {
+    if (!spreadsheetId) return
+    setConnecting()
+    const result = await connect(spreadsheetId)
     if (result.ok) {
       setConnected(result.spreadsheetId)
     } else {

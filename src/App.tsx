@@ -1,11 +1,23 @@
 import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom'
 import { AuthStatus } from './components/AuthStatus'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { SetupWizard } from './components/wizard/SetupWizard'
 import { LoginPage } from './pages/LoginPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { useAuthStore } from './stores/authStore'
+import { useShopStore } from './stores/shopStore'
 
 function Layout({ children }: { children: React.ReactNode }) {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const activeShop = useShopStore((s) => s.activeShop)
+  const logout = useAuthStore((s) => s.logout)
+  const clearActiveShop = useShopStore((s) => s.clearActiveShop)
+
+  const handleWizardCancel = () => {
+    clearActiveShop()
+    logout()
+  }
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow-sm">
@@ -25,17 +37,27 @@ function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
       <main>{children}</main>
+      {isAuthenticated && !activeShop && (
+        <SetupWizard
+          onCancel={handleWizardCancel}
+          onCreateComplete={() => {}}
+          onOpenComplete={() => {}}
+        />
+      )}
     </div>
   )
 }
 
 function RootRedirect() {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
-  return isAuthenticated ? (
-    <Navigate to="/transactions" replace />
-  ) : (
-    <Navigate to="/login" replace />
-  )
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const activeShop = useShopStore((s) => s.activeShop)
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+  if (!activeShop) {
+    return <Navigate to="/transactions" replace />
+  }
+  return <Navigate to="/transactions" replace />
 }
 
 export default function App() {

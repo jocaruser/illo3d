@@ -30,6 +30,30 @@ The system SHALL display a "Sign in with Google" button when One Tap is unavaila
 - **WHEN** user clicks "Sign in with Google"
 - **THEN** Google OAuth flow opens and on success credentials are stored
 
+### Requirement: All OAuth scopes requested at login
+
+The system SHALL request all required OAuth scopes (`spreadsheets` and `drive.file`) during the initial login flow. The user SHALL see a single consent screen at login time. No additional consent prompts SHALL appear when using API features later.
+
+#### Scenario: Login requests all scopes upfront
+- **WHEN** the user clicks "Sign in with Google" on the login page
+- **THEN** the OAuth consent includes both `spreadsheets` and `drive.file` scopes in a single request
+
+#### Scenario: No additional consent prompts for API features
+- **WHEN** the user uses Drive or Sheets features after login
+- **THEN** the system uses the stored access token without showing additional consent prompts
+
+### Requirement: Access token stored alongside user credentials
+
+The system SHALL store the OAuth access token in the auth store (persisted to sessionStorage) after successful login. The token SHALL be available for all API calls without re-requesting authorization.
+
+#### Scenario: Access token available after login
+- **WHEN** the user completes Google sign-in
+- **THEN** the auth store contains both user info and a valid access token
+
+#### Scenario: Stored access token used for API calls
+- **WHEN** an API call requires authorization
+- **THEN** the system uses the access token from the auth store
+
 ### Requirement: Login/logout status is visible
 
 The system SHALL display auth status in the main layout. When signed in: show user identity (e.g. name or email) and a sign-out action. When signed out: the header SHALL NOT display any sign-in UI — sign-in is handled exclusively by the login page.
@@ -44,7 +68,7 @@ The system SHALL display auth status in the main layout. When signed in: show us
 
 #### Scenario: Sign-out clears session
 - **WHEN** user triggers sign-out
-- **THEN** credentials are cleared, auth state updates to signed out, and the route guard redirects to `/login`
+- **THEN** credentials are cleared, active shop is cleared, auth state updates to signed out, and the route guard redirects to `/login`
 
 ### Requirement: Credentials are stored for API use
 
@@ -65,6 +89,14 @@ The system SHALL read the Google OAuth client ID from `VITE_GOOGLE_CLIENT_ID`. T
 #### Scenario: Client ID from env
 - **WHEN** app initializes Google OAuth
 - **THEN** it uses `import.meta.env.VITE_GOOGLE_CLIENT_ID`
+
+### Requirement: Google API key is configurable via environment
+
+The system SHALL read a Google API key from `VITE_GOOGLE_API_KEY` for use with the Google Picker API. The app SHALL NOT hardcode API keys.
+
+#### Scenario: API key available from environment
+- **WHEN** the app needs the Google API key (e.g., for Picker)
+- **THEN** it reads from `import.meta.env.VITE_GOOGLE_API_KEY`
 
 ### Requirement: Auth UI strings support i18n
 
