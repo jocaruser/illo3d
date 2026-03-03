@@ -23,7 +23,7 @@ The system SHALL display the illo3d brand name and a brief tagline on the login 
 
 ### Requirement: Login page integrates Google sign-in
 
-The system SHALL display Google sign-in options on the login page: Google One Tap (when available) and a "Sign in with Google" button. The button SHALL render immediately when the page loads (without waiting for One Tap to fail or a timeout to expire). One Tap SHALL operate as a parallel enhancement alongside the visible button. In development mode, a "Dev Login" button SHALL also be displayed below the Google sign-in options, visually separated.
+The system SHALL display Google sign-in options on the login page: Google One Tap (when available) and a "Sign in with Google" button. The button SHALL render immediately when the page loads (without waiting for One Tap to fail or a timeout to expire). One Tap SHALL operate as a parallel enhancement alongside the visible button. In development mode, a "Dev Login" button SHALL also be displayed below the Google sign-in options, visually separated. Clicking "Dev Login" SHALL immediately inject fixture auth and shop state and navigate to the app without any loading state or async operations.
 
 #### Scenario: Google Sign-In button appears immediately
 
@@ -54,6 +54,11 @@ The system SHALL display Google sign-in options on the login page: Google One Ta
 
 - **WHEN** the login page renders and `import.meta.env.DEV` is `false`
 - **THEN** no "Dev Login" button is present in the DOM
+
+#### Scenario: Dev Login click is instant
+
+- **WHEN** the user clicks "Dev Login" in development mode
+- **THEN** the button does not show a loading state and the user is immediately redirected to the app with fixture data loaded
 
 ### Requirement: Authenticated users are redirected away from login
 
