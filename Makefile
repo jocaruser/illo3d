@@ -1,4 +1,4 @@
-.PHONY: init up down logs dev build preview install add add-dev lint format test bash-exec shell clean
+.PHONY: init up down logs dev build preview install add add-dev lint format test bash-exec shell clean sa-drive-empty
 
 APP = docker compose exec app
 
@@ -64,3 +64,6 @@ bash-exec:
 
 shell:
 	docker compose exec app sh
+
+sa-drive-empty:
+	$(APP) node scripts/empty-sa-drive.mjs

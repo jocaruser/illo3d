@@ -16,8 +16,13 @@ export function useCreateShop() {
     async (folderName: string): Promise<void> => {
       const accessToken = await getAccessToken()
       const { id: folderId, name } = await createFolder(folderName)
-      const spreadsheetId = await createSpreadsheet(accessToken)
-      await moveFileToFolder(spreadsheetId, folderId)
+      const {
+        spreadsheetId,
+        createdInFolder,
+      } = await createSpreadsheet(accessToken, folderId)
+      if (!createdInFolder) {
+        await moveFileToFolder(spreadsheetId, folderId)
+      }
       await uploadMetadata(folderId, {
         app: 'illo3d',
         version: APP_VERSION,

@@ -82,7 +82,7 @@ After successful shop creation, the wizard SHALL show a summary with a congratul
 
 ### Requirement: Open-existing step launches Google Picker for folder selection
 
-When the user chooses "Open existing folder", the system SHALL open the Google Picker configured to select folders only. A "Back" button SHALL return to step 1.
+When the user chooses "Open existing folder", the system SHALL open the Google Picker configured to select folders only. A "Back" button SHALL return to step 1. Additionally, the system SHALL provide a folder ID text input as an alternative to the Picker, allowing users to paste a Google Drive folder ID directly.
 
 #### Scenario: Google Picker opens for folder selection
 - **WHEN** the user clicks "Open existing folder"
@@ -92,9 +92,21 @@ When the user chooses "Open existing folder", the system SHALL open the Google P
 - **WHEN** the user closes the Google Picker without selecting a folder
 - **THEN** the wizard returns to step 1
 
+#### Scenario: User enters folder ID manually
+- **WHEN** the user types or pastes a Google Drive folder ID into the folder ID input and submits
+- **THEN** the system validates the folder using the same validation flow as Picker-selected folders
+
+#### Scenario: Empty folder ID is rejected
+- **WHEN** the user submits the folder ID input with an empty value
+- **THEN** the system shows a validation error and does not proceed
+
+#### Scenario: Folder ID input includes helper text
+- **WHEN** the folder ID input renders
+- **THEN** helper text is visible explaining where to find the folder ID (e.g., from the Google Drive URL)
+
 ### Requirement: Selected folder is validated before opening
 
-After the user selects a folder via Picker, the system SHALL validate that the folder contains a valid `illo3d.metadata.json` file, that the metadata's major version matches the app's major version, and that the spreadsheet referenced in the metadata is accessible with read-write permissions.
+After the user selects a folder via Picker or enters a folder ID manually, the system SHALL validate that the folder contains a valid `illo3d.metadata.json` file, that the metadata's major version matches the app's major version, and that the spreadsheet referenced in the metadata is accessible with read-write permissions.
 
 #### Scenario: Valid folder opens immediately
 - **WHEN** the user selects a valid folder (metadata present, version compatible, spreadsheet accessible)

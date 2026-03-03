@@ -1,8 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useGoogleLogin } from '@react-oauth/google'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore, User } from '../stores/authStore'
+import { useShopStore } from '../stores/shopStore'
+import { validateShopFolder } from '../services/drive/validation'
 
 const OAUTH_SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
@@ -20,8 +22,45 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { login, isAuthenticated } = useAuthStore()
+  const setActiveShop = useShopStore((s) => s.setActiveShop)
+  const [devLoginLoading, setDevLoginLoading] = useState(false)
+  const [devLoginError, setDevLoginError] = useState<string | null>(null)
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/'
+
+  const handleDevLogin = async () => {
+    setDevLoginError(null)
+    setDevLoginLoading(true)
+    try {
+      const { exchangeSaToken } = await import('@/services/auth/devLogin')
+      const accessToken = await exchangeSaToken()
+      const email = import.meta.env.VITE_SA_CLIENT_EMAIL as string
+      login(
+        { email, name: 'Dev User' },
+        { accessToken }
+      )
+      const folderId = import.meta.env.VITE_SA_FOLDER_ID as string | undefined
+      if (folderId) {
+        const result = await validateShopFolder(folderId)
+        if (result.ok) {
+          setActiveShop({
+            folderId,
+            folderName: result.folderName,
+            spreadsheetId: result.spreadsheetId,
+            metadataVersion: result.metadataVersion,
+          })
+        } else {
+          setDevLoginError(result.error)
+          return
+        }
+      }
+      navigate(from, { replace: true })
+    } catch (err) {
+      setDevLoginError(err instanceof Error ? err.message : t('login.devLoginError'))
+    } finally {
+      setDevLoginLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -59,7 +98,7 @@ export function LoginPage() {
           {t('login.title')}
         </h1>
         <p className="mb-8 text-center text-gray-600">{t('login.tagline')}</p>
-        <div className="flex min-h-[44px] justify-center">
+        <div className="flex min-h-[44px] flex-col items-center gap-4">
           <button
             onClick={() => googleLogin()}
             className="flex items-center gap-2 rounded border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 shadow-sm hover:bg-gray-50"
@@ -84,6 +123,29 @@ export function LoginPage() {
             </svg>
             {t('auth.signIn')}
           </button>
+          {import.meta.env.DEV && (
+            <>
+              <div className="w-full border-t border-gray-200" />
+              <button
+                type="button"
+                onClick={handleDevLogin}
+                disabled={devLoginLoading}
+                className="flex items-center gap-2 rounded border border-amber-500 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+              >
+                {devLoginLoading ? (
+                  <>
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-amber-600 border-t-transparent" />
+                    {t('login.devLoginLoading')}
+                  </>
+                ) : (
+                  t('login.devLogin')
+                )}
+              </button>
+              {devLoginError && (
+                <p className="text-center text-sm text-red-600">{devLoginError}</p>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

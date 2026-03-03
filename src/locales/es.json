@@ -6,7 +6,10 @@
   },
   "login": {
     "title": "illo3d",
-    "tagline": "Tienda de impresión 3D con CRM y gestión financiera"
+    "tagline": "Tienda de impresión 3D con CRM y gestión financiera",
+    "devLogin": "Login Dev",
+    "devLoginLoading": "Iniciando sesión...",
+    "devLoginError": "Login dev falló. Revisa que VITE_SA_CREDENTIALS_FILE apunte a un JSON de SA válido."
   },
   "transactions": {
     "date": "Fecha",
@@ -40,9 +43,15 @@
     "successMessage": "Tu tienda \"{{name}}\" está lista.",
     "continue": "Continuar",
     "startTour": "Iniciar tour",
+    "folderIdLabel": "O pega el ID de carpeta",
+    "folderIdPlaceholder": "ID de carpeta desde la URL de Drive",
+    "folderIdHelper": "Encuentra el ID en la URL: drive.google.com/drive/folders/ID_AQUI",
+    "openFolder": "Abrir",
+    "folderIdEmpty": "Introduce un ID de carpeta",
     "errorNotShop": "Esta carpeta no es una tienda illo3d.",
     "errorVersion": "Esta tienda fue creada con otra versión de la app y no puede abrirse.",
     "errorPermissions": "No tienes permiso para acceder a los datos de esta tienda.",
+    "devLoginQuotaError": "El Login Dev no puede crear archivos nuevos de tienda con esta service account. Usa Abrir carpeta existente o inicia sesión con Google OAuth.",
     "errorGeneric": "Algo ha ido mal. Por favor, inténtalo de nuevo."
   }
 }

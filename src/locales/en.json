@@ -6,7 +6,10 @@
   },
   "login": {
     "title": "illo3d",
-    "tagline": "3D printing store with CRM and money management"
+    "tagline": "3D printing store with CRM and money management",
+    "devLogin": "Dev Login",
+    "devLoginLoading": "Signing in...",
+    "devLoginError": "Dev login failed. Check VITE_SA_CREDENTIALS_FILE points to a valid SA JSON."
   },
   "transactions": {
     "date": "Date",
@@ -40,9 +43,15 @@
     "successMessage": "Your shop \"{{name}}\" is ready.",
     "continue": "Continue",
     "startTour": "Start tour",
+    "folderIdLabel": "Or paste folder ID",
+    "folderIdPlaceholder": "Folder ID from Drive URL",
+    "folderIdHelper": "Find the ID in the folder URL: drive.google.com/drive/folders/ID_HERE",
+    "openFolder": "Open",
+    "folderIdEmpty": "Please enter a folder ID",
     "errorNotShop": "This folder is not an illo3d shop.",
     "errorVersion": "This shop was created with a different app version and cannot be opened.",
     "errorPermissions": "You do not have permission to access this shop's data.",
+    "devLoginQuotaError": "Dev Login cannot create new shop files with this service account. Use Open existing folder or sign in with Google OAuth.",
     "errorGeneric": "Something went wrong. Please try again."
   }
 }

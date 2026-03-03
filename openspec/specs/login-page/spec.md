@@ -23,7 +23,7 @@ The system SHALL display the illo3d brand name and a brief tagline on the login 
 
 ### Requirement: Login page integrates Google sign-in
 
-The system SHALL display Google sign-in options on the login page: Google One Tap (when available) and a "Sign in with Google" button. The button SHALL render immediately when the page loads (without waiting for One Tap to fail or a timeout to expire). One Tap SHALL operate as a parallel enhancement alongside the visible button.
+The system SHALL display Google sign-in options on the login page: Google One Tap (when available) and a "Sign in with Google" button. The button SHALL render immediately when the page loads (without waiting for One Tap to fail or a timeout to expire). One Tap SHALL operate as a parallel enhancement alongside the visible button. In development mode, a "Dev Login" button SHALL also be displayed below the Google sign-in options, visually separated.
 
 #### Scenario: Google Sign-In button appears immediately
 
@@ -44,6 +44,16 @@ The system SHALL display Google sign-in options on the login page: Google One Ta
 
 - **WHEN** the user completes Google sign-in (via One Tap or button)
 - **THEN** auth state updates and the user is redirected to the app
+
+#### Scenario: Dev Login button visible in development mode
+
+- **WHEN** the login page renders and `import.meta.env.DEV` is `true`
+- **THEN** a "Dev Login" button is displayed below the Google sign-in button, visually separated (e.g., with a divider)
+
+#### Scenario: Dev Login button hidden in production
+
+- **WHEN** the login page renders and `import.meta.env.DEV` is `false`
+- **THEN** no "Dev Login" button is present in the DOM
 
 ### Requirement: Authenticated users are redirected away from login
 
