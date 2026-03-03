@@ -7,9 +7,7 @@
   "login": {
     "title": "illo3d",
     "tagline": "3D printing store with CRM and money management",
-    "devLogin": "Dev Login",
-    "devLoginLoading": "Signing in...",
-    "devLoginError": "Dev login failed. Check VITE_SA_CREDENTIALS_FILE points to a valid SA JSON."
+    "devLogin": "Dev Login"
   },
   "transactions": {
     "date": "Date",

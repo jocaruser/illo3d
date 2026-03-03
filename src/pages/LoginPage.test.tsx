@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { LoginPage } from './LoginPage'
 import { useAuthStore } from '../stores/authStore'
@@ -13,16 +13,6 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
-}))
-
-const mockExchangeSaToken = vi.fn()
-vi.mock('@/services/auth/devLogin', () => ({
-  exchangeSaToken: () => mockExchangeSaToken(),
-}))
-
-const mockValidateShopFolder = vi.fn()
-vi.mock('@/services/drive/validation', () => ({
-  validateShopFolder: (folderId: string) => mockValidateShopFolder(folderId),
 }))
 
 beforeEach(() => {
@@ -52,16 +42,8 @@ describe('LoginPage', () => {
     expect(screen.getByText('login.devLogin')).toBeInTheDocument()
   })
 
-  it('auto-sets shop when VITE_SA_FOLDER_ID is configured', async () => {
-    vi.stubEnv('VITE_SA_CLIENT_EMAIL', 'sa@project.iam.gserviceaccount.com')
-    vi.stubEnv('VITE_SA_FOLDER_ID', 'fixture-folder-id')
-    mockExchangeSaToken.mockResolvedValue('access-token')
-    mockValidateShopFolder.mockResolvedValue({
-      ok: true,
-      spreadsheetId: 'sheet-123',
-      folderName: 'Fixture Shop',
-      metadataVersion: '1.0.0',
-    })
+  it('sets auth and shop stores on Dev Login click without network calls', () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
     render(
       <MemoryRouter>
@@ -70,14 +52,21 @@ describe('LoginPage', () => {
     )
     fireEvent.click(screen.getByText('login.devLogin'))
 
-    await waitFor(() => {
-      expect(mockValidateShopFolder).toHaveBeenCalledWith('fixture-folder-id')
+    expect(useAuthStore.getState().user).toEqual({
+      email: 'dev@illo3d.local',
+      name: 'Dev User',
+    })
+    expect(useAuthStore.getState().credentials).toEqual({
+      accessToken: 'dev-fake-token',
     })
     expect(useShopStore.getState().activeShop).toEqual({
-      folderId: 'fixture-folder-id',
-      folderName: 'Fixture Shop',
-      spreadsheetId: 'sheet-123',
+      folderId: 'dev-fixture-folder-id',
+      folderName: 'Dev Fixture Shop',
+      spreadsheetId: 'dev-fixture-spreadsheet-id',
       metadataVersion: '1.0.0',
     })
+    expect(fetchSpy).not.toHaveBeenCalled()
+
+    fetchSpy.mockRestore()
   })
 })

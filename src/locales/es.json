@@ -7,9 +7,7 @@
   "login": {
     "title": "illo3d",
     "tagline": "Tienda de impresión 3D con CRM y gestión financiera",
-    "devLogin": "Login Dev",
-    "devLoginLoading": "Iniciando sesión...",
-    "devLoginError": "Login dev falló. Revisa que VITE_SA_CREDENTIALS_FILE apunte a un JSON de SA válido."
+    "devLogin": "Login Dev"
   },
   "transactions": {
     "date": "Fecha",
