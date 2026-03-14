@@ -59,3 +59,4 @@ rules:
     - Order tasks by dependency
     - Each task should result in working, readable code
     - Use browser mcp server at the end of testing phase to manually test the changes
+    - Consider adding or updating E2E tests (Playwright, in e2e/) for any user-facing change that affects navigation, auth, or page behavior
