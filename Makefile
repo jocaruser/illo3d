@@ -1,4 +1,4 @@
-.PHONY: init up down logs dev build preview install add add-dev lint format test bash-exec shell clean sa-drive-empty
+.PHONY: init up down logs dev build preview install add add-dev lint format test e2e-test bash-exec shell clean sa-drive-empty
 
 APP = docker compose exec app
 
@@ -57,6 +57,9 @@ format:
 
 test:
 	$(APP) pnpm test
+
+e2e-test:
+	docker compose run --rm -e PLAYWRIGHT_BASE_URL=http://web:5173 playwright pnpm exec playwright test
 
 # ============ ESCAPE HATCH ============
 bash-exec:

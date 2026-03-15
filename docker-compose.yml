@@ -8,7 +8,22 @@ services:
     working_dir: /app
     environment:
       - NODE_ENV=development
+      - VITE_SHOW_DEV_LOGIN=true
     command: tail -f /dev/null
+    networks:
+      illo3d-network:
+        aliases:
+          - web
+
+  playwright:
+    build:
+      context: .
+      dockerfile: Dockerfile.playwright
+    volumes:
+      - .:/app
+    working_dir: /app
+    environment:
+      - NODE_ENV=development
     networks:
       - illo3d-network
 

@@ -94,12 +94,13 @@ export function LoginPage() {
             </svg>
             {t('auth.signIn')}
           </button>
-          {import.meta.env.DEV && (
+          {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV_LOGIN === 'true') && (
             <>
               <div className="w-full border-t border-gray-200" />
               <button
                 type="button"
                 onClick={handleDevLogin}
+                data-testid="dev-login-button"
                 className="flex items-center gap-2 rounded border border-amber-500 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100"
               >
                 {t('login.devLogin')}
