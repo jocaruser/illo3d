@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { isCsvBackendEnabled } from '@/config/csvBackend'
+import { ChooseActionStep } from './ChooseActionStep'
 import { useCreateShop } from '@/hooks/useCreateShop'
 import { useOpenExistingShop } from '@/hooks/useOpenExistingShop'
-import { ChooseActionStep } from './ChooseActionStep'
 import { CreateShopStep } from './CreateShopStep'
 import { SuccessStep } from './SuccessStep'
 import { OpenExistingStep } from './OpenExistingStep'
@@ -13,6 +12,9 @@ export type WizardStep =
   | 'create'
   | 'open-existing'
   | 'success'
+
+/** Resolved at build time; avoids per-render function call. */
+const showCreateNew = !import.meta.env.DEV
 
 interface SetupWizardProps {
   onCancel: () => void
@@ -54,7 +56,7 @@ export function SetupWizard({
             onCreateNew={handleChooseCreate}
             onOpenExisting={handleChooseOpen}
             onCancel={onCancel}
-            showCreateNew={!isCsvBackendEnabled()}
+            showCreateNew={showCreateNew}
           />
         )
       case 'create':

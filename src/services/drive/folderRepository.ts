@@ -14,6 +14,8 @@ export interface FolderRepository {
 
 export class GoogleFolderRepository implements FolderRepository {
   async readMetadata(folderId: string): Promise<ShopMetadata | null> {
+    // folderId must be a trusted Google Drive folder ID (from Picker/Drive API).
+    // Do not pass user-controlled input from non-Google sources.
     const listResponse = await driveFetch(
       `/files?q='${folderId}' in parents and name='${METADATA_FILENAME}' and trashed=false`
     )

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { OpenExistingStep } from './OpenExistingStep'
 
@@ -8,7 +8,16 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
+vi.mock('@/config/csvBackend', () => ({
+  isCsvBackendEnabled: vi.fn(() => true),
+}))
+
 describe('OpenExistingStep', () => {
+  beforeEach(async () => {
+    const { isCsvBackendEnabled } = await import('@/config/csvBackend')
+    ;(isCsvBackendEnabled as ReturnType<typeof vi.fn>).mockReturnValue(true)
+  })
+
   it('renders fixture folder input (dev/CSV mode)', () => {
     const onSelectFolder = vi.fn()
     const onValidateFolder = vi.fn()
@@ -67,5 +76,23 @@ describe('OpenExistingStep', () => {
 
     expect(screen.getByText('wizard.fixtureFolderNameEmpty')).toBeInTheDocument()
     expect(onValidateFolder).not.toHaveBeenCalled()
+  })
+
+  it('renders Picker button and folderIdLabel when production mode (Google Sheets)', async () => {
+    const { isCsvBackendEnabled } = await import('@/config/csvBackend')
+    ;(isCsvBackendEnabled as ReturnType<typeof vi.fn>).mockReturnValue(false)
+
+    render(
+      <OpenExistingStep
+        onBack={vi.fn()}
+        onSuccess={vi.fn()}
+        onSelectFolder={vi.fn()}
+        onValidateFolder={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText('wizard.folderIdLabel')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'wizard.openExisting' })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('wizard.folderIdPlaceholder')).toBeInTheDocument()
   })
 })
