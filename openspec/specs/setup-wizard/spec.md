@@ -22,11 +22,16 @@ The system SHALL display a full-screen modal overlay (the setup wizard) whenever
 
 ### Requirement: Step 1 presents create-or-open choice
 
-The wizard's first step SHALL present two options: "Create new shop" and "Open existing folder". A "Cancel" button SHALL also be visible.
+The wizard's first step SHALL present two options: "Create new shop" and "Open existing folder". A "Cancel" button SHALL also be visible. In dev mode, only "Open existing folder" and "Cancel" are shown (Create new is hidden).
 
 #### Scenario: User sees action choice
-- **WHEN** the wizard renders step 1
+- **WHEN** the wizard renders step 1 in production mode
 - **THEN** the user sees buttons for "Create new shop", "Open existing folder", and "Cancel"
+
+#### Scenario: Dev mode shows only Open existing and Cancel
+- **WHEN** the wizard renders step 1 in dev mode
+- **THEN** the user sees "Open existing folder" and "Cancel" only
+- **AND** "Create new shop" is not visible
 
 #### Scenario: Cancel logs the user out
 - **WHEN** the user clicks "Cancel" on step 1
@@ -82,9 +87,9 @@ After successful shop creation, the wizard SHALL show a summary with a congratul
 
 ### Requirement: Open-existing step launches Google Picker for folder selection
 
-When the user chooses "Open existing folder", the system SHALL open the Google Picker configured to select folders only. A "Back" button SHALL return to step 1. Additionally, the system SHALL provide a folder ID text input as an alternative to the Picker, allowing users to paste a Google Drive folder ID directly.
+When the user chooses "Open existing folder", the system SHALL open the Google Picker configured to select folders only (in production). A "Back" button SHALL return to step 1. In production, a folder ID text input is also provided as an alternative to the Picker. In dev mode, the Picker is hidden and a fixture folder name input is shown instead.
 
-#### Scenario: Google Picker opens for folder selection
+#### Scenario: Google Picker opens for folder selection (production)
 - **WHEN** the user clicks "Open existing folder"
 - **THEN** the Google Picker opens allowing the user to select a folder from their Drive
 
@@ -103,6 +108,16 @@ When the user chooses "Open existing folder", the system SHALL open the Google P
 #### Scenario: Folder ID input includes helper text
 - **WHEN** the folder ID input renders
 - **THEN** helper text is visible explaining where to find the folder ID (e.g., from the Google Drive URL)
+
+#### Scenario: Dev mode shows fixture folder name input
+- **WHEN** the wizard "Open existing" step renders in dev mode
+- **THEN** the Google Picker and Drive folder ID input are hidden
+- **AND** a text input for fixture folder name is shown (e.g. `happy-path`, `missingcolumn`)
+- **AND** user submits the folder name to validate and open
+
+#### Scenario: Empty fixture folder name is rejected in dev mode
+- **WHEN** the user submits the fixture folder input with an empty value in dev mode
+- **THEN** the system shows a validation error and does not proceed
 
 ### Requirement: Selected folder is validated before opening
 

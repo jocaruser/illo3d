@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { isCsvBackendEnabled } from '@/config/csvBackend'
 import { useCreateShop } from '@/hooks/useCreateShop'
 import { useOpenExistingShop } from '@/hooks/useOpenExistingShop'
 import { ChooseActionStep } from './ChooseActionStep'
@@ -53,6 +54,7 @@ export function SetupWizard({
             onCreateNew={handleChooseCreate}
             onOpenExisting={handleChooseOpen}
             onCancel={onCancel}
+            showCreateNew={!isCsvBackendEnabled()}
           />
         )
       case 'create':

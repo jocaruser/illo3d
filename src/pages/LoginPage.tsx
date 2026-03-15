@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore, User } from '../stores/authStore'
 import { useShopStore } from '../stores/shopStore'
 import { getDevFixtures } from '../services/auth/devLogin'
+import { isCsvBackendEnabled } from '../config/csvBackend'
 
 const OAUTH_SCOPES = [
   'https://www.googleapis.com/auth/spreadsheets',
@@ -29,7 +30,9 @@ export function LoginPage() {
   const handleDevLogin = () => {
     const { user, credentials, shop } = getDevFixtures()
     login(user, credentials)
-    setActiveShop(shop)
+    if (!isCsvBackendEnabled()) {
+      setActiveShop(shop)
+    }
     navigate(from, { replace: true })
   }
 

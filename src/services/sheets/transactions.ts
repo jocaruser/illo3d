@@ -1,16 +1,14 @@
-import { readSheetRows } from './read'
+import { getSheetsRepository } from './repository'
 import type { Transaction } from '@/types/money'
 import type { SheetName } from './config'
 
 export async function fetchTransactions(
-  spreadsheetId: string,
-  getAccessToken: () => Promise<string>
+  spreadsheetId: string
 ): Promise<Transaction[]> {
-  const accessToken = await getAccessToken()
-  const rows = await readSheetRows<Transaction>(
+  const repository = getSheetsRepository()
+  const rows = await repository.readRows<Transaction>(
     spreadsheetId,
-    'transactions' as SheetName,
-    accessToken
+    'transactions' as SheetName
   )
   return rows
     .filter((r) => r.id && r.date)

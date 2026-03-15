@@ -1,38 +1,41 @@
 import { test, expect } from '@playwright/test'
 
-async function devLoginThenClearShop(page: import('@playwright/test').Page) {
+/** Dev login; in CSV mode wizard shows immediately (no shop set). */
+async function devLoginAndShowWizard(page: import('@playwright/test').Page) {
   await page.goto('/login', { waitUntil: 'networkidle' })
-
   const devLoginButton = page.getByTestId('dev-login-button')
   await expect(devLoginButton).toBeVisible({ timeout: 15000 })
   await devLoginButton.click()
-
   await expect(page).toHaveURL(/\/transactions/)
+}
 
-  await page.evaluate(() => {
-    sessionStorage.removeItem('shop-storage')
-  })
-
-  await page.reload({ waitUntil: 'networkidle' })
+/** Complete wizard by opening a fixture folder (CSV mode). */
+async function completeWizardWithFolder(
+  page: import('@playwright/test').Page,
+  folderName: string
+) {
+  await page.getByRole('button', { name: 'Open existing folder' }).click()
+  await page.getByPlaceholder('e.g. happy-path, missingcolumn').fill(folderName)
+  await page.getByRole('button', { name: 'Open' }).click()
 }
 
 test.describe('Setup wizard', () => {
-  test('wizard step 1 shows Create new shop, Open existing folder, and Cancel', async ({
+  test('wizard step 1 shows Open existing folder and Cancel (CSV mode)', async ({
     page,
   }) => {
-    await devLoginThenClearShop(page)
+    await devLoginAndShowWizard(page)
 
-    await expect(page.getByRole('button', { name: 'Create new shop' })).toBeVisible({
+    // CSV mode: only Open existing and Cancel (no Create new)
+    await expect(page.getByRole('button', { name: 'Open existing folder' })).toBeVisible({
       timeout: 5000,
     })
-    await expect(page.getByRole('button', { name: 'Open existing folder' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible()
   })
 
   test('clicking Cancel on wizard step 1 redirects user to /login', async ({
     page,
   }) => {
-    await devLoginThenClearShop(page)
+    await devLoginAndShowWizard(page)
 
     const cancelButton = page.getByRole('button', { name: 'Cancel' })
     await expect(cancelButton).toBeVisible({ timeout: 5000 })
@@ -41,30 +44,29 @@ test.describe('Setup wizard', () => {
     await expect(page).toHaveURL(/\/login/)
   })
 
-  test('empty folder name is rejected with validation error', async ({ page }) => {
-    await devLoginThenClearShop(page)
+  test('empty fixture folder name is rejected with validation error', async ({
+    page,
+  }) => {
+    await devLoginAndShowWizard(page)
 
-    await page.getByRole('button', { name: 'Create new shop' }).click()
+    await page.getByRole('button', { name: 'Open existing folder' }).click()
 
-    const createButton = page.getByRole('button', { name: 'Create' })
-    await expect(createButton).toBeVisible({ timeout: 5000 })
-    await createButton.click()
+    const openButton = page.getByRole('button', { name: 'Open' })
+    await expect(openButton).toBeVisible({ timeout: 5000 })
+    await openButton.click()
 
-    await expect(page.getByText(/enter folder name/i)).toBeVisible({
+    await expect(page.getByText(/enter a fixture folder name/i)).toBeVisible({
       timeout: 5000,
     })
   })
 
   test('wizard does not appear when user has active shop', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' })
+    await devLoginAndShowWizard(page)
+    await completeWizardWithFolder(page, 'happy-path')
 
-    const devLoginButton = page.getByTestId('dev-login-button')
-    await expect(devLoginButton).toBeVisible({ timeout: 15000 })
-    await devLoginButton.click()
-
-    await expect(page).toHaveURL(/\/transactions/)
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible()
-
-    await expect(page.getByRole('button', { name: 'Create new shop' })).not.toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
+      timeout: 5000,
+    })
+    await expect(page.getByRole('button', { name: 'Open existing folder' })).not.toBeVisible()
   })
 })

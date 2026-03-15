@@ -1,8 +1,6 @@
 import { APP_VERSION } from '@/config/version'
-import { driveFetch } from './client'
-import { readMetadata } from './metadata'
+import { getFolderRepository } from './folderRepository'
 import { validateStructure } from '@/services/sheets/validateStructure'
-import { getAccessToken } from '@/services/sheets/client'
 
 export type ValidationResult =
   | { ok: true; spreadsheetId: string; folderName: string; metadataVersion: string }
@@ -16,7 +14,8 @@ function parseMajor(version: string): number {
 export async function validateShopFolder(
   folderId: string
 ): Promise<ValidationResult> {
-  const metadata = await readMetadata(folderId)
+  const folderRepository = getFolderRepository()
+  const metadata = await folderRepository.readMetadata(folderId)
   if (!metadata) {
     return { ok: false, error: 'not_shop' }
   }
@@ -27,23 +26,14 @@ export async function validateShopFolder(
     return { ok: false, error: 'version' }
   }
 
-  const accessToken = await getAccessToken()
   const validationErrors = await validateStructure(
-    metadata.spreadsheetId,
-    accessToken
+    metadata.spreadsheetId
   )
   if (validationErrors.length > 0) {
     return { ok: false, error: 'permissions' }
   }
 
-  const folderResponse = await driveFetch(
-    `/files/${folderId}?fields=name`
-  )
-  let folderName = folderId
-  if (folderResponse.ok) {
-    const file = (await folderResponse.json()) as { name?: string }
-    if (file.name) folderName = file.name
-  }
+  const folderName = await folderRepository.getFolderName(folderId)
 
   return {
     ok: true,
