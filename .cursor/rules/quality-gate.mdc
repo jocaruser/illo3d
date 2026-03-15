@@ -5,6 +5,7 @@ alwaysApply: true
 
 # Quality Gate
 
+- **Clean Code (Uncle Bob)**: Write code following principles from *Clean Code* by Robert C. Martin: meaningful names, small functions, single responsibility, minimal comments (code explains itself), no duplication, clear abstractions, low coupling, and tests that are clean too.
 - **Use Makefile commands only**: Never run `pnpm`, `docker compose exec`, or similar directly. Use `make dev`, `make build`, `make lint`, `make test`, `make add PKG=...`, `make add-dev PKG=...`, etc.
 - **Validate before finishing**: After any code change, run `make quality-gate`. This runs build, lint, test, and e2e-test in sequence. All must exit with code 0 and report zero errors.
 - **Linter must be flawless**: ESLint must report 0 problems. Fix any errors or warnings before considering work complete.
