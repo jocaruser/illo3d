@@ -54,4 +54,19 @@ describe('ChooseActionStep', () => {
     fireEvent.click(screen.getByText('wizard.cancel'))
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
+
+  it('hides Create new when showCreateNew is false (CSV mode)', () => {
+    render(
+      <ChooseActionStep
+        onCreateNew={vi.fn()}
+        onOpenExisting={vi.fn()}
+        onCancel={vi.fn()}
+        showCreateNew={false}
+      />
+    )
+
+    expect(screen.queryByText('wizard.createNew')).not.toBeInTheDocument()
+    expect(screen.getByText('wizard.openExisting')).toBeInTheDocument()
+    expect(screen.getByText('wizard.cancel')).toBeInTheDocument()
+  })
 })

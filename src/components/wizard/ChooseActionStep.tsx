@@ -4,12 +4,15 @@ interface ChooseActionStepProps {
   onCreateNew: () => void
   onOpenExisting: () => void
   onCancel: () => void
+  /** When true (CSV mode), only show Open existing and Cancel. Default false. */
+  showCreateNew?: boolean
 }
 
 export function ChooseActionStep({
   onCreateNew,
   onOpenExisting,
   onCancel,
+  showCreateNew = true,
 }: ChooseActionStepProps) {
   const { t } = useTranslation()
 
@@ -19,13 +22,15 @@ export function ChooseActionStep({
         {t('wizard.title')}
       </h3>
       <div className="flex flex-col gap-3">
-        <button
-          type="button"
-          onClick={onCreateNew}
-          className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-left font-medium text-gray-800 shadow-sm transition hover:bg-gray-50"
-        >
-          {t('wizard.createNew')}
-        </button>
+        {showCreateNew && (
+          <button
+            type="button"
+            onClick={onCreateNew}
+            className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-left font-medium text-gray-800 shadow-sm transition hover:bg-gray-50"
+          >
+            {t('wizard.createNew')}
+          </button>
+        )}
         <button
           type="button"
           onClick={onOpenExisting}

@@ -42,7 +42,7 @@ describe('LoginPage', () => {
     expect(screen.getByText('login.devLogin')).toBeInTheDocument()
   })
 
-  it('sets auth and shop stores on Dev Login click without network calls', () => {
+  it('sets auth on Dev Login (no shop in dev; wizard will show)', () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch')
 
     render(
@@ -59,12 +59,8 @@ describe('LoginPage', () => {
     expect(useAuthStore.getState().credentials).toEqual({
       accessToken: 'dev-fake-token',
     })
-    expect(useShopStore.getState().activeShop).toEqual({
-      folderId: 'dev-fixture-folder-id',
-      folderName: 'Dev Fixture Shop',
-      spreadsheetId: 'dev-fixture-spreadsheet-id',
-      metadataVersion: '1.0.0',
-    })
+    // Dev = CSV: no shop set; wizard will show after nav
+    expect(useShopStore.getState().activeShop).toBeNull()
     expect(fetchSpy).not.toHaveBeenCalled()
 
     fetchSpy.mockRestore()

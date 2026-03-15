@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { isCsvBackendEnabled } from '@/config/csvBackend'
 
 interface OpenExistingStepProps {
   onBack: () => void
@@ -21,6 +22,7 @@ export function OpenExistingStep({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [folderId, setFolderId] = useState('')
+  const isCsv = isCsvBackendEnabled()
 
   const handleOpenPicker = () => {
     setError(null)
@@ -58,7 +60,9 @@ export function OpenExistingStep({
   const handleOpenByFolderId = () => {
     const trimmed = folderId.trim()
     if (!trimmed) {
-      setError(t('wizard.folderIdEmpty'))
+      setError(
+        isCsv ? t('wizard.fixtureFolderNameEmpty') : t('wizard.folderIdEmpty')
+      )
       return
     }
     setError(null)
@@ -106,13 +110,15 @@ export function OpenExistingStep({
         <p className="text-sm text-red-600">{error}</p>
       )}
       <div className="flex gap-3">
-        <button
-          type="button"
-          onClick={handleOpenPicker}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          {t('wizard.openExisting')}
-        </button>
+        {!isCsv && (
+          <button
+            type="button"
+            onClick={handleOpenPicker}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            {t('wizard.openExisting')}
+          </button>
+        )}
         <button
           type="button"
           onClick={onBack}
@@ -123,16 +129,22 @@ export function OpenExistingStep({
       </div>
       <div className="border-t border-gray-200 pt-6">
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          {t('wizard.folderIdLabel')}
+          {isCsv ? t('wizard.fixtureFolderNameLabel') : t('wizard.folderIdLabel')}
         </label>
         <input
           type="text"
           value={folderId}
           onChange={(e) => setFolderId(e.target.value)}
-          placeholder={t('wizard.folderIdPlaceholder')}
+          placeholder={
+            isCsv
+              ? t('wizard.fixtureFolderNamePlaceholder')
+              : t('wizard.folderIdPlaceholder')
+          }
           className="mb-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
         />
-        <p className="mb-3 text-xs text-gray-500">{t('wizard.folderIdHelper')}</p>
+        <p className="mb-3 text-xs text-gray-500">
+          {isCsv ? t('wizard.fixtureFolderNameHelper') : t('wizard.folderIdHelper')}
+        </p>
         <button
           type="button"
           onClick={handleOpenByFolderId}

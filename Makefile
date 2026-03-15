@@ -1,4 +1,4 @@
-.PHONY: init up down logs dev build preview install add add-dev lint format test e2e-test bash-exec shell clean sa-drive-empty
+.PHONY: init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate bash-exec shell clean sa-drive-empty
 
 APP = docker compose exec app
 
@@ -49,6 +49,11 @@ add-dev:
 	$(APP) pnpm add -D $(PKG)
 
 # ============ QUALITY ============
+# Run all quality checks. Use this before finishing any code change.
+quality-gate: build lint test e2e-test
+	@echo ""
+	@echo "✅ Quality gate passed"
+
 lint:
 	$(APP) pnpm lint
 

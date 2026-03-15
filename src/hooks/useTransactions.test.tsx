@@ -45,10 +45,7 @@ describe('useTransactions', () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
-    expect(fetchTransactions).toHaveBeenCalledWith(
-      'spreadsheet-123',
-      expect.any(Function)
-    )
+    expect(fetchTransactions).toHaveBeenCalledWith('spreadsheet-123')
     expect(result.current.data).toEqual([])
   })
 })

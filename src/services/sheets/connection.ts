@@ -1,4 +1,3 @@
-import { getAccessToken } from './client'
 import { validateStructure } from './validateStructure'
 
 export type ConnectionResult =
@@ -9,8 +8,7 @@ export async function connect(
   spreadsheetId: string
 ): Promise<ConnectionResult> {
   try {
-    const accessToken = await getAccessToken()
-    const validationErrors = await validateStructure(spreadsheetId, accessToken)
+    const validationErrors = await validateStructure(spreadsheetId)
     if (validationErrors.length > 0) {
       return {
         ok: false,

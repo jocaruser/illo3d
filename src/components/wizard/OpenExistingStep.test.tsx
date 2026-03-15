@@ -9,7 +9,7 @@ vi.mock('react-i18next', () => ({
 }))
 
 describe('OpenExistingStep', () => {
-  it('renders Picker button and folder ID input', () => {
+  it('renders fixture folder input (dev/CSV mode)', () => {
     const onSelectFolder = vi.fn()
     const onValidateFolder = vi.fn()
 
@@ -23,8 +23,8 @@ describe('OpenExistingStep', () => {
     )
 
     expect(screen.getAllByText('wizard.openExisting').length).toBeGreaterThan(0)
-    expect(screen.getByText('wizard.folderIdLabel')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('wizard.folderIdPlaceholder')).toBeInTheDocument()
+    expect(screen.getByText('wizard.fixtureFolderNameLabel')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('wizard.fixtureFolderNamePlaceholder')).toBeInTheDocument()
     expect(screen.getByText('wizard.openFolder')).toBeInTheDocument()
   })
 
@@ -40,18 +40,18 @@ describe('OpenExistingStep', () => {
       />
     )
 
-    const input = screen.getByPlaceholderText('wizard.folderIdPlaceholder')
-    fireEvent.change(input, { target: { value: 'folder-id-123' } })
+    const input = screen.getByPlaceholderText('wizard.fixtureFolderNamePlaceholder')
+    fireEvent.change(input, { target: { value: 'happy-path' } })
     fireEvent.click(screen.getByText('wizard.openFolder'))
 
     await waitFor(() => {
-      expect(onValidateFolder).toHaveBeenCalledWith('folder-id-123')
+      expect(onValidateFolder).toHaveBeenCalledWith('happy-path')
     })
 
-    expect(onValidateFolder).toHaveBeenCalledWith('folder-id-123')
+    expect(onValidateFolder).toHaveBeenCalledWith('happy-path')
   })
 
-  it('shows error when folder ID is empty', () => {
+  it('shows error when fixture folder name is empty', () => {
     const onValidateFolder = vi.fn()
 
     render(
@@ -65,7 +65,7 @@ describe('OpenExistingStep', () => {
 
     fireEvent.click(screen.getByText('wizard.openFolder'))
 
-    expect(screen.getByText('wizard.folderIdEmpty')).toBeInTheDocument()
+    expect(screen.getByText('wizard.fixtureFolderNameEmpty')).toBeInTheDocument()
     expect(onValidateFolder).not.toHaveBeenCalled()
   })
 })

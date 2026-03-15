@@ -19,7 +19,13 @@ test.describe('Route guard', () => {
     await devLoginButton.click()
 
     await expect(page).toHaveURL(/\/transactions/)
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible()
+    // CSV mode: wizard shows; complete it to see Transactions
+    await page.getByRole('button', { name: 'Open existing folder' }).click()
+    await page.getByPlaceholder('e.g. happy-path, missingcolumn').fill('happy-path')
+    await page.getByRole('button', { name: 'Open' }).click()
+    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
+      timeout: 5000,
+    })
   })
 
   test('redirect after login returns to original path', async ({ page }) => {
@@ -44,15 +50,9 @@ test.describe('Route guard', () => {
     await devLoginButton.click()
 
     await expect(page).toHaveURL(/\/transactions/)
-
-    await page.evaluate(() => {
-      sessionStorage.removeItem('shop-storage')
-    })
-
-    await page.reload({ waitUntil: 'networkidle' })
-
+    // CSV mode: dev login does not set shop, wizard shows immediately
     await expect(
-      page.getByRole('button', { name: 'Create new shop' })
+      page.getByRole('button', { name: 'Open existing folder' })
     ).toBeVisible({ timeout: 5000 })
   })
 })

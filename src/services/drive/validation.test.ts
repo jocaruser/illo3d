@@ -1,30 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { validateShopFolder } from './validation'
 
-vi.mock('./metadata', () => ({
-  readMetadata: vi.fn(),
-}))
-vi.mock('./client', () => ({
-  driveFetch: vi.fn(),
+const mockReadMetadata = vi.fn()
+const mockGetFolderName = vi.fn()
+
+vi.mock('./folderRepository', () => ({
+  getFolderRepository: vi.fn(() => ({
+    readMetadata: mockReadMetadata,
+    getFolderName: mockGetFolderName,
+  })),
 }))
 vi.mock('@/services/sheets/validateStructure', () => ({
   validateStructure: vi.fn(),
 }))
-vi.mock('@/services/sheets/client', () => ({
-  getAccessToken: vi.fn().mockResolvedValue('mock-token'),
-}))
 
-import { readMetadata } from './metadata'
 import { validateStructure } from '@/services/sheets/validateStructure'
 
 describe('validateShopFolder', () => {
   beforeEach(() => {
-    vi.mocked(readMetadata).mockReset()
+    mockReadMetadata.mockReset()
+    mockGetFolderName.mockReset()
+    mockGetFolderName.mockResolvedValue('folder-1')
     vi.mocked(validateStructure).mockReset()
   })
 
   it('returns not_shop when metadata is null', async () => {
-    vi.mocked(readMetadata).mockResolvedValue(null)
+    mockReadMetadata.mockResolvedValue(null)
 
     const result = await validateShopFolder('folder-1')
 
@@ -33,7 +34,7 @@ describe('validateShopFolder', () => {
   })
 
   it('returns version error when major version differs', async () => {
-    vi.mocked(readMetadata).mockResolvedValue({
+    mockReadMetadata.mockResolvedValue({
       app: 'illo3d',
       version: '2.0.0',
       spreadsheetId: 'sheet-1',
@@ -48,7 +49,7 @@ describe('validateShopFolder', () => {
   })
 
   it('returns permissions error when structure validation fails', async () => {
-    vi.mocked(readMetadata).mockResolvedValue({
+    mockReadMetadata.mockResolvedValue({
       app: 'illo3d',
       version: '1.0.0',
       spreadsheetId: 'sheet-1',

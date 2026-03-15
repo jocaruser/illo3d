@@ -5,8 +5,7 @@ import { useShopStore } from '@/stores/shopStore'
 import { createFolder } from '@/services/drive/folders'
 import { uploadMetadata } from '@/services/drive/metadata'
 import { moveFileToFolder } from '@/services/drive/files'
-import { createSpreadsheet } from '@/services/sheets/createSpreadsheet'
-import { getAccessToken } from '@/services/sheets/client'
+import { getSheetsRepository } from '@/services/sheets/repository'
 
 export function useCreateShop() {
   const user = useAuthStore((s) => s.user)
@@ -14,9 +13,8 @@ export function useCreateShop() {
 
   const createShop = useCallback(
     async (folderName: string): Promise<void> => {
-      const accessToken = await getAccessToken()
       const { id: folderId, name } = await createFolder(folderName)
-      const spreadsheetId = await createSpreadsheet(accessToken)
+      const spreadsheetId = await getSheetsRepository().createSpreadsheet()
       await moveFileToFolder(spreadsheetId, folderId)
       await uploadMetadata(folderId, {
         app: 'illo3d',
