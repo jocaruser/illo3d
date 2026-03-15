@@ -78,7 +78,11 @@ Archive a completed change in the experimental workflow.
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
    ```
 
-6. **Display summary**
+6. **Run create-pr**
+
+   After archiving, run the `/create-pr` workflow to create a branch, push the archive changes, and open a PR. This ensures the archived change is submitted for review. Proceed with create-pr using the archive as the changes to push (branch name can derive from the change name, e.g., `chore/archive-<change-name>`).
+
+7. **Display summary**
 
    Show archive completion summary including:
    - Change name

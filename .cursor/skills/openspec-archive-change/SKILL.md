@@ -65,7 +65,11 @@ Archive a completed change in the experimental workflow.
 
    If user chooses sync, use Task tool (subagent_type: "general-purpose", prompt: "Use Skill tool to invoke openspec-sync-specs for change '<name>'. Delta spec analysis: <include the analyzed delta spec summary>"). Proceed to archive regardless of choice.
 
-5. **Perform the archive**
+5. **Run create-pr (after archive)**
+
+   After the archive move completes, run the `/create-pr` command (or its workflow) to create a branch, push the archive changes, and open a PR. This ensures the archived change is submitted for review. Use a branch name derived from the change (e.g., `chore/archive-<change-name>`).
+
+6. **Perform the archive**
 
    Create the archive directory if it doesn't exist:
    ```bash
