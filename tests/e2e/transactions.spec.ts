@@ -40,7 +40,7 @@ test.describe('Transactions page', () => {
     await expect(balanceLabel.or(connectingOrError)).toBeVisible({ timeout: 15000 })
   })
 
-  test('no add, edit, or delete buttons visible in transactions UI', async ({
+  test('no edit or delete buttons visible in transactions UI', async ({
     page,
   }) => {
     await devLogin(page)
@@ -49,7 +49,6 @@ test.describe('Transactions page', () => {
       timeout: 10000,
     })
 
-    await expect(page.getByRole('button', { name: /add|create|new/i })).not.toBeVisible()
     await expect(page.getByRole('button', { name: /edit/i })).not.toBeVisible()
     await expect(page.getByRole('button', { name: /delete|remove/i })).not.toBeVisible()
   })

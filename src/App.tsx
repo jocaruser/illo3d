@@ -4,6 +4,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { SetupWizard } from './components/wizard/SetupWizard'
 import { LoginPage } from './pages/LoginPage'
 import { TransactionsPage } from './pages/TransactionsPage'
+import { ExpensesPage } from './pages/ExpensesPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
 
@@ -31,6 +32,12 @@ function Layout({ children }: { children: React.ReactNode }) {
               className="text-sm text-gray-600 hover:text-gray-800"
             >
               Transactions
+            </Link>
+            <Link
+              to="/expenses"
+              className="text-sm text-gray-600 hover:text-gray-800"
+            >
+              Expenses
             </Link>
           </div>
           <AuthStatus />
@@ -79,6 +86,16 @@ export default function App() {
             <Layout>
               <ProtectedRoute>
                 <TransactionsPage />
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/expenses"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <ExpensesPage />
               </ProtectedRoute>
             </Layout>
           }

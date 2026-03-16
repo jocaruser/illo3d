@@ -14,6 +14,11 @@ export interface SheetsRepository {
     spreadsheetId: string,
     sheetName: SheetName
   ): Promise<T[]>
+  appendRows(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    rows: Record<string, unknown>[]
+  ): Promise<void>
   getSheetNames(spreadsheetId: string): Promise<string[]>
   getHeaderRow(spreadsheetId: string, sheetName: string): Promise<string[]>
   createSpreadsheet(): Promise<string>
@@ -31,6 +36,13 @@ function rowToObject<T extends object>(
     }
   })
   return obj
+}
+
+function objectToRow(
+  headers: readonly string[],
+  obj: Record<string, unknown>
+): unknown[] {
+  return headers.map((h) => obj[h] ?? '')
 }
 
 export class GoogleSheetsRepository implements SheetsRepository {
@@ -101,6 +113,29 @@ export class GoogleSheetsRepository implements SheetsRepository {
     }
     const headers = valuesData.values?.[0] || []
     return headers.map((h) => String(h ?? ''))
+  }
+
+  async appendRows(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    rows: Record<string, unknown>[]
+  ): Promise<void> {
+    if (rows.length === 0) return
+    const accessToken = await getAccessToken()
+    const headers = SHEET_HEADERS[sheetName]
+    const values = rows.map((obj) => objectToRow(headers, obj))
+    const range = `'${sheetName}'!A:Z`
+    const response = await sheetsFetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED`,
+      accessToken,
+      {
+        method: 'POST',
+        body: JSON.stringify({ values }),
+      }
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to append ${sheetName}: ${response.status}`)
+    }
   }
 
   async createSpreadsheet(): Promise<string> {
@@ -236,6 +271,28 @@ export class CsvSheetsRepository implements SheetsRepository {
     const csvText = await this.fetchCsv(sheetName, folder)
     const firstLine = csvText.trim().split(/\r?\n/)[0] || ''
     return firstLine.split(',').map((h) => h.trim())
+  }
+
+  async appendRows(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    rows: Record<string, unknown>[]
+  ): Promise<void> {
+    if (rows.length === 0) return
+    const folder = this.folderFromSpreadsheetId(spreadsheetId)
+    const response = await fetch('/api/sheets/append', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        spreadsheetId,
+        folder,
+        sheetName,
+        rows,
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to append ${sheetName}: ${response.status}`)
+    }
   }
 
   async createSpreadsheet(): Promise<string> {

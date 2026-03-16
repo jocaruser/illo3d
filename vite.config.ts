@@ -1,9 +1,10 @@
 import path from 'path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { sheetsAppendPlugin } from './vite-plugins/sheets-append'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), sheetsAppendPlugin()],
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },

@@ -21,11 +21,16 @@ The system SHALL display a table of all transactions from the transactions sheet
 
 ### Requirement: Transactions table is read-only
 
-The system SHALL NOT allow editing, adding, or deleting transactions from the UI. All modifications SHALL be done directly in Google Sheets.
+The system SHALL NOT allow editing, adding, or deleting transactions directly from the transactions table UI. The transactions table SHALL have no add, edit, or delete controls. Expense-type transactions SHALL be created via the expense creation form; income-type transactions SHALL be created when a job status changes to "paid" or by other automated flows. Manual edits to transactions MAY be done directly in Google Sheets.
 
 #### Scenario: No edit controls in UI
 - **WHEN** user views transactions table
-- **THEN** no add, edit, or delete buttons are visible
+- **THEN** no add, edit, or delete buttons are visible on the table itself
+
+#### Scenario: Expense transactions created via expense form
+- **WHEN** user creates an expense via CreateExpensePopup
+- **THEN** a transaction record is created automatically with type "expense"
+- **AND** the transactions table displays it (read-only)
 
 ### Requirement: Transaction amounts use correct sign convention
 
