@@ -4,21 +4,16 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useSheetsStore } from '@/stores/sheetsStore'
 import { useShopStore } from '@/stores/shopStore'
 import { connect } from '@/services/sheets/connection'
-import { useTransactions } from '@/hooks/useTransactions'
-import { useClients } from '@/hooks/useClients'
-import { TransactionsTable } from '@/components/TransactionsTable'
-import { BalanceDisplay } from '@/components/BalanceDisplay'
+import { useExpenses } from '@/hooks/useExpenses'
+import { ExpensesTable } from '@/components/ExpensesTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
-import { EmptyState } from '@/components/EmptyState'
 import { CreateExpensePopup } from '@/components/CreateExpensePopup'
-import { calculateBalance } from '@/utils/money'
 import { useTranslation } from 'react-i18next'
 
-export function TransactionsPage() {
+export function ExpensesPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [popupOpen, setPopupOpen] = useState(false)
   const activeShop = useShopStore((s) => s.activeShop)
   const spreadsheetId = activeShop?.spreadsheetId ?? null
   const {
@@ -29,9 +24,15 @@ export function TransactionsPage() {
     setError,
   } = useSheetsStore()
 
-  const { data: transactions = [], isLoading: transactionsLoading } =
-    useTransactions(spreadsheetId)
-  const { data: clients = [] } = useClients(spreadsheetId)
+  const { data: expenses = [], isLoading: expensesLoading } =
+    useExpenses(spreadsheetId)
+  const [popupOpen, setPopupOpen] = useState(false)
+
+  const handleSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
+    queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
+    navigate('/expenses')
+  }
 
   useEffect(() => {
     if (!spreadsheetId) return
@@ -56,17 +57,9 @@ export function TransactionsPage() {
     }
   }
 
-  const balance = calculateBalance(transactions.map((t) => t.amount))
-
-  const handleExpenseSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
-    queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
-    navigate('/expenses')
-  }
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h2 className="mb-6 text-2xl font-bold text-gray-800">Transactions</h2>
+      <h2 className="mb-6 text-2xl font-bold text-gray-800">Expenses</h2>
 
       <ConnectionStatus
         status={status}
@@ -77,7 +70,6 @@ export function TransactionsPage() {
       {status === 'connected' && (
         <>
           <div className="mb-4 flex items-center justify-between">
-            <BalanceDisplay balance={balance} />
             <button
               type="button"
               onClick={() => setPopupOpen(true)}
@@ -87,12 +79,14 @@ export function TransactionsPage() {
             </button>
           </div>
 
-          {transactionsLoading ? (
+          {expensesLoading ? (
             <p className="text-gray-600">Loading...</p>
-          ) : transactions.length === 0 ? (
-            <EmptyState />
+          ) : expenses.length === 0 ? (
+            <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
+              <p className="text-gray-600">{t('expenses.empty')}</p>
+            </div>
           ) : (
-            <TransactionsTable transactions={transactions} clients={clients} />
+            <ExpensesTable expenses={expenses} />
           )}
         </>
       )}
@@ -100,7 +94,7 @@ export function TransactionsPage() {
       <CreateExpensePopup
         isOpen={popupOpen}
         onClose={() => setPopupOpen(false)}
-        onSuccess={handleExpenseSuccess}
+        onSuccess={handleSuccess}
         spreadsheetId={spreadsheetId}
       />
     </div>

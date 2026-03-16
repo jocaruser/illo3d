@@ -9,6 +9,26 @@
     "tagline": "3D printing store with CRM and money management",
     "devLogin": "Dev Login"
   },
+  "expenses": {
+    "title": "Add expense",
+    "date": "Date",
+    "category": "Category",
+    "amount": "Amount",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional notes",
+    "submit": "Create expense",
+    "cancel": "Cancel",
+    "validation.required": "This field is required",
+    "validation.amountPositive": "Amount must be greater than zero",
+    "category.filament": "Filament",
+    "category.consumable": "Consumable",
+    "category.electric": "Electric",
+    "category.investment": "Investment",
+    "category.maintenance": "Maintenance",
+    "category.other": "Other",
+    "empty": "No expenses yet.",
+    "addExpense": "Add expense"
+  },
   "transactions": {
     "date": "Date",
     "type": "Type",

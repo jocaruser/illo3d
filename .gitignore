@@ -30,3 +30,5 @@ openspec/changes/archive/
 illo3d-366398a927d2.json
 test-results/.last-run.json
 .cursor/mcp.json
+tsconfig.app.tsbuildinfo
+tsconfig.node.tsbuildinfo

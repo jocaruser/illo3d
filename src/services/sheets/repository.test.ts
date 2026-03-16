@@ -5,6 +5,7 @@ const mockFetch = vi.fn()
 
 describe('CsvSheetsRepository', () => {
   beforeEach(() => {
+    mockFetch.mockClear()
     vi.stubGlobal('fetch', mockFetch)
   })
 
@@ -92,6 +93,37 @@ describe('CsvSheetsRepository', () => {
     expect(mockFetch).toHaveBeenCalledWith(
       '/fixtures/missingcolumn/clients.csv'
     )
+  })
+
+  it('appendRows calls /api/sheets/append with folder, sheetName, rows', async () => {
+    mockFetch.mockResolvedValue({ ok: true })
+
+    const repo = new CsvSheetsRepository('happy-path')
+    await repo.appendRows('csv-fixture-happy-path', 'expenses', [
+      { id: 'E1', date: '2025-01-20', category: 'electric', amount: 50, notes: '' },
+    ])
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/sheets/append',
+      expect.objectContaining({
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          spreadsheetId: 'csv-fixture-happy-path',
+          folder: 'happy-path',
+          sheetName: 'expenses',
+          rows: [
+            { id: 'E1', date: '2025-01-20', category: 'electric', amount: 50, notes: '' },
+          ],
+        }),
+      })
+    )
+  })
+
+  it('appendRows does nothing when rows is empty', async () => {
+    const repo = new CsvSheetsRepository('happy-path')
+    await repo.appendRows('csv-fixture-happy-path', 'expenses', [])
+    expect(mockFetch).not.toHaveBeenCalled()
   })
 
   it('does not parse quoted commas: split(",") treats "Acme, Inc." as two columns', async () => {

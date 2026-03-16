@@ -9,6 +9,26 @@
     "tagline": "Tienda de impresión 3D con CRM y gestión financiera",
     "devLogin": "Login Dev"
   },
+  "expenses": {
+    "title": "Añadir gasto",
+    "date": "Fecha",
+    "category": "Categoría",
+    "amount": "Importe",
+    "notes": "Notas",
+    "notesPlaceholder": "Notas opcionales",
+    "submit": "Crear gasto",
+    "cancel": "Cancelar",
+    "validation.required": "Este campo es obligatorio",
+    "validation.amountPositive": "El importe debe ser mayor que cero",
+    "category.filament": "Filamento",
+    "category.consumable": "Consumible",
+    "category.electric": "Electricidad",
+    "category.investment": "Inversión",
+    "category.maintenance": "Mantenimiento",
+    "category.other": "Otro",
+    "empty": "Aún no hay gastos.",
+    "addExpense": "Añadir gasto"
+  },
   "transactions": {
     "date": "Fecha",
     "type": "Tipo",
