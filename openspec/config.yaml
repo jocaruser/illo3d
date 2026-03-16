@@ -1,4 +1,4 @@
-schema: spec-driven
+schema: illo3d-spec-driven
 
 # Project context (optional)
 # This is shown to AI when creating artifacts.
@@ -35,6 +35,10 @@ context: |
 rules:
   proposal:
     - Keep proposals concise (under 500 words)
+
+  use-cases:
+    - Overview: high-level only, no implementation details
+    - Use Cases to Test: max 5 words per item
     - Always include a "Non-goals" section
     - Focus on user value and problem being solved
     - Consider impact on CRM, orders, or money accounts
