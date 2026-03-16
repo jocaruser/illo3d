@@ -9,6 +9,7 @@ services:
     environment:
       - NODE_ENV=development
       - VITE_SHOW_DEV_LOGIN=true
+      - VITE_LOCAL_CSV_FIXTURE_FOLDER=happy-path
     command: tail -f /dev/null
     networks:
       illo3d-network:

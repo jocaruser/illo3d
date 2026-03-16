@@ -1,8 +1,11 @@
 import type { ShopMetadata } from '@/types/shop'
 import {
+  getBackend,
   isCsvBackendEnabled,
   sanitizeFixtureFolderId,
 } from '@/config/csvBackend'
+import { useBackendStore } from '@/stores/backendStore'
+import { LocalFolderRepository } from '@/services/local/LocalFolderRepository'
 import { driveFetch } from './client'
 
 const METADATA_FILENAME = 'illo3d.metadata.json'
@@ -72,6 +75,11 @@ export class CsvFolderRepository implements FolderRepository {
 }
 
 export function getFolderRepository(): FolderRepository {
+  const backend = getBackend()
+  const handle = useBackendStore.getState().localDirectoryHandle
+  if (backend === 'local-csv' && handle) {
+    return new LocalFolderRepository()
+  }
   if (isCsvBackendEnabled()) {
     return new CsvFolderRepository()
   }

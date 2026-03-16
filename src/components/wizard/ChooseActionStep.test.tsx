@@ -8,32 +8,44 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
+const defaultProps = {
+  selectedBackend: null as 'local-csv' | 'google-drive' | null,
+  onSelectBackend: vi.fn(),
+  onCreateNew: vi.fn(),
+  onOpenExisting: vi.fn(),
+  onCancel: vi.fn(),
+}
+
 describe('ChooseActionStep', () => {
-  it('renders create new and open existing buttons', () => {
-    const onCreateNew = vi.fn()
-    const onOpenExisting = vi.fn()
-    const onCancel = vi.fn()
+  it('renders storage options and action buttons', () => {
+    render(<ChooseActionStep {...defaultProps} />)
 
-    render(
-      <ChooseActionStep
-        onCreateNew={onCreateNew}
-        onOpenExisting={onOpenExisting}
-        onCancel={onCancel}
-      />
-    )
-
+    expect(screen.getByText('wizard.chooseStorage')).toBeInTheDocument()
+    expect(screen.getByText('wizard.localCsv')).toBeInTheDocument()
+    expect(screen.getByText('wizard.googleDrive')).toBeInTheDocument()
     expect(screen.getByText('wizard.createNew')).toBeInTheDocument()
     expect(screen.getByText('wizard.openExisting')).toBeInTheDocument()
     expect(screen.getByText('wizard.cancel')).toBeInTheDocument()
+  })
+
+  it('calls onSelectBackend when storage option is clicked', () => {
+    const onSelectBackend = vi.fn()
+    render(<ChooseActionStep {...defaultProps} onSelectBackend={onSelectBackend} />)
+
+    fireEvent.click(screen.getByText('wizard.localCsv'))
+    expect(onSelectBackend).toHaveBeenCalledWith('local-csv')
+
+    fireEvent.click(screen.getByText('wizard.googleDrive'))
+    expect(onSelectBackend).toHaveBeenCalledWith('google-drive')
   })
 
   it('calls onCreateNew when create button is clicked', () => {
     const onCreateNew = vi.fn()
     render(
       <ChooseActionStep
+        {...defaultProps}
+        selectedBackend="google-drive"
         onCreateNew={onCreateNew}
-        onOpenExisting={vi.fn()}
-        onCancel={vi.fn()}
       />
     )
 
@@ -43,30 +55,27 @@ describe('ChooseActionStep', () => {
 
   it('calls onCancel when cancel is clicked', () => {
     const onCancel = vi.fn()
-    render(
-      <ChooseActionStep
-        onCreateNew={vi.fn()}
-        onOpenExisting={vi.fn()}
-        onCancel={onCancel}
-      />
-    )
+    render(<ChooseActionStep {...defaultProps} onCancel={onCancel} />)
 
     fireEvent.click(screen.getByText('wizard.cancel'))
     expect(onCancel).toHaveBeenCalledTimes(1)
   })
 
-  it('hides Create new when showCreateNew is false (CSV mode)', () => {
-    render(
-      <ChooseActionStep
-        onCreateNew={vi.fn()}
-        onOpenExisting={vi.fn()}
-        onCancel={vi.fn()}
-        showCreateNew={false}
-      />
-    )
+  it('disables action buttons when no backend selected', () => {
+    render(<ChooseActionStep {...defaultProps} selectedBackend={null} />)
 
-    expect(screen.queryByText('wizard.createNew')).not.toBeInTheDocument()
-    expect(screen.getByText('wizard.openExisting')).toBeInTheDocument()
-    expect(screen.getByText('wizard.cancel')).toBeInTheDocument()
+    const createBtn = screen.getByText('wizard.createNew').closest('button')
+    const openBtn = screen.getByText('wizard.openExisting').closest('button')
+    expect(createBtn).toBeDisabled()
+    expect(openBtn).toBeDisabled()
+  })
+
+  it('enables action buttons when backend selected', () => {
+    render(<ChooseActionStep {...defaultProps} selectedBackend="local-csv" />)
+
+    const createBtn = screen.getByText('wizard.createNew').closest('button')
+    const openBtn = screen.getByText('wizard.openExisting').closest('button')
+    expect(createBtn).not.toBeDisabled()
+    expect(openBtn).not.toBeDisabled()
   })
 })

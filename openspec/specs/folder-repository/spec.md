@@ -20,27 +20,49 @@ The system SHALL provide a `FolderRepository` interface with `readMetadata(folde
 - **THEN** it calls `getFolderName(folderId)` on the repository
 - **AND** receives a string (folder name for display)
 
+### Requirement: Repository selection is backend-driven
+
+The system SHALL select the FolderRepository implementation based on the user's backend choice (from backendStore), not on `import.meta.env.DEV`. When backend is `local-csv` with a FileSystemDirectoryHandle, use LocalFolderRepository. When backend is `local-csv` with fixture folder name (dev only), use CsvFolderRepository. When backend is `google-drive`, use GoogleFolderRepository.
+
+#### Scenario: Backend store selects LocalFolderRepository
+- **WHEN** the backend store has `backend: 'local-csv'` and a FileSystemDirectoryHandle is set
+- **THEN** getFolderRepository returns LocalFolderRepository
+- **AND** readMetadata and getFolderName use the File System Access API
+
+#### Scenario: Backend store selects CsvFolderRepository (fixtures)
+- **WHEN** the backend store has `backend: 'local-csv'` and folderId is a fixture name (e.g. `happy-path`)
+- **THEN** getFolderRepository returns CsvFolderRepository
+- **AND** metadata is read from `/fixtures/<folderId>/illo3d.metadata.json`
+
+#### Scenario: Backend store selects GoogleFolderRepository
+- **WHEN** the backend store has `backend: 'google-drive'`
+- **THEN** getFolderRepository returns GoogleFolderRepository
+- **AND** readMetadata and getFolderName hit the Google Drive API
+
 ### Requirement: GoogleFolderRepository implements production backend
 
-The system SHALL provide a `GoogleFolderRepository` that uses the Google Drive API for `readMetadata` and `getFolderName`. This implementation SHALL be used in production.
-
-#### Scenario: Production uses Drive for folder metadata
-- **WHEN** the app runs in production mode
-- **THEN** FolderRepository is GoogleFolderRepository
-- **AND** readMetadata and getFolderName hit the real Google Drive API
+The system SHALL provide a `GoogleFolderRepository` that uses the Google Drive API for `readMetadata` and `getFolderName`. This implementation SHALL be used when backend is `google-drive`.
 
 ### Requirement: CsvFolderRepository implements dev backend
 
-The system SHALL provide a `CsvFolderRepository` that fetches metadata from `/fixtures/<folderId>/illo3d.metadata.json` and returns the folderId as the folder name. In dev mode, folderId IS the fixture folder name (e.g. `happy-path`).
-
-#### Scenario: Dev mode uses fixture folder for metadata
-- **WHEN** the app runs in dev mode and user selects folder "happy-path" in the wizard
-- **THEN** CsvFolderRepository fetches `/fixtures/happy-path/illo3d.metadata.json`
-- **AND** returns the metadata (spreadsheetId, etc.) for shop validation
+The system SHALL provide a `CsvFolderRepository` that fetches metadata from `/fixtures/<folderId>/illo3d.metadata.json` and returns the folderId as the folder name. This implementation SHALL be used when backend is `local-csv` and folderId is a fixture name (e.g. `happy-path`).
 
 #### Scenario: getFolderName in dev mode
 - **WHEN** getFolderName is called with folderId "happy-path"
 - **THEN** CsvFolderRepository returns "happy-path" (or a display-friendly name)
+
+### Requirement: LocalFolderRepository implements FolderRepository via File System Access API
+
+The system SHALL provide a `LocalFolderRepository` that implements FolderRepository using a `FileSystemDirectoryHandle`. It SHALL read `illo3d.metadata.json` from the directory and return the handle's name for `getFolderName`. This implementation SHALL be used when the user selects a folder via `showDirectoryPicker` for Local CSV.
+
+#### Scenario: LocalFolderRepository reads metadata from handle
+- **WHEN** LocalFolderRepository.readMetadata is called with a valid handle
+- **THEN** it reads `illo3d.metadata.json` from the directory
+- **AND** returns ShopMetadata or null if not found
+
+#### Scenario: LocalFolderRepository returns folder name
+- **WHEN** LocalFolderRepository.getFolderName is called
+- **THEN** it returns the directory handle's name for display
 
 ### Requirement: validateShopFolder uses FolderRepository
 

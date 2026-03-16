@@ -19,10 +19,10 @@ test.describe('Route guard', () => {
     await devLoginButton.click()
 
     await expect(page).toHaveURL(/\/transactions/)
-    // CSV mode: wizard shows; complete it to see Transactions
-    await page.getByRole('button', { name: 'Open existing folder' }).click()
-    await page.getByPlaceholder('e.g. happy-path, missingcolumn').fill('happy-path')
-    await page.getByRole('button', { name: 'Open' }).click()
+    // CSV mode: wizard shows; complete it to see Transactions (VITE_LOCAL_CSV_FIXTURE_FOLDER)
+    await page.getByRole('button', { name: /local csv|csv local/i }).first().click()
+    await page.getByRole('button', { name: /open existing shop|abrir tienda existente/i }).first().click()
+    await page.getByRole('button', { name: /open existing shop|abrir tienda existente/i }).first().click()
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 5000,
     })
@@ -52,7 +52,7 @@ test.describe('Route guard', () => {
     await expect(page).toHaveURL(/\/transactions/)
     // CSV mode: dev login does not set shop, wizard shows immediately
     await expect(
-      page.getByRole('button', { name: 'Open existing folder' })
+      page.getByRole('button', { name: /open existing shop|abrir tienda existente/i })
     ).toBeVisible({ timeout: 5000 })
   })
 })

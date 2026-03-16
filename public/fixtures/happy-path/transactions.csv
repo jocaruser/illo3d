@@ -1,3 +1,15 @@
 id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes
 t1,2025-01-15,income,100.50,Sales,Print job A,,,c1,First sale
 t2,2025-01-16,expense,-25.00,Materials,Filament,,,,
+
+T1,2025-03-20,expense,-25.5,other,other,expense,E1,,
+
+T2,2025-03-20,expense,-25.5,other,other,expense,E2,,
+
+T3,2025-03-20,expense,-25.5,other,other,expense,E3,,
+
+T4,2025-03-20,expense,-25.5,other,other,expense,E4,,
+
+T5,2025-03-20,expense,-25.5,other,other,expense,E5,,
+
+T6,2025-03-20,expense,-25.5,other,other,expense,E6,,

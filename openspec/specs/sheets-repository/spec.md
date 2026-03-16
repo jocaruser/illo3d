@@ -34,14 +34,28 @@ The system SHALL provide a `GoogleSheetsRepository` implementation that performs
 - **THEN** SheetsRepository is GoogleSheetsRepository
 - **AND** all data operations hit the real Google Sheets API
 
+### Requirement: Repository selection is backend-driven
+
+The system SHALL select the SheetsRepository implementation based on the user's backend choice (from backendStore), not on `import.meta.env.DEV`. When backend is `local-csv` with a FileSystemDirectoryHandle, use LocalSheetsRepository. When backend is `local-csv` with fixture folder (dev), use CsvSheetsRepository. When backend is `google-drive`, use GoogleSheetsRepository.
+
+#### Scenario: Backend store selects LocalSheetsRepository
+- **WHEN** the backend store has `backend: 'local-csv'` and a FileSystemDirectoryHandle is set
+- **THEN** getSheetsRepository returns LocalSheetsRepository
+- **AND** all operations read/write CSV files via the File System Access API
+
+#### Scenario: Backend store selects CsvSheetsRepository (fixtures)
+- **WHEN** the backend store has `backend: 'local-csv'` and the shop uses a fixture folder
+- **THEN** getSheetsRepository returns CsvSheetsRepository
+- **AND** read operations fetch from `/fixtures/<folder-name>/`
+
+#### Scenario: Backend store selects GoogleSheetsRepository
+- **WHEN** the backend store has `backend: 'google-drive'`
+- **THEN** getSheetsRepository returns GoogleSheetsRepository
+- **AND** all operations hit the Google Sheets API
+
 ### Requirement: CsvSheetsRepository implements dev backend
 
-The system SHALL provide a `CsvSheetsRepository` implementation that reads from a fixtures folder of CSV files (one file per sheet). This implementation SHALL be used when `import.meta.env.DEV` is true. The same implementation SHALL serve both dev mode and automated tests.
-
-#### Scenario: Dev uses CSV backend
-- **WHEN** the app runs in dev mode
-- **THEN** SheetsRepository is CsvSheetsRepository
-- **AND** read operations fetch from fixture CSV files
+The system SHALL provide a `CsvSheetsRepository` implementation that reads from a fixtures folder of CSV files (one file per sheet). This implementation SHALL be used when backend is `local-csv` with fixture folder. The same implementation SHALL serve both dev mode and automated tests.
 
 #### Scenario: CSV files match sheet structure
 - **WHEN** CsvSheetsRepository reads a sheet
@@ -60,17 +74,23 @@ The system SHALL provide a `CsvSheetsRepository` implementation that reads from 
 - **THEN** the fixture CSV files are not mutated
 - **AND** `createSpreadsheet()` is a no-op or returns a sentinel ID
 
-### Requirement: Repository selection is environment-driven
+### Requirement: LocalSheetsRepository implements SheetsRepository via File System Access API
 
-The system SHALL select the repository implementation at module load based on environment: CSV when `import.meta.env.DEV` is true, otherwise Google. Selection SHALL occur in a single bootstrap module.
+The system SHALL provide a `LocalSheetsRepository` that implements SheetsRepository using a `FileSystemDirectoryHandle`. It SHALL read and write CSV files (one per sheet) in the directory. `createSpreadsheet` SHALL create the metadata file and CSV files with headers for all sheets. This implementation SHALL be used when the user creates or opens a Local CSV shop via the directory picker.
 
-#### Scenario: Environment selects CSV in dev
-- **WHEN** `import.meta.env.DEV` is true
-- **THEN** the bootstrap module exports CsvSheetsRepository as the active implementation
+#### Scenario: LocalSheetsRepository reads rows from CSV files
+- **WHEN** LocalSheetsRepository.readRows is called with a sheet name
+- **THEN** it reads the corresponding CSV file from the directory
+- **AND** parses headers from the first row and returns objects keyed by header names
 
-#### Scenario: Environment selects Google in production
-- **WHEN** `import.meta.env.DEV` is false
-- **THEN** the bootstrap module exports GoogleSheetsRepository as the active implementation
+#### Scenario: LocalSheetsRepository creates new shop
+- **WHEN** LocalSheetsRepository.createSpreadsheet is called
+- **THEN** it creates `illo3d.metadata.json` and CSV files for all sheets (with header rows)
+- **AND** returns an identifier for the shop (e.g. directory handle reference)
+
+#### Scenario: LocalSheetsRepository appends rows
+- **WHEN** LocalSheetsRepository.appendRows is called
+- **THEN** it appends rows to the corresponding CSV file in the directory
 
 ### Requirement: Domain logic uses repository without backend awareness
 

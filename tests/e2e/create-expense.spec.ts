@@ -10,12 +10,12 @@ async function devLoginAndOpenShop(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/transactions/)
 
   const openExistingButton = page.getByRole('button', {
-    name: /open existing folder|abrir carpeta existente/i,
+    name: /open existing shop|abrir tienda existente/i,
   })
-  if (await openExistingButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-    await openExistingButton.click()
-    await page.getByPlaceholder(/happy-path|missingcolumn/i).fill('happy-path')
-    await page.getByRole('button', { name: /^open$/i }).click()
+  if (await openExistingButton.first().isVisible({ timeout: 2000 }).catch(() => false)) {
+    await page.getByRole('button', { name: /local csv|csv local/i }).first().click()
+    await openExistingButton.first().click()
+    await page.getByRole('button', { name: /open existing shop|abrir tienda existente/i }).first().click()
   }
 }
 

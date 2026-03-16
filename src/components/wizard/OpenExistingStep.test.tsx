@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { OpenExistingStep } from './OpenExistingStep'
+import { getLocalCsvFixtureFolder } from '@/config/csvBackend'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -9,85 +10,58 @@ vi.mock('react-i18next', () => ({
 }))
 
 vi.mock('@/config/csvBackend', () => ({
-  isCsvBackendEnabled: vi.fn(() => true),
+  getLocalCsvFixtureFolder: vi.fn(() => 'happy-path'),
 }))
 
+const defaultProps = {
+  backend: 'local-csv' as const,
+  onBack: vi.fn(),
+  onSuccess: vi.fn(),
+  onSelectFolder: vi.fn(),
+  onSelectLocalFolder: vi.fn(),
+  onValidateFolder: vi.fn(),
+}
+
 describe('OpenExistingStep', () => {
-  beforeEach(async () => {
-    const { isCsvBackendEnabled } = await import('@/config/csvBackend')
-    ;(isCsvBackendEnabled as ReturnType<typeof vi.fn>).mockReturnValue(true)
-  })
-
-  it('renders fixture folder input (dev/CSV mode)', () => {
-    const onSelectFolder = vi.fn()
-    const onValidateFolder = vi.fn()
-
-    render(
-      <OpenExistingStep
-        onBack={vi.fn()}
-        onSuccess={vi.fn()}
-        onSelectFolder={onSelectFolder}
-        onValidateFolder={onValidateFolder}
-      />
-    )
+  it('renders configured fixture button for local-csv when VITE_LOCAL_CSV_FIXTURE_FOLDER is set', () => {
+    render(<OpenExistingStep {...defaultProps} />)
 
     expect(screen.getAllByText('wizard.openExisting').length).toBeGreaterThan(0)
-    expect(screen.getByText('wizard.fixtureFolderNameLabel')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('wizard.fixtureFolderNamePlaceholder')).toBeInTheDocument()
-    expect(screen.getByText('wizard.openFolder')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('wizard.fixtureFolderNamePlaceholder')).not.toBeInTheDocument()
   })
 
-  it('calls onValidateFolder when submitting folder ID', async () => {
+  it('calls onValidateFolder with configured folder when clicking Open existing', async () => {
     const onValidateFolder = vi.fn().mockResolvedValue({ ok: true })
 
     render(
       <OpenExistingStep
-        onBack={vi.fn()}
-        onSuccess={vi.fn()}
-        onSelectFolder={vi.fn()}
+        {...defaultProps}
+        backend="local-csv"
         onValidateFolder={onValidateFolder}
       />
     )
 
-    const input = screen.getByPlaceholderText('wizard.fixtureFolderNamePlaceholder')
-    fireEvent.change(input, { target: { value: 'happy-path' } })
-    fireEvent.click(screen.getByText('wizard.openFolder'))
+    const openButton = screen.getByRole('button', { name: 'wizard.openExisting' })
+    fireEvent.click(openButton)
 
     await waitFor(() => {
       expect(onValidateFolder).toHaveBeenCalledWith('happy-path')
     })
-
-    expect(onValidateFolder).toHaveBeenCalledWith('happy-path')
   })
 
-  it('shows error when fixture folder name is empty', () => {
-    const onValidateFolder = vi.fn()
+  it('renders directory picker button when getLocalCsvFixtureFolder returns null', () => {
+    vi.mocked(getLocalCsvFixtureFolder).mockReturnValueOnce(null)
+    render(<OpenExistingStep {...defaultProps} />)
 
-    render(
-      <OpenExistingStep
-        onBack={vi.fn()}
-        onSuccess={vi.fn()}
-        onSelectFolder={vi.fn()}
-        onValidateFolder={onValidateFolder}
-      />
-    )
-
-    fireEvent.click(screen.getByText('wizard.openFolder'))
-
-    expect(screen.getByText('wizard.fixtureFolderNameEmpty')).toBeInTheDocument()
-    expect(onValidateFolder).not.toHaveBeenCalled()
+    expect(screen.getAllByText('wizard.openExisting').length).toBeGreaterThan(0)
+    expect(screen.queryByPlaceholderText('wizard.fixtureFolderNamePlaceholder')).not.toBeInTheDocument()
   })
 
-  it('renders Picker button and folderIdLabel when production mode (Google Sheets)', async () => {
-    const { isCsvBackendEnabled } = await import('@/config/csvBackend')
-    ;(isCsvBackendEnabled as ReturnType<typeof vi.fn>).mockReturnValue(false)
-
+  it('renders Picker button and folderIdLabel for google-drive', () => {
     render(
       <OpenExistingStep
-        onBack={vi.fn()}
-        onSuccess={vi.fn()}
-        onSelectFolder={vi.fn()}
-        onValidateFolder={vi.fn()}
+        {...defaultProps}
+        backend="google-drive"
       />
     )
 

@@ -3,11 +3,18 @@ import { useShopStore } from '@/stores/shopStore'
 import { loadPickerApi, openFolderPicker } from '@/services/drive/picker'
 import { validateShopFolder } from '@/services/drive/validation'
 import { getAccessToken } from '@/services/sheets/client'
+import {
+  showDirectoryPicker,
+  isDirectoryPickerSupported,
+} from '@/services/local/directoryPicker'
+import { useBackendStore } from '@/stores/backendStore'
 
 let inFlightSelectFolder: Promise<{ id: string; name: string } | null> | null = null
 
 export function useOpenExistingShop() {
   const setActiveShop = useShopStore((s) => s.setActiveShop)
+  const setBackend = useBackendStore((s) => s.setBackend)
+  const setLocalDirectoryHandle = useBackendStore((s) => s.setLocalDirectoryHandle)
 
   const selectFolder = useCallback(async (): Promise<{
     id: string
@@ -30,6 +37,20 @@ export function useOpenExistingShop() {
     return inFlightSelectFolder
   }, [])
 
+  const selectLocalFolder = useCallback(async (): Promise<{
+    id: string
+    name: string
+  } | null> => {
+    if (!isDirectoryPickerSupported()) {
+      throw new Error('File System Access API is not supported. Please use Chrome.')
+    }
+    const handle = await showDirectoryPicker()
+    if (!handle) return null
+    setBackend('local-csv')
+    setLocalDirectoryHandle(handle)
+    return { id: handle.name, name: handle.name }
+  }, [setBackend, setLocalDirectoryHandle])
+
   const validateAndSetShop = useCallback(
     async (
       folderId: string
@@ -51,5 +72,5 @@ export function useOpenExistingShop() {
     [setActiveShop]
   )
 
-  return { selectFolder, validateAndSetShop }
+  return { selectFolder, selectLocalFolder, validateAndSetShop }
 }

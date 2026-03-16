@@ -9,24 +9,21 @@ async function devLoginAndShowWizard(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/transactions/)
 }
 
-/** Complete wizard by opening a fixture folder (CSV mode). */
-async function completeWizardWithFolder(
-  page: import('@playwright/test').Page,
-  folderName: string
-) {
-  await page.getByRole('button', { name: 'Open existing folder' }).click()
-  await page.getByPlaceholder('e.g. happy-path, missingcolumn').fill(folderName)
-  await page.getByRole('button', { name: 'Open' }).click()
+/** Complete wizard by opening configured fixture folder (CSV mode, VITE_LOCAL_CSV_FIXTURE_FOLDER). */
+async function completeWizardWithFolder(page: import('@playwright/test').Page) {
+  await page.getByRole('button', { name: /local csv|csv local/i }).first().click()
+  await page.getByRole('button', { name: /open existing shop|abrir tienda existente/i }).first().click()
+  await page.getByRole('button', { name: /open existing shop|abrir tienda existente/i }).first().click()
 }
 
 test.describe('Setup wizard', () => {
-  test('wizard step 1 shows Open existing folder and Cancel (CSV mode)', async ({
+  test('wizard step 1 shows storage options, Open existing shop and Cancel (CSV mode)', async ({
     page,
   }) => {
     await devLoginAndShowWizard(page)
 
-    // CSV mode: only Open existing and Cancel (no Create new)
-    await expect(page.getByRole('button', { name: 'Open existing folder' })).toBeVisible({
+    await expect(page.getByText(/local csv|csv local/i)).toBeVisible({ timeout: 5000 })
+    await expect(page.getByRole('button', { name: /open existing shop|abrir tienda existente/i })).toBeVisible({
       timeout: 5000,
     })
     await expect(page.getByRole('button', { name: 'Cancel' })).toBeVisible()
@@ -44,29 +41,13 @@ test.describe('Setup wizard', () => {
     await expect(page).toHaveURL(/\/login/)
   })
 
-  test('empty fixture folder name is rejected with validation error', async ({
-    page,
-  }) => {
-    await devLoginAndShowWizard(page)
-
-    await page.getByRole('button', { name: 'Open existing folder' }).click()
-
-    const openButton = page.getByRole('button', { name: 'Open' })
-    await expect(openButton).toBeVisible({ timeout: 5000 })
-    await openButton.click()
-
-    await expect(page.getByText(/enter a fixture folder name/i)).toBeVisible({
-      timeout: 5000,
-    })
-  })
-
   test('wizard does not appear when user has active shop', async ({ page }) => {
     await devLoginAndShowWizard(page)
-    await completeWizardWithFolder(page, 'happy-path')
+    await completeWizardWithFolder(page)
 
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 5000,
     })
-    await expect(page.getByRole('button', { name: 'Open existing folder' })).not.toBeVisible()
+    await expect(page.getByRole('button', { name: /open existing shop|abrir tienda existente/i })).not.toBeVisible()
   })
 })

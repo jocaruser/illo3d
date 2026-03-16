@@ -1,4 +1,10 @@
-import { isCsvBackendEnabled, sanitizeFixtureFolderId } from '@/config/csvBackend'
+import {
+  getBackend,
+  isCsvBackendEnabled,
+  sanitizeFixtureFolderId,
+} from '@/config/csvBackend'
+import { useBackendStore } from '@/stores/backendStore'
+import { LocalSheetsRepository } from '@/services/local/LocalSheetsRepository'
 import { getAccessToken } from './client'
 import { sheetsFetch } from './client'
 import {
@@ -301,6 +307,11 @@ export class CsvSheetsRepository implements SheetsRepository {
 }
 
 export function getSheetsRepository(): SheetsRepository {
+  const backend = getBackend()
+  const handle = useBackendStore.getState().localDirectoryHandle
+  if (backend === 'local-csv' && handle) {
+    return new LocalSheetsRepository()
+  }
   if (isCsvBackendEnabled()) {
     return new CsvSheetsRepository()
   }

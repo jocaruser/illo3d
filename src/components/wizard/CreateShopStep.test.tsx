@@ -8,15 +8,16 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
+const defaultProps = {
+  backend: 'google-drive' as const,
+  onBack: vi.fn(),
+  onSuccess: vi.fn(),
+  onCreateShop: vi.fn(),
+}
+
 describe('CreateShopStep', () => {
-  it('renders folder name input and buttons', () => {
-    render(
-      <CreateShopStep
-        onBack={vi.fn()}
-        onSuccess={vi.fn()}
-        onCreateShop={vi.fn()}
-      />
-    )
+  it('renders folder name input and buttons for Google Drive', () => {
+    render(<CreateShopStep {...defaultProps} />)
 
     expect(screen.getByLabelText('wizard.folderName')).toBeInTheDocument()
     expect(screen.getByText('wizard.back')).toBeInTheDocument()
@@ -25,13 +26,7 @@ describe('CreateShopStep', () => {
 
   it('shows validation error when folder name is empty', async () => {
     const onCreateShop = vi.fn()
-    render(
-      <CreateShopStep
-        onBack={vi.fn()}
-        onSuccess={vi.fn()}
-        onCreateShop={onCreateShop}
-      />
-    )
+    render(<CreateShopStep {...defaultProps} onCreateShop={onCreateShop} />)
 
     fireEvent.click(screen.getByText('wizard.create'))
     expect(onCreateShop).not.toHaveBeenCalled()
