@@ -58,6 +58,22 @@
     "empty": "Aún no hay gastos.",
     "addExpense": "Añadir gasto"
   },
+  "inventory": {
+    "title": "Inventario",
+    "name": "Nombre",
+    "typeLabel": "Tipo",
+    "qtyInitial": "Cant. (inicial)",
+    "qtyCurrent": "Cant. (actual)",
+    "createdAt": "Creado",
+    "empty": "Aún no hay artículos en inventario. Los añadidos desde gastos aparecerán aquí.",
+    "linkLabel": "Inventario",
+    "expenseColumn": "Inventario",
+    "type": {
+      "filament": "Filamento",
+      "consumable": "Consumible",
+      "equipment": "Equipo"
+    }
+  },
   "transactions": {
     "date": "Fecha",
     "type": "Tipo",

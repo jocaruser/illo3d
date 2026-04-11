@@ -58,6 +58,22 @@
     "empty": "No expenses yet.",
     "addExpense": "Add expense"
   },
+  "inventory": {
+    "title": "Inventory",
+    "name": "Name",
+    "typeLabel": "Type",
+    "qtyInitial": "Qty (initial)",
+    "qtyCurrent": "Qty (current)",
+    "createdAt": "Created",
+    "empty": "No inventory items yet. Items added through expenses will appear here.",
+    "linkLabel": "Inventory",
+    "expenseColumn": "Inventory",
+    "type": {
+      "filament": "Filament",
+      "consumable": "Consumable",
+      "equipment": "Equipment"
+    }
+  },
   "transactions": {
     "date": "Date",
     "type": "Type",

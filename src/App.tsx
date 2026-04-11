@@ -5,6 +5,7 @@ import { SetupWizard } from './components/wizard/SetupWizard'
 import { LoginPage } from './pages/LoginPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { ExpensesPage } from './pages/ExpensesPage'
+import { InventoryPage } from './pages/InventoryPage'
 import { ClientsPage } from './pages/ClientsPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
@@ -45,6 +46,12 @@ function Layout({ children }: { children: React.ReactNode }) {
               className="text-sm text-gray-600 hover:text-gray-800"
             >
               Expenses
+            </Link>
+            <Link
+              to="/inventory"
+              className="text-sm text-gray-600 hover:text-gray-800"
+            >
+              Inventory
             </Link>
           </div>
           <AuthStatus />
@@ -113,6 +120,16 @@ export default function App() {
             <Layout>
               <ProtectedRoute>
                 <ExpensesPage />
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/inventory"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <InventoryPage />
               </ProtectedRoute>
             </Layout>
           }
