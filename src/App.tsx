@@ -5,6 +5,7 @@ import { SetupWizard } from './components/wizard/SetupWizard'
 import { LoginPage } from './pages/LoginPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { ExpensesPage } from './pages/ExpensesPage'
+import { ClientsPage } from './pages/ClientsPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
 
@@ -26,6 +27,12 @@ function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-6">
             <Link to="/" className="text-xl font-bold text-gray-800">
               illo3d
+            </Link>
+            <Link
+              to="/clients"
+              className="text-sm text-gray-600 hover:text-gray-800"
+            >
+              Clients
             </Link>
             <Link
               to="/transactions"
@@ -77,6 +84,16 @@ export default function App() {
           element={
             <Layout>
               <RootRedirect />
+            </Layout>
+          }
+        />
+        <Route
+          path="/clients"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <ClientsPage />
+              </ProtectedRoute>
             </Layout>
           }
         />

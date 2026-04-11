@@ -9,6 +9,21 @@
     "tagline": "Tienda de impresión 3D con CRM y gestión financiera",
     "devLogin": "Login Dev"
   },
+  "clients": {
+    "title": "Clientes",
+    "addClient": "Añadir cliente",
+    "empty": "Aún no hay clientes.",
+    "name": "Nombre",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "notes": "Notas",
+    "createdAt": "Creado",
+    "namePlaceholder": "Nombre del cliente o empresa",
+    "nameRequired": "El nombre es obligatorio",
+    "cancel": "Cancelar",
+    "submit": "Crear cliente",
+    "validation.required": "Este campo es obligatorio"
+  },
   "expenses": {
     "title": "Añadir gasto",
     "date": "Fecha",

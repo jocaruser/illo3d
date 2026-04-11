@@ -1,4 +1,5 @@
 import { getSheetsRepository } from '@/services/sheets/repository'
+import { nextNumericId } from '@/utils/id'
 import type { ExpenseCategory } from '@/types/money'
 
 export interface CreateExpensePayload {
@@ -6,15 +7,6 @@ export interface CreateExpensePayload {
   category: ExpenseCategory
   amount: number
   notes?: string
-}
-
-function nextNumericId(prefix: string, existingIds: string[]): string {
-  const nums = existingIds
-    .filter((id) => id != null && id.startsWith(prefix))
-    .map((id) => parseInt(id.slice(prefix.length), 10))
-    .filter((n) => !Number.isNaN(n))
-  const max = nums.length ? Math.max(...nums) : 0
-  return `${prefix}${max + 1}`
 }
 
 export async function createExpense(

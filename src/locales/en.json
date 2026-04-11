@@ -9,6 +9,21 @@
     "tagline": "3D printing store with CRM and money management",
     "devLogin": "Dev Login"
   },
+  "clients": {
+    "title": "Clients",
+    "addClient": "Add client",
+    "empty": "No clients yet.",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "notes": "Notes",
+    "createdAt": "Created",
+    "namePlaceholder": "Client or company name",
+    "nameRequired": "Name is required",
+    "cancel": "Cancel",
+    "submit": "Create client",
+    "validation.required": "This field is required"
+  },
   "expenses": {
     "title": "Add expense",
     "date": "Date",

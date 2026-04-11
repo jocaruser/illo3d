@@ -76,6 +76,7 @@ export function sheetsAppendPlugin(): Plugin {
 }
 
 const SHEET_HEADERS: Record<string, string[]> = {
+  clients: ['id', 'name', 'email', 'phone', 'notes', 'created_at'],
   expenses: ['id', 'date', 'category', 'amount', 'notes'],
   transactions: [
     'id',

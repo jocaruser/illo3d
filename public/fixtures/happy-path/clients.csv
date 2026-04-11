@@ -1,2 +1,9 @@
 id,name,email,phone,notes,created_at
 c1,Acme Corp,acme@example.com,+1234567890,First client,2025-01-01
+CL1,Beta LLC,beta@example.com,,Beta notes,2025-01-02
+CL2,Gamma Inc,,+19995550102,,2025-01-03
+CL3,Delta Co,delta@example.com,,,2025-01-04
+
+CL4,E2E Client 1775900928729,,,,2026-04-11
+
+CL5,E2E Client 1775901170807,,,,2026-04-11

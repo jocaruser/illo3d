@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Financial tracking for illo3d: transactions presentation, domain data models (clients, jobs, pieces, piece_items, inventory, expenses, transactions), automated transaction flows, suggested pricing, and expense creation via the UI.
+Financial tracking for illo3d: transactions presentation, clients page (list and create), domain data models (clients, jobs, pieces, piece_items, inventory, expenses, transactions), automated transaction flows, suggested pricing, and expense creation via the UI.
 
 ## Requirements
 
@@ -67,6 +67,20 @@ The system SHALL support a clients data model with fields: id (string), name (st
 
 - **WHEN** a client record exists
 - **THEN** it has id and name fields populated
+
+### Requirement: Clients page is accessible from the app
+
+The system SHALL include a `/clients` route protected by the same authentication guard as `/transactions` and `/expenses`. The route SHALL be listed in the app header navigation.
+
+#### Scenario: Clients route is protected
+
+- **WHEN** an unauthenticated user navigates to `/clients`
+- **THEN** the system redirects to `/login`
+
+#### Scenario: Authenticated user accesses clients page
+
+- **WHEN** an authenticated user navigates to `/clients`
+- **THEN** the clients page renders without redirection
 
 ### Requirement: Job data model is defined
 
