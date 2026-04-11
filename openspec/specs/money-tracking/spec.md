@@ -200,7 +200,7 @@ The system SHALL automatically create a transaction when a job status changes to
 
 ### Requirement: Expenses page displays expense table
 
-The system SHALL provide an `/expenses` route that displays a table of all expenses from the expenses sheet. The table SHALL show: date, category, amount, notes.
+The system SHALL provide an `/expenses` route that displays a table of all expenses from the expenses sheet. The table SHALL show: date, category, amount, notes. The expenses page SHALL additionally fetch inventory data and display a link on expense rows that have an associated inventory item. The link SHALL navigate to `/inventory`.
 
 #### Scenario: Expenses table renders with data
 
@@ -212,6 +212,24 @@ The system SHALL provide an `/expenses` route that displays a table of all expen
 - **WHEN** user navigates to /expenses
 - **AND** no expenses exist
 - **THEN** table shows empty state message
+
+#### Scenario: Expense with linked inventory shows link
+
+- **WHEN** user views /expenses
+- **AND** an expense has a corresponding inventory item (matched via inventory.expense_id)
+- **THEN** the expense row displays a text link navigating to /inventory
+
+#### Scenario: Expense without linked inventory shows no link
+
+- **WHEN** user views /expenses
+- **AND** an expense has no corresponding inventory item
+- **THEN** the expense row does not display an inventory link
+
+#### Scenario: Inventory data is fetched on expenses page
+
+- **WHEN** user navigates to /expenses
+- **THEN** both expenses and inventory data are fetched
+- **AND** a mapping from expense_id to inventory id is built from the inventory data
 
 ### Requirement: CreateExpensePopup is a reusable modal form
 

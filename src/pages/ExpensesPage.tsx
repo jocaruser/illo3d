@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSheetsStore } from '@/stores/sheetsStore'
 import { useShopStore } from '@/stores/shopStore'
 import { connect } from '@/services/sheets/connection'
 import { useExpenses } from '@/hooks/useExpenses'
+import { useInventory } from '@/hooks/useInventory'
 import { ExpensesTable } from '@/components/ExpensesTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreateExpensePopup } from '@/components/CreateExpensePopup'
@@ -26,11 +27,21 @@ export function ExpensesPage() {
 
   const { data: expenses = [], isLoading: expensesLoading } =
     useExpenses(spreadsheetId)
+  const { data: inventory = [] } = useInventory(spreadsheetId)
   const [popupOpen, setPopupOpen] = useState(false)
+
+  const inventoryByExpenseId = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const item of inventory) {
+      map.set(item.expense_id, item.id)
+    }
+    return map
+  }, [inventory])
 
   const handleSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
     queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
+    queryClient.invalidateQueries({ queryKey: ['inventory', spreadsheetId] })
     navigate('/expenses')
   }
 
@@ -86,7 +97,10 @@ export function ExpensesPage() {
               <p className="text-gray-600">{t('expenses.empty')}</p>
             </div>
           ) : (
-            <ExpensesTable expenses={expenses} />
+            <ExpensesTable
+              expenses={expenses}
+              inventoryByExpenseId={inventoryByExpenseId}
+            />
           )}
         </>
       )}

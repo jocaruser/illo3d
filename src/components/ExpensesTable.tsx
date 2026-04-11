@@ -1,12 +1,17 @@
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Expense } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
 
 interface ExpensesTableProps {
   expenses: Expense[]
+  inventoryByExpenseId?: Map<string, string>
 }
 
-export function ExpensesTable({ expenses }: ExpensesTableProps) {
+export function ExpensesTable({
+  expenses,
+  inventoryByExpenseId,
+}: ExpensesTableProps) {
   const { t } = useTranslation()
 
   return (
@@ -25,6 +30,9 @@ export function ExpensesTable({ expenses }: ExpensesTableProps) {
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
               {t('expenses.notes')}
+            </th>
+            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+              {t('inventory.expenseColumn')}
             </th>
           </tr>
         </thead>
@@ -45,6 +53,16 @@ export function ExpensesTable({ expenses }: ExpensesTableProps) {
               </td>
               <td className="max-w-xs truncate px-4 py-3 text-sm text-gray-700">
                 {exp.notes ?? ''}
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 text-sm">
+                {inventoryByExpenseId?.has(exp.id) ? (
+                  <Link
+                    to="/inventory"
+                    className="text-blue-600 underline hover:text-blue-800"
+                  >
+                    {t('inventory.linkLabel')}
+                  </Link>
+                ) : null}
               </td>
             </tr>
           ))}
