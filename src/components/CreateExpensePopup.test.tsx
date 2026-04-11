@@ -122,4 +122,216 @@ describe('CreateExpensePopup', () => {
     expect(onSuccess).toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
   })
+
+  it('hides inventory fields when add-to-inventory is unchecked', () => {
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+      />
+    )
+    expect(
+      screen.getByRole('checkbox', { name: 'expenses.addToInventory' })
+    ).not.toBeChecked()
+    expect(screen.queryByLabelText('expenses.inventoryTypeLabel')).toBeNull()
+    expect(screen.queryByLabelText('expenses.inventoryName')).toBeNull()
+  })
+
+  it('shows inventory fields when add-to-inventory is checked', () => {
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+      />
+    )
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'expenses.addToInventory' })
+    )
+    expect(screen.getByLabelText('expenses.inventoryTypeLabel')).toBeInTheDocument()
+    expect(screen.getByLabelText('expenses.inventoryName')).toBeInTheDocument()
+    expect(
+      screen.getByLabelText(/expenses\.quantity expenses\.quantityHintGrams/)
+    ).toBeInTheDocument()
+  })
+
+  it('hides inventory fields again when add-to-inventory is unchecked', () => {
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+      />
+    )
+    const toggle = screen.getByRole('checkbox', {
+      name: 'expenses.addToInventory',
+    })
+    fireEvent.click(toggle)
+    expect(screen.getByLabelText('expenses.inventoryName')).toBeInTheDocument()
+    fireEvent.click(toggle)
+    expect(screen.queryByLabelText('expenses.inventoryName')).toBeNull()
+  })
+
+  it('prefills inventory name from notes when toggle is checked', () => {
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+      />
+    )
+    fireEvent.change(screen.getByLabelText('expenses.notes'), {
+      target: { value: 'PLA roll' },
+    })
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'expenses.addToInventory' })
+    )
+    expect(screen.getByLabelText('expenses.inventoryName')).toHaveValue('PLA roll')
+  })
+
+  it('shows quantity hint for units when inventory type is consumable', () => {
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+      />
+    )
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'expenses.addToInventory' })
+    )
+    fireEvent.change(screen.getByLabelText('expenses.inventoryTypeLabel'), {
+      target: { value: 'consumable' },
+    })
+    expect(
+      screen.getByLabelText(/expenses\.quantity expenses\.quantityHintUnits/)
+    ).toBeInTheDocument()
+  })
+
+  it('rejects empty inventory name when add-to-inventory is checked', () => {
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+      />
+    )
+    fireEvent.change(screen.getByLabelText('expenses.date'), {
+      target: { value: '2025-01-20' },
+    })
+    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+      target: { value: '10' },
+    })
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'expenses.addToInventory' })
+    )
+    fireEvent.change(screen.getByLabelText('expenses.inventoryName'), {
+      target: { value: '' },
+    })
+    fireEvent.click(screen.getByText('expenses.submit'))
+    expect(mockCreateExpense).not.toHaveBeenCalled()
+    expect(
+      screen.getByText('expenses.validation.inventoryNameRequired')
+    ).toBeInTheDocument()
+  })
+
+  it('rejects zero inventory quantity when add-to-inventory is checked', () => {
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+      />
+    )
+    fireEvent.change(screen.getByLabelText('expenses.date'), {
+      target: { value: '2025-01-20' },
+    })
+    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+      target: { value: '10' },
+    })
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'expenses.addToInventory' })
+    )
+    fireEvent.change(screen.getByLabelText('expenses.inventoryName'), {
+      target: { value: 'Item' },
+    })
+    fireEvent.change(
+      screen.getByLabelText(/expenses\.quantity expenses\.quantityHintGrams/),
+      { target: { value: '0' } }
+    )
+    fireEvent.click(screen.getByText('expenses.submit'))
+    expect(mockCreateExpense).not.toHaveBeenCalled()
+    expect(
+      screen.getByText('expenses.validation.quantityPositive')
+    ).toBeInTheDocument()
+  })
+
+  it('does not validate inventory when add-to-inventory is unchecked', async () => {
+    mockCreateExpense.mockResolvedValue(undefined)
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+      />
+    )
+    fireEvent.change(screen.getByLabelText('expenses.date'), {
+      target: { value: '2025-01-20' },
+    })
+    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+      target: { value: '25' },
+    })
+    fireEvent.click(screen.getByText('expenses.submit'))
+    await waitFor(() => expect(mockCreateExpense).toHaveBeenCalled())
+    expect(mockCreateExpense).toHaveBeenCalledWith(
+      'spreadsheet-1',
+      expect.objectContaining({ inventory: undefined })
+    )
+  })
+
+  it('passes inventory to createExpense when toggle is checked and form is valid', async () => {
+    mockCreateExpense.mockResolvedValue(undefined)
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+      />
+    )
+    fireEvent.change(screen.getByLabelText('expenses.date'), {
+      target: { value: '2025-01-20' },
+    })
+    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+      target: { value: '29.99' },
+    })
+    fireEvent.change(screen.getByLabelText('expenses.notes'), {
+      target: { value: 'PLA' },
+    })
+    fireEvent.click(
+      screen.getByRole('checkbox', { name: 'expenses.addToInventory' })
+    )
+    fireEvent.change(
+      screen.getByLabelText(/expenses\.quantity expenses\.quantityHintGrams/),
+      { target: { value: '500' } }
+    )
+    fireEvent.click(screen.getByText('expenses.submit'))
+    await waitFor(() => expect(onSuccess).toHaveBeenCalled())
+    expect(mockCreateExpense).toHaveBeenCalledWith('spreadsheet-1', {
+      date: '2025-01-20',
+      category: 'other',
+      amount: 29.99,
+      notes: 'PLA',
+      inventory: { type: 'filament', name: 'PLA', quantity: 500 },
+    })
+  })
 })

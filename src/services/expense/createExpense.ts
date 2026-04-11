@@ -1,12 +1,17 @@
 import { getSheetsRepository } from '@/services/sheets/repository'
 import { nextNumericId } from '@/utils/id'
-import type { ExpenseCategory } from '@/types/money'
+import type { ExpenseCategory, InventoryType } from '@/types/money'
 
 export interface CreateExpensePayload {
   date: string
   category: ExpenseCategory
   amount: number
   notes?: string
+  inventory?: {
+    type: InventoryType
+    name: string
+    quantity: number
+  }
 }
 
 export async function createExpense(
@@ -31,6 +36,18 @@ export async function createExpense(
     transactions.map((t) => t.id).filter((id): id is string => id != null)
   )
 
+  let inventoryId: string | undefined
+  if (payload.inventory) {
+    const inventoryRows = await repo.readRows<{ id: string }>(
+      spreadsheetId,
+      'inventory'
+    )
+    inventoryId = nextNumericId(
+      'INV',
+      inventoryRows.map((r) => r.id).filter((id): id is string => id != null)
+    )
+  }
+
   const expenseRow = {
     id: expenseId,
     date: payload.date,
@@ -54,4 +71,19 @@ export async function createExpense(
 
   await repo.appendRows(spreadsheetId, 'expenses', [expenseRow])
   await repo.appendRows(spreadsheetId, 'transactions', [transactionRow])
+
+  if (payload.inventory && inventoryId) {
+    const inv = payload.inventory
+    await repo.appendRows(spreadsheetId, 'inventory', [
+      {
+        id: inventoryId,
+        expense_id: expenseId,
+        type: inv.type,
+        name: inv.name,
+        qty_initial: inv.quantity,
+        qty_current: inv.quantity,
+        created_at: new Date().toISOString(),
+      },
+    ])
+  }
 }

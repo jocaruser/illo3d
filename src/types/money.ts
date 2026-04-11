@@ -19,7 +19,7 @@ export type TransactionType = 'income' | 'expense'
 
 export type RefType = 'job' | 'expense'
 
-export type InventoryType = 'filament' | 'consumable'
+export type InventoryType = 'filament' | 'consumable' | 'equipment'
 
 export interface Client {
   id: string

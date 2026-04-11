@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createExpense } from '@/services/expense/createExpense'
-import type { ExpenseCategory } from '@/types/money'
+import type { ExpenseCategory, InventoryType } from '@/types/money'
+
+const INVENTORY_TYPES: InventoryType[] = ['filament', 'consumable', 'equipment']
 
 const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   'filament',
@@ -30,9 +32,18 @@ export function CreateExpensePopup({
   const [category, setCategory] = useState<ExpenseCategory>('other')
   const [amount, setAmount] = useState('')
   const [notes, setNotes] = useState('')
+  const [addToInventory, setAddToInventory] = useState(false)
+  const [inventoryType, setInventoryType] = useState<InventoryType>('filament')
+  const [inventoryName, setInventoryName] = useState('')
+  const [inventoryQuantity, setInventoryQuantity] = useState('1')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+  const quantityHintKey =
+    inventoryType === 'filament'
+      ? 'expenses.quantityHintGrams'
+      : 'expenses.quantityHintUnits'
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {}
@@ -42,6 +53,15 @@ export function CreateExpensePopup({
     if (!amount.trim()) errs.amount = t('expenses.validation.required')
     else if (Number.isNaN(amountNum) || amountNum <= 0)
       errs.amount = t('expenses.validation.amountPositive')
+    if (addToInventory) {
+      if (!inventoryName.trim())
+        errs.inventoryName = t('expenses.validation.inventoryNameRequired')
+      const qtyNum = parseFloat(inventoryQuantity)
+      if (!inventoryQuantity.trim())
+        errs.inventoryQuantity = t('expenses.validation.required')
+      else if (Number.isNaN(qtyNum) || qtyNum <= 0)
+        errs.inventoryQuantity = t('expenses.validation.quantityPositive')
+    }
     setFieldErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -52,11 +72,19 @@ export function CreateExpensePopup({
     if (!validate() || !spreadsheetId) return
     setLoading(true)
     try {
+      const trimmedNotes = notes.trim() || undefined
       await createExpense(spreadsheetId, {
         date,
         category,
         amount: parseFloat(amount),
-        notes: notes.trim() || undefined,
+        notes: trimmedNotes,
+        inventory: addToInventory
+          ? {
+              type: inventoryType,
+              name: inventoryName.trim(),
+              quantity: parseFloat(inventoryQuantity),
+            }
+          : undefined,
       })
       onSuccess()
       onClose()
@@ -166,6 +194,98 @@ export function CreateExpensePopup({
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
             />
           </div>
+          <div className="flex items-center gap-2">
+            <input
+              id="expense-add-inventory"
+              type="checkbox"
+              checked={addToInventory}
+              onChange={(e) => {
+                const on = e.target.checked
+                setAddToInventory(on)
+                if (on) setInventoryName(notes)
+              }}
+              disabled={loading}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+            <label
+              htmlFor="expense-add-inventory"
+              className="text-sm font-medium text-gray-700"
+            >
+              {t('expenses.addToInventory')}
+            </label>
+          </div>
+          {addToInventory && (
+            <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+              <div>
+                <label
+                  htmlFor="expense-inventory-type"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  {t('expenses.inventoryTypeLabel')}
+                </label>
+                <select
+                  id="expense-inventory-type"
+                  value={inventoryType}
+                  onChange={(e) =>
+                    setInventoryType(e.target.value as InventoryType)
+                  }
+                  disabled={loading}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+                >
+                  {INVENTORY_TYPES.map((invT) => (
+                    <option key={invT} value={invT}>
+                      {t(`expenses.inventoryType.${invT}`)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label
+                  htmlFor="expense-inventory-name"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  {t('expenses.inventoryName')}
+                </label>
+                <input
+                  id="expense-inventory-name"
+                  type="text"
+                  value={inventoryName}
+                  onChange={(e) => setInventoryName(e.target.value)}
+                  placeholder={t('expenses.inventoryNamePlaceholder')}
+                  disabled={loading}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+                />
+                {fieldErrors.inventoryName && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {fieldErrors.inventoryName}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label
+                  htmlFor="expense-inventory-quantity"
+                  className="mb-1 block text-sm font-medium text-gray-700"
+                >
+                  {t('expenses.quantity')} {t(quantityHintKey)}
+                </label>
+                <input
+                  id="expense-inventory-quantity"
+                  type="number"
+                  step="any"
+                  min="0"
+                  value={inventoryQuantity}
+                  onChange={(e) => setInventoryQuantity(e.target.value)}
+                  disabled={loading}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+                />
+                {fieldErrors.inventoryQuantity && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {fieldErrors.inventoryQuantity}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
           {error && (
             <p className="text-sm text-red-600">{error}</p>
           )}

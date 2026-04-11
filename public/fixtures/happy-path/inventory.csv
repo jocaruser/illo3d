@@ -1,1 +1,11 @@
 id,expense_id,type,name,qty_initial,qty_current,created_at
+
+INV1,E11,filament,PLA White,1000,1000,2025-03-25T12:00:00.000Z
+
+INV2,E12,equipment,Ender 3,1,1,2025-03-26T12:00:00.000Z
+
+INV3,E13,filament,e2e filament marker,500,500,2026-04-11T10:15:43.377Z
+
+INV4,E16,filament,Manual PLA browser test,800,800,2026-04-11T10:17:25.315Z
+
+INV5,E18,filament,e2e filament marker,500,500,2026-04-11T10:20:55.179Z

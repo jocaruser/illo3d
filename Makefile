@@ -1,4 +1,4 @@
-.PHONY: init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate bash-exec shell clean sa-drive-empty
+.PHONY: init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate bash-exec shell clean sa-drive-empty sync-main
 
 APP = docker compose exec app
 
@@ -27,6 +27,23 @@ logs:
 
 clean:
 	docker compose down -v --rmi local
+
+# ============ GIT ============
+# Saves WIP (tracked + untracked), switches to main, rebases on origin, then reapplies WIP if a stash was created.
+# If `git stash pop` reports conflicts, resolve them in the working tree; the stash entry is consumed.
+sync-main:
+	@STASHED=0; \
+	if git stash push -u -m "sync-main: WIP before checkout/pull --rebase"; then \
+		STASHED=1; \
+	else \
+		ec=$$?; \
+		if [ $$ec -ne 1 ]; then exit $$ec; fi; \
+	fi; \
+	git checkout main; \
+	git pull --rebase; \
+	if [ $$STASHED -eq 1 ]; then \
+		git stash pop; \
+	fi
 
 # ============ DEVELOPMENT ============
 dev:
