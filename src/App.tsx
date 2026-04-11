@@ -7,6 +7,7 @@ import { TransactionsPage } from './pages/TransactionsPage'
 import { ExpensesPage } from './pages/ExpensesPage'
 import { InventoryPage } from './pages/InventoryPage'
 import { ClientsPage } from './pages/ClientsPage'
+import { JobsPage } from './pages/JobsPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
 
@@ -34,6 +35,12 @@ function Layout({ children }: { children: React.ReactNode }) {
               className="text-sm text-gray-600 hover:text-gray-800"
             >
               Clients
+            </Link>
+            <Link
+              to="/jobs"
+              className="text-sm text-gray-600 hover:text-gray-800"
+            >
+              Jobs
             </Link>
             <Link
               to="/transactions"
@@ -100,6 +107,16 @@ export default function App() {
             <Layout>
               <ProtectedRoute>
                 <ClientsPage />
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/jobs"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <JobsPage />
               </ProtectedRoute>
             </Layout>
           }

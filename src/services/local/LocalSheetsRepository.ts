@@ -103,6 +103,29 @@ export class LocalSheetsRepository implements SheetsRepository {
     await writable.close()
   }
 
+  async updateRow(
+    _spreadsheetId: string,
+    sheetName: SheetName,
+    rowIndex: number,
+    row: Record<string, unknown>
+  ): Promise<void> {
+    if (rowIndex < 1) {
+      throw new Error(`Invalid rowIndex: ${rowIndex}`)
+    }
+    const handle = this.getHandle()
+    const headers = SHEET_HEADERS[sheetName]
+    const csvName = `${sheetName}.csv`
+    const csvText = await this.readFile(handle, csvName)
+    const lines = csvText.trimEnd().split(/\r?\n/)
+    const lineIdx = rowIndex
+    if (lineIdx >= lines.length) {
+      throw new Error(`Row ${rowIndex} out of range for ${sheetName}`)
+    }
+    const newLine = headers.map((h) => escapeCsvValue(row[h])).join(',')
+    lines[lineIdx] = newLine
+    await this.writeFile(handle, csvName, lines.join('\n') + '\n')
+  }
+
   async createSpreadsheet(): Promise<string> {
     const handle = this.getHandle()
     const folderName = handle.name

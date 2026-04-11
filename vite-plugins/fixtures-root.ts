@@ -1,23 +1,16 @@
 import type { Plugin } from 'vite'
 import fs from 'fs'
 import path from 'path'
+import { getFixturesRootDir } from './fixtures-root-dir'
 
 const PREFIX = '/fixtures/'
-
-function resolveFixturesRoot(): string | null {
-  const raw = process.env.VITE_FIXTURES_ROOT?.trim()
-  if (!raw) return null
-  return path.resolve(process.cwd(), raw)
-}
 
 export function fixturesRootPlugin(): Plugin {
   return {
     name: 'illo3d-fixtures-root',
     configureServer(server) {
+      const fixturesRoot = getFixturesRootDir(server.config)
       server.middlewares.use((req, res, next) => {
-        const root = resolveFixturesRoot()
-        if (!root) return next()
-
         if (req.method !== 'GET') return next()
         const url = req.url?.split('?')[0] ?? ''
         if (!url.startsWith(PREFIX)) return next()
@@ -29,8 +22,11 @@ export function fixturesRootPlugin(): Plugin {
           return
         }
 
-        const filePath = path.resolve(root, relative)
-        if (!filePath.startsWith(root + path.sep) && filePath !== root) {
+        const filePath = path.resolve(fixturesRoot, relative)
+        if (
+          !filePath.startsWith(fixturesRoot + path.sep) &&
+          filePath !== fixturesRoot
+        ) {
           res.statusCode = 403
           res.end()
           return

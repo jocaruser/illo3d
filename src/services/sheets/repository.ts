@@ -25,6 +25,15 @@ export interface SheetsRepository {
     sheetName: SheetName,
     rows: Record<string, unknown>[]
   ): Promise<void>
+  /**
+   * Overwrites one data row. `rowIndex` is 1-based:1 = first data row (sheet row 2).
+   */
+  updateRow(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    rowIndex: number,
+    row: Record<string, unknown>
+  ): Promise<void>
   getSheetNames(spreadsheetId: string): Promise<string[]>
   getHeaderRow(spreadsheetId: string, sheetName: string): Promise<string[]>
   createSpreadsheet(): Promise<string>
@@ -141,6 +150,33 @@ export class GoogleSheetsRepository implements SheetsRepository {
     )
     if (!response.ok) {
       throw new Error(`Failed to append ${sheetName}: ${response.status}`)
+    }
+  }
+
+  async updateRow(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    rowIndex: number,
+    row: Record<string, unknown>
+  ): Promise<void> {
+    if (rowIndex < 1) {
+      throw new Error(`Invalid rowIndex: ${rowIndex}`)
+    }
+    const accessToken = await getAccessToken()
+    const headers = SHEET_HEADERS[sheetName]
+    const values = [objectToRow(headers, row)]
+    const sheetRow = rowIndex + 1
+    const range = `'${sheetName}'!A${sheetRow}:Z${sheetRow}`
+    const response = await sheetsFetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`,
+      accessToken,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ values }),
+      }
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to update ${sheetName} row: ${response.status}`)
     }
   }
 
@@ -298,6 +334,32 @@ export class CsvSheetsRepository implements SheetsRepository {
     })
     if (!response.ok) {
       throw new Error(`Failed to append ${sheetName}: ${response.status}`)
+    }
+  }
+
+  async updateRow(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    rowIndex: number,
+    row: Record<string, unknown>
+  ): Promise<void> {
+    if (rowIndex < 1) {
+      throw new Error(`Invalid rowIndex: ${rowIndex}`)
+    }
+    const folder = this.folderFromSpreadsheetId(spreadsheetId)
+    const response = await fetch('/api/sheets/row', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        spreadsheetId,
+        folder,
+        sheetName,
+        rowIndex,
+        row,
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to update ${sheetName}: ${response.status}`)
     }
   }
 
