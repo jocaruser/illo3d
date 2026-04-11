@@ -9,6 +9,17 @@
     "tagline": "3D printing store with CRM and money management",
     "devLogin": "Dev Login"
   },
+  "breadcrumb": {
+    "ariaLabel": "Breadcrumb",
+    "home": "Home"
+  },
+  "nav": {
+    "clients": "Clients",
+    "jobs": "Jobs",
+    "transactions": "Transactions",
+    "expenses": "Expenses",
+    "inventory": "Inventory"
+  },
   "clients": {
     "title": "Clients",
     "addClient": "Add client",

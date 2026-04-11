@@ -4,7 +4,7 @@
 
 Define how the authenticated app shell shows **current section** in the top navigation and a **breadcrumb** trail on main data pages so users always know where they are.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Top navigation shows active section
 

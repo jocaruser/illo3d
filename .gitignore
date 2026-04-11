@@ -26,7 +26,9 @@ npm-debug.log*
 coverage
 .pnpm-store
 
-openspec/changes/archive/
+# OpenSpec change drafts (local only; do not commit unless explicitly force-added)
+openspec/changes/
+
 illo3d-366398a927d2.json
 test-results/.last-run.json
 .cursor/mcp.json
