@@ -484,6 +484,20 @@ The system SHALL provide a mechanism for CsvSheetsRepository to write rows when 
 - **THEN** CsvSheetsRepository is not used (GoogleSheetsRepository is used)
 - **AND** no dev server API exists in the production build
 
+### Requirement: Dev server resolves fixtures root consistently for read and write
+
+Vite middleware that serves fixture data to the browser (e.g. GET `/fixtures/...` CSVs) and middleware that persists CSV changes in dev (POST `/api/sheets/append` and PUT `/api/sheets/row`) SHALL resolve the on-disk fixtures directory using the **same** rules as Vite’s environment loading (e.g. `loadEnv` with the configured `mode` and `envDir`, honoring `VITE_FIXTURES_ROOT` from `.env` / `.env.local`), so a value present only in env files does not cause reads and writes to target different directories. The row-update handler SHALL treat the request as a row update when the URL path is `/api/sheets/row` even if the request URL includes a query string.
+
+#### Scenario: Append and row-update use same root as fixture reads
+
+- **WHEN** `VITE_FIXTURES_ROOT` is set only in a Vite env file
+- **THEN** GET `/fixtures/<folder>/<sheet>.csv` and dev APIs that write CSV rows use that same resolved directory
+
+#### Scenario: Row update path matches with query string
+
+- **WHEN** the browser sends PUT to `/api/sheets/row?...`
+- **THEN** the dev server still routes the request to the row-update handler
+
 ### Requirement: Tests that write use temporary fixture copy
 
 The system SHALL support e2e tests that call appendRows without mutating golden fixture files or the dev working copy. Before each e2e spec, the test infrastructure SHALL copy the required scenario from `fixtures/` to an ephemeral directory. The e2e Vite server SHALL be configured to read and write that ephemeral directory. After the test, the ephemeral copy MAY be cleaned up.

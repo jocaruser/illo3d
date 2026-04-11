@@ -23,7 +23,7 @@ The system SHALL display a table of all transactions from the transactions sheet
 
 ### Requirement: Transactions table is read-only
 
-The system SHALL NOT allow editing, adding, or deleting transactions directly from the transactions table UI. The transactions table SHALL have no add, edit, or delete controls. Expense-type transactions SHALL be created via the expense creation form; income-type transactions SHALL be created when a job status changes to "paid" or by other automated flows. Manual edits to transactions MAY be done directly in Google Sheets.
+The system SHALL NOT allow editing, adding, or deleting transactions directly from the transactions table UI. The transactions table SHALL have no add, edit, or delete controls. Expense-type transactions SHALL be created via the expense creation form; income-type transactions SHALL be created when a job status changes to "paid" with default income behavior, or by other automated flows (see "Paying a job creates income transaction" for UI opt-out). Manual edits to transactions MAY be done directly in Google Sheets.
 
 #### Scenario: No edit controls in UI
 
@@ -93,8 +93,8 @@ The system SHALL support a jobs data model with fields: id (string), client_id (
 
 #### Scenario: Job status transitions
 
-- **WHEN** job status changes to "paid"
-- **THEN** a transaction record is created automatically
+- **WHEN** job status changes to "paid" with default income-transaction behavior
+- **THEN** a transaction record is created automatically (see "Paying a job creates income transaction" for opt-out)
 
 ### Requirement: Piece data model is defined
 
@@ -184,11 +184,11 @@ The system SHALL calculate a suggested price for a job as: sum of (piece_item.qu
 
 ### Requirement: Paying a job creates income transaction
 
-The system SHALL automatically create a transaction when a job status changes to "paid". The transaction SHALL have type "income", the job's price as amount, and reference the job.
+The system SHALL create an income transaction when a job status changes to "paid" **by default**, via the `updateJobStatus` service when income creation is not disabled. The transaction SHALL have type "income", the job's price as amount, and reference the job. When a transaction is created, `updateJobStatus` SHALL update the job row and append the transaction in a single logical operation. If the job had no price before the transition, the price confirmed in the paid confirmation flow SHALL be written to the job row alongside the status change. The user MAY opt out via the jobs UI (e.g. unchecked "create income transaction" on the paid confirmation dialog); when opted out, the job row SHALL still update to "paid" with the confirmed price but **no** new transaction row SHALL be appended. Leaving "paid" and entering "paid" again later without opt-out MAY append another income transaction; the UI SHALL confirm before leaving "paid" to reduce duplicate risk.
 
-#### Scenario: Job payment creates transaction
+#### Scenario: Job payment creates transaction by default
 
-- **WHEN** job.status changes to "paid"
+- **WHEN** job.status changes to "paid" via `updateJobStatus` with default income-transaction behavior
 - **THEN** transaction is created with:
   - type: "income"
   - amount: job.price
@@ -197,6 +197,25 @@ The system SHALL automatically create a transaction when a job status changes to
   - ref_type: "job"
   - ref_id: job.id
   - client_id: job.client_id
+
+#### Scenario: Job payment without new transaction when user opts out
+
+- **WHEN** job.status changes to "paid" and the user has opted out of creating an income transaction
+- **THEN** the job row is updated to paid with the agreed price
+- **AND** no new row is appended to the transactions sheet
+
+#### Scenario: Price written during paid transition
+
+- **WHEN** job.status changes to "paid" via `updateJobStatus`
+- **AND** a price is provided in the paid confirmation flow
+- **THEN** the job's price field is updated to the provided value
+- **AND** when a transaction is created, it uses the provided price as amount
+
+#### Scenario: Zero price creates zero-amount transaction
+
+- **WHEN** job.status changes to "paid" with price 0 and default income-transaction behavior
+- **THEN** a transaction is created with amount 0
+- **AND** this is valid (gift job)
 
 ### Requirement: Expenses page displays expense table
 

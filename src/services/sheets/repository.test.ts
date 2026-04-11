@@ -126,6 +126,42 @@ describe('CsvSheetsRepository', () => {
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
+  it('updateRow calls /api/sheets/row with PUT', async () => {
+    mockFetch.mockResolvedValue({ ok: true })
+
+    const repo = new CsvSheetsRepository('happy-path')
+    await repo.updateRow('csv-fixture-happy-path', 'jobs', 1, {
+      id: 'J1',
+      client_id: 'CL1',
+      description: 'x',
+      status: 'paid',
+      price: 10,
+      created_at: '2025-01-01',
+    })
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/sheets/row',
+      expect.objectContaining({
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          spreadsheetId: 'csv-fixture-happy-path',
+          folder: 'happy-path',
+          sheetName: 'jobs',
+          rowIndex: 1,
+          row: {
+            id: 'J1',
+            client_id: 'CL1',
+            description: 'x',
+            status: 'paid',
+            price: 10,
+            created_at: '2025-01-01',
+          },
+        }),
+      })
+    )
+  })
+
   it('does not parse quoted commas: split(",") treats "Acme, Inc." as two columns', async () => {
     // Fixtures must not use embedded commas inside quoted values.
     // See public/fixtures/README.md for the fixture convention.
