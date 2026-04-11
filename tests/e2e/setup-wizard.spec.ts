@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 
 /** Dev login; in CSV mode wizard shows immediately (no shop set). */
 async function devLoginAndShowWizard(page: import('@playwright/test').Page) {

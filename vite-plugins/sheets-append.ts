@@ -2,7 +2,10 @@ import type { Plugin } from 'vite'
 import path from 'path'
 import fs from 'fs'
 
-const FIXTURES_DIR = 'public/fixtures'
+function resolveFixturesRootDir(): string {
+  const raw = process.env.VITE_FIXTURES_ROOT?.trim()
+  return raw ? path.resolve(process.cwd(), raw) : path.resolve(process.cwd(), 'public/fixtures')
+}
 
 function escapeCsvValue(val: unknown): string {
   const s = String(val ?? '')
@@ -40,13 +43,9 @@ export function sheetsAppendPlugin(): Plugin {
               res.end(JSON.stringify({ error: 'Invalid folder' }))
               return
             }
-            const csvPath = path.resolve(
-              process.cwd(),
-              FIXTURES_DIR,
-              safeFolder,
-              `${sheetName}.csv`
-            )
-            if (!csvPath.startsWith(path.resolve(process.cwd(), FIXTURES_DIR))) {
+            const fixturesRoot = resolveFixturesRootDir()
+            const csvPath = path.resolve(fixturesRoot, safeFolder, `${sheetName}.csv`)
+            if (!csvPath.startsWith(fixturesRoot + path.sep) && csvPath !== fixturesRoot) {
               res.statusCode = 403
               res.end(JSON.stringify({ error: 'Path outside fixtures' }))
               return

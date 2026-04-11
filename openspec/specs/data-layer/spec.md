@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Persistent data access for illo3d: Google Drive and Picker for shop folders and metadata, Google Sheets as the production tabular backend, repository abstractions swappable by backend choice (Google Drive vs Local CSV), CSV fixtures for dev/tests, append/write behavior, and Local CSV creation/opening via the File System Access API. This boundary is the natural candidate for a future extraction to a dedicated service.
+Persistent data access for illo3d: Google Drive and Picker for shop folders and metadata, Google Sheets as the production tabular backend, repository abstractions swappable by backend choice (Google Drive vs Local CSV), golden CSV fixtures at `fixtures/` with a dev working copy under `public/fixtures/`, append/write behavior (including configurable `VITE_FIXTURES_ROOT` for e2e isolation), and Local CSV creation/opening via the File System Access API. This boundary is the natural candidate for a future extraction to a dedicated service.
 
 ## Google Drive API
 
@@ -354,10 +354,11 @@ The system SHALL provide a `CsvSheetsRepository` implementation that reads from 
 - **AND** reads from `/fixtures/<folder-name>/<sheetName>.csv`
 - **AND** multiple fixture folders may exist (e.g. `happy-path`, `missingcolumn`, `empty`)
 
-#### Scenario: Fixtures folder is read-only
+#### Scenario: Golden fixtures are not mutated by the repository
 
-- **WHEN** CsvSheetsRepository is used
-- **THEN** the fixture CSV files are not mutated
+- **WHEN** CsvSheetsRepository reads or appends in dev or e2e
+- **THEN** the committed golden `fixtures/` tree at the repository root is never modified by runtime code
+- **AND** append writes go only to the directory configured by `VITE_FIXTURES_ROOT` (default `public/fixtures` for dev, or the e2e ephemeral directory during `make e2e-test`)
 - **AND** `createSpreadsheet()` is a no-op or returns a sentinel ID
 
 ### Requirement: LocalSheetsRepository implements SheetsRepository via File System Access API
@@ -401,16 +402,36 @@ The system SHALL refactor fetchers (e.g. `fetchTransactions`, `fetchClients`), `
 
 ### Requirement: Fixture folders mirror Drive structure
 
-The system SHALL include `public/fixtures/<folder-name>/` directories where folder-name is a descriptive scenario (e.g. `missingcolumn`, `happy-path`, `empty`). Each folder SHALL contain: one CSV per sheet (`transactions.csv`, `clients.csv`, etc.) with headers matching `SHEET_HEADERS`, plus `illo3d.metadata.json`—an exact copy of what Drive would have (app, version, spreadsheetId, createdAt, createdBy). Multiple fixture folders MAY exist. Files SHALL be committed to the repository.
+The system SHALL include `fixtures/<folder-name>/` directories at the repository root where folder-name is a descriptive scenario (e.g. `missingcolumn`, `happy-path`, `empty`). Each folder SHALL contain: one CSV per sheet (`transactions.csv`, `clients.csv`, etc.) with headers matching `SHEET_HEADERS`, plus `illo3d.metadata.json`. Multiple fixture folders MAY exist. These golden fixture files SHALL be committed to the repository and SHALL NOT be mutated by runtime code.
 
-#### Scenario: Fixture folder has proper structure
+The dev working copy SHALL live at `public/fixtures/` (gitignored). The app reads and writes this directory as before. `public/fixtures/` is populated by copying from `fixtures/` via `make restore-fixtures`.
 
-- **WHEN** a fixture folder is used (e.g. `happy-path`)
+#### Scenario: Golden fixture folder has proper structure
+
+- **WHEN** a golden fixture folder exists (e.g. `fixtures/happy-path/`)
 - **THEN** it contains `illo3d.metadata.json` with app, version, spreadsheetId, createdAt, createdBy
-- **AND** contains CSV files for sheets (e.g. `transactions.csv`, `clients.csv`) with header row matching config
-- **AND** structure mirrors what Drive would have for a real shop folder
+- **AND** contains CSV files for all sheets with header rows matching `SHEET_HEADERS`
+- **AND** the folder is committed to git
 
-#### Scenario: Multiple fixture folders exist
+#### Scenario: Multiple golden fixture folders exist
+
+- **WHEN** the repository has multiple scenario folders under `fixtures/`
+- **THEN** each folder is self-contained with its own metadata and CSV files
+- **AND** folders have descriptive kebab-case names (e.g. `happy-path`, `empty`, `missingcolumn`)
+
+#### Scenario: Dev working copy mirrors golden structure
+
+- **WHEN** developer runs `make restore-fixtures`
+- **THEN** `public/fixtures/` contains an exact copy of `fixtures/`
+- **AND** the app can read and write `public/fixtures/` as before
+
+#### Scenario: Golden fixtures are never mutated by runtime
+
+- **WHEN** the app or tests append rows via the Vite plugin
+- **THEN** only the working copy (`public/fixtures/` or the e2e temp dir) is modified
+- **AND** `fixtures/` at the repo root remains unchanged
+
+#### Scenario: Multiple fixture folders exist for wizard selection
 
 - **WHEN** the app runs with CSV backend
 - **THEN** the user selects which folder to load by typing its name in the wizard "Open existing" step
@@ -437,13 +458,25 @@ The system SHALL extend the SheetsRepository interface with an `appendRows(sprea
 
 ### Requirement: CsvSheetsRepository writes via dev server API in dev
 
-The system SHALL provide a mechanism for CsvSheetsRepository to write rows when running in dev mode. Because the browser cannot write to the filesystem, a Vite plugin SHALL expose an API endpoint (e.g. POST /api/sheets/append) that receives append requests and writes to the fixture CSV files on disk. CsvSheetsRepository.appendRows SHALL call this endpoint when in dev.
+The system SHALL provide a mechanism for CsvSheetsRepository to write rows when running in dev mode. Because the browser cannot write to the filesystem, a Vite plugin SHALL expose an API endpoint (POST `/api/sheets/append`) that receives append requests and writes to the configured fixtures directory on disk. The fixtures directory SHALL be configurable via the `VITE_FIXTURES_ROOT` environment variable, defaulting to `public/fixtures`.
 
-#### Scenario: Dev append goes through API
+#### Scenario: Dev append goes through API to working copy
 
 - **WHEN** appendRows is called on CsvSheetsRepository in dev mode
-- **THEN** it sends a request to the dev server API with spreadsheetId, sheetName, rows
-- **AND** the API writes the rows to the appropriate fixture CSV file
+- **THEN** it sends a request to the dev server API with folder, sheetName, rows
+- **AND** the API writes the rows to `public/fixtures/<folder>/<sheetName>.csv`
+
+#### Scenario: E2E append goes through API to temp directory
+
+- **WHEN** appendRows is called during an e2e test
+- **THEN** the e2e Vite server writes rows to the configured temp fixtures directory
+- **AND** `public/fixtures/` is not modified
+
+#### Scenario: Fixtures directory is configurable
+
+- **WHEN** the Vite server starts with `VITE_FIXTURES_ROOT` set
+- **THEN** the sheets append plugin writes to that directory instead of `public/fixtures`
+- **AND** when `VITE_FIXTURES_ROOT` is not set, it defaults to `public/fixtures`
 
 #### Scenario: Production does not use CSV write
 
@@ -453,15 +486,26 @@ The system SHALL provide a mechanism for CsvSheetsRepository to write rows when 
 
 ### Requirement: Tests that write use temporary fixture copy
 
-The system SHALL support tests that call appendRows without mutating committed fixture files. Before a test that writes, the test setup SHALL copy the fixture folder to a temporary directory (e.g. /tmp/illo3d-fixture-xxx). The repository SHALL be configured to use that copy. After the test, the setup SHALL remove the temporary copy.
+The system SHALL support e2e tests that call appendRows without mutating golden fixture files or the dev working copy. Before each e2e spec, the test infrastructure SHALL copy the required scenario from `fixtures/` to an ephemeral directory. The e2e Vite server SHALL be configured to read and write that ephemeral directory. After the test, the ephemeral copy MAY be cleaned up.
 
-#### Scenario: Write test uses temp copy
+#### Scenario: E2E test uses pristine fixture copy
 
-- **WHEN** a test needs to call appendRows
-- **THEN** setup copies the fixture folder to /tmp
-- **AND** the test runs against the copy
-- **AND** teardown removes the copy
-- **AND** the original fixture folder is unchanged
+- **WHEN** an e2e spec runs
+- **THEN** the spec starts with a fresh copy of its declared scenario from `fixtures/`
+- **AND** any rows appended during the test go to the ephemeral copy
+- **AND** the golden `fixtures/` directory is unchanged
+- **AND** the dev `public/fixtures/` directory is unchanged
+
+#### Scenario: E2E spec declares its fixture scenario
+
+- **WHEN** an e2e spec needs a specific scenario (e.g. `empty`)
+- **THEN** it declares `test.use({ fixtureScenario: 'empty' })`
+- **AND** the fixture infrastructure copies `fixtures/empty/` to the ephemeral directory
+
+#### Scenario: Default fixture scenario is happy-path
+
+- **WHEN** an e2e spec does not declare a specific scenario
+- **THEN** the fixture infrastructure uses `happy-path` as the default
 
 ## Local CSV via File System Access API
 

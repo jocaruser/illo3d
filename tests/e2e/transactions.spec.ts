@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 
 async function devLogin(page: import('@playwright/test').Page) {
   await page.goto('/login', { waitUntil: 'networkidle' })

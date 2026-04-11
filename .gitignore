@@ -32,4 +32,6 @@ test-results/.last-run.json
 .cursor/mcp.json
 tsconfig.app.tsbuildinfo
 tsconfig.node.tsbuildinfo
-tsconfig.node.tsbuildinfo
+test-results/
+/public/fixtures/
+.e2e-fixtures/

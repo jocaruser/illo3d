@@ -1,43 +1,15 @@
 id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes
 t1,2025-01-15,income,100.50,Sales,Print job A,,,c1,First sale
 t2,2025-01-16,expense,-25.00,Materials,Filament,,,,
-
 T1,2025-03-20,expense,-25.5,other,other,expense,E1,,
-
 T2,2025-03-20,expense,-25.5,other,other,expense,E2,,
-
 T3,2025-03-20,expense,-25.5,other,other,expense,E3,,
-
 T4,2025-03-20,expense,-25.5,other,other,expense,E4,,
-
 T5,2025-03-20,expense,-25.5,other,other,expense,E5,,
-
 T6,2025-03-20,expense,-25.5,other,other,expense,E6,,
-
 T7,2025-03-20,expense,-25.5,other,other,expense,E7,,
-
 T8,2025-03-20,expense,-25.5,other,other,expense,E8,,
-
 T9,2025-03-20,expense,-25.5,other,other,expense,E9,,
-
 T10,2025-03-20,expense,-25.5,other,other,expense,E10,,
-
 T11,2025-03-25,expense,-29.99,filament,PLA White,expense,E11,,
-
 T12,2025-03-26,expense,-350,investment,Ender 3,expense,E12,,
-
-T13,2025-04-01,expense,-19.99,other,e2e filament marker,expense,E13,,e2e filament marker
-
-T14,2025-04-02,expense,-12,other,other,expense,E14,,
-
-T15,2025-03-20,expense,-25.5,other,other,expense,E15,,
-
-T16,2026-04-15,expense,-19.99,other,Manual PLA browser test,expense,E16,,Manual PLA browser test
-
-T17,2026-04-16,expense,-42,electric,electric,expense,E17,,
-
-T18,2025-04-01,expense,-19.99,other,e2e filament marker,expense,E18,,e2e filament marker
-
-T19,2025-04-02,expense,-12,other,other,expense,E19,,
-
-T20,2025-03-20,expense,-25.5,other,other,expense,E20,,

@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 
 test.describe('Login flow', () => {
   test('login page shows illo3d brand and sign-in options', async ({ page }) => {
