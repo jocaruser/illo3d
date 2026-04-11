@@ -9,6 +9,17 @@
     "tagline": "Tienda de impresión 3D con CRM y gestión financiera",
     "devLogin": "Login Dev"
   },
+  "breadcrumb": {
+    "ariaLabel": "Migas de pan",
+    "home": "Inicio"
+  },
+  "nav": {
+    "clients": "Clientes",
+    "jobs": "Trabajos",
+    "transactions": "Transacciones",
+    "expenses": "Gastos",
+    "inventory": "Inventario"
+  },
   "clients": {
     "title": "Clientes",
     "addClient": "Añadir cliente",

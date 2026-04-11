@@ -1,7 +1,18 @@
-import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom'
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Link,
+  Navigate,
+  NavLink,
+  useLocation,
+} from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { AuthStatus } from './components/AuthStatus'
+import { Breadcrumbs } from './components/Breadcrumbs'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { SetupWizard } from './components/wizard/SetupWizard'
+import { getBreadcrumbItems } from './breadcrumbItems'
 import { LoginPage } from './pages/LoginPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { ExpensesPage } from './pages/ExpensesPage'
@@ -11,7 +22,16 @@ import { JobsPage } from './pages/JobsPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
 
-function Layout({ children }: { children: React.ReactNode }) {
+function navLinkClassName({ isActive }: { isActive: boolean }) {
+  return isActive
+    ? 'text-sm font-semibold text-gray-900'
+    : 'text-sm text-gray-600 hover:text-gray-800'
+}
+
+export function Layout({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation()
+  const location = useLocation()
+  const breadcrumbItems = getBreadcrumbItems(location.pathname, t)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const activeShop = useShopStore((s) => s.activeShop)
   const logout = useAuthStore((s) => s.logout)
@@ -30,40 +50,31 @@ function Layout({ children }: { children: React.ReactNode }) {
             <Link to="/" className="text-xl font-bold text-gray-800">
               illo3d
             </Link>
-            <Link
-              to="/clients"
-              className="text-sm text-gray-600 hover:text-gray-800"
-            >
-              Clients
-            </Link>
-            <Link
-              to="/jobs"
-              className="text-sm text-gray-600 hover:text-gray-800"
-            >
-              Jobs
-            </Link>
-            <Link
-              to="/transactions"
-              className="text-sm text-gray-600 hover:text-gray-800"
-            >
-              Transactions
-            </Link>
-            <Link
-              to="/expenses"
-              className="text-sm text-gray-600 hover:text-gray-800"
-            >
-              Expenses
-            </Link>
-            <Link
-              to="/inventory"
-              className="text-sm text-gray-600 hover:text-gray-800"
-            >
-              Inventory
-            </Link>
+            <NavLink to="/clients" className={navLinkClassName} end>
+              {t('nav.clients')}
+            </NavLink>
+            <NavLink to="/jobs" className={navLinkClassName} end>
+              {t('nav.jobs')}
+            </NavLink>
+            <NavLink to="/transactions" className={navLinkClassName} end>
+              {t('nav.transactions')}
+            </NavLink>
+            <NavLink to="/expenses" className={navLinkClassName} end>
+              {t('nav.expenses')}
+            </NavLink>
+            <NavLink to="/inventory" className={navLinkClassName} end>
+              {t('nav.inventory')}
+            </NavLink>
           </div>
           <AuthStatus />
         </div>
       </header>
+      {breadcrumbItems ? (
+        <Breadcrumbs
+          items={breadcrumbItems}
+          ariaLabel={t('breadcrumb.ariaLabel')}
+        />
+      ) : null}
       <main>{children}</main>
       {isAuthenticated && !activeShop && (
         <SetupWizard

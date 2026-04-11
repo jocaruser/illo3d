@@ -74,11 +74,15 @@ test.describe('Jobs page', () => {
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
-    await page.locator('#job-status-J1').selectOption('in_progress')
+    const j1Status = page.locator('#job-status-J1')
+    await j1Status.selectOption('in_progress')
+    await expect(j1Status).toHaveValue('in_progress')
 
     await expect
       .poll(() => rowRequests.filter((r) => r.method === 'PUT').length)
       .toBeGreaterThan(0)
+
+    await expect(j1Status).toHaveValue('in_progress')
   })
 
   test('marking in_progress job paid with income checkbox unchecked skips transaction append', async ({
@@ -102,7 +106,10 @@ test.describe('Jobs page', () => {
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
-    await page.locator('#job-status-J2').selectOption('paid')
+    const j2Status = page.locator('#job-status-J2')
+    await j2Status.selectOption('paid')
+    // Paid is dialog-gated: controlled select stays on prior value until confirm.
+    await expect(j2Status).toHaveValue('in_progress')
 
     await expect(
       page.getByRole('heading', { name: /mark job as paid|marcar como pagado/i })
@@ -123,6 +130,7 @@ test.describe('Jobs page', () => {
     ).not.toBeVisible({ timeout: 10000 })
 
     expect(appendPayloads.filter((p) => p.sheetName === 'transactions')).toHaveLength(0)
+    await expect(j2Status).toHaveValue('paid', { timeout: 15000 })
   })
 
   test('marking delivered job paid shows confirmation and appends transaction', async ({
@@ -147,7 +155,9 @@ test.describe('Jobs page', () => {
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
     const row = page.getByRole('row').filter({ hasText: 'Desk organizer' })
-    await row.locator('select').selectOption('paid')
+    const deskStatus = row.locator('select')
+    await deskStatus.selectOption('paid')
+    await expect(deskStatus).toHaveValue('delivered')
 
     await expect(
       page.getByRole('heading', { name: /mark job as paid|marcar como pagado/i })
@@ -158,6 +168,8 @@ test.describe('Jobs page', () => {
     await expect
       .poll(() => appendPayloads.filter((p) => p.sheetName === 'transactions').length)
       .toBeGreaterThan(0)
+
+    await expect(deskStatus).toHaveValue('paid', { timeout: 15000 })
 
     const txAppend = appendPayloads.filter((p) => p.sheetName === 'transactions')
     const lastTx = txAppend[txAppend.length - 1].rows?.[0] as Record<string, unknown>
@@ -173,7 +185,9 @@ test.describe('Jobs page', () => {
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
-    await page.locator('#job-status-J1').selectOption('paid')
+    const j1PaidFlow = page.locator('#job-status-J1')
+    await j1PaidFlow.selectOption('paid')
+    await expect(j1PaidFlow).toHaveValue('draft')
 
     await expect(page.getByLabel(/price|precio/i)).toBeVisible({ timeout: 5000 })
     await page.getByLabel(/price|precio/i).fill('9.99')
@@ -185,6 +199,8 @@ test.describe('Jobs page', () => {
     ).not.toBeVisible({
       timeout: 10000,
     })
+
+    await expect(j1PaidFlow).toHaveValue('paid', { timeout: 15000 })
   })
 
   test('leaving paid status shows confirmation about duplicate transactions', async ({
@@ -195,7 +211,9 @@ test.describe('Jobs page', () => {
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
     const row = page.getByRole('row').filter({ hasText: 'Logo keychain batch' })
-    await row.locator('select').selectOption('delivered')
+    const logoStatus = row.locator('select')
+    await logoStatus.selectOption('delivered')
+    await expect(logoStatus).toHaveValue('paid')
 
     await expect(
       page.getByRole('heading', {
@@ -210,6 +228,8 @@ test.describe('Jobs page', () => {
         name: /change status from paid|cambiar el estado de pagado/i,
       })
     ).not.toBeVisible({ timeout: 10000 })
+
+    await expect(logoStatus).toHaveValue('delivered', { timeout: 15000 })
   })
 
   test('marking job cancelled shows confirmation', async ({ page }) => {
@@ -218,7 +238,9 @@ test.describe('Jobs page', () => {
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
     const row = page.getByRole('row').filter({ hasText: 'Replacement gear' })
-    await row.locator('select').selectOption('cancelled')
+    const gearStatus = row.locator('select')
+    await gearStatus.selectOption('cancelled')
+    await expect(gearStatus).toHaveValue('in_progress')
 
     await expect(
       page.getByRole('heading', { name: /cancel job|cancelar trabajo/i })
@@ -229,5 +251,7 @@ test.describe('Jobs page', () => {
     await expect(
       page.getByRole('heading', { name: /cancel job|cancelar trabajo/i })
     ).not.toBeVisible({ timeout: 10000 })
+
+    await expect(gearStatus).toHaveValue('cancelled', { timeout: 15000 })
   })
 })
