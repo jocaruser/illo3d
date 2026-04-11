@@ -173,6 +173,9 @@
   },
   "jobs": {
     "title": "Trabajos",
+    "backToList": "Volver a trabajos",
+    "jobNotFound": "Trabajo no encontrado.",
+    "idLinkAria": "Abrir detalles del trabajo {{id}}",
     "loading": "Cargando...",
     "empty": "Aún no hay trabajos.",
     "addJob": "Añadir trabajo",

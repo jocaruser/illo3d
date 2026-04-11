@@ -382,15 +382,15 @@ The system SHALL have Playwright e2e tests for the transactions view: table rend
 - **WHEN** user views transactions table
 - **THEN** no add, edit, or delete controls are visible on the table itself
 
-### Requirement: E2E tests cover Pieces primary UI
+### Requirement: E2E tests cover job detail pieces UI
 
-The system SHALL have at least one Playwright spec that verifies an authenticated user can reach the Pieces route from the app chrome and sees the expected primary content (e.g. heading and table or documented empty state) using the default or declared fixture scenario.
+The system SHALL have at least one Playwright spec that verifies an authenticated user can open a job’s detail page from the jobs list and sees the Pieces section with the expected primary content (e.g. heading and table or documented empty state) using the default or declared fixture scenario.
 
-#### Scenario: Pieces view renders for authenticated user
+#### Scenario: Job detail pieces view renders for authenticated user
 
-- **WHEN** an authenticated user with an open shop navigates to the Pieces page
-- **THEN** the page shows the expected heading for Pieces
-- **AND** the user sees a table or the documented empty state consistent with the fixture
+- **WHEN** an authenticated user with an open shop navigates to job detail for a fixture job (e.g. via the jobs table)
+- **THEN** the page shows the Pieces section heading
+- **AND** the user sees a pieces table or the documented empty state consistent with the fixture
 
 ### Requirement: E2E tests cover Expenses list after creation flow
 

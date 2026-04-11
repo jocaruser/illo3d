@@ -23,10 +23,22 @@ const routeToNavKey: Record<MainRoute, string> = {
   '/inventory': 'nav.inventory',
 }
 
+const JOB_DETAIL_PATH = /^\/jobs\/([^/]+)$/
+
 export function getBreadcrumbItems(
   pathname: string,
   t: TFunction,
 ): BreadcrumbItem[] | null {
+  const jobDetailMatch = JOB_DETAIL_PATH.exec(pathname)
+  if (jobDetailMatch) {
+    const id = jobDetailMatch[1]
+    return [
+      { label: t('breadcrumb.home'), to: '/transactions' },
+      { label: t('nav.jobs'), to: '/jobs' },
+      { label: id },
+    ]
+  }
+
   if (!isMainRoute(pathname)) {
     return null
   }

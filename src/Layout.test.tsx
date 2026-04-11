@@ -77,4 +77,49 @@ describe('Layout', () => {
       within(breadcrumbNav).getByText('nav.expenses'),
     ).toHaveAttribute('aria-current', 'page')
   })
+
+  it('shows breadcrumbs on job detail route', () => {
+    render(
+      <MemoryRouter initialEntries={['/jobs/J1']}>
+        <Routes>
+          <Route
+            path="/jobs/:jobId"
+            element={
+              <Layout>
+                <div>content</div>
+              </Layout>
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    const breadcrumbNav = screen.getByRole('navigation', {
+      name: 'breadcrumb.ariaLabel',
+    })
+    expect(within(breadcrumbNav).getByText('J1')).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('marks Jobs nav active on job detail path', () => {
+    render(
+      <MemoryRouter initialEntries={['/jobs/J1']}>
+        <Routes>
+          <Route
+            path="/jobs/:jobId"
+            element={
+              <Layout>
+                <div>content</div>
+              </Layout>
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    const jobsLinks = screen.getAllByRole('link', { name: 'nav.jobs' })
+    expect(jobsLinks[0]).toHaveAttribute('aria-current', 'page')
+  })
 })

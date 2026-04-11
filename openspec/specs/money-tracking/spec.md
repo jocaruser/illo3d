@@ -119,6 +119,107 @@ The system SHALL support a piece_items data model with fields: id (string), piec
 - **WHEN** a piece_item record exists
 - **THEN** it connects a piece to an inventory lote with a quantity consumed
 
+### Requirement: Job detail page lists pieces for that job
+
+The system SHALL provide a job detail route `/jobs/:jobId` protected by the same authentication guard as `/jobs`. The system SHALL NOT provide a top-level Pieces tab or `/pieces` route. When the sheet connection is connected, the job detail page SHALL show a summary of the job (description, id, client, status, price, created_at) and a **Pieces** section. The Pieces section SHALL list only pieces whose `job_id` matches `:jobId`, with columns: id, name, status (`pending`, `done`, `failed` with i18n labels), and `created_at` (job reference column omitted on this page). Rows SHALL be sorted by `created_at` descending. When no pieces exist for the job, the Pieces section SHALL show an empty state message using i18n.
+
+#### Scenario: Authenticated user opens job detail with pieces
+
+- **WHEN** an authenticated user with an active shop navigates to `/jobs/J1`
+- **AND** the spreadsheet connection succeeds
+- **AND** pieces exist for that job
+- **THEN** the Pieces section shows those pieces
+- **AND** no standalone Pieces navigation entry exists in the app header
+
+#### Scenario: Unauthenticated user cannot open job detail
+
+- **WHEN** an unauthenticated user navigates to `/jobs/J1`
+- **THEN** the system redirects to `/login`
+
+### Requirement: fetchPieces and usePieces read pieces sheet
+
+The system SHALL provide `fetchPieces(spreadsheetId)` that reads all rows from the `pieces` sheet via `SheetsRepository`, filters out rows without `id`, parses `status` as a piece status, and returns `Piece` objects sorted by `created_at` descending. The system SHALL provide `usePieces(spreadsheetId)` using TanStack Query with query key `['pieces', spreadsheetId]`, following the same enabled/null pattern as `useJobs`.
+
+#### Scenario: Hooks load when spreadsheet is available
+
+- **WHEN** `usePieces` is used with a non-null spreadsheet id
+- **THEN** data is fetched from the pieces sheet through `fetchPieces`
+
+### Requirement: fetchPieceItems and usePieceItems read piece_items sheet
+
+The system SHALL provide `fetchPieceItems(spreadsheetId)` that reads all rows from the `piece_items` sheet, filters rows without `id`, parses `quantity` as a number, and returns `PieceItem` objects. The system SHALL provide `usePieceItems(spreadsheetId)` with query key `['piece_items', spreadsheetId]`, following the same pattern as `usePieces`.
+
+#### Scenario: Piece items available for grouping by piece
+
+- **WHEN** `fetchPieceItems` completes successfully
+- **THEN** each returned object includes `piece_id`, `inventory_id`, and numeric `quantity`
+
+### Requirement: Piece rows expand to show piece_items
+
+The system SHALL allow the user to expand a piece row to view a nested list of that piece’s `piece_items`. The nested list SHALL show at least: piece_item id, inventory lot name (resolved from the inventory sheet), and quantity. The nested section SHALL include a control to add a new piece_item to that piece. Collapsing a row SHALL hide its nested list.
+
+#### Scenario: User expands a piece with lines
+
+- **WHEN** the user expands a piece that has piece_items
+- **THEN** each related piece_item appears with inventory name and quantity
+
+### Requirement: CreatePiecePopup creates a piece for a selected job
+
+The system SHALL provide `CreatePiecePopup` that collects a required piece name. When opened from a context without a fixed job, the popup SHALL also collect a required job via a searchable list from cached jobs data (same interaction pattern as `CreateJobPopup` client picker). When opened from a job detail page, the job SHALL be fixed to that job and the job picker SHALL NOT be shown. On successful submit, the system SHALL call `createPiece` to append a row with generated `P`-prefixed id, `status` `pending`, and current ISO timestamp for `created_at`. The popup SHALL be closable without saving. All user-visible strings SHALL use i18n (English and Spanish).
+
+#### Scenario: Valid create appends piece row with job picker
+
+- **WHEN** the user selects a job and enters a non-empty name and submits
+- **THEN** a new row is appended to the pieces sheet
+- **AND** the pieces list refreshes to include the new piece
+
+#### Scenario: Valid create from job detail uses fixed job
+
+- **WHEN** the user opens CreatePiecePopup from a job detail page and enters a non-empty name and submits
+- **THEN** a new row is appended with that job’s id as `job_id`
+
+#### Scenario: Missing job or name shows validation
+
+- **WHEN** the user submits without a selected job (when the picker is shown) or with an empty name
+- **THEN** validation errors are shown
+- **AND** no row is appended
+
+### Requirement: createPiece service appends pieces
+
+The system SHALL provide `createPiece(spreadsheetId, { job_id, name })` that generates the next `P`-prefixed id from existing piece ids, and appends one row to the `pieces` sheet with `status` `pending` and `created_at` set to the current time in ISO-8601 format.
+
+#### Scenario: Id increments after existing pieces
+
+- **WHEN** pieces `P1` and `P2` already exist
+- **AND** `createPiece` is invoked
+- **THEN** the appended row has id `P3`
+
+### Requirement: CreatePieceItemPopup allocates inventory to a piece
+
+The system SHALL provide `CreatePieceItemPopup` that collects a required inventory lot (select from cached inventory) and a required quantity greater than zero. On success it SHALL call `createPieceItem` to append a `piece_items` row. The form layout and validation style SHALL follow `CreateExpensePopup` (overlay close, inline field errors, submit/cancel). All user-visible strings SHALL use i18n. Creating a piece_item SHALL NOT modify `inventory.qty_current`.
+
+#### Scenario: Valid line appends piece_item
+
+- **WHEN** the user chooses an inventory lot and enters a positive quantity and submits
+- **THEN** a new row is appended to the piece_items sheet for the given piece
+- **AND** inventory quantities are unchanged
+
+#### Scenario: Non-positive quantity is rejected
+
+- **WHEN** the user submits quantity zero or negative
+- **THEN** a validation error is shown
+- **AND** no row is appended
+
+### Requirement: createPieceItem service appends piece_items
+
+The system SHALL provide `createPieceItem(spreadsheetId, { piece_id, inventory_id, quantity })` that generates the next `PI`-prefixed id from existing piece_item ids and appends one row linking the piece, inventory lot, and quantity.
+
+#### Scenario: Id increments after existing piece_items
+
+- **WHEN** piece_items `PI1` and `PI2` already exist
+- **AND** `createPieceItem` is invoked
+- **THEN** the appended row has id `PI3`
+
 ### Requirement: Inventory data model is defined
 
 The system SHALL support an inventory data model with fields: id (string), expense_id (string, FK to expenses), type (enum: filament, consumable, equipment), name (string), qty_initial (number), qty_current (number), created_at (date).

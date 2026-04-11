@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Client, Job } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
@@ -61,8 +62,15 @@ export function JobsTable({
               key={job.id}
               className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
             >
-              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                {job.id}
+              <td className="whitespace-nowrap px-4 py-3 text-sm">
+                <Link
+                  to={`/jobs/${job.id}`}
+                  data-testid={`job-detail-link-${job.id}`}
+                  className="font-medium text-blue-600 hover:text-blue-800"
+                  aria-label={t('jobs.idLinkAria', { id: job.id })}
+                >
+                  {job.id}
+                </Link>
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                 {clientName(clients, job.client_id)}

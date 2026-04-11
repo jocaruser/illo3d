@@ -19,6 +19,7 @@ import { ExpensesPage } from './pages/ExpensesPage'
 import { InventoryPage } from './pages/InventoryPage'
 import { ClientsPage } from './pages/ClientsPage'
 import { JobsPage } from './pages/JobsPage'
+import { JobDetailPage } from './pages/JobDetailPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
 
@@ -53,7 +54,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <NavLink to="/clients" className={navLinkClassName} end>
               {t('nav.clients')}
             </NavLink>
-            <NavLink to="/jobs" className={navLinkClassName} end>
+            <NavLink to="/jobs" className={navLinkClassName}>
               {t('nav.jobs')}
             </NavLink>
             <NavLink to="/transactions" className={navLinkClassName} end>
@@ -128,6 +129,16 @@ export default function App() {
             <Layout>
               <ProtectedRoute>
                 <JobsPage />
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/jobs/:jobId"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <JobDetailPage />
               </ProtectedRoute>
             </Layout>
           }
