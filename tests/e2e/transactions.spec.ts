@@ -1,49 +1,41 @@
 import { test, expect } from './fixtures'
 
-async function devLogin(page: import('@playwright/test').Page) {
-  await page.goto('/login', { waitUntil: 'networkidle' })
-
-  const devLoginButton = page.getByTestId('dev-login-button')
-  await expect(devLoginButton).toBeVisible({ timeout: 15000 })
-  await devLoginButton.click()
-
-  await expect(page).toHaveURL(/\/transactions/)
-}
-
 test.describe('Transactions page', () => {
   test('transactions table or empty state visible after authenticated user navigates to /transactions', async ({
     page,
+    openCsvShop,
   }) => {
-    await devLogin(page)
+    void openCsvShop
 
     const transactionsHeading = page.getByRole('heading', { name: 'Transactions' })
     await expect(transactionsHeading).toBeVisible({ timeout: 10000 })
 
-    const hasTable = (await page.getByRole('table').count()) > 0
-    const hasEmptyState = (await page.getByText(/no transactions|no hay transacciones/i).count()) > 0
-    const hasLoading = (await page.getByText(/loading/i).count()) > 0
-    const hasConnecting = (await page.getByText(/connecting/i).count()) > 0
-    const hasError = (await page.getByText(/error|retry/i).count()) > 0
-
-    expect(hasTable || hasEmptyState || hasLoading || hasConnecting || hasError).toBeTruthy()
+    const tableOrContent = page
+      .getByRole('table')
+      .or(page.getByText(/no transactions|no hay transacciones/i))
+      .or(page.getByText(/connecting|cargando/i))
+      .or(page.getByText(/loading/i))
+      .or(page.getByText(/error|retry|reintentar/i))
+    await expect(tableOrContent).toBeVisible({ timeout: 15000 })
   })
 
-  test('balance is displayed when connected to Sheets', async ({ page }) => {
-    await devLogin(page)
+  test('balance is displayed when connected to Sheets', async ({ page, openCsvShop }) => {
+    void openCsvShop
 
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
     })
 
-    const balanceLabel = page.getByText(/^Balance:/)
-    const connectingOrError = page.getByText(/connecting|error/i)
+    const balanceLabel = page.getByText(/^Balance:|^Saldo:/)
+    const connectingOrError = page.getByText(/connecting|cargando|error/i)
     await expect(balanceLabel.or(connectingOrError)).toBeVisible({ timeout: 15000 })
   })
 
   test('no edit or delete buttons visible in transactions UI', async ({
     page,
+    openCsvShop,
   }) => {
-    await devLogin(page)
+    void openCsvShop
 
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,

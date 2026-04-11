@@ -2,19 +2,20 @@
 
 ## Purpose
 
-In-app listing and creation of clients: dedicated `/clients` route, read-only table backed by the clients sheet, modal form to append new clients, `createClient` service, header navigation, and i18n for all clients UI strings.
+In-app listing, creation, editing, and deletion of clients: dedicated `/clients` route, table backed by the clients sheet with per-row edit and delete actions, modal form to append and update clients, `createClient`, `updateClient`, and `deleteClient` services, header navigation, and i18n for all clients UI strings.
 
 ## Requirements
 
 ### Requirement: Clients page displays client table
 
-The system SHALL provide a `/clients` route that displays a table of all clients from the clients sheet. The table SHALL show: name, email, phone, notes, created_at. The table SHALL be read-only (no inline edit or delete controls).
+The system SHALL provide a `/clients` route that displays a table of all clients from the clients sheet. The table SHALL show: name, email, phone, notes, created_at, and per-row actions to edit and delete the client.
 
 #### Scenario: Clients table renders with data
 
 - **WHEN** authenticated user navigates to `/clients`
 - **AND** clients exist in the sheet
 - **THEN** table displays all clients with name, email, phone, notes, and created_at columns
+- **AND** each row includes Edit and Delete actions
 
 #### Scenario: Empty state shown when no clients
 
@@ -22,10 +23,10 @@ The system SHALL provide a `/clients` route that displays a table of all clients
 - **AND** no clients exist in the sheet
 - **THEN** table shows empty state message
 
-#### Scenario: No edit or delete controls on table
+#### Scenario: Edit and delete actions are visible
 
-- **WHEN** user views the clients table
-- **THEN** no edit, delete, or remove buttons are visible on the table
+- **WHEN** user views the clients table and at least one client exists
+- **THEN** Edit and Delete controls are visible for each row
 
 ### Requirement: Clients page shows connection status
 
@@ -48,7 +49,7 @@ The system SHALL display the sheets connection status on the clients page. The p
 
 ### Requirement: CreateClientPopup is a reusable modal form
 
-The system SHALL provide a CreateClientPopup component that renders a modal with a form. The form SHALL collect: name (required), email (optional), phone (optional), notes (optional). The popup SHALL be closable via overlay click or cancel button.
+The system SHALL provide a CreateClientPopup component that renders a modal with a form. The form SHALL collect: name (required), email (optional), phone (optional), notes (optional). The popup SHALL be closable via overlay click or cancel button. The same component SHALL support an edit mode when opened for an existing client: fields SHALL be prefilled, the title SHALL indicate editing, and submit SHALL update that client instead of creating one.
 
 #### Scenario: Popup opens and shows form fields
 
@@ -69,10 +70,22 @@ The system SHALL provide a CreateClientPopup component that renders a modal with
 
 #### Scenario: Successful submission creates client and refreshes table
 
-- **WHEN** user fills in a valid name and submits
+- **WHEN** user fills in a valid name and submits in create mode
 - **THEN** a client record is appended to the clients sheet
 - **AND** the popup closes
 - **AND** the clients table refreshes to show the new client
+
+#### Scenario: Edit mode opens with prefilled values
+
+- **WHEN** user opens the popup from Edit on a client row
+- **THEN** name, email, phone, and notes are prefilled from that client
+
+#### Scenario: Successful edit updates client and refreshes table
+
+- **WHEN** user changes fields and submits in edit mode
+- **THEN** the corresponding row in the clients sheet is updated
+- **AND** the popup closes
+- **AND** the clients table reflects the updated values
 
 ### Requirement: Add client button on clients page
 
@@ -102,6 +115,52 @@ The system SHALL provide a `createClient` service that appends a row to the clie
 - **WHEN** clients CL1 and CL2 already exist
 - **AND** createClient is called
 - **THEN** the new client gets ID CL3
+
+### Requirement: Client delete uses confirmation dialog
+
+The system SHALL require confirmation before deleting a client. The UI SHALL use the existing ConfirmDialog pattern. On confirm, the system SHALL call `deleteClient`; on cancel, no data change occurs.
+
+#### Scenario: Delete prompts for confirmation
+
+- **WHEN** user clicks Delete on a client row
+- **THEN** a confirmation dialog is shown with the client name or identifier
+
+#### Scenario: Cancel leaves data unchanged
+
+- **WHEN** user cancels the delete confirmation
+- **THEN** the client row remains in the sheet and table
+
+### Requirement: deleteClient refuses when jobs reference the client
+
+The system SHALL NOT delete a client if any job row has `client_id` equal to that client’s id. The service SHALL fail with an error suitable for display; no sheet rows are removed.
+
+#### Scenario: Delete blocked when jobs exist
+
+- **WHEN** deleteClient is called for a client id that is referenced by at least one job
+- **THEN** the operation fails without deleting the client row
+
+#### Scenario: Delete allowed when no jobs reference client
+
+- **WHEN** deleteClient is called for a client id not referenced by any job
+- **THEN** that client row is removed from the clients sheet
+
+### Requirement: updateClient service updates client row
+
+The system SHALL provide an `updateClient` service that writes changes to the existing clients row via `SheetsRepository.updateRow`. The service SHALL preserve `id` and `created_at`; it SHALL update name, email, phone, and notes from the payload.
+
+#### Scenario: Client row updated in sheet
+
+- **WHEN** updateClient is called with spreadsheet id, client id, and field values
+- **THEN** the row for that client id is overwritten with the new values and original id and created_at
+
+### Requirement: Optimistic update for client edit
+
+The clients table UI SHALL apply an optimistic update when an edit save succeeds locally before the server round-trip completes, and SHALL reconcile on error (e.g. invalidate queries or restore prior data).
+
+#### Scenario: Table updates optimistically on edit
+
+- **WHEN** user saves an edit and the update succeeds
+- **THEN** the table shows the edited values without requiring a full refetch for correctness
 
 ### Requirement: Clients navigation link in header
 
@@ -135,3 +194,8 @@ All user-facing strings on the clients page (table headers, button labels, empty
 
 - **WHEN** empty state is shown
 - **THEN** message comes from i18n keys
+
+#### Scenario: Edit, delete, and confirmation strings are translatable
+
+- **WHEN** clients table shows Edit and Delete actions or a delete confirmation dialog
+- **THEN** action labels and confirmation copy use i18n keys

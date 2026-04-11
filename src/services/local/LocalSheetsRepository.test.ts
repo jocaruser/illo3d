@@ -153,6 +153,37 @@ describe('LocalSheetsRepository', () => {
     })
   })
 
+  it('deleteRow removes the 1-based data row and preserves header', async () => {
+    const initial =
+      'id,name,email,phone,notes,created_at\n' +
+      'c1,Acme,,,note1,2025-01-01\n' +
+      'c2,Other,,,note2,2025-01-02\n'
+    const handle = createMockHandle({ 'clients.csv': initial })
+    useBackendStore.setState({ localDirectoryHandle: handle })
+
+    const repo = new LocalSheetsRepository()
+    await repo.deleteRow('local-test-shop', 'clients', 1)
+
+    const rows = await repo.readRows('local-test-shop', 'clients')
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ id: 'c2', name: 'Other', notes: 'note2' })
+  })
+
+  it('deleteRow rejects invalid row index', async () => {
+    const handle = createMockHandle({
+      'clients.csv': 'id,name,email,phone,notes,created_at\nc1,A,,,,',
+    })
+    useBackendStore.setState({ localDirectoryHandle: handle })
+
+    const repo = new LocalSheetsRepository()
+    await expect(repo.deleteRow('local-test-shop', 'clients', 0)).rejects.toThrow(
+      'Invalid rowIndex'
+    )
+    await expect(repo.deleteRow('local-test-shop', 'clients', 99)).rejects.toThrow(
+      'out of range'
+    )
+  })
+
   it('throws when no local directory handle is set', async () => {
     const repo = new LocalSheetsRepository()
 

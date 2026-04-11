@@ -126,6 +126,27 @@ describe('CsvSheetsRepository', () => {
     expect(mockFetch).not.toHaveBeenCalled()
   })
 
+  it('deleteRow calls /api/sheets/row with DELETE', async () => {
+    mockFetch.mockResolvedValue({ ok: true })
+
+    const repo = new CsvSheetsRepository('happy-path')
+    await repo.deleteRow('csv-fixture-happy-path', 'clients', 2)
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/sheets/row',
+      expect.objectContaining({
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          spreadsheetId: 'csv-fixture-happy-path',
+          folder: 'happy-path',
+          sheetName: 'clients',
+          rowIndex: 2,
+        }),
+      })
+    )
+  })
+
   it('updateRow calls /api/sheets/row with PUT', async () => {
     mockFetch.mockResolvedValue({ ok: true })
 

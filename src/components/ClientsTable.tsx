@@ -3,9 +3,11 @@ import type { Client } from '@/types/money'
 
 interface ClientsTableProps {
   clients: Client[]
+  onEdit: (client: Client) => void
+  onDelete: (client: Client) => void
 }
 
-export function ClientsTable({ clients }: ClientsTableProps) {
+export function ClientsTable({ clients, onEdit, onDelete }: ClientsTableProps) {
   const { t } = useTranslation()
 
   return (
@@ -27,6 +29,9 @@ export function ClientsTable({ clients }: ClientsTableProps) {
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
               {t('clients.createdAt')}
+            </th>
+            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600">
+              {t('clients.actions')}
             </th>
           </tr>
         </thead>
@@ -50,6 +55,22 @@ export function ClientsTable({ clients }: ClientsTableProps) {
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                 {client.created_at}
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
+                <button
+                  type="button"
+                  onClick={() => onEdit(client)}
+                  className="mr-2 text-blue-600 hover:text-blue-800"
+                >
+                  {t('clients.edit')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(client)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  {t('clients.delete')}
+                </button>
               </td>
             </tr>
           ))}

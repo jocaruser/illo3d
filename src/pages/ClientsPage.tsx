@@ -7,9 +7,17 @@ import { useClients } from '@/hooks/useClients'
 import { ClientsTable } from '@/components/ClientsTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreateClientPopup } from '@/components/CreateClientPopup'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { useTranslation } from 'react-i18next'
+import { updateClient } from '@/services/client/updateClient'
+import {
+  CLIENT_DELETE_BLOCKED_JOBS,
+  deleteClient,
+} from '@/services/client/deleteClient'
+import type { Client } from '@/types/money'
+import type { UpdateClientPayload } from '@/services/client/updateClient'
 
 export function ClientsPage() {
   const { t } = useTranslation()
@@ -26,10 +34,71 @@ export function ClientsPage() {
 
   const { data: clients = [], isLoading: clientsLoading } =
     useClients(spreadsheetId)
-  const [popupOpen, setPopupOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editingClient, setEditingClient] = useState<Client | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
-  const handleSuccess = () => {
+  const clientPopupOpen = createOpen || editingClient !== null
+
+  const handleMutationSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['clients', spreadsheetId] })
+  }
+
+  const handleUpdateClient = async (
+    clientId: string,
+    payload: UpdateClientPayload
+  ) => {
+    if (!spreadsheetId) return
+    const key = ['clients', spreadsheetId] as const
+    const previous = queryClient.getQueryData<Client[]>(key)
+    if (previous) {
+      queryClient.setQueryData(
+        key,
+        previous.map((c) =>
+          c.id === clientId
+            ? {
+                ...c,
+                name: payload.name,
+                email: payload.email,
+                phone: payload.phone,
+                notes: payload.notes,
+              }
+            : c
+        )
+      )
+    }
+    try {
+      await updateClient(spreadsheetId, clientId, payload)
+    } catch (e) {
+      if (previous) {
+        queryClient.setQueryData(key, previous)
+      }
+      throw e
+    }
+  }
+
+  const closeClientPopup = () => {
+    setCreateOpen(false)
+    setEditingClient(null)
+  }
+
+  const confirmDeleteClient = async () => {
+    if (!spreadsheetId || !deleteTarget) return
+    setDeleteError(null)
+    try {
+      await deleteClient(spreadsheetId, deleteTarget.id)
+      setDeleteTarget(null)
+      handleMutationSuccess()
+    } catch (e) {
+      const msg =
+        e instanceof Error && e.message === CLIENT_DELETE_BLOCKED_JOBS
+          ? t('clients.deleteBlockedJobs')
+          : e instanceof Error
+            ? e.message
+            : t('wizard.errorGeneric')
+      setDeleteError(msg)
+    }
   }
 
   useEffect(() => {
@@ -74,7 +143,10 @@ export function ClientsPage() {
           <div className="mb-4 flex items-center justify-end">
             <button
               type="button"
-              onClick={() => setPopupOpen(true)}
+              onClick={() => {
+                setEditingClient(null)
+                setCreateOpen(true)
+              }}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
               {t('clients.addClient')}
@@ -86,17 +158,48 @@ export function ClientsPage() {
           ) : clients.length === 0 ? (
             <EmptyState messageKey="clients.empty" />
           ) : (
-            <ClientsTable clients={clients} />
+            <ClientsTable
+              clients={clients}
+              onEdit={(c) => {
+                setCreateOpen(false)
+                setEditingClient(c)
+              }}
+              onDelete={(c) => {
+                setDeleteError(null)
+                setDeleteTarget(c)
+              }}
+            />
           )}
         </>
       )}
 
       <CreateClientPopup
-        isOpen={popupOpen}
-        onClose={() => setPopupOpen(false)}
-        onSuccess={handleSuccess}
+        isOpen={clientPopupOpen}
+        onClose={closeClientPopup}
+        onSuccess={handleMutationSuccess}
         spreadsheetId={spreadsheetId}
+        initialClient={editingClient}
+        onUpdateClient={handleUpdateClient}
       />
+
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        title={t('clients.deleteConfirmTitle')}
+        message={t('clients.deleteConfirmMessage', {
+          name: deleteTarget?.name ?? '',
+        })}
+        confirmLabel={t('clients.delete')}
+        cancelLabel={t('clients.cancel')}
+        onConfirm={confirmDeleteClient}
+        onCancel={() => {
+          setDeleteTarget(null)
+          setDeleteError(null)
+        }}
+      >
+        {deleteError ? (
+          <p className="text-sm text-red-600">{deleteError}</p>
+        ) : null}
+      </ConfirmDialog>
     </div>
   )
 }

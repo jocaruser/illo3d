@@ -6,11 +6,15 @@ import { formatCurrency } from '@/utils/money'
 interface ExpensesTableProps {
   expenses: Expense[]
   inventoryByExpenseId?: Map<string, string>
+  onEdit: (expense: Expense) => void
+  onDelete: (expense: Expense) => void
 }
 
 export function ExpensesTable({
   expenses,
   inventoryByExpenseId,
+  onEdit,
+  onDelete,
 }: ExpensesTableProps) {
   const { t } = useTranslation()
 
@@ -33,6 +37,9 @@ export function ExpensesTable({
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
               {t('inventory.expenseColumn')}
+            </th>
+            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600">
+              {t('expenses.actions')}
             </th>
           </tr>
         </thead>
@@ -63,6 +70,22 @@ export function ExpensesTable({
                     {t('inventory.linkLabel')}
                   </Link>
                 ) : null}
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
+                <button
+                  type="button"
+                  onClick={() => onEdit(exp)}
+                  className="mr-2 text-blue-600 hover:text-blue-800"
+                >
+                  {t('expenses.edit')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(exp)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  {t('expenses.delete')}
+                </button>
               </td>
             </tr>
           ))}

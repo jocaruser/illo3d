@@ -34,6 +34,14 @@ export interface SheetsRepository {
     rowIndex: number,
     row: Record<string, unknown>
   ): Promise<void>
+  /**
+   * Removes one data row. `rowIndex` is 1-based: 1 = first data row (sheet row 2).
+   */
+  deleteRow(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    rowIndex: number
+  ): Promise<void>
   getSheetNames(spreadsheetId: string): Promise<string[]>
   getHeaderRow(spreadsheetId: string, sheetName: string): Promise<string[]>
   createSpreadsheet(): Promise<string>
@@ -61,6 +69,29 @@ function objectToRow(
 }
 
 export class GoogleSheetsRepository implements SheetsRepository {
+  private async getSheetNumericId(
+    spreadsheetId: string,
+    sheetTitle: string
+  ): Promise<number> {
+    const accessToken = await getAccessToken()
+    const response = await sheetsFetch(
+      `/spreadsheets/${spreadsheetId}?fields=sheets.properties`,
+      accessToken
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to fetch spreadsheet: ${response.status}`)
+    }
+    const data = (await response.json()) as {
+      sheets?: { properties?: { sheetId?: number; title?: string } }[]
+    }
+    const sheet = data.sheets?.find((s) => s.properties?.title === sheetTitle)
+    const id = sheet?.properties?.sheetId
+    if (id === undefined) {
+      throw new Error(`Sheet not found: ${sheetTitle}`)
+    }
+    return id
+  }
+
   async readRows<T extends object>(
     spreadsheetId: string,
     sheetName: SheetName
@@ -177,6 +208,43 @@ export class GoogleSheetsRepository implements SheetsRepository {
     )
     if (!response.ok) {
       throw new Error(`Failed to update ${sheetName} row: ${response.status}`)
+    }
+  }
+
+  async deleteRow(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    rowIndex: number
+  ): Promise<void> {
+    if (rowIndex < 1) {
+      throw new Error(`Invalid rowIndex: ${rowIndex}`)
+    }
+    const accessToken = await getAccessToken()
+    const sheetId = await this.getSheetNumericId(spreadsheetId, sheetName)
+    const startIndex = rowIndex
+    const response = await sheetsFetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
+      accessToken,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          requests: [
+            {
+              deleteDimension: {
+                range: {
+                  sheetId,
+                  dimension: 'ROWS',
+                  startIndex,
+                  endIndex: startIndex + 1,
+                },
+              },
+            },
+          ],
+        }),
+      }
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to delete ${sheetName} row: ${response.status}`)
     }
   }
 
@@ -360,6 +428,30 @@ export class CsvSheetsRepository implements SheetsRepository {
     })
     if (!response.ok) {
       throw new Error(`Failed to update ${sheetName}: ${response.status}`)
+    }
+  }
+
+  async deleteRow(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    rowIndex: number
+  ): Promise<void> {
+    if (rowIndex < 1) {
+      throw new Error(`Invalid rowIndex: ${rowIndex}`)
+    }
+    const folder = this.folderFromSpreadsheetId(spreadsheetId)
+    const response = await fetch('/api/sheets/row', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        spreadsheetId,
+        folder,
+        sheetName,
+        rowIndex,
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to delete ${sheetName}: ${response.status}`)
     }
   }
 

@@ -24,6 +24,7 @@
   "nav": {
     "clients": "Clientes",
     "jobs": "Trabajos",
+    "pieces": "Piezas",
     "transactions": "Transacciones",
     "expenses": "Gastos",
     "inventory": "Inventario"
@@ -41,6 +42,14 @@
     "nameRequired": "El nombre es obligatorio",
     "cancel": "Cancelar",
     "submit": "Crear cliente",
+    "editClient": "Editar cliente",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "actions": "Acciones",
+    "deleteConfirmTitle": "Eliminar cliente",
+    "deleteConfirmMessage": "¿Eliminar a {{name}}? No se puede deshacer.",
+    "deleteBlockedJobs": "No se puede eliminar este cliente mientras existan trabajos asociados.",
     "validation.required": "Este campo es obligatorio"
   },
   "expenses": {
@@ -75,7 +84,14 @@
     "category.maintenance": "Mantenimiento",
     "category.other": "Otro",
     "empty": "Aún no hay gastos.",
-    "addExpense": "Añadir gasto"
+    "addExpense": "Añadir gasto",
+    "editTitle": "Editar gasto",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "actions": "Acciones",
+    "deleteConfirmTitle": "Eliminar gasto",
+    "deleteConfirmMessage": "¿Eliminar el gasto {{id}} y su transacción vinculada? No se puede deshacer."
   },
   "inventory": {
     "title": "Inventario",
@@ -109,6 +125,51 @@
     "retry": "Reintentar",
     "connect": "Conectar",
     "connectPrompt": "Conecta Google Sheets para cargar transacciones."
+  },
+  "pieces": {
+    "title": "Piezas",
+    "loading": "Cargando...",
+    "empty": "Aún no hay piezas.",
+    "addPiece": "Añadir pieza",
+    "createTitle": "Crear pieza",
+    "job": "Trabajo",
+    "jobSearchPlaceholder": "Buscar trabajos…",
+    "selectedJob": "Seleccionado: {{id}} — {{description}}",
+    "noJobsMatch": "Ningún trabajo coincide.",
+    "name": "Nombre",
+    "namePlaceholder": "p. ej. Carcasa superior",
+    "submit": "Crear pieza",
+    "cancel": "Cancelar",
+    "colExpand": "Expandir",
+    "colId": "ID",
+    "colJob": "Trabajo",
+    "colName": "Nombre",
+    "colStatus": "Estado",
+    "colCreated": "Creado",
+    "status": {
+      "pending": "Pendiente",
+      "done": "Hecha",
+      "failed": "Fallida"
+    },
+    "linesHeading": "Materiales",
+    "addLine": "Añadir línea de material",
+    "addLineTitle": "Añadir línea de material",
+    "addLineForPiece": "Pieza {{id}}",
+    "noLines": "Aún no hay líneas de material.",
+    "lineColId": "ID línea",
+    "lineColInventory": "Inventario",
+    "lineColQty": "Cantidad",
+    "inventoryLot": "Lote de inventario",
+    "quantity": "Cantidad",
+    "noInventory": "No hay inventario disponible",
+    "submitLine": "Añadir línea",
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "jobRequired": "Selecciona un trabajo",
+      "nameRequired": "El nombre es obligatorio",
+      "inventoryRequired": "Selecciona un lote de inventario",
+      "quantityPositive": "La cantidad debe ser mayor que cero"
+    }
   },
   "jobs": {
     "title": "Trabajos",

@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createExpense } from '@/services/expense/createExpense'
-import type { ExpenseCategory, InventoryType } from '@/types/money'
+import { updateExpense } from '@/services/expense/updateExpense'
+import type { Expense, ExpenseCategory, InventoryType } from '@/types/money'
+import type { UpdateExpensePayload } from '@/services/expense/updateExpense'
 
 const INVENTORY_TYPES: InventoryType[] = ['filament', 'consumable', 'equipment']
 
@@ -19,6 +21,11 @@ interface CreateExpensePopupProps {
   onClose: () => void
   onSuccess: () => void
   spreadsheetId: string | null
+  initialExpense?: Expense | null
+  onUpdateExpense?: (
+    expenseId: string,
+    payload: UpdateExpensePayload
+  ) => Promise<void>
 }
 
 export function CreateExpensePopup({
@@ -26,6 +33,8 @@ export function CreateExpensePopup({
   onClose,
   onSuccess,
   spreadsheetId,
+  initialExpense = null,
+  onUpdateExpense,
 }: CreateExpensePopupProps) {
   const { t } = useTranslation()
   const [date, setDate] = useState('')
@@ -40,6 +49,33 @@ export function CreateExpensePopup({
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
+  const isEdit = Boolean(initialExpense)
+
+  useEffect(() => {
+    if (!isOpen) return
+    if (initialExpense) {
+      setDate(initialExpense.date)
+      setCategory(initialExpense.category)
+      setAmount(String(initialExpense.amount))
+      setNotes(initialExpense.notes ?? '')
+      setAddToInventory(false)
+      setInventoryType('filament')
+      setInventoryName('')
+      setInventoryQuantity('1')
+    } else {
+      setDate('')
+      setCategory('other')
+      setAmount('')
+      setNotes('')
+      setAddToInventory(false)
+      setInventoryType('filament')
+      setInventoryName('')
+      setInventoryQuantity('1')
+    }
+    setError(null)
+    setFieldErrors({})
+  }, [isOpen, initialExpense])
+
   const quantityHintKey =
     inventoryType === 'filament'
       ? 'expenses.quantityHintGrams'
@@ -53,7 +89,7 @@ export function CreateExpensePopup({
     if (!amount.trim()) errs.amount = t('expenses.validation.required')
     else if (Number.isNaN(amountNum) || amountNum <= 0)
       errs.amount = t('expenses.validation.amountPositive')
-    if (addToInventory) {
+    if (addToInventory && !isEdit) {
       if (!inventoryName.trim())
         errs.inventoryName = t('expenses.validation.inventoryNameRequired')
       const qtyNum = parseFloat(inventoryQuantity)
@@ -73,19 +109,33 @@ export function CreateExpensePopup({
     setLoading(true)
     try {
       const trimmedNotes = notes.trim() || undefined
-      await createExpense(spreadsheetId, {
-        date,
-        category,
-        amount: parseFloat(amount),
-        notes: trimmedNotes,
-        inventory: addToInventory
-          ? {
-              type: inventoryType,
-              name: inventoryName.trim(),
-              quantity: parseFloat(inventoryQuantity),
-            }
-          : undefined,
-      })
+      if (initialExpense) {
+        const payload: UpdateExpensePayload = {
+          date,
+          category,
+          amount: parseFloat(amount),
+          notes: trimmedNotes,
+        }
+        if (onUpdateExpense) {
+          await onUpdateExpense(initialExpense.id, payload)
+        } else {
+          await updateExpense(spreadsheetId, initialExpense.id, payload)
+        }
+      } else {
+        await createExpense(spreadsheetId, {
+          date,
+          category,
+          amount: parseFloat(amount),
+          notes: trimmedNotes,
+          inventory: addToInventory
+            ? {
+                type: inventoryType,
+                name: inventoryName.trim(),
+                quantity: parseFloat(inventoryQuantity),
+              }
+            : undefined,
+        })
+      }
       onSuccess()
       onClose()
     } catch (err) {
@@ -111,7 +161,7 @@ export function CreateExpensePopup({
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="mb-4 text-lg font-semibold text-gray-800">
-          {t('expenses.title')}
+          {isEdit ? t('expenses.editTitle') : t('expenses.title')}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -194,6 +244,7 @@ export function CreateExpensePopup({
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
             />
           </div>
+          {!isEdit && (
           <div className="flex items-center gap-2">
             <input
               id="expense-add-inventory"
@@ -214,7 +265,8 @@ export function CreateExpensePopup({
               {t('expenses.addToInventory')}
             </label>
           </div>
-          {addToInventory && (
+          )}
+          {!isEdit && addToInventory && (
             <div className="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
               <div>
                 <label
@@ -303,7 +355,7 @@ export function CreateExpensePopup({
               disabled={loading}
               className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? '...' : t('expenses.submit')}
+              {loading ? '...' : isEdit ? t('expenses.save') : t('expenses.submit')}
             </button>
           </div>
         </form>

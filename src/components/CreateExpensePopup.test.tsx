@@ -9,8 +9,12 @@ vi.mock('react-i18next', () => ({
 }))
 
 const mockCreateExpense = vi.fn()
+const mockUpdateExpense = vi.fn()
 vi.mock('@/services/expense/createExpense', () => ({
   createExpense: (...args: unknown[]) => mockCreateExpense(...args),
+}))
+vi.mock('@/services/expense/updateExpense', () => ({
+  updateExpense: (...args: unknown[]) => mockUpdateExpense(...args),
 }))
 
 describe('CreateExpensePopup', () => {
@@ -19,6 +23,7 @@ describe('CreateExpensePopup', () => {
 
   beforeEach(() => {
     mockCreateExpense.mockReset()
+    mockUpdateExpense.mockReset()
     onClose.mockClear()
     onSuccess.mockClear()
   })
@@ -76,7 +81,7 @@ describe('CreateExpensePopup', () => {
     render(
       <CreateExpensePopup
         isOpen
-        onClose={onSuccess}
+        onClose={onClose}
         onSuccess={onSuccess}
         spreadsheetId="spreadsheet-1"
       />
@@ -333,5 +338,41 @@ describe('CreateExpensePopup', () => {
       notes: 'PLA',
       inventory: { type: 'filament', name: 'PLA', quantity: 500 },
     })
+  })
+
+  it('edit mode shows edit title and calls updateExpense', async () => {
+    mockUpdateExpense.mockResolvedValue(undefined)
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+        initialExpense={{
+          id: 'E1',
+          date: '2025-01-10',
+          category: 'other',
+          amount: 10,
+          notes: 'x',
+        }}
+      />
+    )
+    expect(screen.getByText('expenses.editTitle')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('checkbox', { name: 'expenses.addToInventory' })
+    ).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+      target: { value: '15' },
+    })
+    fireEvent.click(screen.getByText('expenses.save'))
+    await waitFor(() => expect(mockUpdateExpense).toHaveBeenCalled())
+    expect(mockUpdateExpense).toHaveBeenCalledWith('spreadsheet-1', 'E1', {
+      date: '2025-01-10',
+      category: 'other',
+      amount: 15,
+      notes: 'x',
+    })
+    expect(mockCreateExpense).not.toHaveBeenCalled()
   })
 })

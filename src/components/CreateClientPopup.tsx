@@ -1,12 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createClient } from '@/services/client/createClient'
+import { updateClient } from '@/services/client/updateClient'
+import type { Client } from '@/types/money'
+import type { UpdateClientPayload } from '@/services/client/updateClient'
 
 interface CreateClientPopupProps {
   isOpen: boolean
   onClose: () => void
   onSuccess: () => void
   spreadsheetId: string | null
+  initialClient?: Client | null
+  onUpdateClient?: (
+    clientId: string,
+    payload: UpdateClientPayload
+  ) => Promise<void>
 }
 
 export function CreateClientPopup({
@@ -14,6 +22,8 @@ export function CreateClientPopup({
   onClose,
   onSuccess,
   spreadsheetId,
+  initialClient = null,
+  onUpdateClient,
 }: CreateClientPopupProps) {
   const { t } = useTranslation()
   const [name, setName] = useState('')
@@ -23,6 +33,23 @@ export function CreateClientPopup({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    if (!isOpen) return
+    if (initialClient) {
+      setName(initialClient.name)
+      setEmail(initialClient.email ?? '')
+      setPhone(initialClient.phone ?? '')
+      setNotes(initialClient.notes ?? '')
+    } else {
+      setName('')
+      setEmail('')
+      setPhone('')
+      setNotes('')
+    }
+    setError(null)
+    setFieldErrors({})
+  }, [isOpen, initialClient])
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {}
@@ -37,18 +64,29 @@ export function CreateClientPopup({
     if (!validate() || !spreadsheetId) return
     setLoading(true)
     try {
-      await createClient(spreadsheetId, {
+      const payload = {
         name: name.trim(),
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
         notes: notes.trim() || undefined,
-      })
+      }
+      if (initialClient) {
+        if (onUpdateClient) {
+          await onUpdateClient(initialClient.id, payload)
+        } else {
+          await updateClient(spreadsheetId, initialClient.id, payload)
+        }
+      } else {
+        await createClient(spreadsheetId, payload)
+      }
       onSuccess()
       onClose()
-      setName('')
-      setEmail('')
-      setPhone('')
-      setNotes('')
+      if (!initialClient) {
+        setName('')
+        setEmail('')
+        setPhone('')
+        setNotes('')
+      }
       setFieldErrors({})
     } catch (err) {
       setError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
@@ -63,6 +101,8 @@ export function CreateClientPopup({
 
   if (!isOpen) return null
 
+  const isEdit = Boolean(initialClient)
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -73,7 +113,7 @@ export function CreateClientPopup({
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="mb-4 text-lg font-semibold text-gray-800">
-          {t('clients.addClient')}
+          {isEdit ? t('clients.editClient') : t('clients.addClient')}
         </h3>
         <form noValidate onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -159,7 +199,7 @@ export function CreateClientPopup({
               disabled={loading}
               className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? '...' : t('clients.submit')}
+              {loading ? '...' : isEdit ? t('clients.save') : t('clients.submit')}
             </button>
           </div>
         </form>

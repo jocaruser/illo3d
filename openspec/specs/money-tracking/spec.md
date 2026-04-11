@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Financial tracking for illo3d: transactions presentation, clients page (list and create), domain data models (clients, jobs, pieces, piece_items, inventory, expenses, transactions), automated transaction flows, suggested pricing, and expense creation via the UI.
+Financial tracking for illo3d: transactions presentation, clients page (list, create, edit, and delete), domain data models (clients, jobs, pieces, piece_items, inventory, expenses, transactions), automated transaction flows, suggested pricing, and expense creation, editing, and deletion via the UI.
 
 ## Requirements
 
@@ -219,12 +219,13 @@ The system SHALL create an income transaction when a job status changes to "paid
 
 ### Requirement: Expenses page displays expense table
 
-The system SHALL provide an `/expenses` route that displays a table of all expenses from the expenses sheet. The table SHALL show: date, category, amount, notes. The expenses page SHALL additionally fetch inventory data and display a link on expense rows that have an associated inventory item. The link SHALL navigate to `/inventory`.
+The system SHALL provide an `/expenses` route that displays a table of all expenses from the expenses sheet. The table SHALL show: date, category, amount, notes, inventory link column when applicable, and per-row actions to edit and delete each expense. The expenses page SHALL additionally fetch inventory data and display a link on expense rows that have an associated inventory item. The link SHALL navigate to `/inventory`.
 
 #### Scenario: Expenses table renders with data
 
 - **WHEN** user navigates to /expenses
 - **THEN** table displays all expenses sorted by date descending
+- **AND** each row includes Edit and Delete actions when expenses exist
 
 #### Scenario: Empty state when no expenses
 
@@ -252,7 +253,7 @@ The system SHALL provide an `/expenses` route that displays a table of all expen
 
 ### Requirement: CreateExpensePopup is a reusable modal form
 
-The system SHALL provide a CreateExpensePopup component that renders a modal with a form. The form SHALL collect: date (YYYY-MM-DD), category (enum: filament, consumable, electric, investment, maintenance, other), amount (number), notes (optional). The form SHALL include an "Add to inventory" toggle. When the toggle is checked, the form SHALL additionally collect: inventory type (enum: filament, consumable, equipment), inventory name (prefilled from notes, editable), and quantity (number, > 0). The popup SHALL be closable and usable from multiple pages.
+The system SHALL provide a CreateExpensePopup component that renders a modal with a form. The form SHALL collect: date (YYYY-MM-DD), category (enum: filament, consumable, electric, investment, maintenance, other), amount (number), notes (optional). The form SHALL include an "Add to inventory" toggle when creating a new expense. When the toggle is checked, the form SHALL additionally collect: inventory type (enum: filament, consumable, equipment), inventory name (prefilled from notes, editable), and quantity (number, > 0). The popup SHALL be closable and usable from multiple pages. The same component SHALL support an edit mode for an existing expense: fields SHALL be prefilled; the inventory toggle and inventory fields SHALL NOT be shown; submit SHALL update the expense and keep the linked transaction consistent.
 
 #### Scenario: Popup opens and shows form fields
 
@@ -287,6 +288,18 @@ The system SHALL provide a CreateExpensePopup component that renders a modal wit
 - **THEN** user can close it via overlay click or close button
 - **AND** no expense is created
 
+#### Scenario: Edit mode hides inventory section
+
+- **WHEN** user opens the popup in edit mode for an expense
+- **THEN** date, category, amount, and notes are prefilled
+- **AND** "Add to inventory" and related inventory fields are not shown
+
+#### Scenario: Successful edit updates expense and linked transaction
+
+- **WHEN** user submits valid changes in edit mode
+- **THEN** the expense row is updated in the expenses sheet
+- **AND** the transaction row linked via ref_type expense and ref_id is updated to match amount, date, category, concept, and notes conventions used on create
+
 ### Requirement: Add expense button on transactions and expenses pages
 
 The system SHALL display an "Add expense" button on the /transactions page and on the /expenses page. Clicking the button SHALL open the CreateExpensePopup.
@@ -305,7 +318,7 @@ The system SHALL display an "Add expense" button on the /transactions page and o
 
 ### Requirement: Form validation before submit
 
-The system SHALL validate the expense form before submission. Date SHALL be required and in YYYY-MM-DD format. Category SHALL be required. Amount SHALL be required and MUST be greater than zero. Notes MAY be empty. When the "Add to inventory" toggle is checked: inventory type SHALL be required, inventory name SHALL be required, and quantity SHALL be required and MUST be greater than zero.
+The system SHALL validate the expense form before submission. Date SHALL be required and in YYYY-MM-DD format. Category SHALL be required. Amount SHALL be required and MUST be greater than zero. Notes MAY be empty. In create mode only, when the "Add to inventory" toggle is checked: inventory type SHALL be required, inventory name SHALL be required, and quantity SHALL be required and MUST be greater than zero. In edit mode, inventory fields are not shown and inventory validation SHALL NOT apply.
 
 #### Scenario: Validation rejects empty required fields
 
@@ -343,6 +356,61 @@ The system SHALL redirect the user to /expenses after a successful expense creat
 - **THEN** popup closes
 - **AND** user is navigated to /expenses
 - **AND** the new expense appears in the table
+
+### Requirement: Expense delete uses confirmation dialog
+
+The system SHALL require confirmation before deleting an expense using the existing ConfirmDialog pattern.
+
+#### Scenario: Delete prompts for confirmation
+
+- **WHEN** user clicks Delete on an expense row
+- **THEN** a confirmation dialog is shown
+
+#### Scenario: Cancel leaves data unchanged
+
+- **WHEN** user cancels the delete confirmation
+- **THEN** the expense row remains in the sheet and table
+
+### Requirement: deleteExpense removes expense and related records
+
+The system SHALL provide a `deleteExpense` service that removes the expense row, removes all transaction rows where `ref_type` is expense and `ref_id` matches the expense id, and removes any inventory row whose `expense_id` matches that expense id. Operations SHALL use `SheetsRepository.deleteRow` (or equivalent) without modifying unrelated rows.
+
+#### Scenario: Expense with transaction deleted
+
+- **WHEN** deleteExpense is called for an expense that has a matching expense transaction row
+- **THEN** both the expense row and the matching transaction row are removed
+
+#### Scenario: Expense with inventory deleted
+
+- **WHEN** deleteExpense is called for an expense that has an inventory row with the same expense_id
+- **THEN** the inventory row is removed along with the expense and its transaction row
+
+### Requirement: updateExpense service updates expense row
+
+The system SHALL provide an `updateExpense` service that updates the expense row via `updateRow` and updates the linked expense transaction row to reflect the new date, amount (negative expense amount), category, concept, and notes consistent with expense creation rules.
+
+#### Scenario: Expense and transaction stay aligned
+
+- **WHEN** updateExpense changes amount or category
+- **THEN** the linked transaction reflects the same business values as after a newly created expense
+
+### Requirement: Optimistic update for expense edit
+
+The expenses table UI SHALL apply an optimistic update when an expense edit save is triggered, and SHALL reconcile on error.
+
+#### Scenario: Table shows edited expense optimistically
+
+- **WHEN** user saves an expense edit
+- **THEN** the table reflects the new values before or without waiting for a full refetch
+
+### Requirement: Expenses UI strings include edit and delete
+
+All new user-visible strings for expense edit, delete, and confirmation flows on the expenses page SHALL use i18next keys.
+
+#### Scenario: Edit and delete labels are translatable
+
+- **WHEN** expenses table renders actions
+- **THEN** action labels and confirm copy use i18n keys
 
 ### Requirement: UI strings support i18n
 
