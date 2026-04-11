@@ -1,24 +1,5 @@
 import { test, expect } from './fixtures'
 
-async function devLoginAndOpenShop(page: import('@playwright/test').Page) {
-  await page.goto('/login', { waitUntil: 'networkidle' })
-
-  const devLoginButton = page.getByTestId('dev-login-button')
-  await expect(devLoginButton).toBeVisible({ timeout: 15000 })
-  await devLoginButton.click()
-
-  await expect(page).toHaveURL(/\/transactions/)
-
-  const openExistingButton = page.getByRole('button', {
-    name: /open existing shop|abrir tienda existente/i,
-  })
-  if (await openExistingButton.first().isVisible({ timeout: 2000 }).catch(() => false)) {
-    await page.getByRole('button', { name: /local csv|csv local/i }).first().click()
-    await openExistingButton.first().click()
-    await page.getByRole('button', { name: /open existing shop|abrir tienda existente/i }).first().click()
-  }
-}
-
 test.describe('Jobs page', () => {
   test.describe.configure({ mode: 'serial' })
 
@@ -29,8 +10,8 @@ test.describe('Jobs page', () => {
     await expect(page).toHaveURL(/\/login/)
   })
 
-  test('jobs table shows fixture data after navigation', async ({ page }) => {
-    await devLoginAndOpenShop(page)
+  test('jobs table shows fixture data after navigation', async ({ page, openCsvShop }) => {
+    void openCsvShop
 
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page).toHaveURL(/\/jobs/)
@@ -44,8 +25,8 @@ test.describe('Jobs page', () => {
   })
 
 
-  test('create job adds a row to the table', async ({ page }) => {
-    await devLoginAndOpenShop(page)
+  test('create job adds a row to the table', async ({ page, openCsvShop }) => {
+    void openCsvShop
 
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
@@ -62,15 +43,14 @@ test.describe('Jobs page', () => {
     await expect(page.getByText('e2e job marker')).toBeVisible({ timeout: 20000 })
   })
 
-  test('draft to in_progress sends row update', async ({ page }) => {
+  test('draft to in_progress sends row update', async ({ page, openCsvShop }) => {
+    void openCsvShop
     const rowRequests: { method?: string; url?: string }[] = []
     page.on('request', (req) => {
       if (req.url().includes('/api/sheets/row')) {
         rowRequests.push({ method: req.method(), url: req.url() })
       }
     })
-
-    await devLoginAndOpenShop(page)
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
@@ -87,7 +67,9 @@ test.describe('Jobs page', () => {
 
   test('marking in_progress job paid with income checkbox unchecked skips transaction append', async ({
     page,
+    openCsvShop,
   }) => {
+    void openCsvShop
     const appendPayloads: { sheetName?: string; rows?: unknown[] }[] = []
     page.on('request', (req) => {
       if (req.method() !== 'POST' || !req.url().includes('/api/sheets/append')) {
@@ -101,8 +83,6 @@ test.describe('Jobs page', () => {
         /* ignore */
       }
     })
-
-    await devLoginAndOpenShop(page)
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
@@ -135,7 +115,9 @@ test.describe('Jobs page', () => {
 
   test('marking delivered job paid shows confirmation and appends transaction', async ({
     page,
+    openCsvShop,
   }) => {
+    void openCsvShop
     const appendPayloads: { sheetName?: string; rows?: unknown[] }[] = []
     page.on('request', (req) => {
       if (req.method() !== 'POST' || !req.url().includes('/api/sheets/append')) {
@@ -149,8 +131,6 @@ test.describe('Jobs page', () => {
         /* ignore */
       }
     })
-
-    await devLoginAndOpenShop(page)
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
@@ -180,8 +160,9 @@ test.describe('Jobs page', () => {
 
   test('marking draft job paid without price requires price input', async ({
     page,
+    openCsvShop,
   }) => {
-    await devLoginAndOpenShop(page)
+    void openCsvShop
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
@@ -205,8 +186,9 @@ test.describe('Jobs page', () => {
 
   test('leaving paid status shows confirmation about duplicate transactions', async ({
     page,
+    openCsvShop,
   }) => {
-    await devLoginAndOpenShop(page)
+    void openCsvShop
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
@@ -232,8 +214,8 @@ test.describe('Jobs page', () => {
     await expect(logoStatus).toHaveValue('delivered', { timeout: 15000 })
   })
 
-  test('marking job cancelled shows confirmation', async ({ page }) => {
-    await devLoginAndOpenShop(page)
+  test('marking job cancelled shows confirmation', async ({ page, openCsvShop }) => {
+    void openCsvShop
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 

@@ -1,3 +1,11 @@
+/**
+ * E2E policy (illo3d):
+ * - Chromium only in CI and by default (no extra browser matrix).
+ * - workers: 1 — keeps CSV-backed state predictable; use test.describe.configure({ mode: 'serial' })
+ *   inside files that mutate shared fixture data.
+ * - fullyParallel: true lets independent files run in parallel when workers > 1 locally.
+ * - retries: 2 on CI only to absorb rare timing flakes.
+ */
 import { defineConfig, devices } from '@playwright/test'
 
 const e2ePort = 5174
