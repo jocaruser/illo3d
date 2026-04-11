@@ -22,6 +22,7 @@ Create a new branch, push your changes, and open a pull request using GitHub MCP
 
 3. **Pre-commit checks**
    - Run `openspec list --json`. If active (non-archived) changes exist, warn and ask for confirmation before proceeding.
+   - **Do not commit `openspec/changes/archive/`**. That path is in `.gitignore`; archived OpenSpec changes stay local-only. Never `git add -f` archive folders unless the user explicitly overrides repo policy.
    - Ensure working tree is ready: commit any uncommitted changes with a sensible message (ask if message unclear)
 
 4. **Create branch and push**
@@ -44,3 +45,4 @@ Create a new branch, push your changes, and open a pull request using GitHub MCP
 - Do not push if `make quality-gate` has not passed on the branch
 - Use `main` as base unless user specifies otherwise
 - Branch names: `feat/`, `fix/`, `docs/` prefix recommended
+- Never stage `openspec/changes/archive/` for commit (see pre-commit checks)

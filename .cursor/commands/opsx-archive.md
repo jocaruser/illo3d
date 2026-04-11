@@ -78,9 +78,9 @@ Archive a completed change in the experimental workflow.
    mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
    ```
 
-6. **Run create-pr**
+6. **Run create-pr (implementation only)**
 
-   After archiving, run the `/create-pr` workflow to create a branch, push the archive changes, and open a PR. This ensures the archived change is submitted for review. Proceed with create-pr using the archive as the changes to push (branch name can derive from the change name, e.g., `chore/archive-<change-name>`).
+   After archiving, optionally run `/create-pr` to push **code and main spec** changes for review. **Do not add or push `openspec/changes/archive/`** — that directory is `.gitignore`d and remains on disk for local history only. If a prior commit mistakenly tracked archive files, remove them with `git rm -r --cached openspec/changes/archive/<...>` and commit.
 
 7. **Display summary**
 
