@@ -2,19 +2,21 @@
 
 ## Purpose
 
-Sistema de seguimiento financiero. Modelo de datos (clients, jobs, pieces, piece_items, inventory, expenses, transactions), flujos automáticos de creación de transacciones, cálculo de precios.
+Financial tracking for illo3d: transactions presentation, domain data models (clients, jobs, pieces, piece_items, inventory, expenses, transactions), automated transaction flows, suggested pricing, and expense creation via the UI.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Transactions table is displayed
 
 The system SHALL display a table of all transactions from the transactions sheet. The table SHALL show: date, type (income/expense), amount, category, concept, client name (if applicable).
 
 #### Scenario: Transactions table renders with data
+
 - **WHEN** user navigates to transactions view
 - **THEN** table displays all transactions sorted by date descending
 
 #### Scenario: Empty state shown when no transactions
+
 - **WHEN** user navigates to transactions view
 - **AND** no transactions exist
 - **THEN** table shows empty state message
@@ -24,10 +26,12 @@ The system SHALL display a table of all transactions from the transactions sheet
 The system SHALL NOT allow editing, adding, or deleting transactions directly from the transactions table UI. The transactions table SHALL have no add, edit, or delete controls. Expense-type transactions SHALL be created via the expense creation form; income-type transactions SHALL be created when a job status changes to "paid" or by other automated flows. Manual edits to transactions MAY be done directly in Google Sheets.
 
 #### Scenario: No edit controls in UI
+
 - **WHEN** user views transactions table
 - **THEN** no add, edit, or delete buttons are visible on the table itself
 
 #### Scenario: Expense transactions created via expense form
+
 - **WHEN** user creates an expense via CreateExpensePopup
 - **THEN** a transaction record is created automatically with type "expense"
 - **AND** the transactions table displays it (read-only)
@@ -37,10 +41,12 @@ The system SHALL NOT allow editing, adding, or deleting transactions directly fr
 The system SHALL display income as positive amounts and expenses as negative amounts. The amount column SHALL be formatted with currency symbol (€).
 
 #### Scenario: Income shown as positive
+
 - **WHEN** transaction has type "income"
 - **THEN** amount is displayed as positive (e.g., €45.00)
 
 #### Scenario: Expense shown as negative
+
 - **WHEN** transaction has type "expense"
 - **THEN** amount is displayed as negative (e.g., -€25.00)
 
@@ -49,6 +55,7 @@ The system SHALL display income as positive amounts and expenses as negative amo
 The system SHALL calculate the total balance (sum of all transaction amounts) and display it below/above the transactions table.
 
 #### Scenario: Balance reflects all transactions
+
 - **WHEN** user views transactions
 - **THEN** balance shows sum of all amounts (income - expenses)
 
@@ -57,6 +64,7 @@ The system SHALL calculate the total balance (sum of all transaction amounts) an
 The system SHALL support a clients data model with fields: id (string), name (string), email (string, optional), phone (string, optional), notes (string, optional), created_at (date).
 
 #### Scenario: Client has required fields
+
 - **WHEN** a client record exists
 - **THEN** it has id and name fields populated
 
@@ -65,10 +73,12 @@ The system SHALL support a clients data model with fields: id (string), name (st
 The system SHALL support a jobs data model with fields: id (string), client_id (string, FK to clients), description (string), status (enum: draft, in_progress, delivered, paid, cancelled), price (number, optional), created_at (date).
 
 #### Scenario: Job linked to client
+
 - **WHEN** a job record exists
 - **THEN** it has valid client_id referencing an existing client
 
 #### Scenario: Job status transitions
+
 - **WHEN** job status changes to "paid"
 - **THEN** a transaction record is created automatically
 
@@ -77,10 +87,12 @@ The system SHALL support a jobs data model with fields: id (string), client_id (
 The system SHALL support a pieces data model with fields: id (string), job_id (string, FK to jobs), name (string), status (enum: pending, done, failed), created_at (date).
 
 #### Scenario: Piece linked to job
+
 - **WHEN** a piece record exists
 - **THEN** it has valid job_id referencing an existing job
 
 #### Scenario: Piece completion triggers inventory consumption
+
 - **WHEN** piece status changes to "done" or "failed"
 - **THEN** inventory qty_current is decremented for all piece_items of that piece
 
@@ -89,6 +101,7 @@ The system SHALL support a pieces data model with fields: id (string), job_id (s
 The system SHALL support a piece_items data model with fields: id (string), piece_id (string, FK to pieces), inventory_id (string, FK to inventory), quantity (number).
 
 #### Scenario: Piece_item links piece to inventory
+
 - **WHEN** a piece_item record exists
 - **THEN** it connects a piece to an inventory lote with a quantity consumed
 
@@ -97,10 +110,12 @@ The system SHALL support a piece_items data model with fields: id (string), piec
 The system SHALL support an inventory data model with fields: id (string), expense_id (string, FK to expenses), type (enum: filament, consumable), name (string), qty_initial (number), qty_current (number), created_at (date).
 
 #### Scenario: Inventory represents a purchased lot
+
 - **WHEN** an inventory record exists
 - **THEN** it references the expense that created it via expense_id
 
 #### Scenario: Unit cost is calculated from expense
+
 - **WHEN** unit cost is needed for an inventory item
 - **THEN** it is calculated as: expense.amount / inventory.qty_initial
 
@@ -109,10 +124,12 @@ The system SHALL support an inventory data model with fields: id (string), expen
 The system SHALL support an expenses data model with fields: id (string), date (date), category (enum: filament, consumable, electric, investment, maintenance, other), amount (number), notes (string, optional).
 
 #### Scenario: Material expense creates inventory
+
 - **WHEN** expense with category "filament" or "consumable" is created
 - **THEN** a corresponding inventory record is created
 
 #### Scenario: Expense creates transaction
+
 - **WHEN** any expense is created
 - **THEN** a transaction record is created with type "expense" and negative amount
 
@@ -121,6 +138,7 @@ The system SHALL support an expenses data model with fields: id (string), date (
 The system SHALL support a transactions data model with fields: id (string), date (date), type (enum: income, expense), amount (number), category (string), concept (string), ref_type (enum: job, expense), ref_id (string), client_id (string, optional), notes (string, optional).
 
 #### Scenario: Transaction references its source
+
 - **WHEN** a transaction record exists
 - **THEN** ref_type and ref_id identify whether it came from a job or expense
 
@@ -129,10 +147,12 @@ The system SHALL support a transactions data model with fields: id (string), dat
 The system SHALL calculate a suggested price for a job as: sum of (piece_item.quantity × inventory.unit_cost) for all pieces with status "done" or "failed", multiplied by 3.
 
 #### Scenario: Price suggestion calculated
+
 - **WHEN** job has pieces with piece_items
 - **THEN** suggested price = total material cost × 3
 
 #### Scenario: Price can be overridden
+
 - **WHEN** user sets a custom price for a job
 - **THEN** the custom price is used instead of the suggested price
 
@@ -141,6 +161,7 @@ The system SHALL calculate a suggested price for a job as: sum of (piece_item.qu
 The system SHALL automatically create a transaction when a job status changes to "paid". The transaction SHALL have type "income", the job's price as amount, and reference the job.
 
 #### Scenario: Job payment creates transaction
+
 - **WHEN** job.status changes to "paid"
 - **THEN** transaction is created with:
   - type: "income"
@@ -151,14 +172,100 @@ The system SHALL automatically create a transaction when a job status changes to
   - ref_id: job.id
   - client_id: job.client_id
 
+### Requirement: Expenses page displays expense table
+
+The system SHALL provide an `/expenses` route that displays a table of all expenses from the expenses sheet. The table SHALL show: date, category, amount, notes.
+
+#### Scenario: Expenses table renders with data
+
+- **WHEN** user navigates to /expenses
+- **THEN** table displays all expenses sorted by date descending
+
+#### Scenario: Empty state when no expenses
+
+- **WHEN** user navigates to /expenses
+- **AND** no expenses exist
+- **THEN** table shows empty state message
+
+### Requirement: CreateExpensePopup is a reusable modal form
+
+The system SHALL provide a CreateExpensePopup component that renders a modal with a form. The form SHALL collect: date (YYYY-MM-DD), category (enum: filament, consumable, electric, investment, maintenance, other), amount (number), notes (optional). The popup SHALL be closable and usable from multiple pages.
+
+#### Scenario: Popup opens and shows form fields
+
+- **WHEN** user triggers the popup (e.g. clicks "Add expense")
+- **THEN** modal displays with date, category, amount, notes inputs
+- **AND** category is a select with the six options
+
+#### Scenario: Popup can be closed without submitting
+
+- **WHEN** user opens the popup
+- **THEN** user can close it via overlay click or close button
+- **AND** no expense is created
+
+### Requirement: Add expense button on transactions and expenses pages
+
+The system SHALL display an "Add expense" button on the /transactions page and on the /expenses page. Clicking the button SHALL open the CreateExpensePopup.
+
+#### Scenario: Button on transactions page
+
+- **WHEN** user views /transactions
+- **THEN** "Add expense" button is visible
+- **AND** clicking it opens CreateExpensePopup
+
+#### Scenario: Button on expenses page
+
+- **WHEN** user views /expenses
+- **THEN** "Add expense" button is visible
+- **AND** clicking it opens CreateExpensePopup
+
+### Requirement: Form validation before submit
+
+The system SHALL validate the expense form before submission. Date SHALL be required and in YYYY-MM-DD format. Category SHALL be required. Amount SHALL be required and MUST be greater than zero. Notes MAY be empty.
+
+#### Scenario: Validation rejects empty required fields
+
+- **WHEN** user submits with missing date, category, or amount
+- **THEN** validation errors are shown
+- **AND** no API call is made
+
+#### Scenario: Validation rejects zero or negative amount
+
+- **WHEN** user submits with amount <= 0
+- **THEN** validation error is shown for amount
+- **AND** no expense is created
+
+### Requirement: Successful submit redirects to expenses
+
+The system SHALL redirect the user to /expenses after a successful expense creation. The popup SHALL close and the new expense SHALL appear in the expenses table.
+
+#### Scenario: Redirect after success
+
+- **WHEN** user submits valid expense form
+- **AND** creation succeeds
+- **THEN** popup closes
+- **AND** user is navigated to /expenses
+- **AND** the new expense appears in the table
+
 ### Requirement: UI strings support i18n
 
 All user-facing strings in the transactions view SHALL use i18next for translation support.
 
 #### Scenario: Table headers are translatable
+
 - **WHEN** transactions table renders
 - **THEN** column headers come from i18n keys
 
 #### Scenario: Empty state message is translatable
+
 - **WHEN** empty state is shown
 - **THEN** message comes from i18n keys
+
+### Requirement: Expense creation UI strings support i18n
+
+All user-facing strings in the expense creation flow (form labels, buttons, validation messages, table headers) SHALL use i18next for translation support.
+
+#### Scenario: Form labels are translatable
+
+- **WHEN** CreateExpensePopup renders
+- **THEN** field labels and buttons come from i18n keys
