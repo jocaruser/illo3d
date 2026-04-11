@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test'
+import { test, expect } from './fixtures'
 
 test.describe('Route guard', () => {
   test('unauthenticated user navigating to /transactions is redirected to /login', async ({

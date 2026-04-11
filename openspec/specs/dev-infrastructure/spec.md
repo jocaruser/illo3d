@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands, project hygiene (ignore files, env template), scaffold expectations, mandatory quality gates (build, lint, unit tests, e2e), and Playwright coverage mapped to feature specs.
+Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), project hygiene (ignore files, env template), scaffold expectations, mandatory quality gates (build, lint, unit tests, e2e), and Playwright coverage mapped to feature specs.
 
 ## Docker development environment
 
@@ -53,6 +53,60 @@ The Makefile SHALL provide shortcuts for all common development operations. Comm
 
 - **WHEN** user runs `make shell`
 - **THEN** user gets an interactive shell inside the container
+
+### Requirement: Makefile provides fixture restore command
+
+The Makefile SHALL provide a `restore-fixtures` target that copies all golden fixture folders from `fixtures/` to `public/fixtures/`, replacing any existing content. This target SHALL run on the host (not inside Docker) since `public/fixtures/` is bind-mounted.
+
+#### Scenario: Restore fixtures from golden source
+
+- **WHEN** developer runs `make restore-fixtures`
+- **THEN** all contents of `public/fixtures/` are removed
+- **AND** all folders and files from `fixtures/` are copied to `public/fixtures/`
+- **AND** the copy is identical to the golden source
+
+#### Scenario: Restore is idempotent
+
+- **WHEN** developer runs `make restore-fixtures` multiple times
+- **THEN** each run produces the same result
+- **AND** `public/fixtures/` matches `fixtures/` exactly after each run
+
+### Requirement: E2E tests use dedicated Vite server with ephemeral fixtures
+
+The e2e test infrastructure SHALL start a dedicated Vite dev server for e2e tests, separate from the developer's `make dev` server. This server SHALL serve fixtures from an ephemeral directory (e.g. `.e2e-fixtures/`), not from `public/fixtures/`. The server SHALL run on a different port (e.g. 5174) to avoid conflicts with the dev server.
+
+#### Scenario: E2E server starts with ephemeral fixture directory
+
+- **WHEN** `make e2e-test` runs
+- **THEN** a Vite dev server starts with `VITE_FIXTURES_ROOT` pointing to the ephemeral directory
+- **AND** the server listens on a port different from the dev server
+- **AND** the server serves fixture files from the ephemeral directory
+
+#### Scenario: E2E server does not affect dev server
+
+- **WHEN** e2e tests run while `make dev` is also running
+- **THEN** the dev server at port 5173 continues serving `public/fixtures/` unchanged
+- **AND** the e2e server operates independently on its own port
+
+### Requirement: E2E specs restore fixtures before each test
+
+The Playwright test infrastructure SHALL provide a custom fixture (`fixtureScenario`) that copies the declared scenario from `fixtures/` to the e2e ephemeral directory before each test. The default scenario SHALL be `happy-path`. Specs MAY override the scenario via `test.use({ fixtureScenario: '<name>' })`.
+
+#### Scenario: Each spec starts from pristine state
+
+- **WHEN** a Playwright spec begins execution
+- **THEN** the fixture infrastructure copies the declared scenario to the ephemeral directory
+- **AND** any data from previous tests is replaced
+
+#### Scenario: Spec uses custom fixture scenario
+
+- **WHEN** a spec declares `test.use({ fixtureScenario: 'empty' })`
+- **THEN** `fixtures/empty/` is copied to the ephemeral directory before the spec runs
+
+#### Scenario: Spec uses default fixture scenario
+
+- **WHEN** a spec does not declare a fixtureScenario
+- **THEN** `fixtures/happy-path/` is copied to the ephemeral directory before the spec runs
 
 ### Requirement: Project files are bind-mounted to container
 
@@ -161,7 +215,7 @@ The full Playwright e2e test suite SHALL pass when running `make e2e-test`. All 
 #### Scenario: E2E tests run in CI
 
 - **WHEN** CI pipeline executes quality checks
-- **THEN** `make e2e-test` runs against the dev server and must succeed for the pipeline to pass
+- **THEN** `make e2e-test` runs and must succeed for the pipeline to pass
 
 ### Requirement: Cursor rule enforces quality gates
 
@@ -279,14 +333,20 @@ The system SHALL have Playwright e2e tests for the transactions view: table rend
 
 ### Requirement: E2E tests run via Makefile and pass in CI
 
-The system SHALL run all e2e tests via `make e2e-test`. The Playwright base URL SHALL be `http://web:5173` (dev server) when run in Docker. All e2e tests SHALL pass with zero failures before considering implementation complete.
+The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL start a dedicated Vite server with ephemeral fixtures, run Playwright against it, and clean up afterward. The target SHALL NOT modify `public/fixtures/`. All e2e tests SHALL pass with zero failures before considering implementation complete.
 
 #### Scenario: E2E tests run via Makefile
 
 - **WHEN** developer runs `make e2e-test`
-- **THEN** Playwright executes all e2e spec files and reports results
+- **THEN** Playwright executes all e2e spec files against the dedicated e2e server
+- **AND** reports results
 
 #### Scenario: E2E tests pass in CI
 
 - **WHEN** CI runs `make e2e-test`
 - **THEN** all tests pass with exit code 0
+
+#### Scenario: E2E tests do not modify dev fixtures
+
+- **WHEN** `make e2e-test` completes (pass or fail)
+- **THEN** `public/fixtures/` is unchanged from before the run
