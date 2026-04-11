@@ -32,3 +32,4 @@ test-results/.last-run.json
 .cursor/mcp.json
 tsconfig.app.tsbuildinfo
 tsconfig.node.tsbuildinfo
+tsconfig.node.tsbuildinfo
