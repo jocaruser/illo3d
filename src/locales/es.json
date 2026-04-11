@@ -4,6 +4,14 @@
     "signedInAs": "Conectado como {{name}}",
     "signOut": "Cerrar sesión"
   },
+  "common": {
+    "loading": "Cargando..."
+  },
+  "errors": {
+    "routeTitle": "No se pudo mostrar esta página",
+    "routeDescription": "Ha ocurrido algo inesperado. Puedes intentarlo de nuevo.",
+    "retry": "Reintentar"
+  },
   "login": {
     "title": "illo3d",
     "tagline": "Tienda de impresión 3D con CRM y gestión financiera",

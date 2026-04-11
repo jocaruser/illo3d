@@ -7,6 +7,8 @@ import { useClients } from '@/hooks/useClients'
 import { ClientsTable } from '@/components/ClientsTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreateClientPopup } from '@/components/CreateClientPopup'
+import { EmptyState } from '@/components/EmptyState'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { useTranslation } from 'react-i18next'
 
 export function ClientsPage() {
@@ -59,11 +61,13 @@ export function ClientsPage() {
         {t('clients.title')}
       </h2>
 
-      <ConnectionStatus
-        status={status}
-        errorMessage={errorMessage}
-        onRetry={handleRetry}
-      />
+      {spreadsheetId ? (
+        <ConnectionStatus
+          status={status}
+          errorMessage={errorMessage}
+          onRetry={handleRetry}
+        />
+      ) : null}
 
       {status === 'connected' && (
         <>
@@ -78,11 +82,9 @@ export function ClientsPage() {
           </div>
 
           {clientsLoading ? (
-            <p className="text-gray-600">Loading...</p>
+            <LoadingSpinner />
           ) : clients.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
-              <p className="text-gray-600">{t('clients.empty')}</p>
-            </div>
+            <EmptyState messageKey="clients.empty" />
           ) : (
             <ClientsTable clients={clients} />
           )}

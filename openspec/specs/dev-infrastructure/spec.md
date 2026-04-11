@@ -2,7 +2,23 @@
 
 ## Purpose
 
-Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), project hygiene (ignore files, env template), scaffold expectations, mandatory quality gates (build, lint, unit tests, e2e), Playwright coverage mapped to feature specs, shared e2e auth/shop setup, multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers).
+Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory quality gates (build, lint, unit tests, e2e), Playwright coverage mapped to feature specs, shared e2e auth/shop setup, multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers).
+
+## Repository documentation
+
+### Requirement: Root README documents developer onboarding
+
+The repository SHALL include a `README.md` file at the project root. The README SHALL provide a concise overview of illo3d (3D print shop management), list prerequisites (Docker and `make`), document first-time setup using `make init` and day-to-day development with `make dev`, summarize the tech stack (React, TypeScript, Vite, Tailwind, testing tools as used in the repo), group available Makefile targets by purpose (e.g. setup, Docker, development, quality, utilities), and explain how to run automated checks: `make test`, `make e2e-test`, and the full `make quality-gate` sequence.
+
+#### Scenario: New developer follows README setup
+
+- **WHEN** a developer clones the repository and reads `README.md`
+- **THEN** they can run `make init` and `make dev` as documented without consulting other docs for basic setup
+
+#### Scenario: README lists quality commands
+
+- **WHEN** a developer reads the quality or testing section of `README.md`
+- **THEN** the document describes `make test`, `make e2e-test`, and `make quality-gate` and what each is for
 
 ## Docker development environment
 

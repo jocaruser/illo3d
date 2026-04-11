@@ -10,6 +10,7 @@ import { TransactionsTable } from '@/components/TransactionsTable'
 import { BalanceDisplay } from '@/components/BalanceDisplay'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { CreateExpensePopup } from '@/components/CreateExpensePopup'
 import { calculateBalance } from '@/utils/money'
 import { useTranslation } from 'react-i18next'
@@ -68,11 +69,13 @@ export function TransactionsPage() {
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h2 className="mb-6 text-2xl font-bold text-gray-800">Transactions</h2>
 
-      <ConnectionStatus
-        status={status}
-        errorMessage={errorMessage}
-        onRetry={handleRetry}
-      />
+      {spreadsheetId ? (
+        <ConnectionStatus
+          status={status}
+          errorMessage={errorMessage}
+          onRetry={handleRetry}
+        />
+      ) : null}
 
       {status === 'connected' && (
         <>
@@ -88,9 +91,9 @@ export function TransactionsPage() {
           </div>
 
           {transactionsLoading ? (
-            <p className="text-gray-600">Loading...</p>
+            <LoadingSpinner />
           ) : transactions.length === 0 ? (
-            <EmptyState />
+            <EmptyState messageKey="transactions.empty" />
           ) : (
             <TransactionsTable transactions={transactions} clients={clients} />
           )}

@@ -4,6 +4,14 @@
     "signedInAs": "Signed in as {{name}}",
     "signOut": "Sign out"
   },
+  "common": {
+    "loading": "Loading..."
+  },
+  "errors": {
+    "routeTitle": "This page couldn’t be displayed",
+    "routeDescription": "Something unexpected happened. You can try again.",
+    "retry": "Try again"
+  },
   "login": {
     "title": "illo3d",
     "tagline": "3D printing store with CRM and money management",
