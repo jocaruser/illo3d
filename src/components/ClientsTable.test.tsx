@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { ClientsTable } from './ClientsTable'
 
 vi.mock('react-i18next', () => ({
@@ -10,6 +10,8 @@ vi.mock('react-i18next', () => ({
 
 describe('ClientsTable', () => {
   it('renders column headers and client rows', () => {
+    const onEdit = vi.fn()
+    const onDelete = vi.fn()
     render(
       <ClientsTable
         clients={[
@@ -22,6 +24,8 @@ describe('ClientsTable', () => {
             created_at: '2025-01-01',
           },
         ]}
+        onEdit={onEdit}
+        onDelete={onDelete}
       />
     )
 
@@ -33,16 +37,22 @@ describe('ClientsTable', () => {
     expect(screen.getByText('2025-01-01')).toBeInTheDocument()
   })
 
-  it('does not render edit or delete controls', () => {
+  it('calls onEdit and onDelete', () => {
+    const onEdit = vi.fn()
+    const onDelete = vi.fn()
+    const client = {
+      id: 'CL1',
+      name: 'Acme',
+      created_at: '2025-01-01',
+    }
     render(
-      <ClientsTable
-        clients={[{ id: '1', name: 'Solo', created_at: '2025-01-01' }]}
-      />
+      <ClientsTable clients={[client]} onEdit={onEdit} onDelete={onDelete} />
     )
 
-    expect(screen.queryByRole('button', { name: /edit/i })).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: /delete|remove/i })
-    ).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'clients.edit' }))
+    fireEvent.click(screen.getByRole('button', { name: 'clients.delete' }))
+
+    expect(onEdit).toHaveBeenCalledWith(client)
+    expect(onDelete).toHaveBeenCalledWith(client)
   })
 })

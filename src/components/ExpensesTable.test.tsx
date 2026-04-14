@@ -13,6 +13,8 @@ describe('ExpensesTable', () => {
   it('renders inventory link when expense has linked inventory', () => {
     const map = new Map<string, string>()
     map.set('E11', 'INV1')
+    const onEdit = vi.fn()
+    const onDelete = vi.fn()
 
     render(
       <MemoryRouter>
@@ -27,6 +29,8 @@ describe('ExpensesTable', () => {
             },
           ]}
           inventoryByExpenseId={map}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       </MemoryRouter>
     )
@@ -36,6 +40,8 @@ describe('ExpensesTable', () => {
   })
 
   it('does not render inventory link when no linked inventory', () => {
+    const onEdit = vi.fn()
+    const onDelete = vi.fn()
     render(
       <MemoryRouter>
         <ExpensesTable
@@ -48,10 +54,14 @@ describe('ExpensesTable', () => {
             },
           ]}
           inventoryByExpenseId={new Map()}
+          onEdit={onEdit}
+          onDelete={onDelete}
         />
       </MemoryRouter>
     )
 
-    expect(screen.queryByRole('link', { name: 'inventory.linkLabel' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'inventory.linkLabel' })
+    ).not.toBeInTheDocument()
   })
 })

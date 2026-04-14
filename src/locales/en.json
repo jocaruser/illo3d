@@ -4,6 +4,14 @@
     "signedInAs": "Signed in as {{name}}",
     "signOut": "Sign out"
   },
+  "common": {
+    "loading": "Loading..."
+  },
+  "errors": {
+    "routeTitle": "This page couldn’t be displayed",
+    "routeDescription": "Something unexpected happened. You can try again.",
+    "retry": "Try again"
+  },
   "login": {
     "title": "illo3d",
     "tagline": "3D printing store with CRM and money management",
@@ -16,6 +24,7 @@
   "nav": {
     "clients": "Clients",
     "jobs": "Jobs",
+    "pieces": "Pieces",
     "transactions": "Transactions",
     "expenses": "Expenses",
     "inventory": "Inventory"
@@ -33,6 +42,14 @@
     "nameRequired": "Name is required",
     "cancel": "Cancel",
     "submit": "Create client",
+    "editClient": "Edit client",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "actions": "Actions",
+    "deleteConfirmTitle": "Delete client",
+    "deleteConfirmMessage": "Delete {{name}}? This cannot be undone.",
+    "deleteBlockedJobs": "This client cannot be deleted while jobs reference them.",
     "validation.required": "This field is required"
   },
   "expenses": {
@@ -67,7 +84,14 @@
     "category.maintenance": "Maintenance",
     "category.other": "Other",
     "empty": "No expenses yet.",
-    "addExpense": "Add expense"
+    "addExpense": "Add expense",
+    "editTitle": "Edit expense",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "actions": "Actions",
+    "deleteConfirmTitle": "Delete expense",
+    "deleteConfirmMessage": "Delete expense {{id}} and its linked transaction? This cannot be undone."
   },
   "inventory": {
     "title": "Inventory",
@@ -102,8 +126,56 @@
     "connect": "Connect",
     "connectPrompt": "Connect Google Sheets to load transactions."
   },
+  "pieces": {
+    "title": "Pieces",
+    "loading": "Loading...",
+    "empty": "No pieces yet.",
+    "addPiece": "Add piece",
+    "createTitle": "Create piece",
+    "job": "Job",
+    "jobSearchPlaceholder": "Search jobs…",
+    "selectedJob": "Selected: {{id}} — {{description}}",
+    "noJobsMatch": "No jobs match your search.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Top shell",
+    "submit": "Create piece",
+    "cancel": "Cancel",
+    "colExpand": "Expand",
+    "colId": "ID",
+    "colJob": "Job",
+    "colName": "Name",
+    "colStatus": "Status",
+    "colCreated": "Created",
+    "status": {
+      "pending": "Pending",
+      "done": "Done",
+      "failed": "Failed"
+    },
+    "linesHeading": "Materials",
+    "addLine": "Add material line",
+    "addLineTitle": "Add material line",
+    "addLineForPiece": "Piece {{id}}",
+    "noLines": "No material lines yet.",
+    "lineColId": "Line ID",
+    "lineColInventory": "Inventory",
+    "lineColQty": "Quantity",
+    "inventoryLot": "Inventory lot",
+    "quantity": "Quantity",
+    "noInventory": "No inventory available",
+    "submitLine": "Add line",
+    "validation": {
+      "required": "This field is required",
+      "jobRequired": "Select a job",
+      "nameRequired": "Name is required",
+      "inventoryRequired": "Select an inventory lot",
+      "quantityPositive": "Quantity must be greater than zero"
+    }
+  },
   "jobs": {
     "title": "Jobs",
+    "backToList": "Back to jobs",
+    "jobNotFound": "Job not found.",
+    "idLinkAria": "Open job {{id}} details",
     "loading": "Loading...",
     "empty": "No jobs yet.",
     "addJob": "Add job",

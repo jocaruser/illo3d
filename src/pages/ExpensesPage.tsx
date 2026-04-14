@@ -9,7 +9,14 @@ import { useInventory } from '@/hooks/useInventory'
 import { ExpensesTable } from '@/components/ExpensesTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreateExpensePopup } from '@/components/CreateExpensePopup'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { EmptyState } from '@/components/EmptyState'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { useTranslation } from 'react-i18next'
+import { updateExpense } from '@/services/expense/updateExpense'
+import { deleteExpense } from '@/services/expense/deleteExpense'
+import type { Expense } from '@/types/money'
+import type { UpdateExpensePayload } from '@/services/expense/updateExpense'
 
 export function ExpensesPage() {
   const { t } = useTranslation()
@@ -28,7 +35,11 @@ export function ExpensesPage() {
   const { data: expenses = [], isLoading: expensesLoading } =
     useExpenses(spreadsheetId)
   const { data: inventory = [] } = useInventory(spreadsheetId)
-  const [popupOpen, setPopupOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null)
+
+  const expensePopupOpen = createOpen || editingExpense !== null
 
   const inventoryByExpenseId = useMemo(() => {
     const map = new Map<string, string>()
@@ -38,11 +49,63 @@ export function ExpensesPage() {
     return map
   }, [inventory])
 
-  const handleSuccess = () => {
+  const handleCreateSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
     queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
     queryClient.invalidateQueries({ queryKey: ['inventory', spreadsheetId] })
     navigate('/expenses')
+  }
+
+  const handleEditSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
+    queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
+  }
+
+  const handleUpdateExpense = async (
+    expenseId: string,
+    payload: UpdateExpensePayload
+  ) => {
+    if (!spreadsheetId) return
+    const key = ['expenses', spreadsheetId] as const
+    const previous = queryClient.getQueryData<Expense[]>(key)
+    if (previous) {
+      queryClient.setQueryData(
+        key,
+        previous.map((e) =>
+          e.id === expenseId
+            ? {
+                ...e,
+                date: payload.date,
+                category: payload.category,
+                amount: payload.amount,
+                notes: payload.notes,
+              }
+            : e
+        )
+      )
+    }
+    try {
+      await updateExpense(spreadsheetId, expenseId, payload)
+    } catch (e) {
+      if (previous) {
+        queryClient.setQueryData(key, previous)
+      }
+      throw e
+    }
+  }
+
+  const closeExpensePopup = () => {
+    setCreateOpen(false)
+    setEditingExpense(null)
+  }
+
+  const confirmDeleteExpense = async () => {
+    if (!spreadsheetId || !deleteTarget) return
+    await deleteExpense(spreadsheetId, deleteTarget.id)
+    setDeleteTarget(null)
+    queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
+    queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
+    queryClient.invalidateQueries({ queryKey: ['inventory', spreadsheetId] })
   }
 
   useEffect(() => {
@@ -72,18 +135,23 @@ export function ExpensesPage() {
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h2 className="mb-6 text-2xl font-bold text-gray-800">Expenses</h2>
 
-      <ConnectionStatus
-        status={status}
-        errorMessage={errorMessage}
-        onRetry={handleRetry}
-      />
+      {spreadsheetId ? (
+        <ConnectionStatus
+          status={status}
+          errorMessage={errorMessage}
+          onRetry={handleRetry}
+        />
+      ) : null}
 
       {status === 'connected' && (
         <>
           <div className="mb-4 flex items-center justify-between">
             <button
               type="button"
-              onClick={() => setPopupOpen(true)}
+              onClick={() => {
+                setEditingExpense(null)
+                setCreateOpen(true)
+              }}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
               {t('expenses.addExpense')}
@@ -91,25 +159,44 @@ export function ExpensesPage() {
           </div>
 
           {expensesLoading ? (
-            <p className="text-gray-600">Loading...</p>
+            <LoadingSpinner />
           ) : expenses.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
-              <p className="text-gray-600">{t('expenses.empty')}</p>
-            </div>
+            <EmptyState messageKey="expenses.empty" />
           ) : (
             <ExpensesTable
               expenses={expenses}
               inventoryByExpenseId={inventoryByExpenseId}
+              onEdit={(e) => {
+                setCreateOpen(false)
+                setEditingExpense(e)
+              }}
+              onDelete={(e) => setDeleteTarget(e)}
             />
           )}
         </>
       )}
 
       <CreateExpensePopup
-        isOpen={popupOpen}
-        onClose={() => setPopupOpen(false)}
-        onSuccess={handleSuccess}
+        isOpen={expensePopupOpen}
+        onClose={closeExpensePopup}
+        onSuccess={
+          editingExpense ? handleEditSuccess : handleCreateSuccess
+        }
         spreadsheetId={spreadsheetId}
+        initialExpense={editingExpense}
+        onUpdateExpense={handleUpdateExpense}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteTarget !== null}
+        title={t('expenses.deleteConfirmTitle')}
+        message={t('expenses.deleteConfirmMessage', {
+          id: deleteTarget?.id ?? '',
+        })}
+        confirmLabel={t('expenses.delete')}
+        cancelLabel={t('expenses.cancel')}
+        onConfirm={confirmDeleteExpense}
+        onCancel={() => setDeleteTarget(null)}
       />
     </div>
   )

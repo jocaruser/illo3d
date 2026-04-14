@@ -5,6 +5,8 @@ import { connect } from '@/services/sheets/connection'
 import { useInventory } from '@/hooks/useInventory'
 import { InventoryTable } from '@/components/InventoryTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
+import { EmptyState } from '@/components/EmptyState'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { useTranslation } from 'react-i18next'
 
 export function InventoryPage() {
@@ -51,20 +53,20 @@ export function InventoryPage() {
         {t('inventory.title')}
       </h2>
 
-      <ConnectionStatus
-        status={status}
-        errorMessage={errorMessage}
-        onRetry={handleRetry}
-      />
+      {spreadsheetId ? (
+        <ConnectionStatus
+          status={status}
+          errorMessage={errorMessage}
+          onRetry={handleRetry}
+        />
+      ) : null}
 
       {status === 'connected' && (
         <>
           {inventoryLoading ? (
-            <p className="text-gray-600">Loading...</p>
+            <LoadingSpinner />
           ) : items.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
-              <p className="text-gray-600">{t('inventory.empty')}</p>
-            </div>
+            <EmptyState messageKey="inventory.empty" />
           ) : (
             <InventoryTable items={items} />
           )}

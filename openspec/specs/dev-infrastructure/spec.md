@@ -2,7 +2,23 @@
 
 ## Purpose
 
-Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), project hygiene (ignore files, env template), scaffold expectations, mandatory quality gates (build, lint, unit tests, e2e), and Playwright coverage mapped to feature specs.
+Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory quality gates (build, lint, unit tests, e2e), Playwright coverage mapped to feature specs, shared e2e auth/shop setup, multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers).
+
+## Repository documentation
+
+### Requirement: Root README documents developer onboarding
+
+The repository SHALL include a `README.md` file at the project root. The README SHALL provide a concise overview of illo3d (3D print shop management), list prerequisites (Docker and `make`), document first-time setup using `make init` and day-to-day development with `make dev`, summarize the tech stack (React, TypeScript, Vite, Tailwind, testing tools as used in the repo), group available Makefile targets by purpose (e.g. setup, Docker, development, quality, utilities), and explain how to run automated checks: `make test`, `make e2e-test`, and the full `make quality-gate` sequence.
+
+#### Scenario: New developer follows README setup
+
+- **WHEN** a developer clones the repository and reads `README.md`
+- **THEN** they can run `make init` and `make dev` as documented without consulting other docs for basic setup
+
+#### Scenario: README lists quality commands
+
+- **WHEN** a developer reads the quality or testing section of `README.md`
+- **THEN** the document describes `make test`, `make e2e-test`, and `make quality-gate` and what each is for
 
 ## Docker development environment
 
@@ -107,6 +123,21 @@ The Playwright test infrastructure SHALL provide a custom fixture (`fixtureScena
 
 - **WHEN** a spec does not declare a fixtureScenario
 - **THEN** `fixtures/happy-path/` is copied to the ephemeral directory before the spec runs
+
+#### Scenario: Non-default scenario materializes data for spreadsheet IDs and wizard
+
+- **WHEN** a spec uses `fixtureScenario` that differs from the folder configured for Local CSV wizard open (e.g. `VITE_LOCAL_CSV_FIXTURE_FOLDER` is `happy-path` while the scenario is `empty`)
+- **THEN** the test infrastructure copies the golden scenario into an ephemeral path for that scenario **and** into the wizard-configured folder so Dev Login shop open and CSV reads derived from `spreadsheetId` (e.g. `csv-fixture-*`) both resolve
+
+### Requirement: E2E suite supports at least two fixture scenarios in practice
+
+The repository SHALL include at least two distinct folders under `fixtures/` used by e2e (e.g. `happy-path` and `empty` or `minimal`). At least one Playwright spec SHALL declare a non-default scenario via `test.use({ fixtureScenario: '<name>' })` when that scenario is required for the behavior under test.
+
+#### Scenario: Spec declares non-default fixture scenario
+
+- **WHEN** a test requires data that differs from happy-path
+- **THEN** the test sets `fixtureScenario` to the appropriate folder name
+- **AND** the golden data for that scenario exists under `fixtures/<name>/`
 
 ### Requirement: Project files are bind-mounted to container
 
@@ -238,6 +269,26 @@ A Cursor rule SHALL exist that instructs AI agents to validate build, lint, test
 
 ## E2E coverage
 
+### Requirement: E2E tests use a single shared authenticated shop setup
+
+The Playwright test suite SHALL provide one canonical mechanism (e.g. extended fixture or equivalent) that performs Dev Login and opens the Local CSV shop for the default e2e scenario. Authenticated specs that need an open shop SHALL use this mechanism instead of duplicating equivalent helper functions in each spec file.
+
+#### Scenario: Spec obtains ready-to-use authenticated shop session
+
+- **WHEN** a Playwright test that requires an open shop runs
+- **THEN** the shared setup performs Dev Login and completes the CSV shop open flow for the active `fixtureScenario`
+- **AND** the test does not rely on a copy-pasted login helper unique to that file
+
+### Requirement: E2E assertions honor dialog-gated and controlled fields
+
+Playwright tests that interact with controlled `<select>` fields or other controls that open a confirmation dialog before commit SHALL assert the stale value immediately after the interaction when the product keeps the prior value until confirm. Tests SHALL assert the committed value and any dependent visible UI after the dialog completes and data settles. Tests that commit immediately (no dialog) SHALL assert the new value without an incorrect stale expectation.
+
+#### Scenario: Dialog-gated status change is asserted in two phases
+
+- **WHEN** a test changes a job status that opens a confirmation dialog
+- **THEN** the test asserts the select retains the pre-dialog value until confirm
+- **AND** after confirm, the test asserts the select matches the chosen status
+
 ### Requirement: E2E tests cover authentication spec (login and dev login)
 
 The system SHALL have Playwright e2e tests that verify browser-testable scenarios from the authentication spec for the login page and dev login. Tests SHALL use the existing `login.spec.ts` file or extend it. Dev Login SHALL be used for authenticated flows (no real OAuth).
@@ -331,6 +382,26 @@ The system SHALL have Playwright e2e tests for the transactions view: table rend
 - **WHEN** user views transactions table
 - **THEN** no add, edit, or delete controls are visible on the table itself
 
+### Requirement: E2E tests cover job detail pieces UI
+
+The system SHALL have at least one Playwright spec that verifies an authenticated user can open a job’s detail page from the jobs list and sees the Pieces section with the expected primary content (e.g. heading and table or documented empty state) using the default or declared fixture scenario.
+
+#### Scenario: Job detail pieces view renders for authenticated user
+
+- **WHEN** an authenticated user with an open shop navigates to job detail for a fixture job (e.g. via the jobs table)
+- **THEN** the page shows the Pieces section heading
+- **AND** the user sees a pieces table or the documented empty state consistent with the fixture
+
+### Requirement: E2E tests cover Expenses list after creation flow
+
+The system SHALL have Playwright coverage that verifies the Expenses list view shows data consistent with a completed create-expense flow (e.g. row or summary visible for submitted values), in addition to any URL redirect assertion.
+
+#### Scenario: Created expense visible on expenses page
+
+- **WHEN** a user completes create expense from the transactions flow with identifiable field values
+- **AND** the app navigates to the expenses view
+- **THEN** the expenses UI shows content that reflects those values within a bounded timeout
+
 ### Requirement: E2E tests run via Makefile and pass in CI
 
 The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL start a dedicated Vite server with ephemeral fixtures, run Playwright against it, and clean up afterward. The target SHALL NOT modify `public/fixtures/`. All e2e tests SHALL pass with zero failures before considering implementation complete.
@@ -350,3 +421,17 @@ The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL sta
 
 - **WHEN** `make e2e-test` completes (pass or fail)
 - **THEN** `public/fixtures/` is unchanged from before the run
+
+### Requirement: Playwright configuration documents execution policy
+
+The Playwright configuration or project documentation SHALL state how many workers are used locally and in CI, when `serial` mode is required, and whether an additional browser project (e.g. Firefox) can be enabled via environment variable. The default `make e2e-test` path SHALL remain green without mandatory extra browsers.
+
+#### Scenario: Default e2e remains Chromium-only
+
+- **WHEN** a developer runs `make e2e-test` with no extra env flags
+- **THEN** Playwright runs the primary Chromium project and all tests pass
+
+#### Scenario: Optional secondary browser is documented
+
+- **WHEN** a maintainer enables the documented optional browser flag in CI or locally
+- **THEN** the same specs execute against the additional project without changing production code

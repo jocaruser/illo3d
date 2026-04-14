@@ -1,24 +1,5 @@
 import { test, expect } from './fixtures'
 
-async function devLoginAndOpenShop(page: import('@playwright/test').Page) {
-  await page.goto('/login', { waitUntil: 'networkidle' })
-
-  const devLoginButton = page.getByTestId('dev-login-button')
-  await expect(devLoginButton).toBeVisible({ timeout: 15000 })
-  await devLoginButton.click()
-
-  await expect(page).toHaveURL(/\/transactions/)
-
-  const openExistingButton = page.getByRole('button', {
-    name: /open existing shop|abrir tienda existente/i,
-  })
-  if (await openExistingButton.first().isVisible({ timeout: 2000 }).catch(() => false)) {
-    await page.getByRole('button', { name: /local csv|csv local/i }).first().click()
-    await openExistingButton.first().click()
-    await page.getByRole('button', { name: /open existing shop|abrir tienda existente/i }).first().click()
-  }
-}
-
 test.describe('Navigation chrome', () => {
   test('login page has no breadcrumb landmark', async ({ page }) => {
     await page.goto('/login', { waitUntil: 'networkidle' })
@@ -27,8 +8,15 @@ test.describe('Navigation chrome', () => {
     ).toHaveCount(0)
   })
 
-  test('active nav and breadcrumbs on main pages', async ({ page }) => {
-    await devLoginAndOpenShop(page)
+  test('active nav and breadcrumbs on main pages', async ({ page, openCsvShop }) => {
+    void openCsvShop
+
+    await expect(page.locator('[aria-modal="true"]')).toHaveCount(0, {
+      timeout: 20000,
+    })
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 20000,
+    })
 
     await expect(page.getByRole('navigation', { name: /breadcrumb/i })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Transactions' })).toHaveAttribute(

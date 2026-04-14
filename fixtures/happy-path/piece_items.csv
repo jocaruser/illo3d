@@ -1,1 +1,4 @@
 id,piece_id,inventory_id,quantity
+PI1,P1,INV1,42
+PI2,P2,INV1,38
+PI3,P3,INV1,15

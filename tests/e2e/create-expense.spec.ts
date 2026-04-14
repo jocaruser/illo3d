@@ -1,30 +1,12 @@
 import { test, expect } from './fixtures'
 
-async function devLoginAndOpenShop(page: import('@playwright/test').Page) {
-  await page.goto('/login', { waitUntil: 'networkidle' })
-
-  const devLoginButton = page.getByTestId('dev-login-button')
-  await expect(devLoginButton).toBeVisible({ timeout: 15000 })
-  await devLoginButton.click()
-
-  await expect(page).toHaveURL(/\/transactions/)
-
-  const openExistingButton = page.getByRole('button', {
-    name: /open existing shop|abrir tienda existente/i,
-  })
-  if (await openExistingButton.first().isVisible({ timeout: 2000 }).catch(() => false)) {
-    await page.getByRole('button', { name: /local csv|csv local/i }).first().click()
-    await openExistingButton.first().click()
-    await page.getByRole('button', { name: /open existing shop|abrir tienda existente/i }).first().click()
-  }
-}
-
 test.describe('Create expense flow', () => {
   test.describe.configure({ mode: 'serial' })
   test('Add expense button opens popup from transactions page', async ({
     page,
+    openCsvShop,
   }) => {
-    await devLoginAndOpenShop(page)
+    void openCsvShop
 
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
@@ -47,7 +29,9 @@ test.describe('Create expense flow', () => {
 
   test('create expense with inventory sends inventory append request', async ({
     page,
+    openCsvShop,
   }) => {
+    void openCsvShop
     const appendPayloads: { sheetName?: string; rows?: unknown[] }[] = []
     page.on('request', (req) => {
       if (req.method() !== 'POST' || !req.url().includes('/api/sheets/append')) {
@@ -61,8 +45,6 @@ test.describe('Create expense flow', () => {
         /* ignore */
       }
     })
-
-    await devLoginAndOpenShop(page)
 
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
@@ -91,6 +73,17 @@ test.describe('Create expense flow', () => {
     await page.getByRole('button', { name: /create expense|crear gasto/i }).click()
 
     await expect(page).toHaveURL(/\/expenses/, { timeout: 20000 })
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 15000,
+    })
+    await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
+    await expect(
+      page
+        .getByRole('row')
+        .filter({ hasText: '2025-04-01' })
+        .filter({ hasText: /€19\.99/ })
+        .filter({ hasText: 'e2e filament marker' })
+    ).toBeVisible()
 
     const inventoryAppends = appendPayloads.filter((p) => p.sheetName === 'inventory')
     expect(inventoryAppends.length).toBeGreaterThanOrEqual(1)
@@ -105,7 +98,9 @@ test.describe('Create expense flow', () => {
 
   test('create expense without inventory does not append inventory sheet', async ({
     page,
+    openCsvShop,
   }) => {
+    void openCsvShop
     const appendPayloads: { sheetName?: string }[] = []
     page.on('request', (req) => {
       if (req.method() !== 'POST' || !req.url().includes('/api/sheets/append')) {
@@ -119,8 +114,6 @@ test.describe('Create expense flow', () => {
         /* ignore */
       }
     })
-
-    await devLoginAndOpenShop(page)
 
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
@@ -138,12 +131,22 @@ test.describe('Create expense flow', () => {
     await page.getByRole('button', { name: /create expense|crear gasto/i }).click()
 
     await expect(page).toHaveURL(/\/expenses/, { timeout: 20000 })
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 15000,
+    })
+    await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
+    await expect(
+      page
+        .getByRole('row')
+        .filter({ hasText: '2025-04-02' })
+        .filter({ hasText: /€12\.00/ })
+    ).toBeVisible()
 
     expect(appendPayloads.filter((p) => p.sheetName === 'inventory')).toHaveLength(0)
   })
 
-  test('create expense and redirect to expenses page', async ({ page }) => {
-    await devLoginAndOpenShop(page)
+  test('create expense and redirect to expenses page', async ({ page, openCsvShop }) => {
+    void openCsvShop
 
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
@@ -161,7 +164,7 @@ test.describe('Create expense flow', () => {
 
     const dateInput = page.getByLabel(/date|fecha/i)
     await expect(dateInput).toBeVisible({ timeout: 5000 })
-    await dateInput.fill('2025-03-20')
+    await dateInput.fill('2099-07-01')
 
     const amountInput = page.getByLabel(/amount|importe/i)
     await amountInput.fill('25.50')
@@ -173,5 +176,16 @@ test.describe('Create expense flow', () => {
 
     await expect(page).toHaveURL(/\/expenses/, { timeout: 20000 })
     await expect(page.getByRole('heading', { name: 'Expenses' })).toBeVisible()
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 15000,
+    })
+    await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
+    await expect(
+      page
+        .getByRole('row')
+        .filter({ hasText: '2099-07-01' })
+        .filter({ hasText: /25[.,]50/ })
+        .first(),
+    ).toBeVisible()
   })
 })

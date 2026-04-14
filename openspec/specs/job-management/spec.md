@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Jobs table page with domain services for creating and managing print jobs: `/jobs` route, table with inline status transitions, confirmation dialogs for financial and destructive actions, create popup with searchable client selector, UI-agnostic domain layer, and i18n for all job UI strings.
+Jobs table page with domain services for creating and managing print jobs: `/jobs` route, optional job detail at `/jobs/:jobId` (summary plus pieces for that job), table with inline status transitions, confirmation dialogs for financial and destructive actions, create popup with searchable client selector, UI-agnostic domain layer, and i18n for all job UI strings.
 
 ## Requirements
 
@@ -55,13 +55,23 @@ The system SHALL display the sheets connection status on the jobs page. The page
 
 ### Requirement: Jobs page is accessible from app navigation
 
-The system SHALL include a "Jobs" link in the app header navigation alongside the existing Clients, Transactions, Expenses, and Inventory links.
+The system SHALL include a "Jobs" link in the app header navigation alongside the existing Clients, Transactions, Expenses, and Inventory links. The Jobs nav item SHALL remain active when the user is on a job detail path under `/jobs/…` (not only on `/jobs`).
 
 #### Scenario: Jobs link in header
 
 - **WHEN** user views any page with the app header
 - **THEN** a "Jobs" link is visible in the navigation
 - **AND** clicking it navigates to `/jobs`
+
+### Requirement: Jobs table links to job detail
+
+The jobs table SHALL render each job’s **id** in the id column as the visible text of a link to `/jobs/:jobId` for that id, so the user can open job details (including pieces) from the list. The system SHALL NOT use a separate column whose sole purpose is linking to job detail.
+
+#### Scenario: Job id links to detail
+
+- **WHEN** the jobs table displays a job with id "J1"
+- **THEN** the id cell shows the link label "J1"
+- **AND** activating the link navigates to `/jobs/J1`
 
 ### Requirement: StatusDropdown allows inline status changes
 
