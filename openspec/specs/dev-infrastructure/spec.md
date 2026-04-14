@@ -271,7 +271,7 @@ A Cursor rule SHALL exist that instructs AI agents to validate build, lint, test
 
 ### Requirement: CI workflow runs quality gate on pull requests
 
-A GitHub Actions workflow SHALL exist at `.github/workflows/ci.yml` that triggers on pull requests targeting `main`. The workflow SHALL build the Docker images, start the containers, install dependencies, and run the full quality gate: `make build`, `make lint`, `make test`, and `make e2e-test` in sequence. All steps MUST pass for the workflow to report success.
+A GitHub Actions workflow SHALL exist at `.github/workflows/ci.yml` that triggers on pull requests targeting `main`. The workflow SHALL build the Docker images for the `app` and `playwright` services (from the repository Dockerfiles), start the containers, install dependencies, and run the full quality gate: `make build`, `make lint`, `make test`, and `make e2e-test` in sequence. All steps MUST pass for the workflow to report success.
 
 #### Scenario: PR triggers CI
 
