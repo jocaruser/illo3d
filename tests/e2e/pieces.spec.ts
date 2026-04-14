@@ -241,4 +241,50 @@ test.describe('Job pieces (job detail)', () => {
     const select = page.locator('#piece-item-inventory')
     await expect(select.locator('option').nth(1)).toContainText(/\d/)
   })
+
+  test('edit job from detail shows suggested price from BOM', async ({
+    page,
+    openCsvShop,
+  }) => {
+    void openCsvShop
+
+    await page.getByRole('link', { name: 'Jobs' }).click()
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 15000,
+    })
+
+    await page.getByTestId('job-detail-link-J1').click()
+    await expect(page).toHaveURL(/\/jobs\/J1/)
+
+    await page.getByTestId('entity-detail-edit').click()
+    await expect(
+      page.getByRole('heading', { name: /edit job|editar trabajo/i })
+    ).toBeVisible()
+
+    const apply = page.getByTestId('job-suggested-price-apply')
+    await expect(apply).toBeVisible({ timeout: 10000 })
+    await expect(apply).toHaveText(/11\.07/)
+
+    await apply.click()
+    await expect(page.locator('#job-price')).toHaveValue('11.07')
+  })
+
+  test('create job from list has no suggested price control', async ({
+    page,
+    openCsvShop,
+  }) => {
+    void openCsvShop
+
+    await page.getByRole('link', { name: 'Jobs' }).click()
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 15000,
+    })
+
+    await page.getByTestId('add-job-button').click()
+    await expect(
+      page.getByRole('heading', { name: /create job|crear trabajo/i })
+    ).toBeVisible()
+
+    await expect(page.getByTestId('job-suggested-price-apply')).toHaveCount(0)
+  })
 })
