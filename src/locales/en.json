@@ -252,6 +252,12 @@
       "clientRequired": "Select a client",
       "priceInvalid": "Enter a valid price (0 or greater)"
     },
+    "suggestedPrice": {
+      "label": "Suggested (materials × 3)",
+      "applyAriaLabel": "Apply suggested price {{amount}} to the price field",
+      "errorIntro": "Cannot suggest a price — missing purchase data for:",
+      "errorLot": "{{id}} — {{name}}"
+    },
     "confirmPaidTitle": "Mark job as paid",
     "confirmPaidWithPrice": "Mark this job as paid for {{price}}? An income transaction will be created.",
     "confirmPaidNeedPrice": "Enter the price for this job. An income transaction will be created. Use 0 for a gift.",

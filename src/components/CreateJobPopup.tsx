@@ -2,10 +2,20 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createJob } from '@/services/job/createJob'
 import { updateJob } from '@/services/job/updateJob'
-import type { Client, Job } from '@/types/money'
+import type { Client, Expense, Inventory, Job, Piece, PieceItem } from '@/types/money'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
+import { computeJobSuggestedPrice } from '@/utils/jobSuggestedPrice'
+import { formatCurrency } from '@/utils/money'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
+
+export interface SuggestedPricingInput {
+  jobId: string
+  pieces: Piece[]
+  pieceItems: PieceItem[]
+  inventory: Inventory[]
+  expenses: Expense[]
+}
 
 interface CreateJobPopupProps {
   isOpen: boolean
@@ -18,6 +28,7 @@ interface CreateJobPopupProps {
     jobId: string,
     payload: UpdateJobPayload
   ) => Promise<void>
+  suggestedPricing?: SuggestedPricingInput | null
 }
 
 export function CreateJobPopup({
@@ -28,6 +39,7 @@ export function CreateJobPopup({
   clients,
   initialJob = null,
   onUpdateJob,
+  suggestedPricing = null,
 }: CreateJobPopupProps) {
   const { t } = useTranslation()
   const [clientQuery, setClientQuery] = useState('')
@@ -68,6 +80,17 @@ export function CreateJobPopup({
   }, [isOpen, initialJob, clients])
 
   const selectedClient = clients.find((c) => c.id === clientId)
+
+  const suggestedResult = useMemo(() => {
+    if (!suggestedPricing || !initialJob) return null
+    return computeJobSuggestedPrice(
+      suggestedPricing.jobId,
+      suggestedPricing.pieces,
+      suggestedPricing.pieceItems,
+      suggestedPricing.inventory,
+      suggestedPricing.expenses
+    )
+  }, [suggestedPricing, initialJob])
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {}
@@ -203,20 +226,74 @@ export function CreateJobPopup({
           >
             {t('jobs.priceOptional')}
           </label>
-          <input
-            id="job-price"
-            type="number"
-            step="0.01"
-            min="0"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            placeholder={t('jobs.pricePlaceholder')}
-            disabled={loading}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
-          />
-          {fieldErrors.price && (
-            <p className="mt-1 text-sm text-red-600">{fieldErrors.price}</p>
-          )}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+            <div className="min-w-0 flex-1">
+              <input
+                id="job-price"
+                type="number"
+                step="0.01"
+                min="0"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder={t('jobs.pricePlaceholder')}
+                disabled={loading}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+              />
+              {fieldErrors.price && (
+                <p className="mt-1 text-sm text-red-600">{fieldErrors.price}</p>
+              )}
+            </div>
+            {isEdit &&
+            suggestedResult &&
+            suggestedResult.kind === 'ok' ? (
+              <div className="flex shrink-0 flex-col gap-1 sm:pb-px">
+                <span
+                  className="text-xs font-medium text-gray-600"
+                  id="job-price-suggestion-label"
+                >
+                  {t('jobs.suggestedPrice.label')}
+                </span>
+                <button
+                  type="button"
+                  data-testid="job-suggested-price-apply"
+                  className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-left text-sm font-semibold text-blue-800 hover:bg-blue-100 disabled:opacity-50"
+                  disabled={loading}
+                  aria-label={t('jobs.suggestedPrice.applyAriaLabel', {
+                    amount: formatCurrency(suggestedResult.suggestedPrice),
+                  })}
+                  onClick={() =>
+                    setPrice(
+                      String(
+                        Number(suggestedResult.suggestedPrice.toFixed(2))
+                      )
+                    )
+                  }
+                >
+                  {formatCurrency(suggestedResult.suggestedPrice)}
+                </button>
+              </div>
+            ) : null}
+            {isEdit &&
+            suggestedResult &&
+            suggestedResult.kind === 'error' ? (
+              <div
+                className="shrink-0 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 sm:max-w-xs"
+                role="alert"
+              >
+                <p className="font-medium">{t('jobs.suggestedPrice.errorIntro')}</p>
+                <ul className="mt-1 list-inside list-disc">
+                  {suggestedResult.lots.map((lot) => (
+                    <li key={lot.id}>
+                      {t('jobs.suggestedPrice.errorLot', {
+                        id: lot.id,
+                        name: lot.name,
+                      })}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="flex gap-3 pt-2">

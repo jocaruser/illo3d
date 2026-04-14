@@ -451,19 +451,78 @@ The system SHALL support a transactions data model with fields: id (string), dat
 - **WHEN** a transaction record exists
 - **THEN** ref_type and ref_id identify whether it came from a job or expense
 
+### Requirement: Job detail fetches expenses for price suggestion
+
+The job detail page SHALL fetch expense rows for the active spreadsheet so suggested pricing can resolve `expense.amount` for each inventory lot’s `expense_id`.
+
+#### Scenario: Expenses loaded with job detail
+
+- **WHEN** an authenticated user views job detail with a connected spreadsheet
+- **THEN** the client loads expenses in addition to jobs, pieces, piece_items, and inventory
+
 ### Requirement: Job price is suggested based on materials
 
-The system SHALL calculate a suggested price for a job as: sum of (piece_item.quantity × inventory.unit_cost) for all pieces with status "done" or "failed", multiplied by 3.
+The system SHALL surface a **suggested** job price derived from BOM material cost when the user opens **Edit job** from the **job detail** page (`/jobs/:jobId`). The material subtotal SHALL be the sum, over **every** `piece` with that `job_id` and **every** `status` (`pending`, `done`, `failed`), of every `piece_item` on that piece: `piece_item.quantity × unit_cost`, where `unit_cost` for the referenced inventory lot is `expense.amount / inventory.qty_initial` using the `expense` row linked by `inventory.expense_id`. All `InventoryType` values (`filament`, `consumable`, `equipment`) SHALL use the same rule. The suggested price SHALL be the material subtotal multiplied by **3** (hardcoded). The system SHALL NOT persist the suggested price unless the user saves the job form with that value in the price field.
 
-#### Scenario: Price suggestion calculated
+The suggestion affordance SHALL appear **beside** the optional price input in the same dialog used to edit a job (`CreateJobPopup`) **only** when that dialog is opened from the job detail page. The jobs list **create-job** flow SHALL NOT show this suggestion.
 
-- **WHEN** job has pieces with piece_items
-- **THEN** suggested price = total material cost × 3
+When the job has **no** pieces, or its pieces have **no** `piece_items` rows in aggregate, the system SHALL **not** render the suggestion region (including no €0).
 
-#### Scenario: Price can be overridden
+When **any** `piece_item` line requires a lot whose `unit_cost` cannot be computed (missing inventory row, missing or unmatched expense for `expense_id`, or `qty_initial` not strictly greater than zero), the system SHALL **not** show a numeric suggestion or partial total; it SHALL show **only** an error state that lists every affected lot with identifiable **id** and/or **name**, using i18n-capable copy.
 
-- **WHEN** user sets a custom price for a job
-- **THEN** the custom price is used instead of the suggested price
+When `unit_cost` can be computed, `expense.amount` MAY be zero (yielding zero unit cost for that lot).
+
+The displayed suggestion SHALL **recompute** when inputs change (including after TanStack Query refresh or invalidation of pieces, piece_items, inventory, or expenses).
+
+The system SHALL **not** copy the suggested amount into the price field when the dialog opens; the field SHALL continue to reflect the stored `job.price` when editing. When the user activates the suggested price control (e.g. button click), the price field SHALL be set to the suggested amount **rounded to two decimal places**, replacing the current input value.
+
+All user-visible labels, errors, and helper text for this feature SHALL use i18next with English and Spanish entries.
+
+#### Scenario: Material cost includes all piece statuses
+
+- **WHEN** a job has pieces in `pending`, `done`, and `failed` with `piece_items`
+- **THEN** the material subtotal includes quantities from every such piece
+
+#### Scenario: Suggested price is three times material subtotal
+
+- **WHEN** the material subtotal is computable for the job
+- **THEN** the suggested price equals that subtotal multiplied by 3
+
+#### Scenario: Unit cost uses purchase amount and initial quantity
+
+- **WHEN** an inventory lot has `qty_initial` greater than zero and a linked expense with amount `A`
+- **THEN** `unit_cost` for that lot is `A / qty_initial` for suggestion purposes
+
+#### Scenario: No suggestion when there is no BOM
+
+- **WHEN** the job has no pieces, or no `piece_items` exist for any of its pieces
+- **THEN** the suggestion region is not shown
+
+#### Scenario: Error when any referenced lot cannot be priced
+
+- **WHEN** at least one `piece_item` references a lot that cannot yield `unit_cost`
+- **THEN** no numeric suggestion is shown
+- **AND** an error lists each affected inventory lot (id and/or name)
+
+#### Scenario: Suggestion not on jobs list create
+
+- **WHEN** the user opens create job from the jobs list
+- **THEN** no material-based price suggestion is shown
+
+#### Scenario: Click applies rounded suggestion to price field
+
+- **WHEN** a numeric suggestion is shown and the user activates the apply control
+- **THEN** the price input updates to the suggested value rounded to two decimal places
+
+#### Scenario: Dialog open does not auto-apply suggestion
+
+- **WHEN** the user opens edit job from job detail
+- **THEN** the price field is not filled from the suggestion until the user activates the apply control
+
+#### Scenario: Custom price still used when saved
+
+- **WHEN** the user sets a custom price and saves the job
+- **THEN** the stored job price is the saved value (suggestion is advisory only until applied)
 
 ### Requirement: Paying a job creates income transaction
 

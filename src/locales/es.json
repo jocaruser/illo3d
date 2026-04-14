@@ -252,6 +252,12 @@
       "clientRequired": "Selecciona un cliente",
       "priceInvalid": "Introduce un precio válido (0 o mayor)"
     },
+    "suggestedPrice": {
+      "label": "Sugerido (materiales × 3)",
+      "applyAriaLabel": "Aplicar precio sugerido {{amount}} al campo de precio",
+      "errorIntro": "No se puede sugerir precio — faltan datos de compra para:",
+      "errorLot": "{{id}} — {{name}}"
+    },
     "confirmPaidTitle": "Marcar como pagado",
     "confirmPaidWithPrice": "¿Marcar este trabajo como pagado por {{price}}? Se creará un ingreso.",
     "confirmPaidNeedPrice": "Introduce el precio de este trabajo. Se creará un ingreso. Usa 0 si es un regalo.",

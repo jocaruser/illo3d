@@ -10,6 +10,7 @@ import { usePieceItems } from '@/hooks/usePieceItems'
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useInventory } from '@/hooks/useInventory'
+import { useExpenses } from '@/hooks/useExpenses'
 import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
@@ -20,7 +21,7 @@ import { CreatePiecePopup } from '@/components/CreatePiecePopup'
 import { CreatePieceItemPopup } from '@/components/CreatePieceItemPopup'
 import { PiecesTable } from '@/components/PiecesTable'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
-import { CreateJobPopup } from '@/components/CreateJobPopup'
+import { CreateJobPopup, type SuggestedPricingInput } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { QueryError } from '@/components/QueryError'
 import { updatePieceStatus } from '@/services/piece/updatePieceStatus'
@@ -109,6 +110,7 @@ export function JobDetailPage() {
   const { data: pieceItems = [], isLoading: itemsLoading } =
     usePieceItems(spreadsheetId)
   const { data: inventory = [] } = useInventory(spreadsheetId)
+  const { data: expenses = [] } = useExpenses(spreadsheetId)
 
   const job = useMemo(() => jobs.find((j) => j.id === jobId), [jobs, jobId])
 
@@ -136,6 +138,17 @@ export function JobDetailPage() {
   const [pieceStatusUpdatingId, setPieceStatusUpdatingId] = useState<
     string | null
   >(null)
+
+  const suggestedPricing = useMemo((): SuggestedPricingInput | undefined => {
+    if (!job || !editingJob || editingJob.id !== job.id) return undefined
+    return {
+      jobId: job.id,
+      pieces: allPieces,
+      pieceItems,
+      inventory,
+      expenses,
+    }
+  }, [job, editingJob, allPieces, pieceItems, inventory, expenses])
 
   useEffect(() => {
     if (!spreadsheetId) return
@@ -432,6 +445,7 @@ export function JobDetailPage() {
         clients={clients}
         initialJob={editingJob}
         onUpdateJob={handleUpdateJob}
+        suggestedPricing={suggestedPricing}
       />
 
       <ConfirmDialog
