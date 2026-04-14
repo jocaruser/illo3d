@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useSheetsStore } from '@/stores/sheetsStore'
@@ -10,10 +10,17 @@ import { usePieceItems } from '@/hooks/usePieceItems'
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { useInventory } from '@/hooks/useInventory'
+import { updateJob } from '@/services/job/updateJob'
+import { deleteJob } from '@/services/job/deleteJob'
+import type { UpdateJobPayload } from '@/services/job/updateJob'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreatePiecePopup } from '@/components/CreatePiecePopup'
 import { CreatePieceItemPopup } from '@/components/CreatePieceItemPopup'
 import { PiecesTable } from '@/components/PiecesTable'
+import { EntityDetailPage } from '@/components/EntityDetailPage'
+import { CreateJobPopup } from '@/components/CreateJobPopup'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
+import type { Job } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
 
 function clientName(
@@ -33,6 +40,7 @@ function formatJobPrice(price: number | undefined): string {
 
 export function JobDetailPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { jobId = '' } = useParams<{ jobId: string }>()
   const queryClient = useQueryClient()
   const activeShop = useShopStore((s) => s.activeShop)
@@ -63,6 +71,8 @@ export function JobDetailPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [expandedPieceId, setExpandedPieceId] = useState<string | null>(null)
   const [linePieceId, setLinePieceId] = useState<string | null>(null)
+  const [editingJob, setEditingJob] = useState<Job | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Job | null>(null)
 
   useEffect(() => {
     if (!spreadsheetId) return
@@ -97,19 +107,79 @@ export function JobDetailPage() {
     })
   }
 
+  const invalidateJobs = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
+  }
+
+  const handleUpdateJob = async (
+    jobIdParam: string,
+    payload: UpdateJobPayload
+  ) => {
+    if (!spreadsheetId) return
+    const key = ['jobs', spreadsheetId] as const
+    const previous = queryClient.getQueryData<Job[]>(key)
+    if (previous) {
+      queryClient.setQueryData(
+        key,
+        previous.map((j) =>
+          j.id === jobIdParam
+            ? {
+                ...j,
+                description: payload.description,
+                client_id: payload.client_id,
+                price: payload.price,
+              }
+            : j
+        )
+      )
+    }
+    try {
+      await updateJob(spreadsheetId, jobIdParam, payload)
+    } catch (e) {
+      if (previous) {
+        queryClient.setQueryData(key, previous)
+      }
+      throw e
+    }
+  }
+
+  const closeEditPopup = () => setEditingJob(null)
+
+  const confirmDeleteJob = async () => {
+    if (!spreadsheetId || !deleteTarget) return
+    await deleteJob(spreadsheetId, deleteTarget.id)
+    setDeleteTarget(null)
+    await queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
+    await queryClient.invalidateQueries({ queryKey: ['pieces', spreadsheetId] })
+    await queryClient.invalidateQueries({
+      queryKey: ['piece_items', spreadsheetId],
+    })
+    navigate('/jobs')
+  }
+
   const listLoading = piecesLoading || itemsLoading
+
+  const detailFields = job
+    ? [
+        { label: t('jobs.colId'), value: job.id },
+        {
+          label: t('jobs.colClient'),
+          value: clientName(clients, job.client_id),
+        },
+        {
+          label: t('jobs.colStatus'),
+          value: t(`jobs.status.${job.status}`),
+        },
+        {
+          label: t('jobs.colPrice'),
+          value: formatJobPrice(job.price),
+        },
+        { label: t('jobs.colCreated'), value: job.created_at },
+      ]
+    : []
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <div className="mb-4">
-        <Link
-          to="/jobs"
-          className="text-sm font-medium text-blue-600 hover:text-blue-800"
-        >
-          ← {t('jobs.backToList')}
-        </Link>
-      </div>
-
       <ConnectionStatus
         status={status}
         errorMessage={errorMessage}
@@ -129,32 +199,16 @@ export function JobDetailPage() {
       )}
 
       {status === 'connected' && job && (
-        <>
-          <div className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow">
-            <h2 className="text-2xl font-bold text-gray-800">
-              {job.description}
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              <span className="font-medium">{t('jobs.colId')}:</span> {job.id}
-            </p>
-            <p className="mt-1 text-sm text-gray-600">
-              <span className="font-medium">{t('jobs.colClient')}:</span>{' '}
-              {clientName(clients, job.client_id)}
-            </p>
-            <p className="mt-1 text-sm text-gray-600">
-              <span className="font-medium">{t('jobs.colStatus')}:</span>{' '}
-              {t(`jobs.status.${job.status}`)}
-            </p>
-            <p className="mt-1 text-sm text-gray-600">
-              <span className="font-medium">{t('jobs.colPrice')}:</span>{' '}
-              {formatJobPrice(job.price)}
-            </p>
-            <p className="mt-1 text-sm text-gray-600">
-              <span className="font-medium">{t('jobs.colCreated')}:</span>{' '}
-              {job.created_at}
-            </p>
-          </div>
-
+        <EntityDetailPage
+          backTo="/jobs"
+          backLabel={t('jobs.backToList')}
+          title={job.description}
+          fields={detailFields}
+          editLabel={t('jobs.editJob')}
+          deleteLabel={t('jobs.deleteJob')}
+          onEdit={() => setEditingJob(job)}
+          onDelete={() => setDeleteTarget(job)}
+        >
           <div className="mb-4 flex items-center justify-between gap-4">
             <h3 className="text-xl font-semibold text-gray-800">
               {t('pieces.title')}
@@ -189,8 +243,34 @@ export function JobDetailPage() {
               hideJobColumn
             />
           )}
-        </>
+        </EntityDetailPage>
       )}
+
+      <CreateJobPopup
+        isOpen={editingJob !== null}
+        onClose={closeEditPopup}
+        onSuccess={() => {
+          void invalidateJobs()
+        }}
+        spreadsheetId={spreadsheetId}
+        clients={clients}
+        initialJob={editingJob}
+        onUpdateJob={handleUpdateJob}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title={t('jobs.confirmDeleteTitle')}
+        message={t('jobs.confirmDeleteMessage', {
+          id: deleteTarget?.id ?? '',
+        })}
+        confirmLabel={t('jobs.confirm')}
+        cancelLabel={t('jobs.cancel')}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          void confirmDeleteJob()
+        }}
+      />
 
       <CreatePiecePopup
         isOpen={createOpen}

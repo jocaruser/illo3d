@@ -7,12 +7,15 @@ import { connect } from '@/services/sheets/connection'
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
 import { updateJobStatus } from '@/services/job/updateJobStatus'
+import { updateJob } from '@/services/job/updateJob'
+import { deleteJob } from '@/services/job/deleteJob'
 import { JobsTable } from '@/components/JobsTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import type { Job, JobStatus } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
+import type { UpdateJobPayload } from '@/services/job/updateJob'
 
 function jobHasPrice(job: Job): boolean {
   return (
@@ -38,6 +41,8 @@ export function JobsPage() {
   const { data: jobs = [], isLoading: jobsLoading } = useJobs(spreadsheetId)
   const { data: clients = [] } = useClients(spreadsheetId)
   const [popupOpen, setPopupOpen] = useState(false)
+  const [editingJob, setEditingJob] = useState<Job | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Job | null>(null)
   const [cancelDialogJob, setCancelDialogJob] = useState<Job | null>(null)
   const [paidDialogJob, setPaidDialogJob] = useState<Job | null>(null)
   const [paidPriceInput, setPaidPriceInput] = useState('')
@@ -149,8 +154,62 @@ export function JobsPage() {
     setLeavePaidPending(null)
   }
 
+  const jobPopupOpen = popupOpen || editingJob !== null
+
   const handleCreateSuccess = () => {
     void queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
+  }
+
+  const closeJobPopup = () => {
+    setPopupOpen(false)
+    setEditingJob(null)
+  }
+
+  const handleUpdateJob = async (
+    jobId: string,
+    payload: UpdateJobPayload
+  ) => {
+    if (!spreadsheetId) return
+    const key = ['jobs', spreadsheetId] as const
+    const previous = queryClient.getQueryData<Job[]>(key)
+    if (previous) {
+      queryClient.setQueryData(
+        key,
+        previous.map((j) =>
+          j.id === jobId
+            ? {
+                ...j,
+                description: payload.description,
+                client_id: payload.client_id,
+                price: payload.price,
+              }
+            : j
+        )
+      )
+    }
+    try {
+      await updateJob(spreadsheetId, jobId, payload)
+    } catch (e) {
+      if (previous) {
+        queryClient.setQueryData(key, previous)
+      }
+      throw e
+    }
+  }
+
+  const invalidateJobPieces = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
+    await queryClient.invalidateQueries({ queryKey: ['pieces', spreadsheetId] })
+    await queryClient.invalidateQueries({
+      queryKey: ['piece_items', spreadsheetId],
+    })
+  }
+
+  const confirmDeleteJob = async () => {
+    if (!spreadsheetId || !deleteTarget) return
+    await deleteJob(spreadsheetId, deleteTarget.id)
+    setDeleteTarget(null)
+    await invalidateJobPieces()
   }
 
   return (
@@ -190,17 +249,35 @@ export function JobsPage() {
               onStatusSelect={(job, next) => {
                 void handleStatusSelect(job, next)
               }}
+              onEdit={(job) => setEditingJob(job)}
+              onDelete={(job) => setDeleteTarget(job)}
             />
           )}
         </>
       )}
 
       <CreateJobPopup
-        isOpen={popupOpen}
-        onClose={() => setPopupOpen(false)}
+        isOpen={jobPopupOpen}
+        onClose={closeJobPopup}
         onSuccess={handleCreateSuccess}
         spreadsheetId={spreadsheetId}
         clients={clients}
+        initialJob={editingJob}
+        onUpdateJob={handleUpdateJob}
+      />
+
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        title={t('jobs.confirmDeleteTitle')}
+        message={t('jobs.confirmDeleteMessage', {
+          id: deleteTarget?.id ?? '',
+        })}
+        confirmLabel={t('jobs.confirm')}
+        cancelLabel={t('jobs.cancel')}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          void confirmDeleteJob()
+        }}
       />
 
       <ConfirmDialog

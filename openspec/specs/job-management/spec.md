@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Jobs table page with domain services for creating and managing print jobs: `/jobs` route, optional job detail at `/jobs/:jobId` (summary plus pieces for that job), table with inline status transitions, confirmation dialogs for financial and destructive actions, create popup with searchable client selector, UI-agnostic domain layer, and i18n for all job UI strings.
+Jobs table page with domain services for creating and managing print jobs: `/jobs` route, optional job detail at `/jobs/:jobId` (summary plus pieces for that job), table with inline status transitions, row-level edit and cascade delete, confirmation dialogs for financial and destructive actions, create/edit popup with searchable client selector, reusable `EntityDetailPage` layout for job detail header and actions, UI-agnostic domain layer, and i18n for all job UI strings.
 
 ## Requirements
 
@@ -72,6 +72,25 @@ The jobs table SHALL render each job’s **id** in the id column as the visible 
 - **WHEN** the jobs table displays a job with id "J1"
 - **THEN** the id cell shows the link label "J1"
 - **AND** activating the link navigates to `/jobs/J1`
+
+### Requirement: Jobs table has actions column with edit and delete
+
+The jobs table SHALL display an "Actions" column (right-aligned) with Edit and Delete buttons for each row. The Edit button SHALL open the job popup in edit mode. The Delete button SHALL open a cascade-delete confirmation dialog. The actions column SHALL follow the same layout pattern as the clients table actions column. All labels SHALL use i18n.
+
+#### Scenario: Actions column visible in jobs table
+
+- **WHEN** the jobs table renders with job data
+- **THEN** each row displays Edit and Delete action buttons in a right-aligned actions column
+
+#### Scenario: Edit button opens popup in edit mode
+
+- **WHEN** user clicks Edit on a job row
+- **THEN** the job popup opens pre-filled with that job's description, client, and price
+
+#### Scenario: Delete button opens confirmation dialog
+
+- **WHEN** user clicks Delete on a job row
+- **THEN** a confirmation dialog opens warning that the job and its pieces will be permanently removed
 
 ### Requirement: StatusDropdown allows inline status changes
 
@@ -214,7 +233,7 @@ The system SHALL provide a generic `ConfirmDialog` component that renders a moda
 
 ### Requirement: CreateJobPopup is a modal form
 
-The system SHALL provide a `CreateJobPopup` component that renders a modal with a form. The form SHALL collect: client (required, searchable dropdown from cached client data), description (required, text input), and price (optional, number input where 0 is valid). The popup SHALL be closable via overlay click or cancel button.
+The system SHALL provide a `CreateJobPopup` component that renders a modal with a form. The form SHALL collect: client (required, searchable dropdown from cached client data), description (required, text input), and price (optional, number input where 0 is valid). The popup SHALL be closable via overlay click or cancel button. The component SHALL accept an optional `initialJob` prop (`Job`). When `initialJob` is provided, the popup SHALL operate in edit mode: the title SHALL use the edit job label, fields SHALL pre-fill from the job, and submit SHALL call `updateJob` instead of `createJob`. The client picker, description input, and price input SHALL behave the same in create and edit modes. The popup SHALL accept an optional `onUpdateJob` callback for optimistic-update integration.
 
 #### Scenario: Popup opens and shows form fields
 
@@ -261,6 +280,29 @@ The system SHALL provide a `CreateJobPopup` component that renders a modal with 
 - **THEN** a job record is appended to the jobs sheet with status "draft"
 - **AND** the popup closes
 - **AND** the jobs table refreshes to show the new job
+
+#### Scenario: Popup pre-fills in edit mode
+
+- **WHEN** the popup opens with `initialJob` set to a job with description "Phone case", client "CL2", and price 30
+- **THEN** the description field shows "Phone case", the client picker shows client CL2, and the price field shows 30
+
+#### Scenario: Edit mode uses update title
+
+- **WHEN** the popup opens in edit mode
+- **THEN** the popup title displays the edit job label (not the create label)
+
+#### Scenario: Edit submission calls updateJob
+
+- **WHEN** user edits description to "Lamp base" and submits in edit mode
+- **THEN** `updateJob` is called with the job's ID and the new field values
+- **AND** the popup closes
+- **AND** the jobs data refreshes
+
+#### Scenario: Validation in edit mode matches create mode
+
+- **WHEN** user clears the description field and submits in edit mode
+- **THEN** a validation error is shown
+- **AND** no update is performed
 
 ### Requirement: Add job button on jobs page
 
@@ -321,6 +363,114 @@ The system SHALL provide an `updateJobStatus` service that updates a job's statu
 - **WHEN** updateJobStatus is called with status "in_progress"
 - **THEN** no transaction is created
 
+### Requirement: updateJob service updates header fields only
+
+The system SHALL provide an `updateJob(spreadsheetId, jobId, payload)` service that updates a job's `description`, `client_id`, and `price` fields in the jobs sheet. The service SHALL preserve `id`, `status`, and `created_at` unchanged. The service SHALL NOT create, modify, or delete any transaction rows. The service SHALL find the job row by reading all jobs and matching by ID, then call `SheetsRepository.updateRow` with a 1-based row index.
+
+#### Scenario: Header fields updated in sheet
+
+- **WHEN** `updateJob` is called with jobId "J5" and payload `{ description: "Lamp", client_id: "CL3", price: 25 }`
+- **THEN** the job row for J5 is updated with those values
+- **AND** `id`, `status`, and `created_at` remain unchanged
+
+#### Scenario: Price can be cleared
+
+- **WHEN** `updateJob` is called with `price` as undefined
+- **THEN** the price field in the sheet is set to empty
+- **AND** no transaction side effects occur
+
+#### Scenario: Job not found throws error
+
+- **WHEN** `updateJob` is called with a non-existent job ID
+- **THEN** an error is thrown indicating the job was not found
+
+### Requirement: deleteJob service cascade-deletes job and children
+
+The system SHALL provide a `deleteJob(spreadsheetId, jobId)` service that removes the job and all related data in this order: (1) delete all `piece_items` rows whose `piece_id` belongs to a piece of this job, (2) delete all `pieces` rows whose `job_id` matches, (3) delete the `job` row. Rows SHALL be deleted in reverse index order (highest index first) to avoid row-shift issues. The service SHALL NOT delete or modify transaction rows.
+
+#### Scenario: Job with pieces and piece_items is cascade-deleted
+
+- **WHEN** `deleteJob` is called for job J3
+- **AND** J3 has pieces P1 and P2
+- **AND** P1 has piece_items PI1 and PI2, P2 has piece_item PI3
+- **THEN** PI1, PI2, PI3 are deleted from the piece_items sheet
+- **AND** P1, P2 are deleted from the pieces sheet
+- **AND** J3 is deleted from the jobs sheet
+
+#### Scenario: Job without pieces is deleted
+
+- **WHEN** `deleteJob` is called for a job with no pieces
+- **THEN** only the job row is deleted from the jobs sheet
+
+#### Scenario: Job not found throws error
+
+- **WHEN** `deleteJob` is called with a non-existent job ID
+- **THEN** an error is thrown indicating the job was not found
+
+#### Scenario: Existing transactions are not affected
+
+- **WHEN** `deleteJob` is called for a paid job that has an associated income transaction
+- **THEN** the transaction row remains in the transactions sheet
+
+### Requirement: Delete job confirmation dialog warns about cascade
+
+The system SHALL display a `ConfirmDialog` before deleting a job. The dialog SHALL warn the user that the job and all its pieces (and piece items) will be permanently removed. The dialog title, message, and button labels SHALL use i18n. When confirmed, the system SHALL call `deleteJob` and refresh job, piece, and piece_item data. When cancelled, no deletion occurs.
+
+#### Scenario: Confirmation dialog shows cascade warning
+
+- **WHEN** user initiates job deletion for a job with 3 pieces
+- **THEN** the confirmation dialog message warns that the job and its pieces will be deleted
+
+#### Scenario: Confirmed deletion removes job and refreshes data
+
+- **WHEN** user confirms job deletion
+- **THEN** the job and its children are removed
+- **AND** the jobs table (or detail page) refreshes
+
+#### Scenario: Cancelled deletion preserves job
+
+- **WHEN** user cancels the deletion dialog
+- **THEN** the job and its children remain unchanged
+
+### Requirement: Job detail page allows editing job header fields
+
+The job detail page SHALL display Edit and Delete action buttons in the job summary header. The Edit button SHALL open `CreateJobPopup` in edit mode (pre-filled with the current job). The Delete button SHALL open the cascade-delete confirmation dialog. After a successful delete, the system SHALL navigate to `/jobs`. All labels SHALL use i18n.
+
+#### Scenario: Edit button on detail page opens popup
+
+- **WHEN** user clicks Edit on the job detail header
+- **THEN** the job popup opens in edit mode with the current job's fields
+
+#### Scenario: Successful edit refreshes detail header
+
+- **WHEN** user edits a job from the detail page and submits
+- **THEN** the detail header updates to reflect the new values
+
+#### Scenario: Delete from detail page navigates to job list
+
+- **WHEN** user confirms deletion from the job detail page
+- **THEN** the job and its children are removed
+- **AND** the browser navigates to `/jobs`
+
+### Requirement: EntityDetailPage is a reusable detail layout component
+
+The system SHALL provide a generic `EntityDetailPage` component that renders: a back-navigation link (configurable route and label), a header card with configurable field entries (label + value pairs), Edit and Delete action buttons, and a children slot for entity-specific content. The component SHALL accept props for back link route, back link label, title, fields array, onEdit callback, onDelete callback, and React children. `JobDetailPage` SHALL use `EntityDetailPage` to render its header and actions, passing the pieces section as children. All action labels SHALL use i18n.
+
+#### Scenario: EntityDetailPage renders header with fields
+
+- **WHEN** `EntityDetailPage` is rendered with title "Phone case" and fields [id: "J1", client: "Alice", price: "€30"]
+- **THEN** the header card displays the title and all field label-value pairs
+
+#### Scenario: Back link navigates to list
+
+- **WHEN** user clicks the back link on `EntityDetailPage`
+- **THEN** navigation goes to the configured route
+
+#### Scenario: Children render below header
+
+- **WHEN** `EntityDetailPage` is rendered with children (e.g., a pieces section)
+- **THEN** the children appear below the header card
+
 ### Requirement: fetchJobs service reads job data
 
 The system SHALL provide a `fetchJobs` service function that reads all rows from the jobs sheet via SheetsRepository, filters out rows without id, parses price as a number (or undefined if empty), and returns them sorted by created_at descending.
@@ -365,7 +515,7 @@ The system SHALL extend the `SheetsRepository` interface with an `updateRow(spre
 
 ### Requirement: Job UI strings support i18n
 
-All user-facing strings on the jobs page (table headers, button labels, empty state, form labels, validation messages, status labels, confirmation dialog text including leave-paid and income-transaction checkbox labels) SHALL use i18next for translation support in both English and Spanish.
+All user-facing strings on the jobs page and job detail page (table headers, button labels, empty state, form labels, validation messages, status labels, confirmation dialog text including leave-paid and income-transaction checkbox labels, edit action labels, delete action labels, edit popup title, delete confirmation title and message, cascade-delete warning text, and EntityDetailPage action labels) SHALL use i18next for translation support in both English and Spanish.
 
 #### Scenario: Table headers are translatable
 
@@ -379,15 +529,20 @@ All user-facing strings on the jobs page (table headers, button labels, empty st
 
 #### Scenario: Form labels are translatable
 
-- **WHEN** CreateJobPopup renders
+- **WHEN** CreateJobPopup renders (in create or edit mode)
 - **THEN** field labels, buttons, and validation messages come from i18n keys
 
 #### Scenario: Confirmation dialog text is translatable
 
-- **WHEN** a confirmation dialog renders
+- **WHEN** a confirmation dialog renders (including delete confirmation)
 - **THEN** title, message, and button labels come from i18n keys
 
 #### Scenario: Empty state message is translatable
 
 - **WHEN** empty state is shown
 - **THEN** message comes from i18n keys
+
+#### Scenario: Edit and delete action labels are translatable
+
+- **WHEN** the jobs table or job detail page renders action buttons
+- **THEN** Edit and Delete labels come from i18n keys

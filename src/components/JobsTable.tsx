@@ -20,6 +20,8 @@ interface JobsTableProps {
   jobs: Job[]
   clients: Client[]
   onStatusSelect: (job: Job, nextStatus: Job['status']) => void
+  onEdit: (job: Job) => void
+  onDelete: (job: Job) => void
   statusUpdatingId: string | null
 }
 
@@ -27,6 +29,8 @@ export function JobsTable({
   jobs,
   clients,
   onStatusSelect,
+  onEdit,
+  onDelete,
   statusUpdatingId,
 }: JobsTableProps) {
   const { t } = useTranslation()
@@ -53,6 +57,9 @@ export function JobsTable({
             </th>
             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
               {t('jobs.colCreated')}
+            </th>
+            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600">
+              {t('jobs.actions')}
             </th>
           </tr>
         </thead>
@@ -91,6 +98,24 @@ export function JobsTable({
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                 {job.created_at}
+              </td>
+              <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
+                <button
+                  type="button"
+                  data-testid={`job-edit-${job.id}`}
+                  onClick={() => onEdit(job)}
+                  className="mr-2 text-blue-600 hover:text-blue-800"
+                >
+                  {t('jobs.editJob')}
+                </button>
+                <button
+                  type="button"
+                  data-testid={`job-delete-${job.id}`}
+                  onClick={() => onDelete(job)}
+                  className="text-red-600 hover:text-red-800"
+                >
+                  {t('jobs.deleteJob')}
+                </button>
               </td>
             </tr>
           ))}
