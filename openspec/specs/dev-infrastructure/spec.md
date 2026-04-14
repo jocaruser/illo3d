@@ -317,14 +317,24 @@ The repository SHALL include a `.github/dependabot.yml` file that configures aut
 - **WHEN** a weekly scheduled check detects an outdated npm, Docker, or GitHub Actions dependency
 - **THEN** Dependabot opens a pull request with the update
 
-### Requirement: Dependabot auto-merge workflow is tracked in the repository
+#### Scenario: Dependabot skips semver-major bumps
 
-The repository SHALL include a `.github/workflows/dependabot-auto-merge.yml` workflow that automatically approves and enables merge-commit auto-merge for pull requests opened by `dependabot[bot]`.
+- **WHEN** the only available update for a dependency is a semver-major version increase
+- **THEN** Dependabot does not open a pull request for that bump
 
-#### Scenario: Dependabot PR is auto-approved and merge-enabled
+### Requirement: Dependabot auto-merge runs after CI quality passes
 
-- **WHEN** Dependabot opens a pull request
-- **THEN** the auto-merge workflow approves the PR and enables auto-merge
+The repository SHALL run Dependabot auto-merge as part of `.github/workflows/ci.yml`: after the `quality` job succeeds, a `dependabot-auto-merge` job SHALL approve and enable merge-commit auto-merge for pull requests opened by `dependabot[bot]`.
+
+#### Scenario: Dependabot PR is auto-approved and merge-enabled after green CI
+
+- **WHEN** Dependabot opens a pull request and the `quality` job completes successfully
+- **THEN** the `dependabot-auto-merge` job approves the PR and enables auto-merge
+
+#### Scenario: Failed quality blocks auto-merge
+
+- **WHEN** Dependabot opens a pull request and the `quality` job fails
+- **THEN** the `dependabot-auto-merge` job does not run
 
 ## E2E coverage
 
