@@ -35,19 +35,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build Playwright image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: Dockerfile.playwright
-          push: false
-          load: true
-          tags: illo3d-playwright:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Start containers
-        run: docker compose up -d --no-build
+      - name: Start app container
+        run: docker compose up -d --no-build app
 
       - name: Install dependencies
         run: make install
@@ -60,6 +49,3 @@ jobs:
 
       - name: Unit tests
         run: make test
-
-      - name: E2E tests
-        run: make e2e-test

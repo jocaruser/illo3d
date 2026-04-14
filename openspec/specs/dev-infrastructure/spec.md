@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), GitHub Actions CI on pull requests to `main` (Docker images plus the same `make` quality targets as local), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory quality gates (build, lint, unit tests, e2e), Playwright coverage mapped to feature specs, shared e2e auth/shop setup, multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers).
+Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), GitHub Actions CI on pull requests to `main` (Docker `app` image, install, `make build`, `make lint`, `make test`; e2e not in CI), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory quality gates locally and for agents (build, lint, unit tests, e2e), Playwright coverage mapped to feature specs, shared e2e auth/shop setup, multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers).
 
 ## Repository documentation
 
@@ -236,17 +236,17 @@ The full test suite SHALL pass when running `make test`. Stale tests MUST be upd
 
 ### Requirement: E2E tests pass
 
-The full Playwright e2e test suite SHALL pass when running `make e2e-test`. All e2e tests SHALL use Dev Login for authenticated flows and SHALL NOT rely on real Google OAuth in CI.
+The full Playwright e2e test suite SHALL pass when running `make e2e-test`. All e2e tests SHALL use Dev Login for authenticated flows and SHALL NOT rely on real Google OAuth.
 
 #### Scenario: Full e2e suite passes
 
 - **WHEN** developer runs `make e2e-test`
 - **THEN** Playwright reports all e2e spec files passed with 0 failures
 
-#### Scenario: E2E tests run in CI
+#### Scenario: E2E is required before merge via local or agent quality gate
 
-- **WHEN** CI pipeline executes quality checks
-- **THEN** `make e2e-test` runs and must succeed for the pipeline to pass
+- **WHEN** a change is considered ready to merge
+- **THEN** `make e2e-test` (or full `make quality-gate`) has been run successfully outside the GitHub Actions CI workflow, as enforced by project rules and review practice
 
 ### Requirement: Cursor rule enforces quality gates
 
@@ -269,30 +269,30 @@ A Cursor rule SHALL exist that instructs AI agents to validate build, lint, test
 
 ## Continuous integration
 
-### Requirement: CI workflow runs quality gate on pull requests
+### Requirement: CI workflow runs build, lint, and unit tests on pull requests
 
-A GitHub Actions workflow SHALL exist at `.github/workflows/ci.yml` that triggers on pull requests targeting `main`. The workflow SHALL build the Docker images for the `app` and `playwright` services (from the repository Dockerfiles), start the containers, install dependencies, and run the full quality gate: `make build`, `make lint`, `make test`, and `make e2e-test` in sequence. All steps MUST pass for the workflow to report success.
+A GitHub Actions workflow SHALL exist at `.github/workflows/ci.yml` that triggers on pull requests targeting `main`. The workflow SHALL build the Docker image for the `app` service (from the repository `Dockerfile`), start only the `app` container, install dependencies, and run `make build`, `make lint`, and `make test` in sequence. The workflow SHALL NOT build the Playwright image or run `make e2e-test`. All steps MUST pass for the workflow to report success.
 
 #### Scenario: PR triggers CI
 
 - **WHEN** a developer opens or updates a pull request targeting `main`
 - **THEN** the CI workflow starts automatically
 
-#### Scenario: CI runs full quality gate
+#### Scenario: CI runs build, lint, and unit tests
 
 - **WHEN** the CI workflow executes
-- **THEN** it runs `make build`, `make lint`, `make test`, and `make e2e-test` in sequence inside Docker containers
-- **AND** the workflow succeeds only if all four commands exit with code 0
+- **THEN** it runs `make build`, `make lint`, and `make test` in sequence inside the `app` Docker container
+- **AND** the workflow succeeds only if all three commands exit with code 0
 
 #### Scenario: CI fails on lint error
 
 - **WHEN** the PR introduces an ESLint violation
 - **THEN** `make lint` fails and the CI workflow reports failure
 
-#### Scenario: CI fails on test failure
+#### Scenario: CI fails on unit test failure
 
-- **WHEN** the PR introduces a failing unit or e2e test
-- **THEN** the corresponding make target fails and the CI workflow reports failure
+- **WHEN** the PR introduces a failing unit test
+- **THEN** `make test` fails and the CI workflow reports failure
 
 ### Requirement: CI caches Docker layers and dependencies
 
@@ -461,9 +461,9 @@ The system SHALL have Playwright coverage that verifies the Expenses list view s
 - **AND** the app navigates to the expenses view
 - **THEN** the expenses UI shows content that reflects those values within a bounded timeout
 
-### Requirement: E2E tests run via Makefile and pass in CI
+### Requirement: E2E tests run via Makefile and pass before merge
 
-The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL start a dedicated Vite server with ephemeral fixtures, run Playwright against it, and clean up afterward. The target SHALL NOT modify `public/fixtures/`. All e2e tests SHALL pass with zero failures before considering implementation complete.
+The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL start a dedicated Vite server with ephemeral fixtures, run Playwright against it, and clean up afterward. The target SHALL NOT modify `public/fixtures/`. All e2e tests SHALL pass with zero failures before considering implementation complete (locally, via `make quality-gate`, or as required by project automation rules). GitHub Actions CI SHALL NOT execute `make e2e-test`.
 
 #### Scenario: E2E tests run via Makefile
 
@@ -471,9 +471,9 @@ The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL sta
 - **THEN** Playwright executes all e2e spec files against the dedicated e2e server
 - **AND** reports results
 
-#### Scenario: E2E tests pass in CI
+#### Scenario: E2E passes when run locally
 
-- **WHEN** CI runs `make e2e-test`
+- **WHEN** a developer runs `make e2e-test` on a clean branch with passing changes
 - **THEN** all tests pass with exit code 0
 
 #### Scenario: E2E tests do not modify dev fixtures
@@ -483,7 +483,7 @@ The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL sta
 
 ### Requirement: Playwright configuration documents execution policy
 
-The Playwright configuration or project documentation SHALL state how many workers are used locally and in CI, when `serial` mode is required, and whether an additional browser project (e.g. Firefox) can be enabled via environment variable. The default `make e2e-test` path SHALL remain green without mandatory extra browsers.
+The Playwright configuration or project documentation SHALL state how many workers are used when running e2e locally, when `serial` mode is required, and whether an additional browser project (e.g. Firefox) can be enabled via environment variable. The default `make e2e-test` path SHALL remain green without mandatory extra browsers.
 
 #### Scenario: Default e2e remains Chromium-only
 
@@ -492,5 +492,5 @@ The Playwright configuration or project documentation SHALL state how many worke
 
 #### Scenario: Optional secondary browser is documented
 
-- **WHEN** a maintainer enables the documented optional browser flag in CI or locally
+- **WHEN** a maintainer enables the documented optional browser flag locally
 - **THEN** the same specs execute against the additional project without changing production code

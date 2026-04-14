@@ -1,10 +1,10 @@
 /**
  * E2E policy (illo3d):
- * - Chromium only in CI and by default (no extra browser matrix).
+ * - Chromium only by default (no extra browser matrix).
  * - workers: 1 — single Vite server and one `.e2e-fixtures` tree; parallel workers would race CSV writes.
  *   Use test.describe.configure({ mode: 'serial' }) where tests in a file depend on order.
  * - fullyParallel: true lets independent files run in parallel when workers > 1 locally.
- * - retries: 2 on CI only to absorb rare timing flakes.
+ * - When `CI` is set (e.g. ad-hoc automation): retries 2 and GitHub reporter to absorb rare flakes.
  *
  * The app must already be served (e.g. `make e2e-test` starts Vite and sets PLAYWRIGHT_BASE_URL).
  */
