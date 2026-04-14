@@ -112,7 +112,17 @@ export function CreatePieceItemPopup({
               ) : (
                 sortedInventory.map((inv) => (
                   <option key={inv.id} value={inv.id}>
-                    {inv.name} ({inv.id})
+                    {inv.type === 'filament'
+                      ? t('pieces.inventoryOptionFilament', {
+                          name: inv.name,
+                          id: inv.id,
+                          qty: inv.qty_current,
+                        })
+                      : t('pieces.inventoryOptionUnits', {
+                          name: inv.name,
+                          id: inv.id,
+                          qty: inv.qty_current,
+                        })}
                   </option>
                 ))
               )}

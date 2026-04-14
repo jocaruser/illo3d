@@ -20,7 +20,8 @@ import { PiecesTable } from '@/components/PiecesTable'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-import type { Job } from '@/types/money'
+import { updatePieceStatus } from '@/services/piece/updatePieceStatus'
+import type { Inventory, Job, Piece, PieceItem, PieceStatus } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
 
 function clientName(
@@ -37,6 +38,46 @@ function formatJobPrice(price: number | undefined): string {
   }
   return formatCurrency(price)
 }
+
+function isConsumingPieceStatus(s: PieceStatus): boolean {
+  return s === 'done' || s === 'failed'
+}
+
+function linesForPieceId(pieceItems: PieceItem[], pieceId: string): PieceItem[] {
+  return pieceItems.filter((pi) => pi.piece_id === pieceId)
+}
+
+function aggregateNeedByInventory(lines: PieceItem[]): Map<string, number> {
+  const m = new Map<string, number>()
+  for (const l of lines) {
+    const q =
+      typeof l.quantity === 'number' ? l.quantity : Number(l.quantity)
+    m.set(l.inventory_id, (m.get(l.inventory_id) ?? 0) + q)
+  }
+  return m
+}
+
+function stockShortfall(
+  lines: PieceItem[],
+  inventoryRows: Inventory[]
+): { id: string; need: number; have: number }[] {
+  const needByLot = aggregateNeedByInventory(lines)
+  const out: { id: string; need: number; have: number }[] = []
+  for (const [id, need] of needByLot) {
+    const row = inventoryRows.find((i) => i.id === id)
+    const have = row?.qty_current ?? 0
+    if (have < need) out.push({ id, need, have })
+  }
+  return out
+}
+
+type PieceStatusFlow =
+  | null
+  | {
+      piece: Piece
+      nextStatus: PieceStatus
+      mode: 'consume' | 'restore'
+    }
 
 export function JobDetailPage() {
   const { t } = useTranslation()
@@ -73,6 +114,19 @@ export function JobDetailPage() {
   const [linePieceId, setLinePieceId] = useState<string | null>(null)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Job | null>(null)
+  const [pieceStatusFlow, setPieceStatusFlow] =
+    useState<PieceStatusFlow>(null)
+  const [decrementInventory, setDecrementInventory] = useState(true)
+  const [restoreInventory, setRestoreInventory] = useState(true)
+  const [pieceStatusError, setPieceStatusError] = useState<string | null>(
+    null
+  )
+  const [lineRequirementMessage, setLineRequirementMessage] = useState<
+    string | null
+  >(null)
+  const [pieceStatusUpdatingId, setPieceStatusUpdatingId] = useState<
+    string | null
+  >(null)
 
   useEffect(() => {
     if (!spreadsheetId) return
@@ -104,6 +158,12 @@ export function JobDetailPage() {
   const invalidatePieceItems = async () => {
     await queryClient.invalidateQueries({
       queryKey: ['piece_items', spreadsheetId],
+    })
+  }
+
+  const invalidateInventory = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ['inventory', spreadsheetId],
     })
   }
 
@@ -158,6 +218,93 @@ export function JobDetailPage() {
   }
 
   const listLoading = piecesLoading || itemsLoading
+
+  const commitPieceStatusChange = async (
+    piece: Piece,
+    next: PieceStatus,
+    options: { decrementInventory: boolean; restoreInventory: boolean }
+  ) => {
+    if (!spreadsheetId) return
+    setPieceStatusUpdatingId(piece.id)
+    setPieceStatusError(null)
+    try {
+      const result = await updatePieceStatus(spreadsheetId, piece, next, {
+        decrementInventory: options.decrementInventory,
+        restoreInventory: options.restoreInventory,
+      })
+      if (!result.ok) {
+        const detail = result.lots
+          .map((l) => `${l.inventoryId}: ${l.need} / ${l.have}`)
+          .join('; ')
+        setPieceStatusError(
+          t('pieces.statusInsufficientStockDetail', { detail })
+        )
+        return
+      }
+      await invalidatePieces()
+      await invalidatePieceItems()
+      await invalidateInventory()
+      setPieceStatusFlow(null)
+    } catch (e) {
+      setPieceStatusError(
+        e instanceof Error ? e.message : t('wizard.errorGeneric')
+      )
+    } finally {
+      setPieceStatusUpdatingId(null)
+    }
+  }
+
+  const handlePieceStatusSelect = (piece: Piece, next: PieceStatus) => {
+    if (next === piece.status) return
+    setPieceStatusError(null)
+    setLineRequirementMessage(null)
+
+    const old = piece.status
+    if (isConsumingPieceStatus(next)) {
+      if (!isConsumingPieceStatus(old)) {
+        const lines = linesForPieceId(pieceItems, piece.id)
+        if (lines.length === 0) {
+          setLineRequirementMessage(t('pieces.statusNeedsLines'))
+          return
+        }
+        setDecrementInventory(true)
+        setPieceStatusFlow({
+          piece,
+          nextStatus: next,
+          mode: 'consume',
+        })
+        return
+      }
+      void commitPieceStatusChange(piece, next, {
+        decrementInventory: false,
+        restoreInventory: false,
+      })
+      return
+    }
+
+    if (next === 'pending' && isConsumingPieceStatus(old)) {
+      setRestoreInventory(true)
+      setPieceStatusFlow({
+        piece,
+        nextStatus: next,
+        mode: 'restore',
+      })
+      return
+    }
+
+    void commitPieceStatusChange(piece, next, {
+      decrementInventory: false,
+      restoreInventory: false,
+    })
+  }
+
+  const consumeShortfall =
+    pieceStatusFlow?.mode === 'consume'
+      ? stockShortfall(
+          linesForPieceId(pieceItems, pieceStatusFlow.piece.id),
+          inventory
+        )
+      : []
 
   const detailFields = job
     ? [
@@ -223,6 +370,15 @@ export function JobDetailPage() {
             </button>
           </div>
 
+          {lineRequirementMessage ? (
+            <div
+              className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+              role="alert"
+            >
+              {lineRequirementMessage}
+            </div>
+          ) : null}
+
           {listLoading ? (
             <p className="text-gray-600">{t('pieces.loading')}</p>
           ) : pieces.length === 0 ? (
@@ -240,6 +396,10 @@ export function JobDetailPage() {
                 setExpandedPieceId((cur) => (cur === id ? null : id))
               }
               onOpenAddLine={(id) => setLinePieceId(id)}
+              onStatusChange={(p, next) => {
+                void handlePieceStatusSelect(p, next)
+              }}
+              statusUpdatingId={pieceStatusUpdatingId}
               hideJobColumn
             />
           )}
@@ -293,6 +453,97 @@ export function JobDetailPage() {
         pieceId={linePieceId}
         inventory={inventory}
       />
+
+      <ConfirmDialog
+        isOpen={pieceStatusFlow?.mode === 'consume'}
+        title={t('pieces.confirmConsumeTitle')}
+        message={
+          consumeShortfall.length > 0
+            ? t('pieces.confirmConsumeLowStock')
+            : t('pieces.confirmConsumeMessage')
+        }
+        confirmLabel={t('jobs.confirm')}
+        cancelLabel={t('jobs.cancel')}
+        onCancel={() => {
+          setPieceStatusFlow(null)
+          setPieceStatusError(null)
+          setDecrementInventory(true)
+        }}
+        onConfirm={() => {
+          if (!pieceStatusFlow || pieceStatusFlow.mode !== 'consume') return
+          void commitPieceStatusChange(
+            pieceStatusFlow.piece,
+            pieceStatusFlow.nextStatus,
+            {
+              decrementInventory,
+              restoreInventory: false,
+            }
+          )
+        }}
+      >
+        {consumeShortfall.length > 0 ? (
+          <ul className="mb-3 list-inside list-disc text-sm text-amber-800">
+            {consumeShortfall.map((s) => (
+              <li key={s.id}>
+                {t('pieces.shortfallLine', {
+                  id: s.id,
+                  need: s.need,
+                  have: s.have,
+                })}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={decrementInventory}
+            onChange={(e) => setDecrementInventory(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span>{t('pieces.decrementInventoryLabel')}</span>
+        </label>
+        {pieceStatusError ? (
+          <p className="mt-3 text-sm text-red-600">{pieceStatusError}</p>
+        ) : null}
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        isOpen={pieceStatusFlow?.mode === 'restore'}
+        title={t('pieces.confirmRestoreTitle')}
+        message={t('pieces.confirmRestoreMessage')}
+        confirmLabel={t('jobs.confirm')}
+        cancelLabel={t('jobs.cancel')}
+        onCancel={() => {
+          setPieceStatusFlow(null)
+          setPieceStatusError(null)
+          setRestoreInventory(true)
+        }}
+        onConfirm={() => {
+          if (!pieceStatusFlow || pieceStatusFlow.mode !== 'restore') return
+          void commitPieceStatusChange(
+            pieceStatusFlow.piece,
+            pieceStatusFlow.nextStatus,
+            {
+              decrementInventory: false,
+              restoreInventory,
+            }
+          )
+        }}
+      >
+        <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={restoreInventory}
+            onChange={(e) => setRestoreInventory(e.target.checked)}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          />
+          <span>{t('pieces.restoreInventoryLabel')}</span>
+        </label>
+        {pieceStatusError ? (
+          <p className="mt-3 text-sm text-red-600">{pieceStatusError}</p>
+        ) : null}
+      </ConfirmDialog>
     </div>
   )
 }

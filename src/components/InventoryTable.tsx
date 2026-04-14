@@ -2,6 +2,15 @@ import { useTranslation } from 'react-i18next'
 import type { Inventory } from '@/types/money'
 import { formatInventoryCreatedDate } from '@/services/sheets/inventory'
 
+function qtyCurrentHighlightClass(item: Inventory): string {
+  if (item.qty_initial <= 1) return ''
+  const ratio = item.qty_current / item.qty_initial
+  if (ratio > 0.5) return ''
+  if (ratio > 0.3) return 'bg-yellow-50'
+  if (ratio > 0.1) return 'bg-orange-100'
+  return 'bg-red-100'
+}
+
 interface InventoryTableProps {
   items: Inventory[]
 }
@@ -46,7 +55,9 @@ export function InventoryTable({ items }: InventoryTableProps) {
               <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">
                 {item.qty_initial}
               </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">
+              <td
+                className={`whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 ${qtyCurrentHighlightClass(item)}`}
+              >
                 {item.qty_current}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
