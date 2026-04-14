@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory quality gates (build, lint, unit tests, e2e), Playwright coverage mapped to feature specs, shared e2e auth/shop setup, multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers).
+Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), GitHub Actions CI on pull requests to `main` (Docker images plus the same `make` quality targets as local), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory quality gates (build, lint, unit tests, e2e), Playwright coverage mapped to feature specs, shared e2e auth/shop setup, multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers).
 
 ## Repository documentation
 
@@ -266,6 +266,65 @@ A Cursor rule SHALL exist that instructs AI agents to validate build, lint, test
 
 - **WHEN** AI agent needs to run any development command (dev, build, test, e2e-test, lint, format, install)
 - **THEN** the agent uses the corresponding `make` target instead of running pnpm or docker commands directly
+
+## Continuous integration
+
+### Requirement: CI workflow runs quality gate on pull requests
+
+A GitHub Actions workflow SHALL exist at `.github/workflows/ci.yml` that triggers on pull requests targeting `main`. The workflow SHALL build the Docker images, start the containers, install dependencies, and run the full quality gate: `make build`, `make lint`, `make test`, and `make e2e-test` in sequence. All steps MUST pass for the workflow to report success.
+
+#### Scenario: PR triggers CI
+
+- **WHEN** a developer opens or updates a pull request targeting `main`
+- **THEN** the CI workflow starts automatically
+
+#### Scenario: CI runs full quality gate
+
+- **WHEN** the CI workflow executes
+- **THEN** it runs `make build`, `make lint`, `make test`, and `make e2e-test` in sequence inside Docker containers
+- **AND** the workflow succeeds only if all four commands exit with code 0
+
+#### Scenario: CI fails on lint error
+
+- **WHEN** the PR introduces an ESLint violation
+- **THEN** `make lint` fails and the CI workflow reports failure
+
+#### Scenario: CI fails on test failure
+
+- **WHEN** the PR introduces a failing unit or e2e test
+- **THEN** the corresponding make target fails and the CI workflow reports failure
+
+### Requirement: CI caches Docker layers and dependencies
+
+The CI workflow SHALL cache Docker BuildKit layers and `node_modules` between runs to minimize execution time. The `node_modules` cache SHALL be keyed on the hash of `pnpm-lock.yaml` so it invalidates when dependencies change.
+
+#### Scenario: Warm cache shortens CI run
+
+- **WHEN** `pnpm-lock.yaml` has not changed since the last CI run
+- **THEN** `node_modules` is restored from cache and `pnpm install` completes in under 10 seconds
+
+#### Scenario: Cache invalidates on lockfile change
+
+- **WHEN** `pnpm-lock.yaml` has changed since the last CI run
+- **THEN** the `node_modules` cache misses and `pnpm install` fetches updated dependencies
+
+### Requirement: Dependabot configuration is tracked in the repository
+
+The repository SHALL include a `.github/dependabot.yml` file that configures automated dependency update checks for npm, Docker, and GitHub Actions ecosystems on a weekly schedule.
+
+#### Scenario: Dependabot opens PRs for outdated dependencies
+
+- **WHEN** a weekly scheduled check detects an outdated npm, Docker, or GitHub Actions dependency
+- **THEN** Dependabot opens a pull request with the update
+
+### Requirement: Dependabot auto-merge workflow is tracked in the repository
+
+The repository SHALL include a `.github/workflows/dependabot-auto-merge.yml` workflow that automatically approves and enables merge-commit auto-merge for pull requests opened by `dependabot[bot]`.
+
+#### Scenario: Dependabot PR is auto-approved and merge-enabled
+
+- **WHEN** Dependabot opens a pull request
+- **THEN** the auto-merge workflow approves the PR and enables auto-merge
 
 ## E2E coverage
 
