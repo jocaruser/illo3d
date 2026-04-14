@@ -6,7 +6,7 @@ test.describe('Jobs page', () => {
   test('unauthenticated user is redirected from /jobs to /login', async ({
     page,
   }) => {
-    await page.goto('/jobs', { waitUntil: 'networkidle' })
+    await page.goto('/jobs', { waitUntil: 'load' })
     await expect(page).toHaveURL(/\/login/)
   })
 

@@ -11,7 +11,7 @@ function e2eDestinationFolderName(): string {
 
 /** Dev Login + Local CSV “open existing shop” for the active `fixtureScenario`. */
 export async function devLoginAndOpenCsvShop(page: Page) {
-  await page.goto('/login', { waitUntil: 'networkidle' })
+  await page.goto('/login', { waitUntil: 'load' })
 
   const devLoginButton = page.getByTestId('dev-login-button')
   await expect(devLoginButton).toBeVisible({ timeout: 15000 })
@@ -33,12 +33,13 @@ export async function devLoginAndOpenCsvShop(page: Page) {
 
 export const test = base.extend<{
   fixtureScenario: string
-  _prepareFixtureDir: void
+  /** Reset `.e2e-fixtures` from `fixtures/<fixtureScenario>/`. Runs when opening the CSV shop or when a test pulls this in explicitly (e.g. manual wizard completion). */
+  prepareFixtureDir: void
   /** Opt-in: completes Dev Login and opens the CSV shop (see `devLoginAndOpenCsvShop`). */
   openCsvShop: void
 }>({
   fixtureScenario: ['happy-path', { option: true }],
-  _prepareFixtureDir: [
+  prepareFixtureDir: [
     async ({ fixtureScenario }, use) => {
       const goldenDir = path.join(process.cwd(), 'fixtures', fixtureScenario)
       if (!fs.existsSync(goldenDir)) {
@@ -61,10 +62,11 @@ export const test = base.extend<{
       }
       await use()
     },
-    { auto: true },
+    { auto: false },
   ],
   openCsvShop: [
-    async ({ page }, use) => {
+    async ({ page, prepareFixtureDir }, use) => {
+      void prepareFixtureDir
       await devLoginAndOpenCsvShop(page)
       await use()
     },

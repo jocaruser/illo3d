@@ -1,6 +1,7 @@
 import { Fragment, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Inventory, Job, Piece, PieceItem, PieceStatus } from '@/types/money'
+import type { Inventory, Job, Piece, PieceItem } from '@/types/money'
+import { PieceStatusDropdown } from '@/components/PieceStatusDropdown'
 
 function jobLabel(jobs: Job[], jobId: string): string {
   const j = jobs.find((x) => x.id === jobId)
@@ -14,6 +15,42 @@ function inventoryLabel(inventory: Inventory[], inventoryId: string): string {
   return `${inv.name} (${inv.id})`
 }
 
+function redoDisplay(
+  t: (key: string, opts?: Record<string, unknown>) => string,
+  inv: Inventory | undefined,
+  quantity: number
+): { remaining: string; band: string; bandClass: string } {
+  if (!inv) {
+    return { remaining: '—', band: '', bandClass: '' }
+  }
+  const qty = inv.qty_current
+  const remaining =
+    inv.type === 'filament'
+      ? t('pieces.inventoryRemainingGrams', { qty })
+      : t('pieces.inventoryRemainingUnits', { qty })
+  const q = quantity > 0 ? quantity : 1
+  const redos = Math.max(0, Math.floor((qty - q) / q))
+  if (redos >= 2) {
+    return {
+      remaining,
+      band: t('pieces.redo.safe', { count: redos }),
+      bandClass: 'text-green-700',
+    }
+  }
+  if (redos === 1) {
+    return {
+      remaining,
+      band: t('pieces.redo.tight'),
+      bandClass: 'text-amber-700',
+    }
+  }
+  return {
+    remaining,
+    band: t('pieces.redo.risky'),
+    bandClass: 'text-red-600',
+  }
+}
+
 interface PiecesTableProps {
   pieces: Piece[]
   jobs: Job[]
@@ -22,6 +59,8 @@ interface PiecesTableProps {
   expandedPieceId: string | null
   onToggleExpand: (pieceId: string) => void
   onOpenAddLine: (pieceId: string) => void
+  onStatusChange: (piece: Piece, nextStatus: Piece['status']) => void
+  statusUpdatingId?: string | null
   hideJobColumn?: boolean
 }
 
@@ -33,6 +72,8 @@ export function PiecesTable({
   expandedPieceId,
   onToggleExpand,
   onOpenAddLine,
+  onStatusChange,
+  statusUpdatingId = null,
   hideJobColumn = false,
 }: PiecesTableProps) {
   const { t } = useTranslation()
@@ -50,8 +91,6 @@ export function PiecesTable({
     }
     return map
   }, [pieceItems])
-
-  const statusLabel = (s: PieceStatus) => t(`pieces.status.${s}`)
 
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
@@ -114,7 +153,12 @@ export function PiecesTable({
                     {piece.name}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                    {statusLabel(piece.status)}
+                    <PieceStatusDropdown
+                      pieceId={piece.id}
+                      status={piece.status}
+                      disabled={statusUpdatingId === piece.id}
+                      onChange={(next) => onStatusChange(piece, next)}
+                    />
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                     {piece.created_at}
@@ -154,7 +198,8 @@ export function PiecesTable({
                                 <th className="py-2 pr-4">
                                   {t('pieces.lineColInventory')}
                                 </th>
-                                <th className="py-2">{t('pieces.lineColQty')}</th>
+                                <th className="py-2 pr-4">{t('pieces.lineColQty')}</th>
+                                <th className="py-2">{t('pieces.lineColStock')}</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -169,8 +214,29 @@ export function PiecesTable({
                                   <td className="py-2 pr-4 text-gray-800">
                                     {inventoryLabel(inventory, line.inventory_id)}
                                   </td>
-                                  <td className="py-2 text-gray-800">
+                                  <td className="py-2 pr-4 text-gray-800">
                                     {line.quantity}
+                                  </td>
+                                  <td className="py-2 text-gray-800">
+                                    {(() => {
+                                      const inv = inventory.find(
+                                        (x) => x.id === line.inventory_id
+                                      )
+                                      const { remaining, band, bandClass } =
+                                        redoDisplay(t, inv, line.quantity)
+                                      return band ? (
+                                        <span>
+                                          <span>{remaining}</span>
+                                          <span
+                                            className={`ml-1 ${bandClass}`}
+                                          >
+                                            · {band}
+                                          </span>
+                                        </span>
+                                      ) : (
+                                        <span>{remaining}</span>
+                                      )
+                                    })()}
                                   </td>
                                 </tr>
                               ))}

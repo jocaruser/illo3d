@@ -4,15 +4,17 @@ test.describe('Route guard', () => {
   test('unauthenticated user navigating to /transactions is redirected to /login', async ({
     page,
   }) => {
-    await page.goto('/transactions', { waitUntil: 'networkidle' })
+    await page.goto('/transactions', { waitUntil: 'load' })
 
     await expect(page).toHaveURL(/\/login/)
   })
 
   test('authenticated user via Dev Login can access /transactions without redirection', async ({
     page,
+    prepareFixtureDir,
   }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' })
+    void prepareFixtureDir
+    await page.goto('/login', { waitUntil: 'load' })
 
     const devLoginButton = page.getByTestId('dev-login-button')
     await expect(devLoginButton).toBeVisible({ timeout: 15000 })
@@ -29,7 +31,7 @@ test.describe('Route guard', () => {
   })
 
   test('redirect after login returns to original path', async ({ page }) => {
-    await page.goto('/transactions', { waitUntil: 'networkidle' })
+    await page.goto('/transactions', { waitUntil: 'load' })
 
     await expect(page).toHaveURL(/\/login/)
 
@@ -43,7 +45,7 @@ test.describe('Route guard', () => {
   test('authenticated user without active shop sees wizard overlay', async ({
     page,
   }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' })
+    await page.goto('/login', { waitUntil: 'load' })
 
     const devLoginButton = page.getByTestId('dev-login-button')
     await expect(devLoginButton).toBeVisible({ timeout: 15000 })

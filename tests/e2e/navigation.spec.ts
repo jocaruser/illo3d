@@ -2,7 +2,7 @@ import { test, expect } from './fixtures'
 
 test.describe('Navigation chrome', () => {
   test('login page has no breadcrumb landmark', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' })
+    await page.goto('/login', { waitUntil: 'load' })
     await expect(
       page.getByRole('navigation', { name: /breadcrumb/i }),
     ).toHaveCount(0)

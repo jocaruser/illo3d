@@ -2,7 +2,7 @@ import { test, expect } from './fixtures'
 
 test.describe('Login flow', () => {
   test('login page shows illo3d brand and sign-in options', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' })
+    await page.goto('/login', { waitUntil: 'load' })
 
     await expect(page.getByRole('heading', { name: 'illo3d' })).toBeVisible({
       timeout: 15000,
@@ -11,14 +11,14 @@ test.describe('Login flow', () => {
   })
 
   test('dev login button is visible in development', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' })
+    await page.goto('/login', { waitUntil: 'load' })
 
     const devLoginButton = page.getByTestId('dev-login-button')
     await expect(devLoginButton).toBeVisible({ timeout: 15000 })
   })
 
   test('sign in with Google button is visible on login page load', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' })
+    await page.goto('/login', { waitUntil: 'load' })
 
     await expect(page.getByRole('button', { name: 'Sign in with Google' })).toBeVisible({
       timeout: 15000,
@@ -26,7 +26,7 @@ test.describe('Login flow', () => {
   })
 
   test('dev login navigates to transactions page', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' })
+    await page.goto('/login', { waitUntil: 'load' })
 
     const devLoginButton = page.getByTestId('dev-login-button')
     await expect(devLoginButton).toBeVisible({ timeout: 15000 })

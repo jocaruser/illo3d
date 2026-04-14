@@ -1,5 +1,6 @@
 services:
   app:
+    image: illo3d-app
     build: .
     volumes:
       - .:/app
@@ -17,6 +18,7 @@ services:
           - web
 
   playwright:
+    image: illo3d-playwright
     build:
       context: .
       dockerfile: Dockerfile.playwright

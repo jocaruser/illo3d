@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/playwright:v1.58.2-jammy
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN npm install -g pnpm@latest
 
 CMD ["bash"]
 

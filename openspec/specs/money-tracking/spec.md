@@ -108,7 +108,30 @@ The system SHALL support a pieces data model with fields: id (string), job_id (s
 #### Scenario: Piece completion triggers inventory consumption
 
 - **WHEN** piece status changes to "done" or "failed"
-- **THEN** inventory qty_current is decremented for all piece_items of that piece
+- **AND** the user confirms with "Decrement from inventory" checked
+- **THEN** inventory `qty_current` is decremented by `piece_item.quantity` for each piece_item of that piece
+- **AND** the piece status is updated in the pieces sheet
+
+#### Scenario: Piece completion without inventory decrement
+
+- **WHEN** piece status changes to "done" or "failed"
+- **AND** the user unchecks "Decrement from inventory"
+- **THEN** the piece status is updated in the pieces sheet
+- **AND** inventory `qty_current` is NOT modified
+
+#### Scenario: Piece reverts from consuming status to pending
+
+- **WHEN** piece status changes from "done" or "failed" back to "pending"
+- **AND** the user confirms with "Restore inventory quantities" checked
+- **THEN** inventory `qty_current` is incremented by `piece_item.quantity` for each piece_item of that piece
+- **AND** the piece status is updated to "pending"
+
+#### Scenario: Piece reverts without inventory restoration
+
+- **WHEN** piece status changes from "done" or "failed" back to "pending"
+- **AND** the user unchecks "Restore inventory quantities"
+- **THEN** the piece status is updated to "pending"
+- **AND** inventory `qty_current` is NOT modified
 
 ### Requirement: Piece_items data model is defined
 
@@ -121,14 +144,14 @@ The system SHALL support a piece_items data model with fields: id (string), piec
 
 ### Requirement: Job detail page lists pieces for that job
 
-The system SHALL provide a job detail route `/jobs/:jobId` protected by the same authentication guard as `/jobs`. The system SHALL NOT provide a top-level Pieces tab or `/pieces` route. When the sheet connection is connected, the job detail page SHALL show a summary of the job (description, id, client, status, price, created_at) and a **Pieces** section. The Pieces section SHALL list only pieces whose `job_id` matches `:jobId`, with columns: id, name, status (`pending`, `done`, `failed` with i18n labels), and `created_at` (job reference column omitted on this page). Rows SHALL be sorted by `created_at` descending. When no pieces exist for the job, the Pieces section SHALL show an empty state message using i18n.
+The system SHALL provide a job detail route `/jobs/:jobId` protected by the same authentication guard as `/jobs`. The system SHALL NOT provide a top-level Pieces tab or `/pieces` route. When the sheet connection is connected, the job detail page SHALL show a summary of the job (description, id, client, status, price, created_at) and a **Pieces** section. The Pieces section SHALL list only pieces whose `job_id` matches `:jobId`, with columns: id, name, status (as a dropdown with `pending`, `done`, `failed` options and i18n labels), and `created_at` (job reference column omitted on this page). Rows SHALL be sorted by `created_at` descending. When no pieces exist for the job, the Pieces section SHALL show an empty state message using i18n.
 
 #### Scenario: Authenticated user opens job detail with pieces
 
 - **WHEN** an authenticated user with an active shop navigates to `/jobs/J1`
 - **AND** the spreadsheet connection succeeds
 - **AND** pieces exist for that job
-- **THEN** the Pieces section shows those pieces
+- **THEN** the Pieces section shows those pieces with a status dropdown per row
 - **AND** no standalone Pieces navigation entry exists in the app header
 
 #### Scenario: Unauthenticated user cannot open job detail
@@ -156,12 +179,22 @@ The system SHALL provide `fetchPieceItems(spreadsheetId)` that reads all rows fr
 
 ### Requirement: Piece rows expand to show piece_items
 
-The system SHALL allow the user to expand a piece row to view a nested list of that piece’s `piece_items`. The nested list SHALL show at least: piece_item id, inventory lot name (resolved from the inventory sheet), and quantity. The nested section SHALL include a control to add a new piece_item to that piece. Collapsing a row SHALL hide its nested list.
+The system SHALL allow the user to expand a piece row to view a nested list of that piece's `piece_items`. The nested list SHALL show: piece_item id, inventory lot name (resolved from the inventory sheet), quantity, remaining lot quantity (`qty_current`), and redo margin. The redo margin SHALL be calculated as `floor((qty_current - quantity) / quantity)` and displayed with a label: "safe" (2+ redos, green), "tight" (1 redo, yellow), or "risky" (0 redos, red). The nested section SHALL include a control to add a new piece_item to that piece. Collapsing a row SHALL hide its nested list.
 
 #### Scenario: User expands a piece with lines
 
 - **WHEN** the user expands a piece that has piece_items
-- **THEN** each related piece_item appears with inventory name and quantity
+- **THEN** each related piece_item appears with inventory name, quantity, remaining lot quantity, and redo margin indicator
+
+#### Scenario: Piece_item shows risky redo margin
+
+- **WHEN** a piece_item requires 450g and the lot has 500g remaining
+- **THEN** the redo margin shows "tight (1 redo)" in yellow
+
+#### Scenario: Piece_item shows safe redo margin
+
+- **WHEN** a piece_item requires 42g and the lot has 916g remaining
+- **THEN** the redo margin shows "safe (21 redos)" in green
 
 ### Requirement: CreatePiecePopup creates a piece for a selected job
 
@@ -196,13 +229,18 @@ The system SHALL provide `createPiece(spreadsheetId, { job_id, name })` that gen
 
 ### Requirement: CreatePieceItemPopup allocates inventory to a piece
 
-The system SHALL provide `CreatePieceItemPopup` that collects a required inventory lot (select from cached inventory) and a required quantity greater than zero. On success it SHALL call `createPieceItem` to append a `piece_items` row. The form layout and validation style SHALL follow `CreateExpensePopup` (overlay close, inline field errors, submit/cancel). All user-visible strings SHALL use i18n. Creating a piece_item SHALL NOT modify `inventory.qty_current`.
+The system SHALL provide `CreatePieceItemPopup` that collects a required inventory lot (select from cached inventory) and a required quantity greater than zero. Each option in the inventory select SHALL display the lot name, id, and remaining quantity (e.g. "PLA White (INV1) — 958g left"). On success it SHALL call `createPieceItem` to append a `piece_items` row. The form layout and validation style SHALL follow `CreateExpensePopup` (overlay close, inline field errors, submit/cancel). All user-visible strings SHALL use i18n. Creating a piece_item SHALL NOT modify `inventory.qty_current`.
 
 #### Scenario: Valid line appends piece_item
 
 - **WHEN** the user chooses an inventory lot and enters a positive quantity and submits
 - **THEN** a new row is appended to the piece_items sheet for the given piece
 - **AND** inventory quantities are unchanged
+
+#### Scenario: Lot picker shows remaining quantity
+
+- **WHEN** the user opens the inventory lot dropdown
+- **THEN** each option displays the lot name, id, and current remaining quantity
 
 #### Scenario: Non-positive quantity is rejected
 
@@ -219,6 +257,98 @@ The system SHALL provide `createPieceItem(spreadsheetId, { piece_id, inventory_i
 - **WHEN** piece_items `PI1` and `PI2` already exist
 - **AND** `createPieceItem` is invoked
 - **THEN** the appended row has id `PI3`
+
+### Requirement: Piece status is changeable via dropdown
+
+The system SHALL display a `PieceStatusDropdown` component in `PiecesTable` for each piece row, replacing the plain text status display. The dropdown SHALL list all `PieceStatus` values (`pending`, `done`, `failed`) with i18n labels. Changing the dropdown value SHALL trigger a confirmation flow before updating the piece status.
+
+#### Scenario: User changes piece status to done
+
+- **WHEN** the user selects "done" from the piece status dropdown
+- **THEN** a confirmation dialog is shown before the status is updated
+
+#### Scenario: Status dropdown is disabled during update
+
+- **WHEN** a piece status update is in progress
+- **THEN** the dropdown for that piece is disabled
+
+### Requirement: Confirmation dialog shown before consuming status transition
+
+The system SHALL show a `ConfirmDialog` when piece status changes to `done` or `failed`. The dialog SHALL contain a pre-checked checkbox labeled "Decrement from inventory" (i18n). If all referenced inventory lots have sufficient `qty_current` (>= piece_item quantity), the dialog SHALL show a standard confirmation message. If any lot has insufficient stock, the dialog SHALL show a warning message identifying the insufficient lots but SHALL NOT block confirmation — the user MAY uncheck the decrement checkbox and proceed, or cancel.
+
+#### Scenario: Sufficient stock shows standard confirmation
+
+- **WHEN** user selects "done" for a piece with piece_items
+- **AND** all referenced lots have sufficient qty_current
+- **THEN** dialog shows with pre-checked "Decrement from inventory" checkbox
+- **AND** confirm button is enabled
+
+#### Scenario: Insufficient stock shows warning but allows proceed
+
+- **WHEN** user selects "done" for a piece with piece_items
+- **AND** at least one referenced lot has insufficient qty_current
+- **THEN** dialog shows a warning identifying the insufficient lot(s)
+- **AND** "Decrement from inventory" checkbox is shown (user can uncheck to skip)
+- **AND** confirm button is enabled
+
+#### Scenario: Piece with no piece_items blocks consuming transition
+
+- **WHEN** user selects "done" or "failed" for a piece with zero piece_items
+- **THEN** the transition is blocked
+- **AND** an error message is shown indicating at least one piece_item is required
+
+### Requirement: Confirmation dialog shown before reverting from consuming status
+
+The system SHALL show a `ConfirmDialog` when piece status changes from `done` or `failed` back to `pending`. The dialog SHALL contain a pre-checked checkbox labeled "Restore inventory quantities" (i18n). The user MAY uncheck to skip restoration.
+
+#### Scenario: Reverting to pending offers restore
+
+- **WHEN** user selects "pending" for a piece currently in "done" status
+- **THEN** dialog shows with pre-checked "Restore inventory quantities" checkbox
+
+#### Scenario: User confirms revert with restore
+
+- **WHEN** user confirms revert with "Restore inventory quantities" checked
+- **THEN** each piece_item's quantity is added back to the lot's qty_current
+- **AND** piece status is updated to "pending"
+
+### Requirement: updatePieceStatus service orchestrates status and inventory
+
+The system SHALL provide `updatePieceStatus(spreadsheetId, piece, newStatus, options)` that:
+1. Reads the pieces sheet to find the piece's row index.
+2. Reads piece_items filtered by piece_id.
+3. Reads inventory sheet.
+4. If `decrementInventory` is true and new status is `done` or `failed`: validates all lots have sufficient qty_current, then decrements each lot's `qty_current` by the corresponding piece_item quantity via `updateRow`.
+5. If `restoreInventory` is true and old status was `done` or `failed` and new status is `pending`: increments each lot's `qty_current` by the corresponding piece_item quantity via `updateRow`.
+6. Updates the piece row status via `updateRow`.
+
+The function SHALL return an error result (not throw) when validation fails, including details of which lots are insufficient.
+
+#### Scenario: Successful decrement updates inventory and piece
+
+- **WHEN** `updatePieceStatus` is called with `decrementInventory: true` for status "done"
+- **AND** all lots have sufficient stock
+- **THEN** each referenced lot's `qty_current` is decremented
+- **AND** the piece row status is updated to "done"
+
+#### Scenario: Validation failure returns error details
+
+- **WHEN** `updatePieceStatus` is called with `decrementInventory: true`
+- **AND** lot INV1 has `qty_current` 30 but piece_item requires 42
+- **THEN** the function returns an error result identifying INV1 as insufficient
+- **AND** no sheet rows are modified
+
+#### Scenario: Restore increments inventory
+
+- **WHEN** `updatePieceStatus` is called with `restoreInventory: true` moving from "done" to "pending"
+- **THEN** each referenced lot's `qty_current` is incremented by the piece_item quantity
+- **AND** the piece row status is updated to "pending"
+
+#### Scenario: Skip decrement updates only piece
+
+- **WHEN** `updatePieceStatus` is called with `decrementInventory: false`
+- **THEN** the piece row status is updated
+- **AND** no inventory rows are modified
 
 ### Requirement: Inventory data model is defined
 
@@ -238,6 +368,58 @@ The system SHALL support an inventory data model with fields: id (string), expen
 
 - **WHEN** an inventory record has type "equipment"
 - **THEN** it represents a physical asset such as a printer or enclosure
+
+### Requirement: Inventory table shows low-stock indicator
+
+The system SHALL visually indicate inventory stock levels in `InventoryTable` by coloring the `qty_current` cell based on the ratio `qty_current / qty_initial`:
+- Ratio > 0.5: no highlight (default)
+- Ratio > 0.3: yellow background
+- Ratio > 0.1: orange background
+- Ratio ≤ 0.1: red background
+
+Equipment items (`qty_initial` ≤ 1) SHALL be excluded from low-stock coloring.
+
+#### Scenario: Filament lot at 25% shows orange
+
+- **WHEN** a filament lot has `qty_initial` 1000 and `qty_current` 250
+- **THEN** the `qty_current` cell has an orange background
+
+#### Scenario: Filament lot at 60% shows no highlight
+
+- **WHEN** a filament lot has `qty_initial` 1000 and `qty_current` 600
+- **THEN** the `qty_current` cell has no special background
+
+#### Scenario: Equipment excluded from coloring
+
+- **WHEN** an equipment item has `qty_initial` 1 and `qty_current` 1
+- **THEN** the `qty_current` cell has no special background
+
+### Requirement: Fixture data reflects inventory consumption
+
+The happy-path fixture data SHALL include pieces with realistic statuses and inventory quantities that reflect consumption. At least one piece SHALL have status `done` with piece_items, and the referenced inventory lot's `qty_current` SHALL be decremented by the sum of those piece_items' quantities.
+
+#### Scenario: Fixture inventory reflects completed piece
+
+- **WHEN** fixture piece P3 has status "done" with piece_item PI3 consuming 15g from INV1
+- **THEN** fixture INV1 `qty_current` SHALL be `qty_initial - 15` (985)
+
+### Requirement: Piece status change UI strings support i18n
+
+All user-facing strings for piece status changes SHALL use i18next keys, including: confirmation dialog titles and messages, checkbox labels ("Decrement from inventory", "Restore inventory quantities"), insufficient stock warnings, and the "at least one piece_item required" error. Both English and Spanish translations SHALL be provided.
+
+#### Scenario: Confirmation labels are translatable
+
+- **WHEN** the piece status confirmation dialog renders
+- **THEN** all labels and messages come from i18n keys
+
+### Requirement: Piece_item redo margin UI strings support i18n
+
+All user-facing strings for redo margin display SHALL use i18next keys, including "safe", "tight", "risky" labels and the "(N redos)" / "(N redo)" text. The remaining quantity suffix (e.g. "g left") SHALL use i18n keys.
+
+#### Scenario: Redo margin labels are translatable
+
+- **WHEN** a piece_item row renders the redo margin
+- **THEN** margin labels come from i18n keys
 
 ### Requirement: Expense data model is defined
 

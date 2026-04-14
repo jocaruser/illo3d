@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createJob } from '@/services/job/createJob'
-import type { Client } from '@/types/money'
+import { updateJob } from '@/services/job/updateJob'
+import type { Client, Job } from '@/types/money'
+import type { UpdateJobPayload } from '@/services/job/updateJob'
 
 interface CreateJobPopupProps {
   isOpen: boolean
@@ -9,6 +11,11 @@ interface CreateJobPopupProps {
   onSuccess: () => void
   spreadsheetId: string | null
   clients: Client[]
+  initialJob?: Job | null
+  onUpdateJob?: (
+    jobId: string,
+    payload: UpdateJobPayload
+  ) => Promise<void>
 }
 
 export function CreateJobPopup({
@@ -17,6 +24,8 @@ export function CreateJobPopup({
   onSuccess,
   spreadsheetId,
   clients,
+  initialJob = null,
+  onUpdateJob,
 }: CreateJobPopupProps) {
   const { t } = useTranslation()
   const [clientQuery, setClientQuery] = useState('')
@@ -35,13 +44,26 @@ export function CreateJobPopup({
 
   useEffect(() => {
     if (!isOpen) return
-    setClientQuery('')
-    setClientId('')
-    setDescription('')
-    setPrice('')
+    if (initialJob) {
+      const c = clients.find((x) => x.id === initialJob.client_id)
+      setClientQuery(c?.name ?? '')
+      setClientId(initialJob.client_id)
+      setDescription(initialJob.description)
+      const p = initialJob.price
+      setPrice(
+        p !== undefined && p !== null && !Number.isNaN(Number(p))
+          ? String(p)
+          : ''
+      )
+    } else {
+      setClientQuery('')
+      setClientId('')
+      setDescription('')
+      setPrice('')
+    }
     setError(null)
     setFieldErrors({})
-  }, [isOpen])
+  }, [isOpen, initialJob, clients])
 
   const selectedClient = clients.find((c) => c.id === clientId)
 
@@ -64,11 +86,24 @@ export function CreateJobPopup({
     setLoading(true)
     try {
       const priceTrim = price.trim()
-      await createJob(spreadsheetId, {
-        client_id: clientId,
-        description: description.trim(),
-        price: priceTrim === '' ? undefined : parseFloat(priceTrim),
-      })
+      if (initialJob) {
+        const payload: UpdateJobPayload = {
+          client_id: clientId,
+          description: description.trim(),
+          price: priceTrim === '' ? undefined : parseFloat(priceTrim),
+        }
+        if (onUpdateJob) {
+          await onUpdateJob(initialJob.id, payload)
+        } else {
+          await updateJob(spreadsheetId, initialJob.id, payload)
+        }
+      } else {
+        await createJob(spreadsheetId, {
+          client_id: clientId,
+          description: description.trim(),
+          price: priceTrim === '' ? undefined : parseFloat(priceTrim),
+        })
+      }
       onSuccess()
       onClose()
     } catch (err) {
@@ -84,6 +119,8 @@ export function CreateJobPopup({
 
   if (!isOpen) return null
 
+  const isEdit = initialJob != null
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
@@ -94,7 +131,7 @@ export function CreateJobPopup({
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="mb-4 text-lg font-semibold text-gray-800">
-          {t('jobs.createTitle')}
+          {isEdit ? t('jobs.editTitle') : t('jobs.createTitle')}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -205,7 +242,7 @@ export function CreateJobPopup({
               disabled={loading}
               className="rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              {loading ? '...' : t('jobs.submit')}
+              {loading ? '...' : isEdit ? t('jobs.save') : t('jobs.submit')}
             </button>
           </div>
         </form>

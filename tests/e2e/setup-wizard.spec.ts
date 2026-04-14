@@ -2,7 +2,7 @@ import { test, expect } from './fixtures'
 
 /** Dev login; in CSV mode wizard shows immediately (no shop set). */
 async function devLoginAndShowWizard(page: import('@playwright/test').Page) {
-  await page.goto('/login', { waitUntil: 'networkidle' })
+  await page.goto('/login', { waitUntil: 'load' })
   const devLoginButton = page.getByTestId('dev-login-button')
   await expect(devLoginButton).toBeVisible({ timeout: 15000 })
   await devLoginButton.click()
@@ -41,7 +41,11 @@ test.describe('Setup wizard', () => {
     await expect(page).toHaveURL(/\/login/)
   })
 
-  test('wizard does not appear when user has active shop', async ({ page }) => {
+  test('wizard does not appear when user has active shop', async ({
+    page,
+    prepareFixtureDir,
+  }) => {
+    void prepareFixtureDir
     await devLoginAndShowWizard(page)
     await completeWizardWithFolder(page)
 

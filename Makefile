@@ -95,7 +95,7 @@ e2e-test:
 		if [ $$n -gt 60 ]; then echo 'E2E: Vite did not become ready on port 5174'; docker compose exec app sh -c 'kill $$(cat /tmp/illo3d-e2e-vite.pid 2>/dev/null) 2>/dev/null; rm -f /tmp/illo3d-e2e-vite.pid'; exit 1; fi; \
 		sleep 0.5; \
 	done
-	docker compose run --rm -e PLAYWRIGHT_SKIP_WEBSERVER=1 -e PLAYWRIGHT_BASE_URL=http://web:5174 playwright pnpm exec playwright test
+	docker compose run --rm -e PLAYWRIGHT_BASE_URL=http://web:5174 playwright pnpm exec playwright test
 	@docker compose exec app sh -c 'kill $$(cat /tmp/illo3d-e2e-vite.pid 2>/dev/null) 2>/dev/null; rm -f /tmp/illo3d-e2e-vite.pid'
 	@docker compose exec app rm -rf .e2e-fixtures
 
