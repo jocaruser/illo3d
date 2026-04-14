@@ -5,7 +5,12 @@
     "signOut": "Sign out"
   },
   "common": {
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "submitting": "Submitting..."
+  },
+  "page": {
+    "transactions": "Transactions",
+    "expenses": "Expenses"
   },
   "errors": {
     "routeTitle": "This page couldn’t be displayed",
@@ -35,7 +40,8 @@
     "pieces": "Pieces",
     "transactions": "Transactions",
     "expenses": "Expenses",
-    "inventory": "Inventory"
+    "inventory": "Inventory",
+    "toggleMenu": "Toggle menu"
   },
   "clients": {
     "title": "Clients",

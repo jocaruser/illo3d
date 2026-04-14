@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   BrowserRouter,
   Routes,
@@ -8,6 +9,7 @@ import {
   useLocation,
 } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { AuthStatus } from './components/AuthStatus'
 import { Breadcrumbs } from './components/Breadcrumbs'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -22,6 +24,7 @@ import { JobsPage } from './pages/JobsPage'
 import { JobDetailPage } from './pages/JobDetailPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
+import type { Job } from './types/money'
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {
   return isActive
@@ -32,7 +35,23 @@ function navLinkClassName({ isActive }: { isActive: boolean }) {
 export function Layout({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation()
   const location = useLocation()
-  const breadcrumbItems = getBreadcrumbItems(location.pathname, t)
+  const queryClient = useQueryClient()
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  const resolveJobDescription = (jobId: string): string | undefined => {
+    const queries = queryClient.getQueriesData<Job[]>({ queryKey: ['jobs'] })
+    for (const [, data] of queries) {
+      const job = data?.find((j) => j.id === jobId)
+      if (job) return job.description
+    }
+    return undefined
+  }
+
+  const breadcrumbItems = getBreadcrumbItems(
+    location.pathname,
+    t,
+    resolveJobDescription,
+  )
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const activeShop = useShopStore((s) => s.activeShop)
   const logout = useAuthStore((s) => s.logout)
@@ -43,6 +62,26 @@ export function Layout({ children }: { children: React.ReactNode }) {
     logout()
   }
 
+  const navLinks = (
+    <>
+      <NavLink to="/clients" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
+        {t('nav.clients')}
+      </NavLink>
+      <NavLink to="/jobs" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
+        {t('nav.jobs')}
+      </NavLink>
+      <NavLink to="/transactions" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
+        {t('nav.transactions')}
+      </NavLink>
+      <NavLink to="/expenses" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
+        {t('nav.expenses')}
+      </NavLink>
+      <NavLink to="/inventory" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
+        {t('nav.inventory')}
+      </NavLink>
+    </>
+  )
+
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow-sm">
@@ -51,24 +90,37 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <Link to="/" className="text-xl font-bold text-gray-800">
               illo3d
             </Link>
-            <NavLink to="/clients" className={navLinkClassName} end>
-              {t('nav.clients')}
-            </NavLink>
-            <NavLink to="/jobs" className={navLinkClassName}>
-              {t('nav.jobs')}
-            </NavLink>
-            <NavLink to="/transactions" className={navLinkClassName} end>
-              {t('nav.transactions')}
-            </NavLink>
-            <NavLink to="/expenses" className={navLinkClassName} end>
-              {t('nav.expenses')}
-            </NavLink>
-            <NavLink to="/inventory" className={navLinkClassName} end>
-              {t('nav.inventory')}
-            </NavLink>
+            <nav className="hidden gap-6 md:flex">{navLinks}</nav>
           </div>
-          <AuthStatus />
+          <div className="flex items-center gap-4">
+            <AuthStatus />
+            <button
+              type="button"
+              aria-label={t('nav.toggleMenu')}
+              className="md:hidden"
+              onClick={() => setMenuOpen((o) => !o)}
+            >
+              <svg
+                className="h-6 w-6 text-gray-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                {menuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
+        {menuOpen && (
+          <nav className="flex flex-col gap-2 border-t border-gray-200 px-4 py-3 md:hidden">
+            {navLinks}
+          </nav>
+        )}
       </header>
       {breadcrumbItems ? (
         <Breadcrumbs

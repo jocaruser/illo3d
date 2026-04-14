@@ -1,6 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Layout } from './App'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
@@ -12,7 +13,10 @@ vi.mock('react-i18next', () => ({
 }))
 
 describe('Layout', () => {
+  let qc: QueryClient
+
   beforeEach(() => {
+    qc = new QueryClient()
     useAuthStore.setState({
       isAuthenticated: true,
       user: { email: 'a@b.com', name: 'Test' },
@@ -30,18 +34,20 @@ describe('Layout', () => {
 
   it('marks the active section link with aria-current', () => {
     render(
-      <MemoryRouter initialEntries={['/jobs']}>
-        <Routes>
-          <Route
-            path="/jobs"
-            element={
-              <Layout>
-                <div>content</div>
-              </Layout>
-            }
-          />
-        </Routes>
-      </MemoryRouter>,
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/jobs']}>
+          <Routes>
+            <Route
+              path="/jobs"
+              element={
+                <Layout>
+                  <div>content</div>
+                </Layout>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
     )
 
     expect(screen.getByRole('link', { name: 'nav.jobs' })).toHaveAttribute(
@@ -55,18 +61,20 @@ describe('Layout', () => {
 
   it('shows breadcrumbs on main routes', () => {
     render(
-      <MemoryRouter initialEntries={['/expenses']}>
-        <Routes>
-          <Route
-            path="/expenses"
-            element={
-              <Layout>
-                <div>content</div>
-              </Layout>
-            }
-          />
-        </Routes>
-      </MemoryRouter>,
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/expenses']}>
+          <Routes>
+            <Route
+              path="/expenses"
+              element={
+                <Layout>
+                  <div>content</div>
+                </Layout>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
     )
 
     const breadcrumbNav = screen.getByRole('navigation', {
@@ -80,18 +88,20 @@ describe('Layout', () => {
 
   it('shows breadcrumbs on job detail route', () => {
     render(
-      <MemoryRouter initialEntries={['/jobs/J1']}>
-        <Routes>
-          <Route
-            path="/jobs/:jobId"
-            element={
-              <Layout>
-                <div>content</div>
-              </Layout>
-            }
-          />
-        </Routes>
-      </MemoryRouter>,
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/jobs/J1']}>
+          <Routes>
+            <Route
+              path="/jobs/:jobId"
+              element={
+                <Layout>
+                  <div>content</div>
+                </Layout>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
     )
 
     const breadcrumbNav = screen.getByRole('navigation', {
@@ -105,18 +115,20 @@ describe('Layout', () => {
 
   it('marks Jobs nav active on job detail path', () => {
     render(
-      <MemoryRouter initialEntries={['/jobs/J1']}>
-        <Routes>
-          <Route
-            path="/jobs/:jobId"
-            element={
-              <Layout>
-                <div>content</div>
-              </Layout>
-            }
-          />
-        </Routes>
-      </MemoryRouter>,
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/jobs/J1']}>
+          <Routes>
+            <Route
+              path="/jobs/:jobId"
+              element={
+                <Layout>
+                  <div>content</div>
+                </Layout>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
     )
 
     const jobsLinks = screen.getAllByRole('link', { name: 'nav.jobs' })
