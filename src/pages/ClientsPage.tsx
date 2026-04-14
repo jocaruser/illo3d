@@ -10,6 +10,7 @@ import { CreateClientPopup } from '@/components/CreateClientPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { QueryError } from '@/components/QueryError'
 import { useTranslation } from 'react-i18next'
 import { updateClient } from '@/services/client/updateClient'
 import {
@@ -32,8 +33,12 @@ export function ClientsPage() {
     setError,
   } = useSheetsStore()
 
-  const { data: clients = [], isLoading: clientsLoading } =
-    useClients(spreadsheetId)
+  const {
+    data: clients = [],
+    isLoading: clientsLoading,
+    isError: clientsError,
+    refetch: refetchClients,
+  } = useClients(spreadsheetId)
   const [createOpen, setCreateOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
@@ -153,7 +158,9 @@ export function ClientsPage() {
             </button>
           </div>
 
-          {clientsLoading ? (
+          {clientsError ? (
+            <QueryError onRetry={() => void refetchClients()} />
+          ) : clientsLoading ? (
             <LoadingSpinner />
           ) : clients.length === 0 ? (
             <EmptyState messageKey="clients.empty" />

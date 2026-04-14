@@ -14,12 +14,15 @@ import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { EmptyState } from '@/components/EmptyState'
 import { CreatePiecePopup } from '@/components/CreatePiecePopup'
 import { CreatePieceItemPopup } from '@/components/CreatePieceItemPopup'
 import { PiecesTable } from '@/components/PiecesTable'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { QueryError } from '@/components/QueryError'
 import { updatePieceStatus } from '@/services/piece/updatePieceStatus'
 import type { Inventory, Job, Piece, PieceItem, PieceStatus } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
@@ -94,7 +97,12 @@ export function JobDetailPage() {
     setError,
   } = useSheetsStore()
 
-  const { data: jobs = [], isLoading: jobsLoading } = useJobs(spreadsheetId)
+  const {
+    data: jobs = [],
+    isLoading: jobsLoading,
+    isError: jobsError,
+    refetch: refetchJobs,
+  } = useJobs(spreadsheetId)
   const { data: clients = [] } = useClients(spreadsheetId)
   const { data: allPieces = [], isLoading: piecesLoading } =
     usePieces(spreadsheetId)
@@ -114,6 +122,7 @@ export function JobDetailPage() {
   const [linePieceId, setLinePieceId] = useState<string | null>(null)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Job | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [pieceStatusFlow, setPieceStatusFlow] =
     useState<PieceStatusFlow>(null)
   const [decrementInventory, setDecrementInventory] = useState(true)
@@ -207,14 +216,19 @@ export function JobDetailPage() {
 
   const confirmDeleteJob = async () => {
     if (!spreadsheetId || !deleteTarget) return
-    await deleteJob(spreadsheetId, deleteTarget.id)
-    setDeleteTarget(null)
-    await queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
-    await queryClient.invalidateQueries({ queryKey: ['pieces', spreadsheetId] })
-    await queryClient.invalidateQueries({
-      queryKey: ['piece_items', spreadsheetId],
-    })
-    navigate('/jobs')
+    setDeleteError(null)
+    try {
+      await deleteJob(spreadsheetId, deleteTarget.id)
+      setDeleteTarget(null)
+      await queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
+      await queryClient.invalidateQueries({ queryKey: ['pieces', spreadsheetId] })
+      await queryClient.invalidateQueries({
+        queryKey: ['piece_items', spreadsheetId],
+      })
+      navigate('/jobs')
+    } catch {
+      setDeleteError(t('errors.deleteFailed'))
+    }
   }
 
   const listLoading = piecesLoading || itemsLoading
@@ -333,7 +347,11 @@ export function JobDetailPage() {
         onRetry={handleRetry}
       />
 
-      {status === 'connected' && !jobsLoading && jobId && !job && (
+      {status === 'connected' && jobsError && (
+        <QueryError onRetry={() => void refetchJobs()} />
+      )}
+
+      {status === 'connected' && !jobsError && !jobsLoading && jobId && !job && (
         <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
           <p className="text-gray-600">{t('jobs.jobNotFound')}</p>
           <Link
@@ -380,11 +398,9 @@ export function JobDetailPage() {
           ) : null}
 
           {listLoading ? (
-            <p className="text-gray-600">{t('pieces.loading')}</p>
+            <LoadingSpinner />
           ) : pieces.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
-              <p className="text-gray-600">{t('pieces.empty')}</p>
-            </div>
+            <EmptyState messageKey="pieces.empty" />
           ) : (
             <PiecesTable
               pieces={pieces}
@@ -426,11 +442,18 @@ export function JobDetailPage() {
         })}
         confirmLabel={t('jobs.confirm')}
         cancelLabel={t('jobs.cancel')}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => {
+          setDeleteTarget(null)
+          setDeleteError(null)
+        }}
         onConfirm={() => {
           void confirmDeleteJob()
         }}
-      />
+      >
+        {deleteError ? (
+          <p className="text-sm text-red-600">{deleteError}</p>
+        ) : null}
+      </ConfirmDialog>
 
       <CreatePiecePopup
         isOpen={createOpen}

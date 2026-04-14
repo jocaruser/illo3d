@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useGoogleLogin } from '@react-oauth/google'
 import { useTranslation } from 'react-i18next'
@@ -27,6 +27,7 @@ export function LoginPage() {
   const setBackend = useBackendStore((s) => s.setBackend)
 
   const from = (location.state as { from?: { pathname: string } })?.from?.pathname || '/'
+  const [loginError, setLoginError] = useState<string | null>(null)
 
   const handleDevLogin = () => {
     const { user, credentials, shop } = getDevFixtures()
@@ -65,7 +66,7 @@ export function LoginPage() {
       navigate(from, { replace: true })
     },
     onError: () => {
-      console.error('Google login failed')
+      setLoginError(t('errors.loginFailed'))
     },
   })
 
@@ -78,7 +79,10 @@ export function LoginPage() {
         <p className="mb-8 text-center text-gray-600">{t('login.tagline')}</p>
         <div className="flex min-h-[44px] flex-col items-center gap-4">
           <button
-            onClick={() => googleLogin()}
+            onClick={() => {
+              setLoginError(null)
+              googleLogin()
+            }}
             className="flex items-center gap-2 rounded border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 shadow-sm hover:bg-gray-50"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -101,6 +105,9 @@ export function LoginPage() {
             </svg>
             {t('auth.signIn')}
           </button>
+          {loginError && (
+            <p className="text-sm text-red-600">{loginError}</p>
+          )}
           {(import.meta.env.DEV || import.meta.env.VITE_SHOW_DEV_LOGIN === 'true') && (
             <>
               <div className="w-full border-t border-gray-200" />

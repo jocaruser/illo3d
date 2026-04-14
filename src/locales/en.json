@@ -10,7 +10,15 @@
   "errors": {
     "routeTitle": "This page couldn’t be displayed",
     "routeDescription": "Something unexpected happened. You can try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "fetchFailed": "Could not load data. Please try again.",
+    "deleteFailed": "Could not delete. Please try again.",
+    "actionFailed": "Action failed. Please try again.",
+    "loginFailed": "Sign-in failed. Please try again.",
+    "retryAction": "Retry",
+    "connectionConnecting": "Connecting to Google Sheets...",
+    "connectionError": "Error",
+    "connectionRetry": "Retry"
   },
   "login": {
     "title": "illo3d",

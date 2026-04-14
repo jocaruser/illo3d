@@ -7,6 +7,7 @@ import { InventoryTable } from '@/components/InventoryTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { QueryError } from '@/components/QueryError'
 import { useTranslation } from 'react-i18next'
 
 export function InventoryPage() {
@@ -21,8 +22,12 @@ export function InventoryPage() {
     setError,
   } = useSheetsStore()
 
-  const { data: items = [], isLoading: inventoryLoading } =
-    useInventory(spreadsheetId)
+  const {
+    data: items = [],
+    isLoading: inventoryLoading,
+    isError: inventoryError,
+    refetch: refetchInventory,
+  } = useInventory(spreadsheetId)
 
   useEffect(() => {
     if (!spreadsheetId) return
@@ -63,7 +68,9 @@ export function InventoryPage() {
 
       {status === 'connected' && (
         <>
-          {inventoryLoading ? (
+          {inventoryError ? (
+            <QueryError onRetry={() => void refetchInventory()} />
+          ) : inventoryLoading ? (
             <LoadingSpinner />
           ) : items.length === 0 ? (
             <EmptyState messageKey="inventory.empty" />

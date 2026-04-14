@@ -55,10 +55,10 @@ describe('ClientsPage', () => {
     renderPage()
 
     expect(screen.getByText('clients.title')).toBeInTheDocument()
-    expect(screen.getByText('transactions.connecting')).toBeInTheDocument()
+    expect(screen.getByText('errors.connectionConnecting')).toBeInTheDocument()
 
     await waitFor(() => {
-      expect(screen.queryByText('transactions.connecting')).not.toBeInTheDocument()
+      expect(screen.queryByText('errors.connectionConnecting')).not.toBeInTheDocument()
     })
 
     await waitFor(() => {
