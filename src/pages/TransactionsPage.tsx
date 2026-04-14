@@ -11,6 +11,7 @@ import { BalanceDisplay } from '@/components/BalanceDisplay'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { QueryError } from '@/components/QueryError'
 import { CreateExpensePopup } from '@/components/CreateExpensePopup'
 import { calculateBalance } from '@/utils/money'
 import { useTranslation } from 'react-i18next'
@@ -30,8 +31,12 @@ export function TransactionsPage() {
     setError,
   } = useSheetsStore()
 
-  const { data: transactions = [], isLoading: transactionsLoading } =
-    useTransactions(spreadsheetId)
+  const {
+    data: transactions = [],
+    isLoading: transactionsLoading,
+    isError: transactionsError,
+    refetch: refetchTransactions,
+  } = useTransactions(spreadsheetId)
   const { data: clients = [] } = useClients(spreadsheetId)
 
   useEffect(() => {
@@ -67,7 +72,7 @@ export function TransactionsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h2 className="mb-6 text-2xl font-bold text-gray-800">Transactions</h2>
+      <h2 className="mb-6 text-2xl font-bold text-gray-800">{t('page.transactions')}</h2>
 
       {spreadsheetId ? (
         <ConnectionStatus
@@ -90,7 +95,9 @@ export function TransactionsPage() {
             </button>
           </div>
 
-          {transactionsLoading ? (
+          {transactionsError ? (
+            <QueryError onRetry={() => void refetchTransactions()} />
+          ) : transactionsLoading ? (
             <LoadingSpinner />
           ) : transactions.length === 0 ? (
             <EmptyState messageKey="transactions.empty" />

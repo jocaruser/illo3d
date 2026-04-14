@@ -11,8 +11,11 @@ import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import { JobsTable } from '@/components/JobsTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { EmptyState } from '@/components/EmptyState'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { QueryError } from '@/components/QueryError'
 import type { Job, JobStatus } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
@@ -38,7 +41,12 @@ export function JobsPage() {
     setError,
   } = useSheetsStore()
 
-  const { data: jobs = [], isLoading: jobsLoading } = useJobs(spreadsheetId)
+  const {
+    data: jobs = [],
+    isLoading: jobsLoading,
+    isError: jobsError,
+    refetch: refetchJobs,
+  } = useJobs(spreadsheetId)
   const { data: clients = [] } = useClients(spreadsheetId)
   const [popupOpen, setPopupOpen] = useState(false)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
@@ -52,6 +60,8 @@ export function JobsPage() {
     next: JobStatus
   } | null>(null)
   const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [statusError, setStatusError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!spreadsheetId) return
@@ -90,9 +100,12 @@ export function JobsPage() {
   ) => {
     if (!spreadsheetId) return
     setStatusUpdatingId(job.id)
+    setStatusError(null)
     try {
       await updateJobStatus(spreadsheetId, job, next, options)
       await invalidateJobData()
+    } catch {
+      setStatusError(t('errors.actionFailed'))
     } finally {
       setStatusUpdatingId(null)
     }
@@ -207,9 +220,14 @@ export function JobsPage() {
 
   const confirmDeleteJob = async () => {
     if (!spreadsheetId || !deleteTarget) return
-    await deleteJob(spreadsheetId, deleteTarget.id)
-    setDeleteTarget(null)
-    await invalidateJobPieces()
+    setDeleteError(null)
+    try {
+      await deleteJob(spreadsheetId, deleteTarget.id)
+      setDeleteTarget(null)
+      await invalidateJobPieces()
+    } catch {
+      setDeleteError(t('errors.deleteFailed'))
+    }
   }
 
   return (
@@ -221,6 +239,12 @@ export function JobsPage() {
         errorMessage={errorMessage}
         onRetry={handleRetry}
       />
+
+      {statusError && (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
+          <p className="text-sm font-medium text-red-800">{statusError}</p>
+        </div>
+      )}
 
       {status === 'connected' && (
         <>
@@ -235,12 +259,12 @@ export function JobsPage() {
             </button>
           </div>
 
-          {jobsLoading ? (
-            <p className="text-gray-600">{t('jobs.loading')}</p>
+          {jobsError ? (
+            <QueryError onRetry={() => void refetchJobs()} />
+          ) : jobsLoading ? (
+            <LoadingSpinner />
           ) : jobs.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
-              <p className="text-gray-600">{t('jobs.empty')}</p>
-            </div>
+            <EmptyState messageKey="jobs.empty" />
           ) : (
             <JobsTable
               jobs={jobs}
@@ -274,11 +298,18 @@ export function JobsPage() {
         })}
         confirmLabel={t('jobs.confirm')}
         cancelLabel={t('jobs.cancel')}
-        onCancel={() => setDeleteTarget(null)}
+        onCancel={() => {
+          setDeleteTarget(null)
+          setDeleteError(null)
+        }}
         onConfirm={() => {
           void confirmDeleteJob()
         }}
-      />
+      >
+        {deleteError ? (
+          <p className="text-sm text-red-600">{deleteError}</p>
+        ) : null}
+      </ConfirmDialog>
 
       <ConfirmDialog
         isOpen={!!paidDialogJob}

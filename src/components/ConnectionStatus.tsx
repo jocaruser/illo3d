@@ -21,7 +21,7 @@ export function ConnectionStatus({
   if (status === 'connecting') {
     return (
       <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-        {t('transactions.connecting')}
+        {t('errors.connectionConnecting')}
       </div>
     )
   }
@@ -30,14 +30,14 @@ export function ConnectionStatus({
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3">
         <p className="text-sm font-medium text-red-800">
-          {t('transactions.error')}: {errorMessage}
+          {t('errors.connectionError')}: {errorMessage}
         </p>
         {onRetry && (
           <button
             onClick={onRetry}
             className="mt-2 text-sm font-medium text-red-600 underline hover:text-red-800"
           >
-            {t('transactions.retry')}
+            {t('errors.connectionRetry')}
           </button>
         )}
       </div>

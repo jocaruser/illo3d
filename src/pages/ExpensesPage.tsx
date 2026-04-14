@@ -12,6 +12,7 @@ import { CreateExpensePopup } from '@/components/CreateExpensePopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { QueryError } from '@/components/QueryError'
 import { useTranslation } from 'react-i18next'
 import { updateExpense } from '@/services/expense/updateExpense'
 import { deleteExpense } from '@/services/expense/deleteExpense'
@@ -32,12 +33,17 @@ export function ExpensesPage() {
     setError,
   } = useSheetsStore()
 
-  const { data: expenses = [], isLoading: expensesLoading } =
-    useExpenses(spreadsheetId)
+  const {
+    data: expenses = [],
+    isLoading: expensesLoading,
+    isError: expensesError,
+    refetch: refetchExpenses,
+  } = useExpenses(spreadsheetId)
   const { data: inventory = [] } = useInventory(spreadsheetId)
   const [createOpen, setCreateOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   const expensePopupOpen = createOpen || editingExpense !== null
 
@@ -101,11 +107,16 @@ export function ExpensesPage() {
 
   const confirmDeleteExpense = async () => {
     if (!spreadsheetId || !deleteTarget) return
-    await deleteExpense(spreadsheetId, deleteTarget.id)
-    setDeleteTarget(null)
-    queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
-    queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
-    queryClient.invalidateQueries({ queryKey: ['inventory', spreadsheetId] })
+    setDeleteError(null)
+    try {
+      await deleteExpense(spreadsheetId, deleteTarget.id)
+      setDeleteTarget(null)
+      queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
+      queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
+      queryClient.invalidateQueries({ queryKey: ['inventory', spreadsheetId] })
+    } catch {
+      setDeleteError(t('errors.deleteFailed'))
+    }
   }
 
   useEffect(() => {
@@ -133,7 +144,7 @@ export function ExpensesPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h2 className="mb-6 text-2xl font-bold text-gray-800">Expenses</h2>
+      <h2 className="mb-6 text-2xl font-bold text-gray-800">{t('page.expenses')}</h2>
 
       {spreadsheetId ? (
         <ConnectionStatus
@@ -158,7 +169,9 @@ export function ExpensesPage() {
             </button>
           </div>
 
-          {expensesLoading ? (
+          {expensesError ? (
+            <QueryError onRetry={() => void refetchExpenses()} />
+          ) : expensesLoading ? (
             <LoadingSpinner />
           ) : expenses.length === 0 ? (
             <EmptyState messageKey="expenses.empty" />
@@ -196,8 +209,15 @@ export function ExpensesPage() {
         confirmLabel={t('expenses.delete')}
         cancelLabel={t('expenses.cancel')}
         onConfirm={confirmDeleteExpense}
-        onCancel={() => setDeleteTarget(null)}
-      />
+        onCancel={() => {
+          setDeleteTarget(null)
+          setDeleteError(null)
+        }}
+      >
+        {deleteError ? (
+          <p className="text-sm text-red-600">{deleteError}</p>
+        ) : null}
+      </ConfirmDialog>
     </div>
   )
 }
