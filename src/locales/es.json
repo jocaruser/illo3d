@@ -5,7 +5,12 @@
     "signOut": "Cerrar sesión"
   },
   "common": {
-    "loading": "Cargando..."
+    "loading": "Cargando...",
+    "submitting": "Enviando..."
+  },
+  "page": {
+    "transactions": "Transacciones",
+    "expenses": "Gastos"
   },
   "errors": {
     "routeTitle": "No se pudo mostrar esta página",
@@ -35,7 +40,8 @@
     "pieces": "Piezas",
     "transactions": "Transacciones",
     "expenses": "Gastos",
-    "inventory": "Inventario"
+    "inventory": "Inventario",
+    "toggleMenu": "Alternar menú"
   },
   "clients": {
     "title": "Clientes",

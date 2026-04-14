@@ -50,9 +50,9 @@ describe('CreateExpensePopup', () => {
       />
     )
     expect(screen.getByText('expenses.title')).toBeInTheDocument()
-    expect(screen.getByLabelText('expenses.date')).toBeInTheDocument()
+    expect(screen.getByLabelText(/expenses\.date/)).toBeInTheDocument()
     expect(screen.getByLabelText('expenses.category')).toBeInTheDocument()
-    expect(screen.getByLabelText('expenses.amount')).toBeInTheDocument()
+    expect(screen.getByLabelText(/expenses\.amount/)).toBeInTheDocument()
     expect(screen.getByText('expenses.submit')).toBeInTheDocument()
   })
 
@@ -65,10 +65,10 @@ describe('CreateExpensePopup', () => {
         spreadsheetId="spreadsheet-1"
       />
     )
-    fireEvent.change(screen.getByLabelText('expenses.date'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.date/), {
       target: { value: '2025-01-20' },
     })
-    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '0' },
     })
     fireEvent.click(screen.getByText('expenses.submit'))
@@ -86,10 +86,10 @@ describe('CreateExpensePopup', () => {
         spreadsheetId="spreadsheet-1"
       />
     )
-    fireEvent.change(screen.getByLabelText('expenses.date'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.date/), {
       target: { value: '2025-01-20' },
     })
-    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '-10' },
     })
     fireEvent.click(screen.getByText('expenses.submit'))
@@ -108,10 +108,10 @@ describe('CreateExpensePopup', () => {
         spreadsheetId="spreadsheet-1"
       />
     )
-    fireEvent.change(screen.getByLabelText('expenses.date'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.date/), {
       target: { value: '2025-01-20' },
     })
-    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '50' },
     })
     fireEvent.click(screen.getByText('expenses.submit'))
@@ -228,10 +228,10 @@ describe('CreateExpensePopup', () => {
         spreadsheetId="spreadsheet-1"
       />
     )
-    fireEvent.change(screen.getByLabelText('expenses.date'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.date/), {
       target: { value: '2025-01-20' },
     })
-    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '10' },
     })
     fireEvent.click(
@@ -256,10 +256,10 @@ describe('CreateExpensePopup', () => {
         spreadsheetId="spreadsheet-1"
       />
     )
-    fireEvent.change(screen.getByLabelText('expenses.date'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.date/), {
       target: { value: '2025-01-20' },
     })
-    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '10' },
     })
     fireEvent.click(
@@ -289,10 +289,10 @@ describe('CreateExpensePopup', () => {
         spreadsheetId="spreadsheet-1"
       />
     )
-    fireEvent.change(screen.getByLabelText('expenses.date'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.date/), {
       target: { value: '2025-01-20' },
     })
-    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '25' },
     })
     fireEvent.click(screen.getByText('expenses.submit'))
@@ -313,10 +313,10 @@ describe('CreateExpensePopup', () => {
         spreadsheetId="spreadsheet-1"
       />
     )
-    fireEvent.change(screen.getByLabelText('expenses.date'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.date/), {
       target: { value: '2025-01-20' },
     })
-    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '29.99' },
     })
     fireEvent.change(screen.getByLabelText('expenses.notes'), {
@@ -362,7 +362,7 @@ describe('CreateExpensePopup', () => {
       screen.queryByRole('checkbox', { name: 'expenses.addToInventory' })
     ).not.toBeInTheDocument()
 
-    fireEvent.change(screen.getByLabelText('expenses.amount'), {
+    fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '15' },
     })
     fireEvent.click(screen.getByText('expenses.save'))

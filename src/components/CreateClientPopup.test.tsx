@@ -45,7 +45,7 @@ describe('CreateClientPopup', () => {
       />
     )
     expect(screen.getByText('clients.addClient')).toBeInTheDocument()
-    expect(screen.getByLabelText('clients.name')).toBeInTheDocument()
+    expect(screen.getByLabelText(/clients\.name/)).toBeInTheDocument()
     expect(screen.getByText('clients.submit')).toBeInTheDocument()
   })
 
@@ -75,7 +75,7 @@ describe('CreateClientPopup', () => {
         spreadsheetId="spreadsheet-1"
       />
     )
-    fireEvent.change(screen.getByLabelText('clients.name'), {
+    fireEvent.change(screen.getByLabelText(/clients\.name/), {
       target: { value: 'New Client' },
     })
     fireEvent.click(screen.getByText('clients.submit'))
