@@ -1,8 +1,8 @@
 /**
  * E2E policy (illo3d):
  * - Chromium only in CI and by default (no extra browser matrix).
- * - workers: 1 — keeps CSV-backed state predictable; use test.describe.configure({ mode: 'serial' })
- *   inside files that mutate shared fixture data.
+ * - workers: 1 — single Vite server and one `.e2e-fixtures` tree; parallel workers would race CSV writes.
+ *   Use test.describe.configure({ mode: 'serial' }) where tests in a file depend on order.
  * - fullyParallel: true lets independent files run in parallel when workers > 1 locally.
  * - retries: 2 on CI only to absorb rare timing flakes.
  */
