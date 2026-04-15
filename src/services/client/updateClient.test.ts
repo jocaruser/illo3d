@@ -25,6 +25,9 @@ describe('updateClient', () => {
         email: 'o@x.com',
         phone: '',
         notes: '',
+        preferred_contact: '',
+        lead_source: '',
+        address: '',
         created_at: '2025-01-01',
       },
     ])
@@ -34,6 +37,9 @@ describe('updateClient', () => {
       email: 'n@x.com',
       phone: '+1',
       notes: 'Hi',
+      preferred_contact: 'Email',
+      lead_source: '',
+      address: '',
     })
 
     expect(mockUpdateRow).toHaveBeenCalledWith('s1', 'clients', 1, {
@@ -42,6 +48,9 @@ describe('updateClient', () => {
       email: 'n@x.com',
       phone: '+1',
       notes: 'Hi',
+      preferred_contact: 'Email',
+      lead_source: '',
+      address: '',
       created_at: '2025-01-01',
     })
   })

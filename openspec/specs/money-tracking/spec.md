@@ -71,12 +71,25 @@ The system SHALL calculate the total balance (sum of all transaction amounts) an
 
 ### Requirement: Client data model is defined
 
-The system SHALL support a clients data model with fields: id (string), name (string), email (string, optional), phone (string, optional), notes (string, optional), created_at (date).
+The system SHALL support a clients data model with fields: id (string), name (string), email (string, optional), phone (string, optional), notes (string, optional), preferred_contact (string, optional), lead_source (string, optional), address (string, optional), created_at (date).
 
 #### Scenario: Client has required fields
 
 - **WHEN** a client record exists
 - **THEN** it has id and name fields populated
+
+### Requirement: CrmNote data model is defined
+
+The system SHALL support CRM notes persisted in `crm_notes` with fields: id (string), entity_type (`client` | `job`), entity_id (string), body (string), referenced_entity_ids (string), severity (enum matching existing client-note severities), created_at (string). The `JobNote` and `ClientNote` shapes MAY be used as filtered views over `crm_notes` rows for the corresponding `entity_type`.
+
+#### Scenario: Job-scoped CRM note references a job
+
+- **WHEN** a CRM note exists with entity_type `job`
+- **THEN** it has a non-empty `entity_id` matching a row in `jobs`
+
+### Requirement: TagLink entity_type includes job
+
+The `TagLink` type SHALL allow `entity_type` values including `client` and `job`, with `entity_id` referencing the corresponding primary sheet id.
 
 ### Requirement: Clients page is accessible from the app
 

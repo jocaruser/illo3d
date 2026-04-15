@@ -262,7 +262,10 @@ export function PiecesTable({
                 const lines = linesByPiece.get(piece.id) ?? []
                 return (
                   <Fragment key={piece.id}>
-                    <tr className="odd:bg-white even:bg-gray-50 hover:bg-gray-100">
+                    <tr
+                      id={`piece-${piece.id}`}
+                      className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
+                    >
                       <td className="whitespace-nowrap px-2 py-3">
                         <button
                           type="button"

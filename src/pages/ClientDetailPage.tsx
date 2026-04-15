@@ -12,7 +12,9 @@ import { usePieces } from '@/hooks/usePieces'
 import { usePieceItems } from '@/hooks/usePieceItems'
 import { useInventory } from '@/hooks/useInventory'
 import { useExpenses } from '@/hooks/useExpenses'
-import { useClientNotes } from '@/hooks/useClientNotes'
+import { useCrmNotes } from '@/hooks/useCrmNotes'
+import { useTags } from '@/hooks/useTags'
+import { useTagLinks } from '@/hooks/useTagLinks'
 import { updateClient } from '@/services/client/updateClient'
 import {
   CLIENT_DELETE_BLOCKED_JOBS,
@@ -27,8 +29,10 @@ import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { QueryError } from '@/components/QueryError'
 import { ClientNotesSection } from '@/components/ClientNotesSection'
+import { ClientTagsSection } from '@/components/ClientTagsSection'
+import { MentionLinkify } from '@/components/MentionLinkify'
 import { ClientJobsDiscoveryTable } from '@/components/ClientJobsDiscoveryTable'
-import type { Client } from '@/types/money'
+import type { Client, ClientNote } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
 import { computeClientDetailMetrics } from '@/utils/clientMetrics'
 
@@ -64,7 +68,24 @@ export function ClientDetailPage() {
   const { data: pieceItems = [] } = usePieceItems(spreadsheetId)
   const { data: inventory = [] } = useInventory(spreadsheetId)
   const { data: expenses = [] } = useExpenses(spreadsheetId)
-  const { data: clientNotes = [] } = useClientNotes(spreadsheetId)
+  const { data: crmNotes = [] } = useCrmNotes(spreadsheetId)
+  const clientNotes = useMemo((): ClientNote[] => {
+    const list = crmNotes
+      .filter((n) => n.entity_type === 'client' && n.entity_id === clientId)
+      .map(
+        (n): ClientNote => ({
+          id: n.id,
+          client_id: n.entity_id,
+          body: n.body,
+          referenced_entity_ids: n.referenced_entity_ids,
+          severity: n.severity,
+          created_at: n.created_at,
+        })
+      )
+    return list.sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
+  }, [crmNotes, clientId])
+  const { data: tags = [] } = useTags(spreadsheetId)
+  const { data: tagLinks = [] } = useTagLinks(spreadsheetId)
 
   const client = useMemo(
     () => clients.find((c) => c.id === clientId),
@@ -134,7 +155,16 @@ export function ClientDetailPage() {
 
   const invalidateNotes = async () => {
     await queryClient.invalidateQueries({
-      queryKey: ['client_notes', spreadsheetId],
+      queryKey: ['crm_notes', spreadsheetId],
+    })
+  }
+
+  const invalidateTags = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ['tags', spreadsheetId],
+    })
+    await queryClient.invalidateQueries({
+      queryKey: ['tag_links', spreadsheetId],
     })
   }
 
@@ -156,6 +186,9 @@ export function ClientDetailPage() {
                 email: payload.email,
                 phone: payload.phone,
                 notes: payload.notes,
+                preferred_contact: payload.preferred_contact,
+                lead_source: payload.lead_source,
+                address: payload.address,
               }
             : c
         )
@@ -204,6 +237,37 @@ export function ClientDetailPage() {
             label: t('clients.phone'),
             value: client.phone?.trim() ? client.phone : '—',
           },
+          ...(client.preferred_contact?.trim()
+            ? [
+                {
+                  label: t('clients.preferredContact'),
+                  value: client.preferred_contact.trim(),
+                },
+              ]
+            : []),
+          ...(client.lead_source?.trim()
+            ? [
+                {
+                  label: t('clients.leadSource'),
+                  value: (
+                    <MentionLinkify
+                      text={client.lead_source.trim()}
+                      clients={clients}
+                      jobs={jobs}
+                      pieces={pieces}
+                    />
+                  ),
+                },
+              ]
+            : []),
+          ...(client.address?.trim()
+            ? [
+                {
+                  label: t('clients.address'),
+                  value: client.address.trim(),
+                },
+              ]
+            : []),
           { label: t('clients.createdAt'), value: client.created_at },
           ...(client.notes?.trim()
             ? [
@@ -312,10 +376,21 @@ export function ClientDetailPage() {
               </div>
             </div>
 
+            <ClientTagsSection
+              spreadsheetId={spreadsheetId}
+              clientId={clientId}
+              tags={tags}
+              tagLinks={tagLinks}
+              onChanged={invalidateTags}
+            />
+
             <ClientNotesSection
               spreadsheetId={spreadsheetId}
               clientId={clientId}
               notes={clientNotes}
+              clients={clients}
+              jobs={jobs}
+              pieces={pieces}
               onChanged={invalidateNotes}
             />
 

@@ -54,12 +54,12 @@ The system SHALL display the sheets connection status on the clients page. The p
 
 ### Requirement: CreateClientPopup is a reusable modal form
 
-The system SHALL provide a CreateClientPopup component that renders a modal with a form. The form SHALL collect: name (required), email (optional), phone (optional), notes (optional). The popup SHALL be closable via overlay click or cancel button. The same component SHALL support an edit mode when opened for an existing client: fields SHALL be prefilled, the title SHALL indicate editing, and submit SHALL update that client instead of creating one.
+The system SHALL provide a CreateClientPopup component that renders a modal with a form. The form SHALL collect: name (required), email (optional), phone (optional), notes (optional), preferred_contact (optional, free text), lead_source (optional, free text; `@PREFIXid` mentions allowed in stored value), address (optional, multi-line plain text). The popup SHALL be closable via overlay click or cancel button. The same component SHALL support an edit mode when opened for an existing client: fields SHALL be prefilled, the title SHALL indicate editing, and submit SHALL update that client instead of creating one.
 
 #### Scenario: Popup opens and shows form fields
 
 - **WHEN** user clicks "Add client" button
-- **THEN** modal displays with name, email, phone, and notes inputs
+- **THEN** modal displays with name, email, phone, notes, preferred_contact, lead_source, and address inputs
 
 #### Scenario: Popup can be closed without submitting
 
@@ -83,7 +83,7 @@ The system SHALL provide a CreateClientPopup component that renders a modal with
 #### Scenario: Edit mode opens with prefilled values
 
 - **WHEN** user opens the popup from Edit on a client row
-- **THEN** name, email, phone, and notes are prefilled from that client
+- **THEN** name, email, phone, notes, preferred_contact, lead_source, and address are prefilled from that client
 
 #### Scenario: Successful edit updates client and refreshes table
 
@@ -108,11 +108,11 @@ The system SHALL display an "Add client" button on the `/clients` page. Clicking
 
 ### Requirement: createClient service appends client row
 
-The system SHALL provide a `createClient` service that appends a row to the clients sheet via the SheetsRepository. The service SHALL generate an auto-incrementing ID with "CL" prefix (CL1, CL2, ...) and set `created_at` to the current ISO date.
+The system SHALL provide a `createClient` service that appends a row to the clients sheet via the SheetsRepository. The service SHALL generate an auto-incrementing ID with "CL" prefix (CL1, CL2, ...) and set `created_at` to the current ISO date. The row SHALL include nullable fields preferred_contact, lead_source, and address as empty strings when omitted.
 
 #### Scenario: Client row appended with generated ID
 
-- **WHEN** createClient is called with name, email, phone, notes
+- **WHEN** createClient is called with name and optional CRM fields
 - **THEN** a row is appended to the clients sheet with a "CL"-prefixed ID and current date as created_at
 
 #### Scenario: ID increments based on existing clients
@@ -149,9 +149,14 @@ The system SHALL NOT delete a client if any job row has `client_id` equal to tha
 - **WHEN** deleteClient is called for a client id not referenced by any job
 - **THEN** that client row is removed from the clients sheet
 
+#### Scenario: Delete removes client-scoped CRM notes
+
+- **WHEN** deleteClient succeeds for a client that has `crm_notes` rows with `entity_type` `client` and matching `entity_id`
+- **THEN** those `crm_notes` rows are removed before the client row is deleted
+
 ### Requirement: updateClient service updates client row
 
-The system SHALL provide an `updateClient` service that writes changes to the existing clients row via `SheetsRepository.updateRow`. The service SHALL preserve `id` and `created_at`; it SHALL update name, email, phone, and notes from the payload.
+The system SHALL provide an `updateClient` service that writes changes to the existing clients row via `SheetsRepository.updateRow`. The service SHALL preserve `id` and `created_at`; it SHALL update name, email, phone, notes, preferred_contact, lead_source, and address from the payload.
 
 #### Scenario: Client row updated in sheet
 
@@ -209,3 +214,12 @@ All user-facing strings on the clients page (table headers, button labels, empty
 
 - **WHEN** clients table shows Edit and Delete actions or a delete confirmation dialog
 - **THEN** action labels and confirmation copy use i18n keys
+
+### Requirement: Clients list shows linked tags in an instant tooltip
+
+On the clients table, when a client has linked tags, hovering or focusing the client name link SHALL show a custom tooltip (not the native `title` attribute alone) that appears without intentional browser delay, lists tag names in a readable layout, exposes an accessible name for screen readers, and does not clip inside the table scroll container (e.g. via fixed positioning or portal). Clients without tags SHALL keep a plain name link without a tag tooltip.
+
+#### Scenario: Tooltip shows tag labels on hover
+
+- **WHEN** the user hovers the name cell for a client that has tag links
+- **THEN** a tooltip becomes visible immediately and includes the linked tag names

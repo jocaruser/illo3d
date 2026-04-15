@@ -1,5 +1,7 @@
 import { getSheetsRepository } from '@/services/sheets/repository'
+import type { SheetName } from '@/services/sheets/config'
 import type { Job, Piece, PieceItem } from '@/types/money'
+import { deleteCrmNotesForEntity } from '@/services/crmNote/deleteCrmNotesForEntity'
 
 export async function deleteJob(
   spreadsheetId: string,
@@ -39,5 +41,25 @@ export async function deleteJob(
   for (const i of [...pieceIndices].sort((a, b) => b - a)) {
     await repo.deleteRow(spreadsheetId, 'pieces', i + 1)
   }
+
+  await deleteCrmNotesForEntity(spreadsheetId, 'job', jobId)
+
+  const tagLinks = await repo.readRows<{
+    entity_type: string
+    entity_id: string
+  }>(spreadsheetId, 'tag_links' as SheetName)
+  const tagLinkIndices = tagLinks.reduce<number[]>((acc, l, i) => {
+    if (
+      l.entity_type?.trim() === 'job' &&
+      l.entity_id?.trim() === jobId
+    ) {
+      acc.push(i)
+    }
+    return acc
+  }, [])
+  for (const i of [...tagLinkIndices].sort((a, b) => b - a)) {
+    await repo.deleteRow(spreadsheetId, 'tag_links' as SheetName, i + 1)
+  }
+
   await repo.deleteRow(spreadsheetId, 'jobs', jobIdx + 1)
 }

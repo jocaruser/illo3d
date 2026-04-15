@@ -1,8 +1,9 @@
+import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
 export interface EntityDetailField {
   label: string
-  value: string
+  value: ReactNode
 }
 
 interface EntityDetailPageProps {
@@ -44,9 +45,10 @@ export function EntityDetailPage({
           <div className="min-w-0 flex-1">
             <h2 className="text-2xl font-bold text-gray-800">{title}</h2>
             {fields.map((f) => (
-              <p key={f.label} className="mt-2 text-sm text-gray-600">
-                <span className="font-medium">{f.label}:</span> {f.value}
-              </p>
+              <div key={f.label} className="mt-2 text-sm text-gray-600">
+                <span className="font-medium">{f.label}:</span>{' '}
+                <span className="whitespace-pre-wrap">{f.value}</span>
+              </div>
             ))}
           </div>
           <div className="flex shrink-0 gap-2">

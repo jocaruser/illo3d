@@ -109,6 +109,23 @@ describe('buildJobSearchBlob', () => {
     expect(blob).toContain('cli-zzz')
     expect(blob).toContain('Acme')
   })
+
+  it('includes linked tag names when provided', () => {
+    const job: Job = {
+      id: 'J1',
+      client_id: 'CL1',
+      description: 'Part',
+      status: 'draft',
+      created_at: '2026-01-01',
+    }
+    const blob = buildJobSearchBlob(job, {
+      clientName: 'Acme',
+      statusLabel: 'Draft',
+      tagNamesSearchLine: 'Vip Partner',
+    })
+    expect(blob).toContain('Vip')
+    expect(blob).toContain('Partner')
+  })
 })
 
 describe('buildPieceSearchBlob', () => {
@@ -142,6 +159,17 @@ describe('buildClientSearchBlob', () => {
     expect(blob).toContain('CL1')
     expect(blob).toContain('Acme')
     expect(blob).toContain('2026-03-01')
+  })
+
+  it('includes tag names line when provided', () => {
+    const c: Client = {
+      id: 'CL1',
+      name: 'Acme',
+      created_at: '2026-03-01',
+    }
+    const blob = buildClientSearchBlob(c, 'VIP Wholesale')
+    expect(blob).toContain('VIP')
+    expect(blob).toContain('Wholesale')
   })
 })
 

@@ -1,7 +1,10 @@
 import { getSheetsRepository } from '@/services/sheets/repository'
-import type { ClientNote } from '@/types/money'
 import type { SheetName } from '@/services/sheets/config'
 import { assertClientNoteSeverity } from './severity'
+import {
+  formatReferencedEntityIdsCell,
+  parseMentionEntityIdsFromText,
+} from '@/utils/mentionTokens'
 
 export interface UpdateClientNotePayload {
   body: string
@@ -14,12 +17,12 @@ export async function updateClientNote(
   payload: UpdateClientNotePayload
 ): Promise<void> {
   const repo = getSheetsRepository()
-  const notes = await repo.readRows<ClientNote>(
+  const notes = await repo.readRows<Record<string, string>>(
     spreadsheetId,
-    'client_notes' as SheetName
+    'crm_notes' as SheetName
   )
   const matches = notes.reduce<number[]>((acc, n, i) => {
-    if (n.id === noteId) acc.push(i)
+    if (n.id?.trim() === noteId) acc.push(i)
     return acc
   }, [])
   const idx = matches.length ? matches[matches.length - 1] : -1
@@ -28,16 +31,22 @@ export async function updateClientNote(
   }
   const existing = notes[idx]
   const severity = assertClientNoteSeverity(payload.severity)
+  const body = payload.body.trim()
+  const referenced_entity_ids = formatReferencedEntityIdsCell(
+    parseMentionEntityIdsFromText(body)
+  )
   const row = {
-    id: existing.id,
-    client_id: existing.client_id,
-    body: payload.body.trim(),
+    id: existing.id?.trim() ?? '',
+    entity_type: existing.entity_type?.trim() ?? 'client',
+    entity_id: existing.entity_id?.trim() ?? '',
+    body,
+    referenced_entity_ids,
     severity,
-    created_at: existing.created_at,
+    created_at: existing.created_at?.trim() ?? '',
   }
   await repo.updateRow(
     spreadsheetId,
-    'client_notes' as SheetName,
+    'crm_notes' as SheetName,
     idx + 1,
     row
   )

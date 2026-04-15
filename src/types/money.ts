@@ -33,6 +33,29 @@ export interface ClientNote {
   id: string
   client_id: string
   body: string
+  referenced_entity_ids: string
+  severity: ClientNoteSeverity
+  created_at: string
+}
+
+export interface JobNote {
+  id: string
+  job_id: string
+  body: string
+  referenced_entity_ids: string
+  severity: ClientNoteSeverity
+  created_at: string
+}
+
+/** Values stored in `crm_notes.entity_type`; extend when new entities support CRM notes. */
+export type CrmNoteEntityType = 'client' | 'job'
+
+export interface CrmNote {
+  id: string
+  entity_type: CrmNoteEntityType
+  entity_id: string
+  body: string
+  referenced_entity_ids: string
   severity: ClientNoteSeverity
   created_at: string
 }
@@ -43,6 +66,25 @@ export interface Client {
   email?: string
   phone?: string
   notes?: string
+  preferred_contact?: string
+  lead_source?: string
+  address?: string
+  created_at: string
+}
+
+export type TagEntityType = 'client' | 'job'
+
+export interface Tag {
+  id: string
+  name: string
+  created_at: string
+}
+
+export interface TagLink {
+  id: string
+  tag_id: string
+  entity_type: TagEntityType
+  entity_id: string
   created_at: string
 }
 

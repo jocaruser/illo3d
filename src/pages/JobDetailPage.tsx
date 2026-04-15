@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useSheetsStore } from '@/stores/sheetsStore'
@@ -9,6 +9,9 @@ import { usePieces } from '@/hooks/usePieces'
 import { usePieceItems } from '@/hooks/usePieceItems'
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
+import { useCrmNotes } from '@/hooks/useCrmNotes'
+import { useTags } from '@/hooks/useTags'
+import { useTagLinks } from '@/hooks/useTagLinks'
 import { useInventory } from '@/hooks/useInventory'
 import { useExpenses } from '@/hooks/useExpenses'
 import { updateJob } from '@/services/job/updateJob'
@@ -24,8 +27,17 @@ import { EntityDetailPage } from '@/components/EntityDetailPage'
 import { CreateJobPopup, type SuggestedPricingInput } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { QueryError } from '@/components/QueryError'
+import { JobNotesSection } from '@/components/JobNotesSection'
+import { JobTagsSection } from '@/components/JobTagsSection'
 import { updatePieceStatus } from '@/services/piece/updatePieceStatus'
-import type { Inventory, Job, Piece, PieceItem, PieceStatus } from '@/types/money'
+import type {
+  Inventory,
+  Job,
+  JobNote,
+  Piece,
+  PieceItem,
+  PieceStatus,
+} from '@/types/money'
 import { formatCurrency } from '@/utils/money'
 
 function clientName(
@@ -86,6 +98,7 @@ type PieceStatusFlow =
 export function JobDetailPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const { jobId = '' } = useParams<{ jobId: string }>()
   const queryClient = useQueryClient()
   const activeShop = useShopStore((s) => s.activeShop)
@@ -111,6 +124,24 @@ export function JobDetailPage() {
     usePieceItems(spreadsheetId)
   const { data: inventory = [] } = useInventory(spreadsheetId)
   const { data: expenses = [] } = useExpenses(spreadsheetId)
+  const { data: crmNotes = [] } = useCrmNotes(spreadsheetId)
+  const jobNotes = useMemo((): JobNote[] => {
+    const list = crmNotes
+      .filter((n) => n.entity_type === 'job' && n.entity_id === jobId)
+      .map(
+        (n): JobNote => ({
+          id: n.id,
+          job_id: n.entity_id,
+          body: n.body,
+          referenced_entity_ids: n.referenced_entity_ids,
+          severity: n.severity,
+          created_at: n.created_at,
+        })
+      )
+    return list.sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
+  }, [crmNotes, jobId])
+  const { data: tags = [] } = useTags(spreadsheetId)
+  const { data: tagLinks = [] } = useTagLinks(spreadsheetId)
 
   const job = useMemo(() => jobs.find((j) => j.id === jobId), [jobs, jobId])
 
@@ -162,6 +193,19 @@ export function JobDetailPage() {
     })
   }, [spreadsheetId, setConnecting, setConnected, setError])
 
+  useEffect(() => {
+    if (status !== 'connected' || !job) return
+    const anchor = location.hash.replace(/^#/, '')
+    if (!anchor.startsWith('piece-')) return
+    const id = window.setTimeout(() => {
+      document.getElementById(anchor)?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      })
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [status, job, location.hash, pieces.length, piecesLoading, itemsLoading])
+
   const handleRetry = async () => {
     if (!spreadsheetId) return
     setConnecting()
@@ -191,6 +235,21 @@ export function JobDetailPage() {
 
   const invalidateJobs = async () => {
     await queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
+  }
+
+  const invalidateJobNotes = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ['crm_notes', spreadsheetId],
+    })
+  }
+
+  const invalidateJobTags = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ['tags', spreadsheetId],
+    })
+    await queryClient.invalidateQueries({
+      queryKey: ['tag_links', spreadsheetId],
+    })
   }
 
   const handleUpdateJob = async (
@@ -237,6 +296,12 @@ export function JobDetailPage() {
       await queryClient.invalidateQueries({ queryKey: ['pieces', spreadsheetId] })
       await queryClient.invalidateQueries({
         queryKey: ['piece_items', spreadsheetId],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: ['crm_notes', spreadsheetId],
+      })
+      await queryClient.invalidateQueries({
+        queryKey: ['tag_links', spreadsheetId],
       })
       navigate('/jobs')
     } catch {
@@ -387,6 +452,24 @@ export function JobDetailPage() {
           onEdit={() => setEditingJob(job)}
           onDelete={() => setDeleteTarget(job)}
         >
+          <JobTagsSection
+            spreadsheetId={spreadsheetId}
+            jobId={job.id}
+            tags={tags}
+            tagLinks={tagLinks}
+            onChanged={invalidateJobTags}
+          />
+
+          <JobNotesSection
+            spreadsheetId={spreadsheetId}
+            jobId={job.id}
+            notes={jobNotes}
+            clients={clients}
+            jobs={jobs}
+            pieces={allPieces}
+            onChanged={invalidateJobNotes}
+          />
+
           <div className="mb-4 flex items-center justify-between gap-4">
             <h3 className="text-xl font-semibold text-gray-800">
               {t('pieces.title')}

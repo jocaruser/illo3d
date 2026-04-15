@@ -6,6 +6,8 @@ import { ClientsPage } from './ClientsPage'
 import { useShopStore } from '@/stores/shopStore'
 import { useSheetsStore } from '@/stores/sheetsStore'
 import { fetchClients } from '@/services/sheets/clients'
+import { fetchTags } from '@/services/sheets/tags'
+import { fetchTagLinks } from '@/services/sheets/tagLinks'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -19,6 +21,14 @@ vi.mock('@/services/sheets/connection', () => ({
 
 vi.mock('@/services/sheets/clients', () => ({
   fetchClients: vi.fn(),
+}))
+
+vi.mock('@/services/sheets/tags', () => ({
+  fetchTags: vi.fn(),
+}))
+
+vi.mock('@/services/sheets/tagLinks', () => ({
+  fetchTagLinks: vi.fn(),
 }))
 
 function renderPage() {
@@ -52,6 +62,8 @@ describe('ClientsPage', () => {
     vi.mocked(fetchClients).mockResolvedValue([
       { id: 'CL1', name: 'Test Co', created_at: '2025-01-01' },
     ])
+    vi.mocked(fetchTags).mockResolvedValue([])
+    vi.mocked(fetchTagLinks).mockResolvedValue([])
   })
 
   it('shows connecting then renders clients title and table', async () => {

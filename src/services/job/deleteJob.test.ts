@@ -88,4 +88,49 @@ describe('deleteJob', () => {
     await expect(deleteJob('s1', 'J99')).rejects.toThrow('Job J99 not found')
     expect(mockDeleteRow).not.toHaveBeenCalled()
   })
+
+  it('deletes crm_notes for job and job tag_links before deleting the job row', async () => {
+    mockReadRows.mockImplementation((_id: string, sheet: string) => {
+      if (sheet === 'jobs') {
+        return Promise.resolve([
+          {
+            id: 'J1',
+            client_id: 'CL1',
+            description: 'a',
+            status: 'draft',
+            created_at: '',
+          },
+        ])
+      }
+      if (sheet === 'pieces') return Promise.resolve([])
+      if (sheet === 'piece_items') return Promise.resolve([])
+      if (sheet === 'crm_notes') {
+        return Promise.resolve([
+          {
+            id: 'JN9',
+            entity_type: 'job',
+            entity_id: 'J1',
+            body: 'x',
+            referenced_entity_ids: '',
+            severity: 'info',
+            created_at: '',
+          },
+        ])
+      }
+      if (sheet === 'tag_links') {
+        return Promise.resolve([
+          { id: 'TL9', tag_id: 'TG1', entity_type: 'job', entity_id: 'J1', created_at: '' },
+        ])
+      }
+      return Promise.resolve([])
+    })
+
+    await deleteJob('s1', 'J1')
+
+    expect(mockDeleteRow.mock.calls).toEqual([
+      ['s1', 'crm_notes', 1],
+      ['s1', 'tag_links', 1],
+      ['s1', 'jobs', 1],
+    ])
+  })
 })

@@ -32,6 +32,9 @@ export function CreateClientPopup({
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [notes, setNotes] = useState('')
+  const [preferredContact, setPreferredContact] = useState('')
+  const [leadSource, setLeadSource] = useState('')
+  const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -43,11 +46,17 @@ export function CreateClientPopup({
       setEmail(initialClient.email ?? '')
       setPhone(initialClient.phone ?? '')
       setNotes(initialClient.notes ?? '')
+      setPreferredContact(initialClient.preferred_contact ?? '')
+      setLeadSource(initialClient.lead_source ?? '')
+      setAddress(initialClient.address ?? '')
     } else {
       setName('')
       setEmail('')
       setPhone('')
       setNotes('')
+      setPreferredContact('')
+      setLeadSource('')
+      setAddress('')
     }
     setError(null)
     setFieldErrors({})
@@ -71,6 +80,9 @@ export function CreateClientPopup({
         email: email.trim() || undefined,
         phone: phone.trim() || undefined,
         notes: notes.trim() || undefined,
+        preferred_contact: preferredContact.trim() || undefined,
+        lead_source: leadSource.trim() || undefined,
+        address: address.trim() || undefined,
       }
       if (initialClient) {
         if (onUpdateClient) {
@@ -88,6 +100,9 @@ export function CreateClientPopup({
         setEmail('')
         setPhone('')
         setNotes('')
+        setPreferredContact('')
+        setLeadSource('')
+        setAddress('')
       }
       setFieldErrors({})
     } catch (err) {
@@ -170,6 +185,54 @@ export function CreateClientPopup({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             disabled={loading}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="client-preferred-contact"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
+            {t('clients.preferredContact')}
+          </label>
+          <input
+            id="client-preferred-contact"
+            type="text"
+            value={preferredContact}
+            onChange={(e) => setPreferredContact(e.target.value)}
+            disabled={loading}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="client-lead-source"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
+            {t('clients.leadSource')}
+          </label>
+          <input
+            id="client-lead-source"
+            type="text"
+            value={leadSource}
+            onChange={(e) => setLeadSource(e.target.value)}
+            disabled={loading}
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="client-address"
+            className="mb-1 block text-sm font-medium text-gray-700"
+          >
+            {t('clients.address')}
+          </label>
+          <textarea
+            id="client-address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            disabled={loading}
+            rows={3}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
           />
         </div>
