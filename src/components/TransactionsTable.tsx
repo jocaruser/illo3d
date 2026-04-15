@@ -13,6 +13,7 @@ import { SortableColumnHeader } from '@/components/list-table/SortableColumnHead
 interface TransactionsTableProps {
   transactions: Transaction[]
   clients: Client[]
+  inventoryByExpenseId?: Map<string, string>
 }
 
 function getClientName(clients: Client[], clientId?: string): string {
@@ -44,9 +45,44 @@ function transactionComparable(
   }
 }
 
+function conceptCell(
+  tx: Transaction,
+  inventoryByExpenseId: Map<string, string> | undefined
+) {
+  const text = tx.concept
+  if (tx.ref_type === 'job' && tx.ref_id) {
+    return (
+      <Link
+        to={`/jobs/${tx.ref_id}`}
+        data-testid={`transaction-concept-job-link-${tx.id}`}
+        className="text-blue-600 hover:text-blue-800"
+      >
+        {text}
+      </Link>
+    )
+  }
+  if (
+    tx.ref_type === 'expense' &&
+    tx.ref_id &&
+    inventoryByExpenseId?.has(tx.ref_id)
+  ) {
+    return (
+      <Link
+        to="/inventory"
+        data-testid={`transaction-concept-inventory-link-${tx.id}`}
+        className="text-blue-600 hover:text-blue-800"
+      >
+        {text}
+      </Link>
+    )
+  }
+  return text
+}
+
 export function TransactionsTable({
   transactions,
   clients,
+  inventoryByExpenseId,
 }: TransactionsTableProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
@@ -205,7 +241,7 @@ export function TransactionsTable({
                     {tx.category}
                   </td>
                   <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 lg:table-cell">
-                    {tx.concept}
+                    {conceptCell(tx, inventoryByExpenseId)}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 md:table-cell">
                     {tx.client_id ? (

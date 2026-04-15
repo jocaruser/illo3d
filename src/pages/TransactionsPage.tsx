@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSheetsStore } from '@/stores/sheetsStore'
@@ -6,6 +6,7 @@ import { useShopStore } from '@/stores/shopStore'
 import { connect } from '@/services/sheets/connection'
 import { useTransactions } from '@/hooks/useTransactions'
 import { useClients } from '@/hooks/useClients'
+import { useInventory } from '@/hooks/useInventory'
 import { TransactionsTable } from '@/components/TransactionsTable'
 import { BalanceDisplay } from '@/components/BalanceDisplay'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
@@ -38,6 +39,15 @@ export function TransactionsPage() {
     refetch: refetchTransactions,
   } = useTransactions(spreadsheetId)
   const { data: clients = [] } = useClients(spreadsheetId)
+  const { data: inventory = [] } = useInventory(spreadsheetId)
+
+  const inventoryByExpenseId = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const row of inventory) {
+      if (row.expense_id) map.set(row.expense_id, row.id)
+    }
+    return map
+  }, [inventory])
 
   useEffect(() => {
     if (!spreadsheetId) return
@@ -102,7 +112,11 @@ export function TransactionsPage() {
           ) : transactions.length === 0 ? (
             <EmptyState messageKey="transactions.empty" />
           ) : (
-            <TransactionsTable transactions={transactions} clients={clients} />
+            <TransactionsTable
+              transactions={transactions}
+              clients={clients}
+              inventoryByExpenseId={inventoryByExpenseId}
+            />
           )}
         </>
       )}

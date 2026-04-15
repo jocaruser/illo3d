@@ -127,6 +127,7 @@ test.describe('Create expense flow', () => {
 
     await page.locator('#expense-date').fill('2025-04-02')
     await page.locator('#expense-amount').fill('12.00')
+    await page.locator('#expense-notes').fill('e2e no inventory')
 
     await page.getByRole('button', { name: /create expense|crear gasto/i }).click()
 
@@ -140,6 +141,7 @@ test.describe('Create expense flow', () => {
         .getByRole('row')
         .filter({ hasText: '2025-04-02' })
         .filter({ hasText: /€12\.00/ })
+        .filter({ hasText: 'e2e no inventory' })
     ).toBeVisible()
 
     expect(appendPayloads.filter((p) => p.sheetName === 'inventory')).toHaveLength(0)
@@ -168,6 +170,7 @@ test.describe('Create expense flow', () => {
 
     const amountInput = page.locator('#expense-amount')
     await amountInput.fill('25.50')
+    await page.locator('#expense-notes').fill('e2e redirect row')
 
     const submitButton = page.getByRole('button', {
       name: /create expense|crear gasto/i,
@@ -185,6 +188,7 @@ test.describe('Create expense flow', () => {
         .getByRole('row')
         .filter({ hasText: '2099-07-01' })
         .filter({ hasText: /25[.,]50/ })
+        .filter({ hasText: 'e2e redirect row' })
         .first(),
     ).toBeVisible()
   })

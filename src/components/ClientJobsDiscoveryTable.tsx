@@ -18,10 +18,8 @@ function formatJobPrice(price: number | undefined): string {
 
 function embeddedJobComparable(job: Job, key: string, clientName: string): string | number {
   switch (key) {
-    case 'id':
-      return job.id.toLowerCase()
     case 'description':
-      return job.description.toLowerCase()
+      return (job.description.trim() || job.id).toLowerCase()
     case 'status':
       return job.status
     case 'price':
@@ -110,20 +108,10 @@ export function ClientJobsDiscoveryTable({
           <thead className="bg-gray-50">
             <tr>
               <SortableColumnHeader
-                columnKey="id"
-                sortKey={sortKey}
-                sortDir={sortDir}
-                onSortChange={onSortChange}
-                ariaLabel={sortAria(t('jobs.colId'), 'id')}
-              >
-                {t('jobs.colId')}
-              </SortableColumnHeader>
-              <SortableColumnHeader
                 columnKey="description"
                 sortKey={sortKey}
                 sortDir={sortDir}
                 onSortChange={onSortChange}
-                thClassName="hidden md:table-cell"
                 ariaLabel={sortAria(t('jobs.colDescription'), 'description')}
               >
                 {t('jobs.colDescription')}
@@ -163,7 +151,7 @@ export function ClientJobsDiscoveryTable({
           <tbody className="divide-y divide-gray-200 bg-white">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-600">
+                <td colSpan={4} className="px-4 py-6 text-center text-sm text-gray-600">
                   {jobs.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -173,16 +161,17 @@ export function ClientJobsDiscoveryTable({
                   key={job.id}
                   className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
                 >
-                  <td className="whitespace-nowrap px-4 py-3 text-sm">
+                  <td className="max-w-xs truncate px-4 py-3 text-sm">
                     <Link
                       to={`/jobs/${job.id}`}
+                      data-testid={`job-detail-link-${job.id}`}
                       className="font-medium text-blue-600 hover:text-blue-800"
+                      {...(job.description.trim()
+                        ? {}
+                        : { 'aria-label': t('jobs.idLinkAria', { id: job.id }) })}
                     >
-                      {job.id}
+                      {job.description.trim() || job.id}
                     </Link>
-                  </td>
-                  <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 md:table-cell">
-                    {job.description}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                     {t(`jobs.status.${job.status}`)}

@@ -8,13 +8,13 @@ Jobs table page with domain services for creating and managing print jobs: `/job
 
 ### Requirement: Jobs page displays job table
 
-The system SHALL provide a `/jobs` route protected by the same authentication guard as other data pages. The route SHALL display a table of all jobs from the jobs sheet. The table SHALL show: id, client name (resolved from client_id), description, status, price (formatted as €), and created_at. Until the user changes sort via column-header (or equivalent) controls, the table SHALL order rows by `created_at` descending with stable secondary ordering by job `id` when timestamps tie. The table SHALL provide the shared list discovery controls (search, fuzzy matching, sortable data columns, responsive column visibility) defined in the `list-table-discovery` capability. The **client name** cell SHALL be the visible text of a link to `/clients/:clientId` for that job’s `client_id`.
+The system SHALL provide a `/jobs` route protected by the same authentication guard as other data pages. The route SHALL display a table of all jobs from the jobs sheet. The table SHALL show: description (as the primary link to job detail), client name (resolved from client_id), status, price (formatted as €), and created_at. The system SHALL NOT show a separate id-only column. Until the user changes sort via column-header (or equivalent) controls, the table SHALL order rows by `created_at` descending with stable secondary ordering by job `id` when timestamps tie. The table SHALL provide the shared list discovery controls (search, fuzzy matching, sortable data columns, responsive column visibility) defined in the `list-table-discovery` capability. The **client name** cell SHALL be the visible text of a link to `/clients/:clientId` for that job’s `client_id`.
 
 #### Scenario: Jobs table renders with data
 
 - **WHEN** authenticated user navigates to `/jobs`
 - **AND** jobs exist in the sheet
-- **THEN** table displays all jobs with id, client name, description, status, price, and created_at columns
+- **THEN** table displays all jobs with description (link), client name, status, price, and created_at columns
 - **AND** jobs are ordered by `created_at` descending before any user sort change
 
 #### Scenario: Empty state shown when no jobs
@@ -41,11 +41,11 @@ The system SHALL provide a `/jobs` route protected by the same authentication gu
 
 ### Requirement: Jobs list shows linked tags in an instant tooltip
 
-On the jobs table, when a job has linked tags, hovering or focusing the job id link SHALL show a custom tooltip (not the native `title` attribute alone) that appears without intentional browser delay, lists tag names in a readable layout, exposes an accessible name for screen readers, and does not clip inside the table scroll container (e.g. via fixed positioning or portal). Jobs without tags SHALL keep a plain id link without a tag tooltip.
+On the jobs table, when a job has linked tags, hovering or focusing the job description link (to job detail) SHALL show a custom tooltip (not the native `title` attribute alone) that appears without intentional browser delay, lists tag names in a readable layout, exposes an accessible name for screen readers, and does not clip inside the table scroll container (e.g. via fixed positioning or portal). Jobs without tags SHALL keep a plain description link without a tag tooltip.
 
 #### Scenario: Tooltip shows tag labels on hover for a job
 
-- **WHEN** the user hovers the id cell for a job that has tag links
+- **WHEN** the user hovers the description link for a job that has tag links
 - **THEN** a tooltip becomes visible immediately and includes the linked tag names
 
 ### Requirement: Jobs page shows connection status
@@ -79,12 +79,12 @@ The system SHALL include a "Jobs" link in the app header navigation alongside th
 
 ### Requirement: Jobs table links to job detail
 
-The jobs table SHALL render each job’s **id** in the id column as the visible text of a link to `/jobs/:jobId` for that id, so the user can open job details (including pieces) from the list. The system SHALL NOT use a separate column whose sole purpose is linking to job detail.
+The jobs table SHALL render each job’s **description** (trimmed) as the visible text of a link to `/jobs/:jobId` when the description is non-empty; when the description is empty, the visible link text MAY fall back to the job **id**. The system SHALL NOT use a separate id-only column for navigation to job detail.
 
-#### Scenario: Job id links to detail
+#### Scenario: Job description links to detail
 
-- **WHEN** the jobs table displays a job with id "J1"
-- **THEN** the id cell shows the link label "J1"
+- **WHEN** the jobs table displays a job with id "J1" and a non-empty description
+- **THEN** the description cell shows a link whose visible text is the description
 - **AND** activating the link navigates to `/jobs/J1`
 
 ### Requirement: Jobs table has actions column with edit and delete

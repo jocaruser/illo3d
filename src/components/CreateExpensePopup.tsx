@@ -91,6 +91,7 @@ export function CreateExpensePopup({
     if (!amount.trim()) errs.amount = t('expenses.validation.required')
     else if (Number.isNaN(amountNum) || amountNum <= 0)
       errs.amount = t('expenses.validation.amountPositive')
+    if (!notes.trim()) errs.notes = t('expenses.validation.required')
     if (addToInventory && !isEdit) {
       if (!inventoryName.trim())
         errs.inventoryName = t('expenses.validation.inventoryNameRequired')
@@ -110,7 +111,7 @@ export function CreateExpensePopup({
     if (!validate() || !spreadsheetId) return
     setLoading(true)
     try {
-      const trimmedNotes = notes.trim() || undefined
+      const trimmedNotes = notes.trim()
       if (initialExpense) {
         const payload: UpdateExpensePayload = {
           date,
@@ -151,7 +152,7 @@ export function CreateExpensePopup({
 
   return (
     <DialogShell isOpen={isOpen} onClose={onClose} title={dialogTitle}>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form noValidate onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="expense-date"
@@ -225,6 +226,7 @@ export function CreateExpensePopup({
             className="mb-1 block text-sm font-medium text-gray-700"
           >
             {t('expenses.notes')}
+            <RequiredIndicator />
           </label>
           <input
             id="expense-notes"
@@ -232,9 +234,14 @@ export function CreateExpensePopup({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder={t('expenses.notesPlaceholder')}
+            required
             disabled={loading}
+            aria-required="true"
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
           />
+          {fieldErrors.notes && (
+            <p className="mt-1 text-sm text-red-600">{fieldErrors.notes}</p>
+          )}
         </div>
         {!isEdit && (
         <div className="flex items-center gap-2">
