@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { AuthStatus } from './components/AuthStatus'
+import { GlobalHeaderSearch } from './components/GlobalHeaderSearch'
 import { Breadcrumbs } from './components/Breadcrumbs'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { SetupWizard } from './components/wizard/SetupWizard'
@@ -98,36 +99,43 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow-sm">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-6">
-            <Link to="/" className="text-xl font-bold text-gray-800">
-              illo3d
-            </Link>
-            <nav className="hidden gap-6 md:flex">{navLinks}</nav>
-          </div>
-          <div className="flex items-center gap-4">
-            <AuthStatus />
-            <button
-              type="button"
-              aria-label={t('nav.toggleMenu')}
-              className="md:hidden"
-              onClick={() => setMenuOpen((o) => !o)}
-            >
-              <svg
-                className="h-6 w-6 text-gray-700"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
+        <div className="mx-auto max-w-7xl px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex min-w-0 flex-1 items-center gap-6">
+              <Link to="/" className="text-xl font-bold text-gray-800">
+                illo3d
+              </Link>
+              <nav className="hidden gap-6 md:flex">{navLinks}</nav>
+            </div>
+            <div className="flex shrink-0 items-center gap-4">
+              <AuthStatus />
+              <button
+                type="button"
+                aria-label={t('nav.toggleMenu')}
+                className="md:hidden"
+                onClick={() => setMenuOpen((o) => !o)}
               >
-                {menuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
-            </button>
+                <svg
+                  className="h-6 w-6 text-gray-700"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  {menuOpen ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                  )}
+                </svg>
+              </button>
+            </div>
           </div>
+          {isAuthenticated && activeShop ? (
+            <div className="mt-3 w-full md:max-w-xl">
+              <GlobalHeaderSearch />
+            </div>
+          ) : null}
         </div>
         {menuOpen && (
           <nav className="flex flex-col gap-2 border-t border-gray-200 px-4 py-3 md:hidden">

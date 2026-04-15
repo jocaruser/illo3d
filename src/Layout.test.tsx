@@ -16,7 +16,24 @@ describe('Layout', () => {
   let qc: QueryClient
 
   beforeEach(() => {
-    qc = new QueryClient()
+    qc = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+          staleTime: Infinity,
+        },
+      },
+    })
+    const sid = 's'
+    qc.setQueryData(['clients', sid], [])
+    qc.setQueryData(['jobs', sid], [])
+    qc.setQueryData(['pieces', sid], [])
+    qc.setQueryData(['crm_notes', sid], [])
+    qc.setQueryData(['transactions', sid], [])
+    qc.setQueryData(['expenses', sid], [])
+    qc.setQueryData(['inventory', sid], [])
+    qc.setQueryData(['tags', sid], [])
+    qc.setQueryData(['tag_links', sid], [])
     useAuthStore.setState({
       isAuthenticated: true,
       user: { email: 'a@b.com', name: 'Test' },
@@ -133,5 +150,26 @@ describe('Layout', () => {
 
     const jobsLinks = screen.getAllByRole('link', { name: 'nav.jobs' })
     expect(jobsLinks[0]).toHaveAttribute('aria-current', 'page')
+  })
+
+  it('shows global header search when authenticated with active shop', () => {
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/jobs']}>
+          <Routes>
+            <Route
+              path="/jobs"
+              element={
+                <Layout>
+                  <div>content</div>
+                </Layout>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    expect(screen.getByTestId('global-header-search')).toBeInTheDocument()
   })
 })

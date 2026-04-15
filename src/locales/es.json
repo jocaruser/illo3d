@@ -51,6 +51,23 @@
     "inventory": "Inventario",
     "toggleMenu": "Alternar menú"
   },
+  "globalSearch": {
+    "placeholder": "Buscar en todo…",
+    "ariaCombobox": "Buscar en todas las entidades",
+    "listLabel": "Resultados de búsqueda",
+    "noResults": "Sin coincidencias",
+    "kind": {
+      "client": "Cliente",
+      "job": "Trabajo",
+      "piece": "Pieza",
+      "client_note": "Nota de cliente",
+      "job_note": "Nota de trabajo",
+      "transaction": "Transacción",
+      "expense": "Gasto",
+      "inventory": "Inventario",
+      "tag": "Etiqueta"
+    }
+  },
   "clients": {
     "title": "Clientes",
     "addClient": "Añadir cliente",

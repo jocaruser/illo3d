@@ -1,9 +1,11 @@
 import type {
   Client,
+  CrmNote,
   Expense,
   Inventory,
   Job,
   Piece,
+  Tag,
   Transaction,
 } from '@/types/money'
 import { joinSearchParts, moneySearchFragments } from '@/lib/listTable/moneySearchFragments'
@@ -113,4 +115,24 @@ export function buildPieceSearchBlob(
     ctx.statusLabel,
     piece.created_at,
   ])
+}
+
+export function buildCrmNoteSearchBlob(
+  note: CrmNote,
+  ctx: { severityLabel: string; parentLabel: string }
+): string {
+  return joinSearchParts([
+    note.id,
+    note.body,
+    note.referenced_entity_ids,
+    note.entity_type,
+    note.entity_id,
+    ctx.severityLabel,
+    note.created_at,
+    ctx.parentLabel,
+  ])
+}
+
+export function buildTagSearchBlob(tag: Tag): string {
+  return joinSearchParts([tag.id, tag.name, tag.created_at])
 }
