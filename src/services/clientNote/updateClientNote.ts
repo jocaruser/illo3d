@@ -18,7 +18,11 @@ export async function updateClientNote(
     spreadsheetId,
     'client_notes' as SheetName
   )
-  const idx = notes.findIndex((n) => n.id === noteId)
+  const matches = notes.reduce<number[]>((acc, n, i) => {
+    if (n.id === noteId) acc.push(i)
+    return acc
+  }, [])
+  const idx = matches.length ? matches[matches.length - 1] : -1
   if (idx === -1) {
     throw new Error(`Client note ${noteId} not found`)
   }

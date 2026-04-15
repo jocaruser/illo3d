@@ -11,18 +11,24 @@ export async function fetchClientNotes(
     spreadsheetId,
     'client_notes' as SheetName
   )
-  const out: ClientNote[] = []
+  const byId = new Map<string, ClientNote>()
   for (const r of rows) {
     if (!r.id?.trim() || !r.client_id?.trim()) continue
     const severity = parseClientNoteSeverity(r.severity)
     if (!severity) continue
-    out.push({
+    const note: ClientNote = {
       id: r.id.trim(),
       client_id: r.client_id.trim(),
       body: r.body?.trim() ?? '',
       severity,
       created_at: r.created_at?.trim() ?? '',
-    })
+    }
+    // If ids collide (e.g. fixture edits), prefer the latest created_at.
+    const prev = byId.get(note.id)
+    if (!prev || note.created_at >= prev.created_at) {
+      byId.set(note.id, note)
+    }
   }
+  const out = Array.from(byId.values())
   return out.sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
 }
