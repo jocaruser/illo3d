@@ -34,7 +34,7 @@ test.describe('Inventory page', () => {
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
     const rowWithPla = page.getByRole('row').filter({ hasText: 'PLA White' })
     await expect(
-      rowWithPla.getByRole('link', { name: 'Inventory' })
+      rowWithPla.getByRole('link', { name: /PLA White/i })
     ).toBeVisible({ timeout: 15000 })
   })
 })

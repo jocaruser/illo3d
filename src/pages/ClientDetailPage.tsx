@@ -418,9 +418,6 @@ export function ClientDetailPage() {
                   <thead className="bg-gray-50">
                     <tr>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-                        {t('jobs.colId')}
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
                         {t('jobs.colDescription')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
@@ -437,7 +434,7 @@ export function ClientDetailPage() {
                   <tbody>
                     <tr>
                       <td
-                        colSpan={5}
+                        colSpan={4}
                         className="px-4 py-12 text-center text-gray-600"
                       >
                         <p className="mb-4">{t('clientDetail.jobsEmpty')}</p>

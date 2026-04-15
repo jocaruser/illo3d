@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Expense } from '@/types/money'
@@ -19,7 +19,7 @@ interface ExpensesTableProps {
 function expenseComparable(
   exp: Expense,
   key: string,
-  ctx: { categoryLabel: string; inventoryId?: string }
+  ctx: { categoryLabel: string }
 ): string | number {
   switch (key) {
     case 'date':
@@ -30,11 +30,33 @@ function expenseComparable(
       return exp.amount
     case 'notes':
       return exp.notes ?? ''
-    case 'inventory':
-      return ctx.inventoryId ?? ''
     default:
       return ''
   }
+}
+
+function expenseNotesCellContent(
+  exp: Expense,
+  inventoryByExpenseId: Map<string, string> | undefined
+): ReactNode {
+  const notesTrim = (exp.notes ?? '').trim()
+  const hasInventory = inventoryByExpenseId?.has(exp.id) ?? false
+  if (hasInventory) {
+    const label = notesTrim || '—'
+    return (
+      <Link
+        to="/inventory"
+        data-testid={`expense-inventory-link-${exp.id}`}
+        className="block min-w-0 truncate font-medium text-blue-600 underline hover:text-blue-800"
+      >
+        {label}
+      </Link>
+    )
+  }
+  if (notesTrim !== '') {
+    return <span className="block min-w-0 truncate">{exp.notes}</span>
+  }
+  return null
 }
 
 export function ExpensesTable({
@@ -70,10 +92,9 @@ export function ExpensesTable({
       (e, key) =>
         expenseComparable(e, key, {
           categoryLabel: t(`expenses.category.${e.category}`),
-          inventoryId: inventoryByExpenseId?.get(e.id),
         })
     )
-  }, [filtered, sortKey, sortDir, inventoryByExpenseId, t])
+  }, [filtered, sortKey, sortDir, t])
 
   const onSortChange = (key: string) => {
     if (sortKey === key) {
@@ -146,16 +167,6 @@ export function ExpensesTable({
               >
                 {t('expenses.notes')}
               </SortableColumnHeader>
-              <SortableColumnHeader
-                columnKey="inventory"
-                sortKey={sortKey}
-                sortDir={sortDir}
-                onSortChange={onSortChange}
-                thClassName="hidden lg:table-cell"
-                ariaLabel={sortAria(t('inventory.expenseColumn'), 'inventory')}
-              >
-                {t('inventory.expenseColumn')}
-              </SortableColumnHeader>
               <th
                 scope="col"
                 className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600"
@@ -167,7 +178,7 @@ export function ExpensesTable({
           <tbody className="divide-y divide-gray-200 bg-white">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-600">
+                <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-600">
                   {expenses.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -186,18 +197,8 @@ export function ExpensesTable({
                   <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-red-600 md:table-cell">
                     {formatCurrency(-exp.amount)}
                   </td>
-                  <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 lg:table-cell">
-                    {exp.notes ?? ''}
-                  </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm lg:table-cell">
-                    {inventoryByExpenseId?.has(exp.id) ? (
-                      <Link
-                        to="/inventory"
-                        className="text-blue-600 underline hover:text-blue-800"
-                      >
-                        {t('inventory.linkLabel')}
-                      </Link>
-                    ) : null}
+                  <td className="hidden max-w-xs px-4 py-3 text-sm text-gray-700 lg:table-cell">
+                    {expenseNotesCellContent(exp, inventoryByExpenseId)}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-sm">
                     <button

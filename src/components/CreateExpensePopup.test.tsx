@@ -114,6 +114,9 @@ describe('CreateExpensePopup', () => {
     fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '50' },
     })
+    fireEvent.change(screen.getByRole('textbox', { name: /expenses\.notes/ }), {
+      target: { value: 'Office supplies' },
+    })
     fireEvent.click(screen.getByText('expenses.submit'))
 
     await waitFor(() => expect(onSuccess).toHaveBeenCalled())
@@ -122,10 +125,39 @@ describe('CreateExpensePopup', () => {
       date: '2025-01-20',
       category: 'other',
       amount: 50,
-      notes: undefined,
+      notes: 'Office supplies',
     })
     expect(onSuccess).toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('shows validation error when notes are empty or whitespace only', () => {
+    render(
+      <CreateExpensePopup
+        isOpen
+        onClose={onClose}
+        onSuccess={onSuccess}
+        spreadsheetId="spreadsheet-1"
+      />
+    )
+    fireEvent.change(screen.getByLabelText(/expenses\.date/), {
+      target: { value: '2025-01-20' },
+    })
+    fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
+      target: { value: '10' },
+    })
+    fireEvent.change(screen.getByRole('textbox', { name: /expenses\.notes/ }), {
+      target: { value: '   ' },
+    })
+    fireEvent.click(screen.getByText('expenses.submit'))
+    expect(mockCreateExpense).not.toHaveBeenCalled()
+    const notesSection = screen
+      .getByRole('textbox', { name: /expenses\.notes/ })
+      .closest('div')
+    expect(notesSection).not.toBeNull()
+    expect(
+      notesSection?.querySelector('.text-red-600')?.textContent
+    ).toBe('expenses.validation.required')
   })
 
   it('hides inventory fields when add-to-inventory is unchecked', () => {
@@ -190,7 +222,7 @@ describe('CreateExpensePopup', () => {
         spreadsheetId="spreadsheet-1"
       />
     )
-    fireEvent.change(screen.getByLabelText('expenses.notes'), {
+    fireEvent.change(screen.getByRole('textbox', { name: /expenses\.notes/ }), {
       target: { value: 'PLA roll' },
     })
     fireEvent.click(
@@ -234,6 +266,9 @@ describe('CreateExpensePopup', () => {
     fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '10' },
     })
+    fireEvent.change(screen.getByRole('textbox', { name: /expenses\.notes/ }), {
+      target: { value: 'Stock item' },
+    })
     fireEvent.click(
       screen.getByRole('checkbox', { name: 'expenses.addToInventory' })
     )
@@ -261,6 +296,9 @@ describe('CreateExpensePopup', () => {
     })
     fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '10' },
+    })
+    fireEvent.change(screen.getByRole('textbox', { name: /expenses\.notes/ }), {
+      target: { value: 'Stock item' },
     })
     fireEvent.click(
       screen.getByRole('checkbox', { name: 'expenses.addToInventory' })
@@ -295,11 +333,14 @@ describe('CreateExpensePopup', () => {
     fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '25' },
     })
+    fireEvent.change(screen.getByRole('textbox', { name: /expenses\.notes/ }), {
+      target: { value: 'Cable' },
+    })
     fireEvent.click(screen.getByText('expenses.submit'))
     await waitFor(() => expect(mockCreateExpense).toHaveBeenCalled())
     expect(mockCreateExpense).toHaveBeenCalledWith(
       'spreadsheet-1',
-      expect.objectContaining({ inventory: undefined })
+      expect.objectContaining({ inventory: undefined, notes: 'Cable' })
     )
   })
 
@@ -319,7 +360,7 @@ describe('CreateExpensePopup', () => {
     fireEvent.change(screen.getByLabelText(/expenses\.amount/), {
       target: { value: '29.99' },
     })
-    fireEvent.change(screen.getByLabelText('expenses.notes'), {
+    fireEvent.change(screen.getByRole('textbox', { name: /expenses\.notes/ }), {
       target: { value: 'PLA' },
     })
     fireEvent.click(

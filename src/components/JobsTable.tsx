@@ -25,12 +25,10 @@ function formatJobPrice(price: number | undefined): string {
 
 function jobComparable(job: Job, key: string, clients: Client[]): string | number {
   switch (key) {
-    case 'id':
-      return job.id.toLowerCase()
     case 'client':
       return clientName(clients, job.client_id).toLowerCase()
     case 'description':
-      return job.description.toLowerCase()
+      return (job.description.trim() || job.id).toLowerCase()
     case 'status':
       return job.status
     case 'price':
@@ -133,13 +131,13 @@ export function JobsTable({
           <thead className="bg-gray-50">
             <tr>
               <SortableColumnHeader
-                columnKey="id"
+                columnKey="description"
                 sortKey={sortKey}
                 sortDir={sortDir}
                 onSortChange={onSortChange}
-                ariaLabel={sortAria(t('jobs.colId'), 'id')}
+                ariaLabel={sortAria(t('jobs.colDescription'), 'description')}
               >
-                {t('jobs.colId')}
+                {t('jobs.colDescription')}
               </SortableColumnHeader>
               <SortableColumnHeader
                 columnKey="client"
@@ -150,16 +148,6 @@ export function JobsTable({
                 ariaLabel={sortAria(t('jobs.colClient'), 'client')}
               >
                 {t('jobs.colClient')}
-              </SortableColumnHeader>
-              <SortableColumnHeader
-                columnKey="description"
-                sortKey={sortKey}
-                sortDir={sortDir}
-                onSortChange={onSortChange}
-                thClassName="hidden md:table-cell"
-                ariaLabel={sortAria(t('jobs.colDescription'), 'description')}
-              >
-                {t('jobs.colDescription')}
               </SortableColumnHeader>
               <SortableColumnHeader
                 columnKey="status"
@@ -202,7 +190,7 @@ export function JobsTable({
           <tbody className="divide-y divide-gray-200 bg-white">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-600">
+                <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-600">
                   {jobs.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -212,13 +200,17 @@ export function JobsTable({
                   key={job.id}
                   className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
                 >
-                  <td className="whitespace-nowrap px-4 py-3 text-sm">
+                  <td className="max-w-xs truncate px-4 py-3 text-sm">
                     <LinkWithTagsTooltip
                       to={`/jobs/${job.id}`}
-                      label={job.id}
+                      label={job.description.trim() || job.id}
                       tagLine={tagTitleByJobId?.get(job.id)}
                       dataTestid={`job-detail-link-${job.id}`}
-                      linkAriaLabel={t('jobs.idLinkAria', { id: job.id })}
+                      linkAriaLabel={
+                        job.description.trim()
+                          ? undefined
+                          : t('jobs.idLinkAria', { id: job.id })
+                      }
                       linkClassName="font-medium text-blue-600 hover:text-blue-800"
                     />
                   </td>
@@ -230,9 +222,6 @@ export function JobsTable({
                     >
                       {clientName(clients, job.client_id)}
                     </Link>
-                  </td>
-                  <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 md:table-cell">
-                    {job.description}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                     <StatusDropdown

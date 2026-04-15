@@ -26,13 +26,13 @@ test.describe('Job edit and delete', () => {
     expect(fs.readFileSync(notesPath, 'utf8')).toContain(
       'e2e-cascade-delete-note-marker'
     )
-    await expect(page.getByRole('row', { name: /J5/ })).toBeVisible()
+    await expect(page.getByRole('row', { name: /E2E disposable job/i })).toBeVisible()
     await page.getByTestId('job-delete-J5').click()
     await page.getByRole('button', { name: /confirm|confirmar/i }).click()
     await expect(
       page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
     ).not.toBeVisible({ timeout: 15000 })
-    await expect(page.getByRole('row', { name: /J5/ })).toHaveCount(0)
+    await expect(page.getByRole('row', { name: /E2E disposable job/i })).toHaveCount(0)
 
     const after = fs.readFileSync(notesPath, 'utf8')
     expect(after).not.toContain('e2e-cascade-delete-note-marker')
@@ -103,7 +103,7 @@ test.describe('Job edit and delete', () => {
       timeout: 15000,
     })
 
-    await expect(page.getByRole('row', { name: /J4/ })).toBeVisible()
+    await expect(page.getByRole('row', { name: /Logo keychain batch/i })).toBeVisible()
     await page.getByTestId('job-delete-J4').click()
     await expect(
       page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
@@ -113,7 +113,7 @@ test.describe('Job edit and delete', () => {
     await expect(
       page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
     ).not.toBeVisible({ timeout: 15000 })
-    await expect(page.getByRole('row', { name: /J4/ })).toHaveCount(0)
+    await expect(page.getByRole('row', { name: /Logo keychain batch/i })).toHaveCount(0)
   })
 
   test('delete job cascades pieces and removes job', async ({ page, openCsvShop }) => {
@@ -124,13 +124,13 @@ test.describe('Job edit and delete', () => {
       timeout: 15000,
     })
 
-    await expect(page.getByRole('row', { name: /J2/ })).toBeVisible()
+    await expect(page.getByRole('row', { name: /Replacement gear/i })).toBeVisible()
     await page.getByTestId('job-delete-J2').click()
     await page.getByRole('button', { name: /confirm|confirmar/i }).click()
     await expect(
       page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
     ).not.toBeVisible({ timeout: 15000 })
-    await expect(page.getByRole('row', { name: /J2/ })).toHaveCount(0)
+    await expect(page.getByRole('row', { name: /Replacement gear/i })).toHaveCount(0)
 
     await page.getByTestId('job-detail-link-J1').click()
     await expect(page).toHaveURL(/\/jobs\/J1/)
@@ -152,7 +152,7 @@ test.describe('Job edit and delete', () => {
     await page.getByRole('button', { name: /confirm|confirmar/i }).click()
 
     await expect(page).toHaveURL(/\/jobs$/)
-    await expect(page.getByRole('row', { name: /J3/ })).toHaveCount(0)
+    await expect(page.getByRole('row', { name: /Desk organizer/i })).toHaveCount(0)
   })
 
   test('job detail shows CRM tags and notes', async ({ page, openCsvShop }) => {
@@ -193,6 +193,6 @@ test.describe('Job edit and delete', () => {
     await expect(
       page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
     ).not.toBeVisible({ timeout: 5000 })
-    await expect(page.getByRole('row', { name: /J1/ })).toBeVisible()
+    await expect(page.getByRole('row', { name: /Phone case prototype/i })).toBeVisible()
   })
 })

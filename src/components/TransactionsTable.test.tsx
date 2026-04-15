@@ -10,39 +10,41 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
-const mockTransactions: Transaction[] = [
-  {
-    id: 't001',
-    date: '2026-02-28',
-    type: 'income',
-    amount: 45,
-    category: 'job',
-    concept: 'Figura dragón',
-    ref_type: 'job',
-    ref_id: 'j001',
-    client_id: 'c001',
-  },
-  {
-    id: 't002',
-    date: '2026-02-27',
-    type: 'expense',
-    amount: -25,
-    category: 'filament',
-    concept: 'PLA Negro',
-    ref_type: 'expense',
-    ref_id: 'e001',
-  },
-]
+const jobTransaction: Transaction = {
+  id: 't001',
+  date: '2026-02-28',
+  type: 'income',
+  amount: 45,
+  category: 'job',
+  concept: 'Figura dragón',
+  ref_type: 'job',
+  ref_id: 'j001',
+  client_id: 'c001',
+}
+
+const expenseTransaction: Transaction = {
+  id: 't002',
+  date: '2026-02-27',
+  type: 'expense',
+  amount: -25,
+  category: 'filament',
+  concept: 'PLA Negro',
+  ref_type: 'expense',
+  ref_id: 'e001',
+}
 
 const mockClients: Client[] = [
   { id: 'c001', name: 'Juan Pérez', created_at: '2026-02-01' },
 ]
 
 describe('TransactionsTable', () => {
-   it('renders transactions with data', () => {
+  it('renders transactions with data', () => {
     render(
       <MemoryRouter>
-        <TransactionsTable transactions={mockTransactions} clients={mockClients} />
+        <TransactionsTable
+          transactions={[jobTransaction, expenseTransaction]}
+          clients={mockClients}
+        />
       </MemoryRouter>
     )
     expect(screen.getByText('Figura dragón')).toBeInTheDocument()
@@ -50,10 +52,60 @@ describe('TransactionsTable', () => {
     expect(screen.getByText('Juan Pérez')).toBeInTheDocument()
   })
 
+  it('links job-backed concept to job detail', () => {
+    render(
+      <MemoryRouter>
+        <TransactionsTable
+          transactions={[jobTransaction]}
+          clients={mockClients}
+        />
+      </MemoryRouter>
+    )
+    const link = screen.getByTestId('transaction-concept-job-link-t001')
+    expect(link).toHaveAttribute('href', '/jobs/j001')
+    expect(link).toHaveTextContent('Figura dragón')
+  })
+
+  it('links expense concept to inventory when expense has inventory', () => {
+    const map = new Map<string, string>()
+    map.set('e001', 'INV1')
+    render(
+      <MemoryRouter>
+        <TransactionsTable
+          transactions={[expenseTransaction]}
+          clients={mockClients}
+          inventoryByExpenseId={map}
+        />
+      </MemoryRouter>
+    )
+    const link = screen.getByTestId('transaction-concept-inventory-link-t002')
+    expect(link).toHaveAttribute('href', '/inventory')
+    expect(link).toHaveTextContent('PLA Negro')
+  })
+
+  it('renders plain expense concept when no linked inventory', () => {
+    render(
+      <MemoryRouter>
+        <TransactionsTable
+          transactions={[expenseTransaction]}
+          clients={mockClients}
+        />
+      </MemoryRouter>
+    )
+    expect(
+      screen.queryByTestId('transaction-concept-inventory-link-t002')
+    ).not.toBeInTheDocument()
+    const text = screen.getByText('PLA Negro')
+    expect(text.tagName.toLowerCase()).not.toBe('a')
+  })
+
   it('shows income as positive and expense as negative', () => {
     render(
       <MemoryRouter>
-        <TransactionsTable transactions={mockTransactions} clients={mockClients} />
+        <TransactionsTable
+          transactions={[jobTransaction, expenseTransaction]}
+          clients={mockClients}
+        />
       </MemoryRouter>
     )
     expect(screen.getByText('€45.00')).toBeInTheDocument()

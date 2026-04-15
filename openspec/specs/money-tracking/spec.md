@@ -8,7 +8,7 @@ Financial tracking for illo3d: transactions presentation, clients page (list, cr
 
 ### Requirement: Transactions table is displayed
 
-The system SHALL display a table of all transactions from the transactions sheet. The table SHALL show: date, type (income/expense), amount, category, concept, client name (if applicable). When a transaction row has a `client_id` that resolves to a client name, the client name cell SHALL be the visible text of a link to `/clients/:clientId` for that id.
+The system SHALL display a table of all transactions from the transactions sheet. The table SHALL show: date, type (income/expense), amount, category, concept, client name (if applicable). When a transaction row has a `client_id` that resolves to a client name, the client name cell SHALL be the visible text of a link to `/clients/:clientId` for that id. When a transaction has `ref_type` `job` and a non-empty `ref_id`, the concept cell SHALL display the concept string as the visible text of a link to `/jobs/:ref_id`. When a transaction has `ref_type` `expense` and the expense identified by `ref_id` has an associated inventory item (matched via `inventory.expense_id`), the concept cell SHALL display the concept string as the visible text of a link to `/inventory`. When none of these link rules apply, the concept cell SHALL show plain text only (no link).
 
 #### Scenario: Transactions table renders with data
 
@@ -30,6 +30,21 @@ The system SHALL display a table of all transactions from the transactions sheet
 
 - **WHEN** a transaction has no client_id
 - **THEN** the client column shows empty or placeholder text and is not a link
+
+#### Scenario: Job-backed transaction concept links to job detail
+
+- **WHEN** a transaction has `ref_type` `job` and `ref_id` "J1"
+- **THEN** the concept column shows a link to `/jobs/J1` whose visible text is the concept string
+
+#### Scenario: Expense transaction with inventory links concept to inventory
+
+- **WHEN** a transaction has `ref_type` `expense` and `ref_id` matching an expense that has a corresponding inventory row
+- **THEN** the concept column shows a link to `/inventory` whose visible text is the concept string
+
+#### Scenario: Expense transaction without inventory shows plain concept
+
+- **WHEN** a transaction has `ref_type` `expense` and its expense has no corresponding inventory row
+- **THEN** the concept column shows plain text only (no link)
 
 ### Requirement: Transactions table is read-only
 
@@ -584,7 +599,7 @@ The system SHALL create an income transaction when a job status changes to "paid
 
 ### Requirement: Expenses page displays expense table
 
-The system SHALL provide an `/expenses` route that displays a table of all expenses from the expenses sheet. The table SHALL show: date, category, amount, notes, inventory link column when applicable, and per-row actions to edit and delete each expense. The expenses page SHALL additionally fetch inventory data and display a link on expense rows that have an associated inventory item. The link SHALL navigate to `/inventory`.
+The system SHALL provide an `/expenses` route that displays a table of all expenses from the expenses sheet. The table SHALL show: date, category, amount, notes, and per-row actions to edit and delete each expense. The expenses page SHALL fetch inventory data. When an expense has a corresponding inventory item (matched via `inventory.expense_id`), the notes cell SHALL render the trimmed notes string as the visible text of a link to `/inventory`. When notes are empty but inventory exists, the notes cell MAY render a placeholder (e.g. an em dash) as the link text. When there is no linked inventory item, the notes cell SHALL show plain notes text only and SHALL NOT contain a link. The system SHALL NOT use a separate inventory-only link label in addition to the notes.
 
 #### Scenario: Expenses table renders with data
 
@@ -598,17 +613,17 @@ The system SHALL provide an `/expenses` route that displays a table of all expen
 - **AND** no expenses exist
 - **THEN** table shows empty state message
 
-#### Scenario: Expense with linked inventory shows link
+#### Scenario: Expense with linked inventory shows notes as link
 
 - **WHEN** user views /expenses
 - **AND** an expense has a corresponding inventory item (matched via inventory.expense_id)
-- **THEN** the expense row displays a text link navigating to /inventory
+- **THEN** the expense row notes cell shows a link to /inventory whose visible text is the expense notes (or an agreed placeholder when notes are empty)
 
 #### Scenario: Expense without linked inventory shows no link
 
 - **WHEN** user views /expenses
 - **AND** an expense has no corresponding inventory item
-- **THEN** the expense row does not display an inventory link
+- **THEN** the expense row notes cell does not contain a link
 
 #### Scenario: Inventory data is fetched on expenses page
 
@@ -618,7 +633,7 @@ The system SHALL provide an `/expenses` route that displays a table of all expen
 
 ### Requirement: CreateExpensePopup is a reusable modal form
 
-The system SHALL provide a CreateExpensePopup component that renders a modal with a form. The form SHALL collect: date (YYYY-MM-DD), category (enum: filament, consumable, electric, investment, maintenance, other), amount (number), notes (optional). The form SHALL include an "Add to inventory" toggle when creating a new expense. When the toggle is checked, the form SHALL additionally collect: inventory type (enum: filament, consumable, equipment), inventory name (prefilled from notes, editable), and quantity (number, > 0). The popup SHALL be closable and usable from multiple pages. The same component SHALL support an edit mode for an existing expense: fields SHALL be prefilled; the inventory toggle and inventory fields SHALL NOT be shown; submit SHALL update the expense and keep the linked transaction consistent.
+The system SHALL provide a CreateExpensePopup component that renders a modal with a form. The form SHALL collect: date (YYYY-MM-DD), category (enum: filament, consumable, electric, investment, maintenance, other), amount (number), notes (required for submit: non-empty after trimming; the persisted `Expense` type MAY still treat `notes` as optional for legacy rows). The form SHALL include an "Add to inventory" toggle when creating a new expense. When the toggle is checked, the form SHALL additionally collect: inventory type (enum: filament, consumable, equipment), inventory name (prefilled from notes, editable), and quantity (number, > 0). The popup SHALL be closable and usable from multiple pages. The same component SHALL support an edit mode for an existing expense: fields SHALL be prefilled; the inventory toggle and inventory fields SHALL NOT be shown; submit SHALL update the expense and keep the linked transaction consistent.
 
 #### Scenario: Popup opens and shows form fields
 
@@ -683,11 +698,11 @@ The system SHALL display an "Add expense" button on the /transactions page and o
 
 ### Requirement: Form validation before submit
 
-The system SHALL validate the expense form before submission. Date SHALL be required and in YYYY-MM-DD format. Category SHALL be required. Amount SHALL be required and MUST be greater than zero. Notes MAY be empty. In create mode only, when the "Add to inventory" toggle is checked: inventory type SHALL be required, inventory name SHALL be required, and quantity SHALL be required and MUST be greater than zero. In edit mode, inventory fields are not shown and inventory validation SHALL NOT apply.
+The system SHALL validate the expense form before submission. Date SHALL be required and in YYYY-MM-DD format. Category SHALL be required. Amount SHALL be required and MUST be greater than zero. Notes SHALL be required and MUST contain non-empty text after trimming. In create mode only, when the "Add to inventory" toggle is checked: inventory type SHALL be required, inventory name SHALL be required, and quantity SHALL be required and MUST be greater than zero. In edit mode, inventory fields are not shown and inventory validation SHALL NOT apply.
 
 #### Scenario: Validation rejects empty required fields
 
-- **WHEN** user submits with missing date, category, or amount
+- **WHEN** user submits with missing date, category, amount, or notes (empty or whitespace only)
 - **THEN** validation errors are shown
 - **AND** no API call is made
 

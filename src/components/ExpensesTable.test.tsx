@@ -35,8 +35,9 @@ describe('ExpensesTable', () => {
       </MemoryRouter>
     )
 
-    const link = screen.getByRole('link', { name: 'inventory.linkLabel' })
+    const link = screen.getByTestId('expense-inventory-link-E11')
     expect(link).toHaveAttribute('href', '/inventory')
+    expect(link).toHaveTextContent('PLA White')
   })
 
   it('does not render inventory link when no linked inventory', () => {
@@ -60,8 +61,6 @@ describe('ExpensesTable', () => {
       </MemoryRouter>
     )
 
-    expect(
-      screen.queryByRole('link', { name: 'inventory.linkLabel' })
-    ).not.toBeInTheDocument()
+    expect(screen.queryByTestId('expense-inventory-link-E99')).not.toBeInTheDocument()
   })
 })
