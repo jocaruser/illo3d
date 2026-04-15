@@ -8,7 +8,7 @@ Define how the authenticated app shell shows **current section** in the top navi
 
 ### Requirement: Top navigation shows active section
 
-The system SHALL render primary section links (Clients, Jobs, Transactions, Expenses, Inventory) in the app header. The link whose route matches the current location SHALL use visually distinct styling from inactive links so users can see which page they are on. The logo or home link behavior SHALL NOT cause every route to appear active.
+The system SHALL render primary section links (Clients, Jobs, Transactions, Expenses, Inventory) in the app header. When the user is authenticated and has an **active shop**, the system SHALL also render the **global entity search** control in the header (alongside—not instead of—section links). The link whose route matches the current location SHALL use visually distinct styling from inactive links so users can see which page they are on. The logo or home link behavior SHALL NOT cause every route to appear active. Focusing or typing in the global search SHALL NOT by itself change which section link is active; active styling SHALL depend only on the current route.
 
 #### Scenario: Clients nav is active on clients page
 
@@ -36,6 +36,19 @@ The system SHALL render primary section links (Clients, Jobs, Transactions, Expe
 
 - **WHEN** authenticated user is on `/inventory`
 - **THEN** the Inventory header link uses the active styling
+
+#### Scenario: Global search visible with active shop
+
+- **WHEN** authenticated user has an active shop
+- **AND** the user views a page that shows the primary section navigation in the header
+- **THEN** the global entity search control is visible in the header
+- **AND** primary section links remain visible
+
+#### Scenario: Global search does not steal active nav styling
+
+- **WHEN** authenticated user is on `/jobs`
+- **AND** the user focuses the global search field
+- **THEN** the Jobs header link remains the active section link
 
 ### Requirement: Breadcrumbs component API
 

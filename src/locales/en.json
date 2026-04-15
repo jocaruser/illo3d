@@ -51,6 +51,23 @@
     "inventory": "Inventory",
     "toggleMenu": "Toggle menu"
   },
+  "globalSearch": {
+    "placeholder": "Search everything…",
+    "ariaCombobox": "Search all entities",
+    "listLabel": "Search results",
+    "noResults": "No matches",
+    "kind": {
+      "client": "Client",
+      "job": "Job",
+      "piece": "Piece",
+      "client_note": "Client note",
+      "job_note": "Job note",
+      "transaction": "Transaction",
+      "expense": "Expense",
+      "inventory": "Inventory",
+      "tag": "Tag"
+    }
+  },
   "clients": {
     "title": "Clients",
     "addClient": "Add client",
