@@ -50,10 +50,11 @@ jobs:
       - name: Unit tests
         run: make test
 
-  dependabot-auto-merge:
+  # Same-repo branches only: fork PRs get a read-limited token and must not be auto-approved here.
+  auto-merge:
     runs-on: ubuntu-latest
     needs: quality
-    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    if: ${{ !github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository }}
     permissions:
       contents: write
       pull-requests: write

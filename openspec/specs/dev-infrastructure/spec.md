@@ -322,19 +322,29 @@ The repository SHALL include a `.github/dependabot.yml` file that configures aut
 - **WHEN** the only available update for a dependency is a semver-major version increase
 - **THEN** Dependabot does not open a pull request for that bump
 
-### Requirement: Dependabot auto-merge runs after CI quality passes
+### Requirement: Auto-merge runs after CI quality passes
 
-The repository SHALL run Dependabot auto-merge as part of `.github/workflows/ci.yml`: after the `quality` job succeeds, a `dependabot-auto-merge` job SHALL approve and enable merge-commit auto-merge for pull requests opened by `dependabot[bot]`.
+The repository SHALL run an `auto-merge` job as part of `.github/workflows/ci.yml`: after the `quality` job succeeds, that job SHALL approve the pull request and enable merge-commit auto-merge via GitHub, for pull requests that are not drafts and whose head branch lives in the same repository (not a fork).
 
-#### Scenario: Dependabot PR is auto-approved and merge-enabled after green CI
+#### Scenario: PR is auto-approved and merge-enabled after green CI
 
-- **WHEN** Dependabot opens a pull request and the `quality` job completes successfully
-- **THEN** the `dependabot-auto-merge` job approves the PR and enables auto-merge
+- **WHEN** an eligible pull request exists and the `quality` job completes successfully
+- **THEN** the `auto-merge` job approves the PR and enables auto-merge
 
 #### Scenario: Failed quality blocks auto-merge
 
-- **WHEN** Dependabot opens a pull request and the `quality` job fails
-- **THEN** the `dependabot-auto-merge` job does not run
+- **WHEN** an eligible pull request exists and the `quality` job fails
+- **THEN** the `auto-merge` job does not run
+
+#### Scenario: Draft pull requests skip auto-merge
+
+- **WHEN** a pull request is in draft state
+- **THEN** the `auto-merge` job does not run
+
+#### Scenario: Fork pull requests skip auto-merge
+
+- **WHEN** a pull request’s head branch is on a fork (different repository than the base)
+- **THEN** the `auto-merge` job does not run
 
 ## E2E coverage
 
