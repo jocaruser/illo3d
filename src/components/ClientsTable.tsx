@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Client } from '@/types/money'
 
@@ -42,7 +43,13 @@ export function ClientsTable({ clients, onEdit, onDelete }: ClientsTableProps) {
               className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
             >
               <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
-                {client.name}
+                <Link
+                  to={`/clients/${client.id}`}
+                  data-testid={`client-detail-link-${client.id}`}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  {client.name}
+                </Link>
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                 {client.email ?? ''}

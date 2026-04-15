@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MemoryRouter } from 'react-router-dom'
 import { ClientsPage } from './ClientsPage'
 import { useShopStore } from '@/stores/shopStore'
 import { useSheetsStore } from '@/stores/sheetsStore'
@@ -25,9 +26,11 @@ function renderPage() {
     defaultOptions: { queries: { retry: false } },
   })
   return render(
-    <QueryClientProvider client={queryClient}>
-      <ClientsPage />
-    </QueryClientProvider>
+    <MemoryRouter>
+      <QueryClientProvider client={queryClient}>
+        <ClientsPage />
+      </QueryClientProvider>
+    </MemoryRouter>
   )
 }
 

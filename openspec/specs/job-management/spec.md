@@ -8,7 +8,7 @@ Jobs table page with domain services for creating and managing print jobs: `/job
 
 ### Requirement: Jobs page displays job table
 
-The system SHALL provide a `/jobs` route protected by the same authentication guard as other data pages. The route SHALL display a table of all jobs from the jobs sheet. The table SHALL show: id, client name (resolved from client_id), description, status, price (formatted as €), and created_at. The table SHALL be sorted by created_at descending.
+The system SHALL provide a `/jobs` route protected by the same authentication guard as other data pages. The route SHALL display a table of all jobs from the jobs sheet. The table SHALL show: id, client name (resolved from client_id), description, status, price (formatted as €), and created_at. The table SHALL be sorted by created_at descending. The **client name** cell SHALL be the visible text of a link to `/clients/:clientId` for that job’s `client_id`.
 
 #### Scenario: Jobs table renders with data
 
@@ -33,6 +33,11 @@ The system SHALL provide a `/jobs` route protected by the same authentication gu
 - **WHEN** a job has client_id "CL1"
 - **AND** client CL1 has name "Alice"
 - **THEN** the table displays "Alice" in the client column
+
+#### Scenario: Client name links to client detail
+
+- **WHEN** a job has client_id "CL1"
+- **THEN** the client column activates a link to `/clients/CL1`
 
 ### Requirement: Jobs page shows connection status
 
@@ -303,6 +308,20 @@ The system SHALL provide a `CreateJobPopup` component that renders a modal with 
 - **WHEN** user clears the description field and submits in edit mode
 - **THEN** a validation error is shown
 - **AND** no update is performed
+
+### Requirement: CreateJobPopup accepts preset client
+
+The system SHALL allow `CreateJobPopup` to receive an optional `presetClientId`. When provided, the form SHALL open with that client pre-selected. When opened from the client detail empty jobs state, the client selector MAY be hidden or read-only as long as the submitted job uses that `client_id`. When `presetClientId` is omitted, behavior SHALL match the existing jobs page create flow.
+
+#### Scenario: Preset client on submit
+
+- **WHEN** user submits CreateJobPopup opened with presetClientId "CL2" and valid description
+- **THEN** the created job has client_id "CL2"
+
+#### Scenario: Jobs page create unchanged
+
+- **WHEN** user opens CreateJobPopup from `/jobs` without presetClientId
+- **THEN** the searchable client selector is shown as today
 
 ### Requirement: Add job button on jobs page
 

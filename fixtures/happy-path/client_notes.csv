@@ -1,0 +1,3 @@
+id,client_id,body,severity,created_at
+CN1,CL1,Prefers invoices by email,info,2025-02-05T10:00:00.000Z
+CN2,CL1,Rush deadline on spring order,warning,2025-02-06T11:00:00.000Z

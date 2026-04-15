@@ -8,7 +8,7 @@ In-app listing, creation, editing, and deletion of clients: dedicated `/clients`
 
 ### Requirement: Clients page displays client table
 
-The system SHALL provide a `/clients` route that displays a table of all clients from the clients sheet. The table SHALL show: name, email, phone, notes, created_at, and per-row actions to edit and delete the client.
+The system SHALL provide a `/clients` route that displays a table of all clients from the clients sheet. The table SHALL show: name, email, phone, notes, created_at, and per-row actions to edit and delete the client. The **name** column SHALL render each client’s name as the visible text of a link to `/clients/:clientId` for that client’s id.
 
 #### Scenario: Clients table renders with data
 
@@ -27,6 +27,11 @@ The system SHALL provide a `/clients` route that displays a table of all clients
 
 - **WHEN** user views the clients table and at least one client exists
 - **THEN** Edit and Delete controls are visible for each row
+
+#### Scenario: Client name links to detail
+
+- **WHEN** the table displays a client with id "CL1" and name "Acme"
+- **THEN** the name cell shows "Acme" as the label of a link to `/clients/CL1`
 
 ### Requirement: Clients page shows connection status
 
@@ -164,7 +169,7 @@ The clients table UI SHALL apply an optimistic update when an edit save succeeds
 
 ### Requirement: Clients navigation link in header
 
-The system SHALL display a "Clients" link in the app header navigation. The link SHALL navigate to `/clients`. The link SHALL appear before the "Transactions" link.
+The system SHALL display a "Clients" link in the app header navigation. The link SHALL navigate to `/clients`. The link SHALL appear before the "Transactions" link. The Clients nav item SHALL remain active when the user is on a client detail path under `/clients/…` (not only on `/clients`).
 
 #### Scenario: Clients link visible in header
 
@@ -175,6 +180,11 @@ The system SHALL display a "Clients" link in the app header navigation. The link
 
 - **WHEN** user clicks the "Clients" header link
 - **THEN** the browser navigates to `/clients`
+
+#### Scenario: Clients nav active on detail route
+
+- **WHEN** user is on `/clients/CL1`
+- **THEN** the Clients navigation item uses the active styling
 
 ### Requirement: Clients UI strings support i18n
 

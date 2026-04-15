@@ -80,7 +80,13 @@ export function JobsTable({
                 </Link>
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                {clientName(clients, job.client_id)}
+                <Link
+                  to={`/clients/${job.client_id}`}
+                  data-testid={`job-client-link-${job.id}`}
+                  className="text-blue-600 hover:text-blue-800"
+                >
+                  {clientName(clients, job.client_id)}
+                </Link>
               </td>
               <td className="max-w-xs truncate px-4 py-3 text-sm text-gray-700">
                 {job.description}
