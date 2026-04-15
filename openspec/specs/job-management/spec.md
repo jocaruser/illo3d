@@ -8,14 +8,14 @@ Jobs table page with domain services for creating and managing print jobs: `/job
 
 ### Requirement: Jobs page displays job table
 
-The system SHALL provide a `/jobs` route protected by the same authentication guard as other data pages. The route SHALL display a table of all jobs from the jobs sheet. The table SHALL show: id, client name (resolved from client_id), description, status, price (formatted as €), and created_at. The table SHALL be sorted by created_at descending. The **client name** cell SHALL be the visible text of a link to `/clients/:clientId` for that job’s `client_id`.
+The system SHALL provide a `/jobs` route protected by the same authentication guard as other data pages. The route SHALL display a table of all jobs from the jobs sheet. The table SHALL show: id, client name (resolved from client_id), description, status, price (formatted as €), and created_at. Until the user changes sort via column-header (or equivalent) controls, the table SHALL order rows by `created_at` descending with stable secondary ordering by job `id` when timestamps tie. The table SHALL provide the shared list discovery controls (search, fuzzy matching, sortable data columns, responsive column visibility) defined in the `list-table-discovery` capability. The **client name** cell SHALL be the visible text of a link to `/clients/:clientId` for that job’s `client_id`.
 
 #### Scenario: Jobs table renders with data
 
 - **WHEN** authenticated user navigates to `/jobs`
 - **AND** jobs exist in the sheet
 - **THEN** table displays all jobs with id, client name, description, status, price, and created_at columns
-- **AND** jobs are sorted by created_at descending
+- **AND** jobs are ordered by `created_at` descending before any user sort change
 
 #### Scenario: Empty state shown when no jobs
 

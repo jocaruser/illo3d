@@ -1,76 +1,82 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { Inventory } from '@/types/money'
-import { formatInventoryCreatedDate } from '@/services/sheets/inventory'
+import type { Job } from '@/types/money'
+import { formatCurrency } from '@/utils/money'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
-import { buildInventorySearchBlob } from '@/lib/listTable/searchBlobs'
+import { buildJobSearchBlob } from '@/lib/listTable/searchBlobs'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
 
-function qtyCurrentHighlightClass(item: Inventory): string {
-  if (item.qty_initial <= 1) return ''
-  const ratio = item.qty_current / item.qty_initial
-  if (ratio > 0.5) return ''
-  if (ratio > 0.3) return 'bg-yellow-50'
-  if (ratio > 0.1) return 'bg-orange-100'
-  return 'bg-red-100'
+function formatJobPrice(price: number | undefined): string {
+  if (price === undefined || price === null || Number.isNaN(price)) {
+    return '—'
+  }
+  return formatCurrency(price)
 }
 
-interface InventoryTableProps {
-  items: Inventory[]
-}
-
-function inventoryComparable(
-  item: Inventory,
-  key: string,
-  typeLabel: string
-): string | number {
+function embeddedJobComparable(job: Job, key: string, clientName: string): string | number {
   switch (key) {
-    case 'name':
-      return item.name.toLowerCase()
-    case 'type':
-      return typeLabel.toLowerCase()
-    case 'qty_initial':
-      return item.qty_initial
-    case 'qty_current':
-      return item.qty_current
+    case 'id':
+      return job.id.toLowerCase()
+    case 'description':
+      return job.description.toLowerCase()
+    case 'status':
+      return job.status
+    case 'price':
+      if (
+        job.price === undefined ||
+        job.price === null ||
+        Number.isNaN(Number(job.price))
+      ) {
+        return Number.POSITIVE_INFINITY
+      }
+      return Number(job.price)
     case 'created_at':
-      return item.created_at
+      return job.created_at
     default:
-      return ''
+      return clientName.toLowerCase()
   }
 }
 
-export function InventoryTable({ items }: InventoryTableProps) {
+interface ClientJobsDiscoveryTableProps {
+  jobs: Job[]
+  /** Resolved client name for search blob (all rows share this client). */
+  clientName: string
+}
+
+export function ClientJobsDiscoveryTable({
+  jobs,
+  clientName,
+}: ClientJobsDiscoveryTableProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
-  const [sortKey, setSortKey] = useState<string | null>(null)
-  const [sortDir, setSortDir] = useState<SortDirection>('asc')
+  const [sortKey, setSortKey] = useState<string>('created_at')
+  const [sortDir, setSortDir] = useState<SortDirection>('desc')
 
   const filtered = useMemo(
     () =>
-      filterRowsBySearchQuery(items, query, (item) =>
-        buildInventorySearchBlob(item, {
-          typeLabel: t(`inventory.type.${item.type}`),
+      filterRowsBySearchQuery(jobs, query, (job) =>
+        buildJobSearchBlob(job, {
+          clientName,
+          statusLabel: t(`jobs.status.${job.status}`),
         })
       ),
-    [items, query, t]
+    [jobs, query, clientName, t]
   )
 
-  const displayed = useMemo(() => {
-    if (sortKey === null) {
-      return filtered
-    }
-    return sortRowsByColumn(
-      filtered,
-      (x) => x.id,
-      sortKey,
-      sortDir,
-      (item, key) =>
-        inventoryComparable(item, key, t(`inventory.type.${item.type}`))
-    )
-  }, [filtered, sortKey, sortDir, t])
+  const displayed = useMemo(
+    () =>
+      sortRowsByColumn(
+        filtered,
+        (j) => j.id,
+        sortKey,
+        sortDir,
+        (j, key) => embeddedJobComparable(j, key, clientName)
+      ),
+    [filtered, sortKey, sortDir, clientName]
+  )
 
   const onSortChange = (key: string) => {
     if (sortKey === key) {
@@ -104,45 +110,43 @@ export function InventoryTable({ items }: InventoryTableProps) {
           <thead className="bg-gray-50">
             <tr>
               <SortableColumnHeader
-                columnKey="name"
+                columnKey="id"
                 sortKey={sortKey}
                 sortDir={sortDir}
                 onSortChange={onSortChange}
-                ariaLabel={sortAria(t('inventory.name'), 'name')}
+                ariaLabel={sortAria(t('jobs.colId'), 'id')}
               >
-                {t('inventory.name')}
+                {t('jobs.colId')}
               </SortableColumnHeader>
               <SortableColumnHeader
-                columnKey="type"
+                columnKey="description"
                 sortKey={sortKey}
                 sortDir={sortDir}
                 onSortChange={onSortChange}
-                thClassName="hidden sm:table-cell"
-                ariaLabel={sortAria(t('inventory.typeLabel'), 'type')}
+                thClassName="hidden md:table-cell"
+                ariaLabel={sortAria(t('jobs.colDescription'), 'description')}
               >
-                {t('inventory.typeLabel')}
+                {t('jobs.colDescription')}
               </SortableColumnHeader>
               <SortableColumnHeader
-                columnKey="qty_initial"
+                columnKey="status"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                ariaLabel={sortAria(t('jobs.colStatus'), 'status')}
+              >
+                {t('jobs.colStatus')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
+                columnKey="price"
                 sortKey={sortKey}
                 sortDir={sortDir}
                 onSortChange={onSortChange}
                 alignEnd
-                thClassName="hidden md:table-cell"
-                ariaLabel={sortAria(t('inventory.qtyInitial'), 'qty_initial')}
+                thClassName="hidden lg:table-cell"
+                ariaLabel={sortAria(t('jobs.colPrice'), 'price')}
               >
-                {t('inventory.qtyInitial')}
-              </SortableColumnHeader>
-              <SortableColumnHeader
-                columnKey="qty_current"
-                sortKey={sortKey}
-                sortDir={sortDir}
-                onSortChange={onSortChange}
-                alignEnd
-                thClassName="hidden md:table-cell"
-                ariaLabel={sortAria(t('inventory.qtyCurrent'), 'qty_current')}
-              >
-                {t('inventory.qtyCurrent')}
+                {t('jobs.colPrice')}
               </SortableColumnHeader>
               <SortableColumnHeader
                 columnKey="created_at"
@@ -150,9 +154,9 @@ export function InventoryTable({ items }: InventoryTableProps) {
                 sortDir={sortDir}
                 onSortChange={onSortChange}
                 thClassName="hidden lg:table-cell"
-                ariaLabel={sortAria(t('inventory.createdAt'), 'created_at')}
+                ariaLabel={sortAria(t('jobs.colCreated'), 'created_at')}
               >
-                {t('inventory.createdAt')}
+                {t('jobs.colCreated')}
               </SortableColumnHeader>
             </tr>
           </thead>
@@ -160,31 +164,34 @@ export function InventoryTable({ items }: InventoryTableProps) {
             {displayed.length === 0 ? (
               <tr>
                 <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-600">
-                  {items.length === 0 ? null : t('listTable.noMatches')}
+                  {jobs.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
             ) : (
-              displayed.map((item) => (
+              displayed.map((job) => (
                 <tr
-                  key={item.id}
+                  key={job.id}
                   className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
                 >
+                  <td className="whitespace-nowrap px-4 py-3 text-sm">
+                    <Link
+                      to={`/jobs/${job.id}`}
+                      className="font-medium text-blue-600 hover:text-blue-800"
+                    >
+                      {job.id}
+                    </Link>
+                  </td>
+                  <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 md:table-cell">
+                    {job.description}
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                    {item.name}
+                    {t(`jobs.status.${job.status}`)}
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 sm:table-cell">
-                    {t(`inventory.type.${item.type}`)}
-                  </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 md:table-cell">
-                    {item.qty_initial}
-                  </td>
-                  <td
-                    className={`hidden whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 md:table-cell ${qtyCurrentHighlightClass(item)}`}
-                  >
-                    {item.qty_current}
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 lg:table-cell">
+                    {formatJobPrice(job.price)}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 lg:table-cell">
-                    {formatInventoryCreatedDate(item.created_at)}
+                    {job.created_at}
                   </td>
                 </tr>
               ))

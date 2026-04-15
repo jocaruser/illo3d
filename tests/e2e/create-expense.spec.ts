@@ -56,9 +56,9 @@ test.describe('Create expense flow', () => {
 
     await page.getByRole('button', { name: /add expense|añadir gasto/i }).click()
 
-    await page.getByLabel(/date|fecha/i).fill('2025-04-01')
-    await page.getByLabel(/amount|importe/i).fill('19.99')
-    await page.getByLabel(/notes|notas/i).fill('e2e filament marker')
+    await page.locator('#expense-date').fill('2025-04-01')
+    await page.locator('#expense-amount').fill('19.99')
+    await page.locator('#expense-notes').fill('e2e filament marker')
 
     await page
       .getByRole('checkbox', { name: /add to inventory|añadir al inventario/i })
@@ -125,8 +125,8 @@ test.describe('Create expense flow', () => {
 
     await page.getByRole('button', { name: /add expense|añadir gasto/i }).click()
 
-    await page.getByLabel(/date|fecha/i).fill('2025-04-02')
-    await page.getByLabel(/amount|importe/i).fill('12.00')
+    await page.locator('#expense-date').fill('2025-04-02')
+    await page.locator('#expense-amount').fill('12.00')
 
     await page.getByRole('button', { name: /create expense|crear gasto/i }).click()
 
@@ -162,11 +162,11 @@ test.describe('Create expense flow', () => {
     await expect(addExpenseButton).toBeVisible({ timeout: 15000 })
     await addExpenseButton.click()
 
-    const dateInput = page.getByLabel(/date|fecha/i)
+    const dateInput = page.locator('#expense-date')
     await expect(dateInput).toBeVisible({ timeout: 5000 })
     await dateInput.fill('2099-07-01')
 
-    const amountInput = page.getByLabel(/amount|importe/i)
+    const amountInput = page.locator('#expense-amount')
     await amountInput.fill('25.50')
 
     const submitButton = page.getByRole('button', {

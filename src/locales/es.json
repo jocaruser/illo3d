@@ -8,6 +8,14 @@
     "loading": "Cargando...",
     "submitting": "Enviando..."
   },
+  "listTable": {
+    "searchPlaceholder": "Buscar…",
+    "searchAria": "Buscar en esta lista",
+    "noMatches": "Ninguna fila coincide con la búsqueda.",
+    "sortBy": "Ordenar por {{column}}",
+    "sortedAscending": "{{column}}, orden ascendente",
+    "sortedDescending": "{{column}}, orden descendente"
+  },
   "page": {
     "transactions": "Transacciones",
     "expenses": "Gastos"

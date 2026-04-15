@@ -8,6 +8,14 @@
     "loading": "Loading...",
     "submitting": "Submitting..."
   },
+  "listTable": {
+    "searchPlaceholder": "Search…",
+    "searchAria": "Search this list",
+    "noMatches": "No rows match your search.",
+    "sortBy": "Sort by {{column}}",
+    "sortedAscending": "{{column}}, sorted ascending",
+    "sortedDescending": "{{column}}, sorted descending"
+  },
   "page": {
     "transactions": "Transactions",
     "expenses": "Expenses"

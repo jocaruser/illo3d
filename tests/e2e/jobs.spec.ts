@@ -95,7 +95,7 @@ test.describe('Jobs page', () => {
       page.getByRole('heading', { name: /mark job as paid|marcar como pagado/i })
     ).toBeVisible({ timeout: 5000 })
 
-    await page.getByLabel(/price|precio/i).fill('42')
+    await page.locator('#paid-price-input').fill('42')
 
     await page
       .getByRole('checkbox', {
@@ -170,8 +170,8 @@ test.describe('Jobs page', () => {
     await j1PaidFlow.selectOption('paid')
     await expect(j1PaidFlow).toHaveValue('draft')
 
-    await expect(page.getByLabel(/price|precio/i)).toBeVisible({ timeout: 5000 })
-    await page.getByLabel(/price|precio/i).fill('9.99')
+    await expect(page.locator('#paid-price-input')).toBeVisible({ timeout: 5000 })
+    await page.locator('#paid-price-input').fill('9.99')
 
     await page.getByRole('button', { name: /confirm|confirmar/i }).click()
 

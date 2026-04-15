@@ -108,7 +108,7 @@ The system SHALL render a notes section with inline add, per-row edit, per-row d
 
 ### Requirement: Client detail jobs section
 
-The system SHALL list jobs whose `client_id` matches `:clientId`, sorted by `created_at` descending like the main jobs table. Each job id SHALL link to `/jobs/:jobId`. Columns SHALL include at least id, description, status, price (formatted as currency), and created_at. When there are no jobs, the system SHALL show table headers with an empty body and a primary control to add a job that opens `CreateJobPopup` with `presetClientId` set to this client.
+The system SHALL list jobs whose `client_id` matches `:clientId`, initially ordered by `created_at` descending with stable secondary ordering by job `id` when timestamps tie, matching the default ordering of the main jobs table until the user changes sort. Each job id SHALL link to `/jobs/:jobId`. Columns SHALL include at least id, description, status, price (formatted as currency), and created_at. The embedded list SHALL expose the same shared list discovery controls (search, fuzzy matching, sortable data columns, responsive column visibility) defined in the `list-table-discovery` capability. When there are no jobs, the system SHALL show table headers with an empty body and a primary control to add a job that opens `CreateJobPopup` with `presetClientId` set to this client.
 
 #### Scenario: Job id links to job detail
 
