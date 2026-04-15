@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
+import { appPersistJSONStorage } from '@/stores/persistStorage'
 import type { Shop } from '@/types/shop'
 
 interface ShopState {
@@ -17,7 +18,7 @@ export const useShopStore = create<ShopState>()(
     }),
     {
       name: 'shop-storage',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: appPersistJSONStorage(),
     }
   )
 )

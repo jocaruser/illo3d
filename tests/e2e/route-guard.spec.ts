@@ -1,5 +1,7 @@
 import { test, expect } from './fixtures'
 
+test.use({ storageState: { cookies: [], origins: [] } })
+
 test.describe('Route guard', () => {
   test('unauthenticated user navigating to /transactions is redirected to /login', async ({
     page,

@@ -1,16 +1,21 @@
 import { test, expect } from './fixtures'
 
 test.describe('Jobs page', () => {
-  test.describe.configure({ mode: 'serial' })
+  test.describe('unauthenticated', () => {
+    test.use({ storageState: { cookies: [], origins: [] } })
 
-  test('unauthenticated user is redirected from /jobs to /login', async ({
-    page,
-  }) => {
-    await page.goto('/jobs', { waitUntil: 'load' })
-    await expect(page).toHaveURL(/\/login/)
+    test('unauthenticated user is redirected from /jobs to /login', async ({
+      page,
+    }) => {
+      await page.goto('/jobs', { waitUntil: 'load' })
+      await expect(page).toHaveURL(/\/login/)
+    })
   })
 
-  test('jobs table shows fixture data after navigation', async ({ page, openCsvShop }) => {
+  test.describe('authenticated', () => {
+    test.describe.configure({ mode: 'serial' })
+
+    test('jobs table shows fixture data after navigation', async ({ page, openCsvShop }) => {
     void openCsvShop
 
     await page.getByRole('link', { name: 'Jobs' }).click()
@@ -251,5 +256,6 @@ test.describe('Jobs page', () => {
     ).not.toBeVisible({ timeout: 10000 })
 
     await expect(gearStatus).toHaveValue('cancelled', { timeout: 15000 })
+  })
   })
 })

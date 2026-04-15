@@ -4,6 +4,7 @@ import { useShopStore } from './shopStore'
 describe('shopStore', () => {
   beforeEach(() => {
     sessionStorage.clear()
+    localStorage.clear()
     useShopStore.setState({ activeShop: null })
   })
 
@@ -39,7 +40,7 @@ describe('shopStore', () => {
     expect(state.activeShop).toBeNull()
   })
 
-  it('should persist active shop to sessionStorage', () => {
+  it('should persist active shop', () => {
     const shop = {
       folderId: 'folder-1',
       folderName: 'My Shop',
@@ -48,7 +49,9 @@ describe('shopStore', () => {
     }
     useShopStore.getState().setActiveShop(shop)
 
-    const stored = sessionStorage.getItem('shop-storage')
+    const persist =
+      import.meta.env.PROD ? sessionStorage : localStorage
+    const stored = persist.getItem('shop-storage')
     expect(stored).toBeTruthy()
     expect(JSON.parse(stored!).state.activeShop).toEqual(shop)
   })

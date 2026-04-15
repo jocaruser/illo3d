@@ -9,6 +9,42 @@ function e2eDestinationFolderName(): string {
   return 'happy-path'
 }
 
+/** Copy `fixtures/<fixtureScenario>/` into `.e2e-fixtures` (used by setup + `prepareFixtureDir`). */
+export function copyGoldenFixtureToE2eRoot(fixtureScenario: string): void {
+  const goldenDir = path.join(process.cwd(), 'fixtures', fixtureScenario)
+  if (!fs.existsSync(goldenDir)) {
+    throw new Error(`Golden fixture scenario not found: ${fixtureScenario}`)
+  }
+  const destRoot = path.join(process.cwd(), '.e2e-fixtures')
+  const wizardFolder = e2eDestinationFolderName()
+
+  fs.rmSync(destRoot, { recursive: true, force: true })
+  fs.mkdirSync(destRoot, { recursive: true })
+
+  const copyInto = (relative: string) => {
+    const dest = path.join(destRoot, relative)
+    fs.cpSync(goldenDir, dest, { recursive: true })
+  }
+
+  copyInto(fixtureScenario)
+  if (fixtureScenario !== wizardFolder) {
+    copyInto(wizardFolder)
+  }
+}
+
+export async function waitForShopDataReady(page: Page) {
+  await expect(
+    page.getByText(/connecting to google sheets|conectando a google sheets/i),
+  ).not.toBeVisible({ timeout: 20000 })
+  await expect(
+    page.getByRole('heading', { name: /transactions|transacciones/i }),
+  ).toBeVisible({ timeout: 20000 })
+  // Zustand persist rehydrates async; header search only mounts when `activeShop` is set (no wizard overlay).
+  await expect(page.getByTestId('global-header-search')).toBeVisible({
+    timeout: 20000,
+  })
+}
+
 /** Dev Login + Local CSV “open existing shop” for the active `fixtureScenario`. */
 export async function devLoginAndOpenCsvShop(page: Page) {
   await page.goto('/login', { waitUntil: 'load' })
@@ -35,31 +71,13 @@ export const test = base.extend<{
   fixtureScenario: string
   /** Reset `.e2e-fixtures` from `fixtures/<fixtureScenario>/`. Runs when opening the CSV shop or when a test pulls this in explicitly (e.g. manual wizard completion). */
   prepareFixtureDir: void
-  /** Opt-in: completes Dev Login and opens the CSV shop (see `devLoginAndOpenCsvShop`). */
+  /** Opt-in: uses saved `storageState` from setup, resets fixtures, opens `/transactions`, waits for data-ready. */
   openCsvShop: void
 }>({
   fixtureScenario: ['happy-path', { option: true }],
   prepareFixtureDir: [
     async ({ fixtureScenario }, use) => {
-      const goldenDir = path.join(process.cwd(), 'fixtures', fixtureScenario)
-      if (!fs.existsSync(goldenDir)) {
-        throw new Error(`Golden fixture scenario not found: ${fixtureScenario}`)
-      }
-      const destRoot = path.join(process.cwd(), '.e2e-fixtures')
-      const wizardFolder = e2eDestinationFolderName()
-
-      fs.rmSync(destRoot, { recursive: true, force: true })
-      fs.mkdirSync(destRoot, { recursive: true })
-
-      const copyInto = (relative: string) => {
-        const dest = path.join(destRoot, relative)
-        fs.cpSync(goldenDir, dest, { recursive: true })
-      }
-
-      copyInto(fixtureScenario)
-      if (fixtureScenario !== wizardFolder) {
-        copyInto(wizardFolder)
-      }
+      copyGoldenFixtureToE2eRoot(fixtureScenario)
       await use()
     },
     { auto: false },
@@ -67,7 +85,8 @@ export const test = base.extend<{
   openCsvShop: [
     async ({ page, prepareFixtureDir }, use) => {
       void prepareFixtureDir
-      await devLoginAndOpenCsvShop(page)
+      await page.goto('/transactions', { waitUntil: 'load' })
+      await waitForShopDataReady(page)
       await use()
     },
     { auto: false },
