@@ -33,6 +33,17 @@ export function sheetsAppendPlugin(): Plugin {
       server.middlewares.use(async (req, res, next) => {
         const pathname = (req.url ?? '').split('?')[0] ?? ''
 
+        function resolveDataLineIndex(lines: string[], rowIndex: number): number | null {
+          // rowIndex is 1-based data-row index (excluding header)
+          let seen = 0
+          for (let i = 1; i < lines.length; i++) {
+            if (lines[i]?.trim() === '') continue
+            seen += 1
+            if (seen === rowIndex) return i
+          }
+          return null
+        }
+
         if (req.method === 'PUT' && pathname === '/api/sheets/row') {
           let body = ''
           req.on('data', (chunk) => { body += chunk })
@@ -71,8 +82,8 @@ export function sheetsAppendPlugin(): Plugin {
               }
               const raw = fs.readFileSync(csvPath, 'utf8')
               const lines = raw.trimEnd().split(/\r?\n/)
-              const lineIdx = rowIndex
-              if (lineIdx >= lines.length) {
+              const lineIdx = resolveDataLineIndex(lines, rowIndex)
+              if (lineIdx === null) {
                 res.statusCode = 400
                 res.end(JSON.stringify({ error: 'Row out of range' }))
                 return
@@ -130,8 +141,8 @@ export function sheetsAppendPlugin(): Plugin {
               }
               const raw = fs.readFileSync(csvPath, 'utf8')
               const lines = raw.trimEnd().split(/\r?\n/)
-              const lineIdx = rowIndex
-              if (lineIdx >= lines.length) {
+              const lineIdx = resolveDataLineIndex(lines, rowIndex)
+              if (lineIdx === null) {
                 res.statusCode = 400
                 res.end(JSON.stringify({ error: 'Row out of range' }))
                 return
@@ -177,11 +188,15 @@ export function sheetsAppendPlugin(): Plugin {
               return
             }
             const headers = getHeadersForSheet(sheetName)
+            if (headers.length === 0) {
+              res.statusCode = 400
+              res.end(JSON.stringify({ error: 'Unknown sheet' }))
+              return
+            }
             const lines = rows.map((obj) =>
               headers.map((h) => escapeCsvValue(obj[h])).join(',')
             )
-            const toAppend =
-              (lines.length ? '\n' : '') + lines.join('\n') + (lines.length ? '\n' : '')
+            const toAppend = (lines.length ? lines.join('\n') + '\n' : '')
             fs.appendFileSync(csvPath, toAppend)
             res.statusCode = 200
             res.setHeader('Content-Type', 'application/json')
@@ -202,6 +217,7 @@ export function sheetsAppendPlugin(): Plugin {
 
 const SHEET_HEADERS: Record<string, string[]> = {
   clients: ['id', 'name', 'email', 'phone', 'notes', 'created_at'],
+  client_notes: ['id', 'client_id', 'body', 'severity', 'created_at'],
   jobs: ['id', 'client_id', 'description', 'status', 'price', 'created_at'],
   pieces: ['id', 'job_id', 'name', 'status', 'created_at'],
   piece_items: ['id', 'piece_id', 'inventory_id', 'quantity'],

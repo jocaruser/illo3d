@@ -116,8 +116,17 @@ export class GoogleSheetsRepository implements SheetsRepository {
       return []
     }
 
-    const dataRows = rows.slice(1)
-    return dataRows.map((row: unknown[]) => rowToObject<T>(headers, row))
+    const dataRows = rows
+      .slice(1)
+      .filter((row) => row.some((v) => v !== undefined && v !== null && v !== ''))
+    const mapped = dataRows.map((row: unknown[]) => rowToObject<T>(headers, row))
+    if (sheetName === 'clients') {
+      return mapped.filter((c) => {
+        const obj = c as Record<string, unknown>
+        return obj.id != null && obj.name != null
+      })
+    }
+    return mapped
   }
 
   async getSheetNames(spreadsheetId: string): Promise<string[]> {
@@ -336,7 +345,7 @@ export class CsvSheetsRepository implements SheetsRepository {
   ): T[] {
     const lines = csvText.trim().split(/\r?\n/)
     if (lines.length < 2) return []
-    const dataRows = lines.slice(1)
+    const dataRows = lines.slice(1).filter((line) => line.trim() !== '')
     return dataRows.map((line) => {
       const values = line.split(',')
       const obj = {} as T
@@ -365,7 +374,14 @@ export class CsvSheetsRepository implements SheetsRepository {
     const folder = this.folderFromSpreadsheetId(spreadsheetId)
     const headers = SHEET_HEADERS[sheetName]
     const csvText = await this.fetchCsv(sheetName, folder)
-    return this.parseCsv<T>(csvText, headers)
+    const rows = this.parseCsv<T>(csvText, headers)
+    if (sheetName === 'clients') {
+      return rows.filter((c) => {
+        const obj = c as Record<string, unknown>
+        return obj.id != null && obj.name != null
+      })
+    }
+    return rows
   }
 
   async getSheetNames(spreadsheetId: string): Promise<string[]> {
