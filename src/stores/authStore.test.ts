@@ -3,6 +3,8 @@ import { useAuthStore } from './authStore'
 
 describe('authStore', () => {
   beforeEach(() => {
+    sessionStorage.clear()
+    localStorage.clear()
     useAuthStore.setState({
       user: null,
       credentials: null,
