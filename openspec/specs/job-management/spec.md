@@ -39,6 +39,15 @@ The system SHALL provide a `/jobs` route protected by the same authentication gu
 - **WHEN** a job has client_id "CL1"
 - **THEN** the client column activates a link to `/clients/CL1`
 
+### Requirement: Jobs list shows linked tags in an instant tooltip
+
+On the jobs table, when a job has linked tags, hovering or focusing the job id link SHALL show a custom tooltip (not the native `title` attribute alone) that appears without intentional browser delay, lists tag names in a readable layout, exposes an accessible name for screen readers, and does not clip inside the table scroll container (e.g. via fixed positioning or portal). Jobs without tags SHALL keep a plain id link without a tag tooltip.
+
+#### Scenario: Tooltip shows tag labels on hover for a job
+
+- **WHEN** the user hovers the id cell for a job that has tag links
+- **THEN** a tooltip becomes visible immediately and includes the linked tag names
+
 ### Requirement: Jobs page shows connection status
 
 The system SHALL display the sheets connection status on the jobs page. The page SHALL connect to the spreadsheet on mount and show connecting, connected, or error states using the `ConnectionStatus` component.
@@ -405,7 +414,7 @@ The system SHALL provide an `updateJob(spreadsheetId, jobId, payload)` service t
 
 ### Requirement: deleteJob service cascade-deletes job and children
 
-The system SHALL provide a `deleteJob(spreadsheetId, jobId)` service that removes the job and all related data in this order: (1) delete all `piece_items` rows whose `piece_id` belongs to a piece of this job, (2) delete all `pieces` rows whose `job_id` matches, (3) delete the `job` row. Rows SHALL be deleted in reverse index order (highest index first) to avoid row-shift issues. The service SHALL NOT delete or modify transaction rows.
+The system SHALL provide a `deleteJob(spreadsheetId, jobId)` service that removes the job and all related data in this order: (1) delete all `piece_items` rows whose `piece_id` belongs to a piece of this job, (2) delete all `pieces` rows whose `job_id` matches, (3) delete all `crm_notes` rows where `entity_type` is `job` and `entity_id` matches the job, (4) delete all `tag_links` rows where `entity_type` is `job` and `entity_id` matches the job, (5) delete the `job` row. Rows SHALL be deleted in reverse index order (highest index first) within each sheet to avoid row-shift issues. The service SHALL NOT delete or modify transaction rows.
 
 #### Scenario: Job with pieces and piece_items is cascade-deleted
 
@@ -416,10 +425,15 @@ The system SHALL provide a `deleteJob(spreadsheetId, jobId)` service that remove
 - **AND** P1, P2 are deleted from the pieces sheet
 - **AND** J3 is deleted from the jobs sheet
 
+#### Scenario: Job deletion clears job CRM notes and job tag links
+
+- **WHEN** a job has `crm_notes` rows scoped to that job and/or job `tag_links`
+- **THEN** those rows are removed from their sheets before the job row is removed
+
 #### Scenario: Job without pieces is deleted
 
 - **WHEN** `deleteJob` is called for a job with no pieces
-- **THEN** only the job row is deleted from the jobs sheet
+- **THEN** the job row is deleted from the jobs sheet after dependent CRM rows are cleared as applicable
 
 #### Scenario: Job not found throws error
 

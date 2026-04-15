@@ -7,6 +7,9 @@ export interface CreateClientPayload {
   email?: string
   phone?: string
   notes?: string
+  preferred_contact?: string
+  lead_source?: string
+  address?: string
 }
 
 function todayIsoDate(): string {
@@ -33,6 +36,9 @@ export async function createClient(
     email: payload.email?.trim() ?? '',
     phone: payload.phone?.trim() ?? '',
     notes: payload.notes?.trim() ?? '',
+    preferred_contact: payload.preferred_contact?.trim() ?? '',
+    lead_source: payload.lead_source?.trim() ?? '',
+    address: payload.address?.trim() ?? '',
     created_at: todayIsoDate(),
   }
 

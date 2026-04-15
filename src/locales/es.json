@@ -59,6 +59,9 @@
     "email": "Correo",
     "phone": "Teléfono",
     "notes": "Notas",
+    "preferredContact": "Contacto preferido",
+    "leadSource": "Origen del lead",
+    "address": "Dirección",
     "createdAt": "Creado",
     "namePlaceholder": "Nombre del cliente o empresa",
     "nameRequired": "El nombre es obligatorio",
@@ -72,7 +75,8 @@
     "deleteConfirmTitle": "Eliminar cliente",
     "deleteConfirmMessage": "¿Eliminar a {{name}}? No se puede deshacer.",
     "deleteBlockedJobs": "No se puede eliminar este cliente mientras existan trabajos asociados.",
-    "validation.required": "Este campo es obligatorio"
+    "validation.required": "Este campo es obligatorio",
+    "tagsTooltip": "Etiquetas: {{list}}"
   },
   "clientDetail": {
     "backToList": "Volver a clientes",
@@ -83,7 +87,7 @@
     "metricJobCount": "Trabajos",
     "metricAvgJobPrice": "Precio medio por trabajo",
     "metricMaterials": "Materiales (estim.)",
-    "notesTitle": "Notas CRM",
+    "notesTitle": "Notas",
     "addNote": "Añadir nota",
     "noteBodyPlaceholder": "Nota en texto plano",
     "severityLabel": "Importancia",
@@ -97,7 +101,32 @@
     "severity.warning": "Aviso",
     "severity.success": "Éxito",
     "severity.primary": "Principal",
-    "severity.secondary": "Secundario"
+    "severity.secondary": "Secundario",
+    "tagsTitle": "Etiquetas",
+    "tagsEmpty": "Sin etiquetas.",
+    "tagsComboboxLabel": "Añadir etiqueta",
+    "tagsComboboxPlaceholder": "Escribe para buscar o crear…",
+    "tagsComboboxAdd": "Añadir",
+    "tagsComboboxListAria": "Etiquetas existentes",
+    "tagsComboboxNoMatch": "Sin coincidencias — pulsa Añadir para crear",
+    "tagsRemove": "Quitar etiqueta"
+  },
+  "jobDetail": {
+    "notesTitle": "Notas",
+    "addNote": "Añadir nota",
+    "noteBodyPlaceholder": "Nota en texto plano",
+    "severityLabel": "Importancia",
+    "saveNote": "Guardar nota",
+    "deleteNoteTitle": "Eliminar nota",
+    "deleteNoteMessage": "¿Eliminar esta nota? No se puede deshacer.",
+    "tagsTitle": "Etiquetas",
+    "tagsEmpty": "Sin etiquetas.",
+    "tagsComboboxLabel": "Añadir etiqueta",
+    "tagsComboboxPlaceholder": "Escribe para buscar o crear…",
+    "tagsComboboxAdd": "Añadir",
+    "tagsComboboxListAria": "Etiquetas existentes",
+    "tagsComboboxNoMatch": "Sin coincidencias — pulsa Añadir para crear",
+    "tagsRemove": "Quitar etiqueta"
   },
   "expenses": {
     "title": "Añadir gasto",

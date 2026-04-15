@@ -93,6 +93,9 @@ describe('LocalSheetsRepository', () => {
 
     expect(names).toContain('transactions')
     expect(names).toContain('clients')
+    expect(names).toContain('crm_notes')
+    expect(names).toContain('tags')
+    expect(names).toContain('tag_links')
     expect(names).toContain('expenses')
   })
 
@@ -155,9 +158,9 @@ describe('LocalSheetsRepository', () => {
 
   it('deleteRow removes the 1-based data row and preserves header', async () => {
     const initial =
-      'id,name,email,phone,notes,created_at\n' +
-      'c1,Acme,,,note1,2025-01-01\n' +
-      'c2,Other,,,note2,2025-01-02\n'
+      'id,name,email,phone,notes,preferred_contact,lead_source,address,created_at\n' +
+      'c1,Acme,,,note1,,,,2025-01-01\n' +
+      'c2,Other,,,note2,,,,2025-01-02\n'
     const handle = createMockHandle({ 'clients.csv': initial })
     useBackendStore.setState({ localDirectoryHandle: handle })
 
@@ -171,7 +174,9 @@ describe('LocalSheetsRepository', () => {
 
   it('deleteRow rejects invalid row index', async () => {
     const handle = createMockHandle({
-      'clients.csv': 'id,name,email,phone,notes,created_at\nc1,A,,,,',
+      'clients.csv':
+        'id,name,email,phone,notes,preferred_contact,lead_source,address,created_at\n' +
+        'c1,A,,,,,,,',
     })
     useBackendStore.setState({ localDirectoryHandle: handle })
 

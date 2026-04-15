@@ -9,20 +9,32 @@ import type {
 import { joinSearchParts, moneySearchFragments } from '@/lib/listTable/moneySearchFragments'
 import { formatInventoryCreatedDate } from '@/services/sheets/inventory'
 
-export function buildClientSearchBlob(client: Client): string {
+export function buildClientSearchBlob(
+  client: Client,
+  tagNamesSearchLine?: string
+): string {
   return joinSearchParts([
     client.id,
     client.name,
     client.email,
     client.phone,
     client.notes,
+    client.preferred_contact,
+    client.lead_source,
+    client.address,
     client.created_at,
+    tagNamesSearchLine,
   ])
 }
 
 export function buildJobSearchBlob(
   job: Job,
-  ctx: { clientName: string; statusLabel: string }
+  ctx: {
+    clientName: string
+    statusLabel: string
+    /** Space-joined tag names for fuzzy search (same pool as clients). */
+    tagNamesSearchLine?: string
+  }
 ): string {
   return joinSearchParts([
     job.id,
@@ -33,6 +45,7 @@ export function buildJobSearchBlob(
     ctx.statusLabel,
     job.created_at,
     ...moneySearchFragments(job.price),
+    ctx.tagNamesSearchLine,
   ])
 }
 

@@ -7,6 +7,7 @@ import { StatusDropdown } from './StatusDropdown'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildJobSearchBlob } from '@/lib/listTable/searchBlobs'
+import { LinkWithTagsTooltip } from '@/components/LinkWithTagsTooltip'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
 
@@ -51,6 +52,10 @@ function jobComparable(job: Job, key: string, clients: Client[]): string | numbe
 interface JobsTableProps {
   jobs: Job[]
   clients: Client[]
+  /** Comma-joined tag names per job id (for job id link tooltip). */
+  tagTitleByJobId?: ReadonlyMap<string, string>
+  /** Space-joined tag names per job id (for fuzzy search). */
+  tagSearchLineByJobId?: ReadonlyMap<string, string>
   onStatusSelect: (job: Job, nextStatus: Job['status']) => void
   onEdit: (job: Job) => void
   onDelete: (job: Job) => void
@@ -60,6 +65,8 @@ interface JobsTableProps {
 export function JobsTable({
   jobs,
   clients,
+  tagTitleByJobId,
+  tagSearchLineByJobId,
   onStatusSelect,
   onEdit,
   onDelete,
@@ -76,9 +83,10 @@ export function JobsTable({
         buildJobSearchBlob(job, {
           clientName: clientName(clients, job.client_id),
           statusLabel: t(`jobs.status.${job.status}`),
+          tagNamesSearchLine: tagSearchLineByJobId?.get(job.id),
         })
       ),
-    [jobs, query, clients, t]
+    [jobs, query, clients, t, tagSearchLineByJobId]
   )
 
   const displayed = useMemo(
@@ -205,14 +213,14 @@ export function JobsTable({
                   className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
                 >
                   <td className="whitespace-nowrap px-4 py-3 text-sm">
-                    <Link
+                    <LinkWithTagsTooltip
                       to={`/jobs/${job.id}`}
-                      data-testid={`job-detail-link-${job.id}`}
-                      className="font-medium text-blue-600 hover:text-blue-800"
-                      aria-label={t('jobs.idLinkAria', { id: job.id })}
-                    >
-                      {job.id}
-                    </Link>
+                      label={job.id}
+                      tagLine={tagTitleByJobId?.get(job.id)}
+                      dataTestid={`job-detail-link-${job.id}`}
+                      linkAriaLabel={t('jobs.idLinkAria', { id: job.id })}
+                      linkClassName="font-medium text-blue-600 hover:text-blue-800"
+                    />
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 md:table-cell">
                     <Link

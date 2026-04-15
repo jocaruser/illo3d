@@ -45,6 +45,9 @@ describe('createClient', () => {
         email: 'n@example.com',
         phone: '+1',
         notes: 'Hi',
+        preferred_contact: '',
+        lead_source: '',
+        address: '',
         created_at: '2025-06-15',
       },
     ])
@@ -65,6 +68,9 @@ describe('createClient', () => {
           email: '',
           phone: '',
           notes: '',
+          preferred_contact: '',
+          lead_source: '',
+          address: '',
           created_at: '2025-06-15',
         }),
       ]

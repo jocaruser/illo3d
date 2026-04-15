@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useSheetsStore } from '@/stores/sheetsStore'
@@ -6,6 +6,9 @@ import { useShopStore } from '@/stores/shopStore'
 import { connect } from '@/services/sheets/connection'
 import { useJobs } from '@/hooks/useJobs'
 import { useClients } from '@/hooks/useClients'
+import { useTags } from '@/hooks/useTags'
+import { useTagLinks } from '@/hooks/useTagLinks'
+import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import { updateJobStatus } from '@/services/job/updateJobStatus'
 import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
@@ -48,6 +51,31 @@ export function JobsPage() {
     refetch: refetchJobs,
   } = useJobs(spreadsheetId)
   const { data: clients = [] } = useClients(spreadsheetId)
+  const { data: tags = [] } = useTags(spreadsheetId)
+  const { data: tagLinks = [] } = useTagLinks(spreadsheetId)
+
+  const { tagSearchLineByJobId, tagTitleByJobId } = useMemo(() => {
+    const namesByJob = new Map<string, string[]>()
+    for (const link of tagLinks) {
+      if (link.entity_type !== 'job') continue
+      const tag = tags.find((x) => x.id === link.tag_id)
+      const label = tag?.name?.trim()
+      if (!label) continue
+      const list = namesByJob.get(link.entity_id) ?? []
+      list.push(formatTagNameTitleCase(label))
+      namesByJob.set(link.entity_id, list)
+    }
+    const search = new Map<string, string>()
+    const title = new Map<string, string>()
+    for (const [jobId, names] of namesByJob) {
+      search.set(jobId, names.join(' '))
+      title.set(jobId, names.join(', '))
+    }
+    return {
+      tagSearchLineByJobId: search,
+      tagTitleByJobId: title,
+    }
+  }, [tags, tagLinks])
   const [popupOpen, setPopupOpen] = useState(false)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Job | null>(null)
@@ -225,6 +253,9 @@ export function JobsPage() {
       await deleteJob(spreadsheetId, deleteTarget.id)
       setDeleteTarget(null)
       await invalidateJobPieces()
+      await queryClient.invalidateQueries({
+        queryKey: ['crm_notes', spreadsheetId],
+      })
     } catch {
       setDeleteError(t('errors.deleteFailed'))
     }
@@ -269,6 +300,8 @@ export function JobsPage() {
             <JobsTable
               jobs={jobs}
               clients={clients}
+              tagTitleByJobId={tagTitleByJobId}
+              tagSearchLineByJobId={tagSearchLineByJobId}
               statusUpdatingId={statusUpdatingId}
               onStatusSelect={(job, next) => {
                 void handleStatusSelect(job, next)

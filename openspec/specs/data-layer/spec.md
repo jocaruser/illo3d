@@ -187,7 +187,7 @@ The system SHALL update the wizard "Open existing" step so that when running in 
 
 ### Requirement: Spreadsheet is created on first use
 
-The system SHALL create a Google Spreadsheet named `illo3d-data` when the user creates a new shop via the setup wizard. The spreadsheet SHALL contain empty sheets with headers for: clients, jobs, pieces, piece_items, inventory, expenses, transactions. The spreadsheet SHALL be moved into the shop's Drive folder after creation.
+The system SHALL create a Google Spreadsheet named `illo3d-data` when the user creates a new shop via the setup wizard. The spreadsheet SHALL contain empty sheets with headers for: clients, crm_notes, tags, tag_links, jobs, pieces, piece_items, inventory, expenses, transactions. The spreadsheet SHALL be moved into the shop's Drive folder after creation.
 
 #### Scenario: New shop creates spreadsheet in folder
 
@@ -363,7 +363,7 @@ The system SHALL provide a `CsvSheetsRepository` implementation that reads from 
 
 ### Requirement: LocalSheetsRepository implements SheetsRepository via File System Access API
 
-The system SHALL provide a `LocalSheetsRepository` that implements SheetsRepository using a `FileSystemDirectoryHandle`. It SHALL read and write CSV files (one per sheet) in the directory. `createSpreadsheet` SHALL create the metadata file and CSV files with headers for all sheets. This implementation SHALL be used when the user creates or opens a Local CSV shop via the directory picker.
+The system SHALL provide a `LocalSheetsRepository` that implements SheetsRepository using a `FileSystemDirectoryHandle`. It SHALL read and write CSV files (one per sheet) in the directory. `createSpreadsheet` SHALL create the metadata file and CSV files with headers for all sheets (including `crm_notes`, `tags`, `tag_links`, and extended `clients` headers per `SHEET_HEADERS`). This implementation SHALL be used when the user creates or opens a Local CSV shop via the directory picker.
 
 #### Scenario: LocalSheetsRepository reads rows from CSV files
 
@@ -437,6 +437,29 @@ The dev working copy SHALL live at `public/fixtures/` (gitignored). The app read
 - **THEN** the user selects which folder to load by typing its name in the wizard "Open existing" step
 - **AND** CsvSheetsRepository reads from `/fixtures/<folder-name>/` for that folder only
 - **AND** different scenarios (missingcolumn, happy-path, empty) are separate folders
+
+### Requirement: tags, tag_links, and crm_notes are first-class sheets
+
+The system SHALL treat `tags`, `tag_links`, and `crm_notes` as required sheets for workbooks that use the current application schema version, with headers exactly as defined in `SHEET_HEADERS`. Golden fixture folders SHALL include `tags.csv`, `tag_links.csv`, and `crm_notes.csv` with header rows only or sample rows as needed for tests.
+
+#### Scenario: Fixture folder includes tag sheets
+
+- **WHEN** a golden fixture folder exists under `fixtures/`
+- **THEN** it contains `tags.csv` and `tag_links.csv` with headers matching `SHEET_HEADERS`
+
+#### Scenario: Fixture folder includes crm_notes
+
+- **WHEN** a golden fixture folder exists under `fixtures/`
+- **THEN** it contains `crm_notes.csv` with headers matching `SHEET_HEADERS.crm_notes`
+
+### Requirement: clients sheet includes extended nullable columns
+
+The `clients` sheet header row SHALL include, after existing columns in application-defined order, nullable columns: `preferred_contact`, `lead_source`, `address`. Existing behavior for id, name, email, phone, notes, created_at SHALL remain.
+
+#### Scenario: Happy-path clients fixture matches headers
+
+- **WHEN** tests load happy-path `clients.csv`
+- **THEN** the header row includes preferred_contact, lead_source, and address columns
 
 ## Sheet writes (append)
 

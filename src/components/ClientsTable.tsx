@@ -1,15 +1,19 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Client } from '@/types/money'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildClientSearchBlob } from '@/lib/listTable/searchBlobs'
+import { ClientNameLinkWithTagsTooltip } from '@/components/ClientNameLinkWithTagsTooltip'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
 
 interface ClientsTableProps {
   clients: Client[]
+  /** Space-joined tag names per client id (for fuzzy search). */
+  tagSearchLineByClientId?: ReadonlyMap<string, string>
+  /** Comma-joined tag names per client id (for name link tooltip). */
+  tagTitleByClientId?: ReadonlyMap<string, string>
   onEdit: (client: Client) => void
   onDelete: (client: Client) => void
 }
@@ -31,15 +35,24 @@ function clientComparable(client: Client, key: string): string | number {
   }
 }
 
-export function ClientsTable({ clients, onEdit, onDelete }: ClientsTableProps) {
+export function ClientsTable({
+  clients,
+  tagSearchLineByClientId,
+  tagTitleByClientId,
+  onEdit,
+  onDelete,
+}: ClientsTableProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<SortDirection>('asc')
 
   const filtered = useMemo(
-    () => filterRowsBySearchQuery(clients, query, buildClientSearchBlob),
-    [clients, query]
+    () =>
+      filterRowsBySearchQuery(clients, query, (c) =>
+        buildClientSearchBlob(c, tagSearchLineByClientId?.get(c.id))
+      ),
+    [clients, query, tagSearchLineByClientId]
   )
 
   const displayed = useMemo(() => {
@@ -157,13 +170,11 @@ export function ClientsTable({ clients, onEdit, onDelete }: ClientsTableProps) {
                   className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
                 >
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
-                    <Link
-                      to={`/clients/${client.id}`}
-                      data-testid={`client-detail-link-${client.id}`}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      {client.name}
-                    </Link>
+                    <ClientNameLinkWithTagsTooltip
+                      clientId={client.id}
+                      name={client.name}
+                      tagLine={tagTitleByClientId?.get(client.id)}
+                    />
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 md:table-cell">
                     {client.email ?? ''}

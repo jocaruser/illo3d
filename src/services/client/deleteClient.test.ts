@@ -32,12 +32,28 @@ describe('deleteClient', () => {
           { id: 'CL1', name: 'A', created_at: '2025-01-01' },
         ])
       }
+      if (sheet === 'crm_notes') {
+        return Promise.resolve([
+          {
+            id: 'CN1',
+            entity_type: 'client',
+            entity_id: 'CL1',
+            body: 'x',
+            referenced_entity_ids: '',
+            severity: 'info',
+            created_at: '',
+          },
+        ])
+      }
       return Promise.resolve([])
     })
 
     await deleteClient('s1', 'CL1')
 
-    expect(mockDeleteRow).toHaveBeenCalledWith('s1', 'clients', 1)
+    expect(mockDeleteRow.mock.calls).toEqual([
+      ['s1', 'crm_notes', 1],
+      ['s1', 'clients', 1],
+    ])
   })
 
   it('throws when a job references client', async () => {

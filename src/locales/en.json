@@ -59,6 +59,9 @@
     "email": "Email",
     "phone": "Phone",
     "notes": "Notes",
+    "preferredContact": "Preferred contact",
+    "leadSource": "Lead source",
+    "address": "Address",
     "createdAt": "Created",
     "namePlaceholder": "Client or company name",
     "nameRequired": "Name is required",
@@ -72,7 +75,8 @@
     "deleteConfirmTitle": "Delete client",
     "deleteConfirmMessage": "Delete {{name}}? This cannot be undone.",
     "deleteBlockedJobs": "This client cannot be deleted while jobs reference them.",
-    "validation.required": "This field is required"
+    "validation.required": "This field is required",
+    "tagsTooltip": "Tags: {{list}}"
   },
   "clientDetail": {
     "backToList": "Back to clients",
@@ -83,7 +87,7 @@
     "metricJobCount": "Jobs",
     "metricAvgJobPrice": "Avg job price",
     "metricMaterials": "Materials (estimate)",
-    "notesTitle": "CRM notes",
+    "notesTitle": "Notes",
     "addNote": "Add note",
     "noteBodyPlaceholder": "Plain text note",
     "severityLabel": "Severity",
@@ -97,7 +101,32 @@
     "severity.warning": "Warning",
     "severity.success": "Success",
     "severity.primary": "Primary",
-    "severity.secondary": "Secondary"
+    "severity.secondary": "Secondary",
+    "tagsTitle": "Tags",
+    "tagsEmpty": "No tags yet.",
+    "tagsComboboxLabel": "Add tag",
+    "tagsComboboxPlaceholder": "Type to search or create…",
+    "tagsComboboxAdd": "Add",
+    "tagsComboboxListAria": "Existing tags",
+    "tagsComboboxNoMatch": "No matching tags — press Add to create",
+    "tagsRemove": "Remove tag"
+  },
+  "jobDetail": {
+    "notesTitle": "Notes",
+    "addNote": "Add note",
+    "noteBodyPlaceholder": "Plain text note",
+    "severityLabel": "Severity",
+    "saveNote": "Save note",
+    "deleteNoteTitle": "Delete note",
+    "deleteNoteMessage": "Remove this note? This cannot be undone.",
+    "tagsTitle": "Tags",
+    "tagsEmpty": "No tags yet.",
+    "tagsComboboxLabel": "Add tag",
+    "tagsComboboxPlaceholder": "Type to search or create…",
+    "tagsComboboxAdd": "Add",
+    "tagsComboboxListAria": "Existing tags",
+    "tagsComboboxNoMatch": "No matching tags — press Add to create",
+    "tagsRemove": "Remove tag"
   },
   "expenses": {
     "title": "Add expense",

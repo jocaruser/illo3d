@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useSheetsStore } from '@/stores/sheetsStore'
 import { useShopStore } from '@/stores/shopStore'
 import { connect } from '@/services/sheets/connection'
 import { useClients } from '@/hooks/useClients'
+import { useTags } from '@/hooks/useTags'
+import { useTagLinks } from '@/hooks/useTagLinks'
+import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import { ClientsTable } from '@/components/ClientsTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreateClientPopup } from '@/components/CreateClientPopup'
@@ -39,6 +42,32 @@ export function ClientsPage() {
     isError: clientsError,
     refetch: refetchClients,
   } = useClients(spreadsheetId)
+  const { data: tags = [] } = useTags(spreadsheetId)
+  const { data: tagLinks = [] } = useTagLinks(spreadsheetId)
+
+  const { tagSearchLineByClientId, tagTitleByClientId } = useMemo(() => {
+    const namesByClient = new Map<string, string[]>()
+    for (const link of tagLinks) {
+      if (link.entity_type !== 'client') continue
+      const tag = tags.find((x) => x.id === link.tag_id)
+      const label = tag?.name?.trim()
+      if (!label) continue
+      const list = namesByClient.get(link.entity_id) ?? []
+      list.push(formatTagNameTitleCase(label))
+      namesByClient.set(link.entity_id, list)
+    }
+    const search = new Map<string, string>()
+    const title = new Map<string, string>()
+    for (const [clientId, names] of namesByClient) {
+      search.set(clientId, names.join(' '))
+      title.set(clientId, names.join(', '))
+    }
+    return {
+      tagSearchLineByClientId: search,
+      tagTitleByClientId: title,
+    }
+  }, [tags, tagLinks])
+
   const [createOpen, setCreateOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
@@ -48,6 +77,7 @@ export function ClientsPage() {
 
   const handleMutationSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['clients', spreadsheetId] })
+    queryClient.invalidateQueries({ queryKey: ['crm_notes', spreadsheetId] })
   }
 
   const handleUpdateClient = async (
@@ -68,6 +98,9 @@ export function ClientsPage() {
                 email: payload.email,
                 phone: payload.phone,
                 notes: payload.notes,
+                preferred_contact: payload.preferred_contact,
+                lead_source: payload.lead_source,
+                address: payload.address,
               }
             : c
         )
@@ -167,6 +200,8 @@ export function ClientsPage() {
           ) : (
             <ClientsTable
               clients={clients}
+              tagSearchLineByClientId={tagSearchLineByClientId}
+              tagTitleByClientId={tagTitleByClientId}
               onEdit={(c) => {
                 setCreateOpen(false)
                 setEditingClient(c)

@@ -1,0 +1,6 @@
+id,entity_type,entity_id,body,referenced_entity_ids,severity,created_at
+CN1,client,CL1,Prefers invoices by email,,info,2025-02-05T10:00:00.000Z
+CN2,client,CL1,Rush deadline see @J1,J1,warning,2025-02-06T11:00:00.000Z
+CN3,client,CL1,Check @P2 bottom,P2,info,2025-02-07T12:00:00.000Z
+JN1,job,J1,Check bottom shell @P2,P2,warning,2025-02-05T12:00:00.000Z
+JN5,job,J5,e2e-cascade-delete-note-marker,,info,2025-02-09T11:00:00.000Z

@@ -24,6 +24,22 @@ test.describe('Jobs page', () => {
     await expect(page.getByText('Phone case prototype')).toBeVisible()
   })
 
+  test('job id link shows tag tooltip on hover', async ({ page, openCsvShop }) => {
+    void openCsvShop
+
+    await page.getByRole('link', { name: 'Jobs' }).click()
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 15000,
+    })
+
+    const link = page.getByTestId('job-detail-link-J1')
+    await expect(link).toBeVisible({ timeout: 15000 })
+    await link.hover()
+
+    const tip = page.getByRole('tooltip')
+    await expect(tip).toBeVisible()
+    await expect(tip).toContainText(/Vip/i)
+  })
 
   test('create job adds a row to the table', async ({ page, openCsvShop }) => {
     void openCsvShop

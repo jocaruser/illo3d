@@ -2,6 +2,7 @@ import type { Plugin } from 'vite'
 import path from 'path'
 import fs from 'fs'
 import { getFixturesRootDir } from './fixtures-root-dir'
+import { SHEET_HEADERS, type SheetName } from '../src/services/sheets/config'
 
 function escapeCsvValue(val: unknown): string {
   const s = String(val ?? '')
@@ -215,36 +216,7 @@ export function sheetsAppendPlugin(): Plugin {
   }
 }
 
-const SHEET_HEADERS: Record<string, string[]> = {
-  clients: ['id', 'name', 'email', 'phone', 'notes', 'created_at'],
-  client_notes: ['id', 'client_id', 'body', 'severity', 'created_at'],
-  jobs: ['id', 'client_id', 'description', 'status', 'price', 'created_at'],
-  pieces: ['id', 'job_id', 'name', 'status', 'created_at'],
-  piece_items: ['id', 'piece_id', 'inventory_id', 'quantity'],
-  inventory: [
-    'id',
-    'expense_id',
-    'type',
-    'name',
-    'qty_initial',
-    'qty_current',
-    'created_at',
-  ],
-  expenses: ['id', 'date', 'category', 'amount', 'notes'],
-  transactions: [
-    'id',
-    'date',
-    'type',
-    'amount',
-    'category',
-    'concept',
-    'ref_type',
-    'ref_id',
-    'client_id',
-    'notes',
-  ],
-}
-
 function getHeadersForSheet(sheetName: string): string[] {
-  return SHEET_HEADERS[sheetName] ?? []
+  if (!(sheetName in SHEET_HEADERS)) return []
+  return [...SHEET_HEADERS[sheetName as SheetName]]
 }

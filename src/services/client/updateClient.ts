@@ -7,6 +7,9 @@ export interface UpdateClientPayload {
   email?: string
   phone?: string
   notes?: string
+  preferred_contact?: string
+  lead_source?: string
+  address?: string
 }
 
 export async function updateClient(
@@ -30,6 +33,9 @@ export async function updateClient(
     email: payload.email?.trim() ?? '',
     phone: payload.phone?.trim() ?? '',
     notes: payload.notes?.trim() ?? '',
+    preferred_contact: payload.preferred_contact?.trim() ?? '',
+    lead_source: payload.lead_source?.trim() ?? '',
+    address: payload.address?.trim() ?? '',
     created_at: existing.created_at,
   }
   await repo.updateRow(spreadsheetId, 'clients' as SheetName, idx + 1, row)
