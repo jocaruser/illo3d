@@ -27,77 +27,10 @@ import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { QueryError } from '@/components/QueryError'
 import { ClientNotesSection } from '@/components/ClientNotesSection'
-import type { Client, Job } from '@/types/money'
+import { ClientJobsDiscoveryTable } from '@/components/ClientJobsDiscoveryTable'
+import type { Client } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
 import { computeClientDetailMetrics } from '@/utils/clientMetrics'
-function formatJobPrice(price: number | undefined): string {
-  if (price === undefined || price === null || Number.isNaN(price)) {
-    return '—'
-  }
-  return formatCurrency(price)
-}
-
-interface ClientJobsTableProps {
-  jobs: Job[]
-}
-
-function ClientJobsTable({ jobs }: ClientJobsTableProps) {
-  const { t } = useTranslation()
-  return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
-      <table className="min-w-full divide-y divide-gray-200">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-              {t('jobs.colId')}
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-              {t('jobs.colDescription')}
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-              {t('jobs.colStatus')}
-            </th>
-            <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600">
-              {t('jobs.colPrice')}
-            </th>
-            <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
-              {t('jobs.colCreated')}
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
-          {jobs.map((job) => (
-            <tr
-              key={job.id}
-              className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
-            >
-              <td className="whitespace-nowrap px-4 py-3 text-sm">
-                <Link
-                  to={`/jobs/${job.id}`}
-                  className="font-medium text-blue-600 hover:text-blue-800"
-                >
-                  {job.id}
-                </Link>
-              </td>
-              <td className="max-w-xs truncate px-4 py-3 text-sm text-gray-700">
-                {job.description}
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                {t(`jobs.status.${job.status}`)}
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">
-                {formatJobPrice(job.price)}
-              </td>
-              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                {job.created_at}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
 
 export function ClientDetailPage() {
   const { t } = useTranslation()
@@ -447,7 +380,10 @@ export function ClientDetailPage() {
                 </table>
               </div>
             ) : (
-              <ClientJobsTable jobs={clientJobs} />
+              <ClientJobsDiscoveryTable
+                jobs={clientJobs}
+                clientName={client.name}
+              />
             )}
           </EntityDetailPage>
         </>

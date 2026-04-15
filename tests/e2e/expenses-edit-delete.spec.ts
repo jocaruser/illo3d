@@ -18,7 +18,7 @@ test.describe('Expenses edit and delete', () => {
       page.getByRole('heading', { name: /edit expense|editar gasto/i })
     ).toBeVisible()
 
-    await page.getByLabel(/amount|importe/i).fill('31.50')
+    await page.locator('#expense-amount').fill('31.50')
     await page.getByRole('button', { name: /save|guardar/i }).click()
 
     await expect(row.getByText(/31[.,]50/)).toBeVisible({ timeout: 20000 })

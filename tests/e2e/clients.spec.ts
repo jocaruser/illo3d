@@ -19,6 +19,24 @@ test.describe('Clients page', () => {
     await expect(page.getByText('Acme Corp')).toBeVisible()
   })
 
+  test('list search filters client rows', async ({ page, openCsvShop }) => {
+    void openCsvShop
+    await page.getByRole('link', { name: 'Clients' }).click()
+    await expect(page.getByRole('heading', { name: 'Clients' })).toBeVisible({
+      timeout: 10000,
+    })
+    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
+    await expect(page.getByText('Acme Corp')).toBeVisible({ timeout: 15000 })
+
+    await page.getByTestId('list-table-search').fill('nomatchzzzxx')
+    await expect(
+      page.getByText(/no rows match|ninguna fila/i)
+    ).toBeVisible({ timeout: 5000 })
+
+    await page.getByTestId('list-table-search').fill('')
+    await expect(page.getByText('Acme Corp')).toBeVisible({ timeout: 5000 })
+  })
+
   test('add client opens popup and creates client', async ({ page, openCsvShop }) => {
     void openCsvShop
     await page.getByRole('link', { name: 'Clients' }).click()
@@ -30,7 +48,7 @@ test.describe('Clients page', () => {
     await expect(page.getByRole('heading', { name: /add client|añadir cliente/i })).toBeVisible()
 
     const uniqueName = `E2E Client ${Date.now()}`
-    await page.getByLabel(/name|nombre/i).fill(uniqueName)
+    await page.locator('#client-name').fill(uniqueName)
     await page.getByRole('button', { name: /create client|crear cliente/i }).click()
 
     await expect(page.getByRole('cell', { name: uniqueName })).toBeVisible({
@@ -67,7 +85,7 @@ test.describe('Clients page', () => {
     ).toBeVisible()
 
     const newName = `Acme E2E ${Date.now()}`
-    await page.getByLabel(/name|nombre/i).fill(newName)
+    await page.locator('#client-name').fill(newName)
     await page.getByRole('button', { name: /save|guardar/i }).click()
 
     await expect(page.getByRole('cell', { name: newName })).toBeVisible({
