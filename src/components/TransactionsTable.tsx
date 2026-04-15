@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Transaction } from '@/types/money'
 import type { Client } from '@/types/money'
@@ -71,7 +72,17 @@ export function TransactionsTable({
                 {tx.concept}
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                {getClientName(clients, tx.client_id)}
+                {tx.client_id ? (
+                  <Link
+                    to={`/clients/${tx.client_id}`}
+                    data-testid={`transaction-client-link-${tx.client_id}`}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    {getClientName(clients, tx.client_id) || tx.client_id}
+                  </Link>
+                ) : (
+                  '—'
+                )}
               </td>
             </tr>
           ))}

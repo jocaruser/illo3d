@@ -21,6 +21,22 @@ export type RefType = 'job' | 'expense'
 
 export type InventoryType = 'filament' | 'consumable' | 'equipment'
 
+export type ClientNoteSeverity =
+  | 'info'
+  | 'danger'
+  | 'warning'
+  | 'success'
+  | 'primary'
+  | 'secondary'
+
+export interface ClientNote {
+  id: string
+  client_id: string
+  body: string
+  severity: ClientNoteSeverity
+  created_at: string
+}
+
 export interface Client {
   id: string
   name: string

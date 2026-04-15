@@ -24,6 +24,8 @@ interface CreateJobPopupProps {
   spreadsheetId: string | null
   clients: Client[]
   initialJob?: Job | null
+  /** When creating (no initialJob), pre-select this client and hide the picker list. */
+  presetClientId?: string | null
   onUpdateJob?: (
     jobId: string,
     payload: UpdateJobPayload
@@ -38,6 +40,7 @@ export function CreateJobPopup({
   spreadsheetId,
   clients,
   initialJob = null,
+  presetClientId = null,
   onUpdateJob,
   suggestedPricing = null,
 }: CreateJobPopupProps) {
@@ -69,6 +72,12 @@ export function CreateJobPopup({
           ? String(p)
           : ''
       )
+    } else if (presetClientId) {
+      const c = clients.find((x) => x.id === presetClientId)
+      setClientId(presetClientId)
+      setClientQuery(c?.name ?? '')
+      setDescription('')
+      setPrice('')
     } else {
       setClientQuery('')
       setClientId('')
@@ -77,7 +86,7 @@ export function CreateJobPopup({
     }
     setError(null)
     setFieldErrors({})
-  }, [isOpen, initialJob, clients])
+  }, [isOpen, initialJob, clients, presetClientId])
 
   const selectedClient = clients.find((c) => c.id === clientId)
 
@@ -139,6 +148,7 @@ export function CreateJobPopup({
   }
 
   const isEdit = initialJob != null
+  const isPresetCreate = !isEdit && Boolean(presetClientId)
   const dialogTitle = isEdit ? t('jobs.editTitle') : t('jobs.createTitle')
 
   return (
@@ -146,51 +156,64 @@ export function CreateJobPopup({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
-            htmlFor="job-client-search"
+            htmlFor={isPresetCreate ? 'job-client-preset' : 'job-client-search'}
             className="mb-1 block text-sm font-medium text-gray-700"
           >
             {t('jobs.client')}
             <RequiredIndicator />
           </label>
-          <input
-            id="job-client-search"
-            type="text"
-            value={clientQuery}
-            onChange={(e) => setClientQuery(e.target.value)}
-            placeholder={t('jobs.clientSearchPlaceholder')}
-            disabled={loading}
-            aria-required="true"
-            className="mb-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
-          />
-          {selectedClient && (
-            <p className="mb-2 text-sm text-gray-600">
-              {t('jobs.selectedClient', { name: selectedClient.name })}
+          {isPresetCreate ? (
+            <p
+              id="job-client-preset"
+              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800"
+            >
+              {selectedClient
+                ? t('jobs.selectedClient', { name: selectedClient.name })
+                : presetClientId}
             </p>
+          ) : (
+            <>
+              <input
+                id="job-client-search"
+                type="text"
+                value={clientQuery}
+                onChange={(e) => setClientQuery(e.target.value)}
+                placeholder={t('jobs.clientSearchPlaceholder')}
+                disabled={loading}
+                aria-required="true"
+                className="mb-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+              />
+              {selectedClient && (
+                <p className="mb-2 text-sm text-gray-600">
+                  {t('jobs.selectedClient', { name: selectedClient.name })}
+                </p>
+              )}
+              <div className="max-h-36 overflow-y-auto rounded-lg border border-gray-200">
+                {filteredClients.length === 0 ? (
+                  <p className="px-3 py-2 text-sm text-gray-500">
+                    {t('jobs.noClientsMatch')}
+                  </p>
+                ) : (
+                  filteredClients.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        setClientId(c.id)
+                        setClientQuery(c.name)
+                      }}
+                      disabled={loading}
+                      className={`flex w-full px-3 py-2 text-left text-sm hover:bg-gray-50 disabled:bg-gray-100 ${
+                        clientId === c.id ? 'bg-blue-50 font-medium' : ''
+                      }`}
+                    >
+                      {c.name}
+                    </button>
+                  ))
+                )}
+              </div>
+            </>
           )}
-          <div className="max-h-36 overflow-y-auto rounded-lg border border-gray-200">
-            {filteredClients.length === 0 ? (
-              <p className="px-3 py-2 text-sm text-gray-500">
-                {t('jobs.noClientsMatch')}
-              </p>
-            ) : (
-              filteredClients.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => {
-                    setClientId(c.id)
-                    setClientQuery(c.name)
-                  }}
-                  disabled={loading}
-                  className={`flex w-full px-3 py-2 text-left text-sm hover:bg-gray-50 disabled:bg-gray-100 ${
-                    clientId === c.id ? 'bg-blue-50 font-medium' : ''
-                  }`}
-                >
-                  {c.name}
-                </button>
-              ))
-            )}
-          </div>
           {fieldErrors.client && (
             <p className="mt-1 text-sm text-red-600">{fieldErrors.client}</p>
           )}

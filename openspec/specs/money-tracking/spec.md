@@ -8,7 +8,7 @@ Financial tracking for illo3d: transactions presentation, clients page (list, cr
 
 ### Requirement: Transactions table is displayed
 
-The system SHALL display a table of all transactions from the transactions sheet. The table SHALL show: date, type (income/expense), amount, category, concept, client name (if applicable).
+The system SHALL display a table of all transactions from the transactions sheet. The table SHALL show: date, type (income/expense), amount, category, concept, client name (if applicable). When a transaction row has a `client_id` that resolves to a client name, the client name cell SHALL be the visible text of a link to `/clients/:clientId` for that id.
 
 #### Scenario: Transactions table renders with data
 
@@ -20,6 +20,16 @@ The system SHALL display a table of all transactions from the transactions sheet
 - **WHEN** user navigates to transactions view
 - **AND** no transactions exist
 - **THEN** table shows empty state message
+
+#### Scenario: Client name links to client detail
+
+- **WHEN** a transaction has client_id "CL1" and client CL1 exists
+- **THEN** the client column shows a link to `/clients/CL1` labeled with the client name
+
+#### Scenario: No link without client_id
+
+- **WHEN** a transaction has no client_id
+- **THEN** the client column shows empty or placeholder text and is not a link
 
 ### Requirement: Transactions table is read-only
 

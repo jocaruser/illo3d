@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { TransactionsTable } from './TransactionsTable'
 import type { Transaction, Client } from '@/types/money'
 
@@ -38,9 +39,11 @@ const mockClients: Client[] = [
 ]
 
 describe('TransactionsTable', () => {
-  it('renders transactions with data', () => {
+   it('renders transactions with data', () => {
     render(
-      <TransactionsTable transactions={mockTransactions} clients={mockClients} />
+      <MemoryRouter>
+        <TransactionsTable transactions={mockTransactions} clients={mockClients} />
+      </MemoryRouter>
     )
     expect(screen.getByText('Figura dragón')).toBeInTheDocument()
     expect(screen.getByText('PLA Negro')).toBeInTheDocument()
@@ -49,7 +52,9 @@ describe('TransactionsTable', () => {
 
   it('shows income as positive and expense as negative', () => {
     render(
-      <TransactionsTable transactions={mockTransactions} clients={mockClients} />
+      <MemoryRouter>
+        <TransactionsTable transactions={mockTransactions} clients={mockClients} />
+      </MemoryRouter>
     )
     expect(screen.getByText('€45.00')).toBeInTheDocument()
     expect(screen.getByText('-€25.00')).toBeInTheDocument()

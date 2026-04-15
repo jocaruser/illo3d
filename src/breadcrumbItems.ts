@@ -24,14 +24,29 @@ const routeToNavKey: Record<MainRoute, string> = {
 }
 
 const JOB_DETAIL_PATH = /^\/jobs\/([^/]+)$/
+const CLIENT_DETAIL_PATH = /^\/clients\/([^/]+)$/
 
 export type JobDescriptionResolver = (jobId: string) => string | undefined
+
+export type ClientNameResolver = (clientId: string) => string | undefined
 
 export function getBreadcrumbItems(
   pathname: string,
   t: TFunction,
   resolveJobDescription?: JobDescriptionResolver,
+  resolveClientName?: ClientNameResolver,
 ): BreadcrumbItem[] | null {
+  const clientDetailMatch = CLIENT_DETAIL_PATH.exec(pathname)
+  if (clientDetailMatch) {
+    const id = clientDetailMatch[1]
+    const name = resolveClientName?.(id)
+    return [
+      { label: t('breadcrumb.home'), to: '/transactions' },
+      { label: t('nav.clients'), to: '/clients' },
+      { label: name ?? id },
+    ]
+  }
+
   const jobDetailMatch = JOB_DETAIL_PATH.exec(pathname)
   if (jobDetailMatch) {
     const id = jobDetailMatch[1]

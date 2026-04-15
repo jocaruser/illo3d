@@ -43,6 +43,7 @@ describe('CsvSheetsRepository', () => {
     const names = await repo.getSheetNames('csv-fixture-happy-path')
     expect(names).toContain('transactions')
     expect(names).toContain('clients')
+    expect(names).toContain('client_notes')
     expect(names).toContain('expenses')
   })
 

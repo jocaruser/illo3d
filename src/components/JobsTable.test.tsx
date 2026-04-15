@@ -35,6 +35,10 @@ describe('JobsTable', () => {
     )
 
     expect(screen.getByText('jobs.actions')).toBeInTheDocument()
+    expect(screen.getByTestId('job-client-link-J1')).toHaveAttribute(
+      'href',
+      '/clients/CL1'
+    )
     fireEvent.click(screen.getByTestId('job-edit-J1'))
     fireEvent.click(screen.getByTestId('job-delete-J1'))
     expect(onEdit).toHaveBeenCalledWith(job)

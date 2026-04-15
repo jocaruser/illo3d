@@ -22,9 +22,10 @@ import { InventoryPage } from './pages/InventoryPage'
 import { ClientsPage } from './pages/ClientsPage'
 import { JobsPage } from './pages/JobsPage'
 import { JobDetailPage } from './pages/JobDetailPage'
+import { ClientDetailPage } from './pages/ClientDetailPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
-import type { Job } from './types/money'
+import type { Client, Job } from './types/money'
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {
   return isActive
@@ -47,10 +48,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
     return undefined
   }
 
+  const resolveClientName = (clientId: string): string | undefined => {
+    const queries = queryClient.getQueriesData<Client[]>({
+      queryKey: ['clients'],
+    })
+    for (const [, data] of queries) {
+      const client = data?.find((c) => c.id === clientId)
+      if (client) return client.name
+    }
+    return undefined
+  }
+
   const breadcrumbItems = getBreadcrumbItems(
     location.pathname,
     t,
     resolveJobDescription,
+    resolveClientName,
   )
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const activeShop = useShopStore((s) => s.activeShop)
@@ -64,7 +77,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const navLinks = (
     <>
-      <NavLink to="/clients" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
+      <NavLink to="/clients" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
         {t('nav.clients')}
       </NavLink>
       <NavLink to="/jobs" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
@@ -171,6 +184,16 @@ export default function App() {
             <Layout>
               <ProtectedRoute>
                 <ClientsPage />
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/clients/:clientId"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <ClientDetailPage />
               </ProtectedRoute>
             </Layout>
           }

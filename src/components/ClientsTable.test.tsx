@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { ClientsTable } from './ClientsTable'
 
 vi.mock('react-i18next', () => ({
@@ -13,20 +14,22 @@ describe('ClientsTable', () => {
     const onEdit = vi.fn()
     const onDelete = vi.fn()
     render(
-      <ClientsTable
-        clients={[
-          {
-            id: 'CL1',
-            name: 'Acme',
-            email: 'a@x.com',
-            phone: '+1',
-            notes: 'Note',
-            created_at: '2025-01-01',
-          },
-        ]}
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+      <MemoryRouter>
+        <ClientsTable
+          clients={[
+            {
+              id: 'CL1',
+              name: 'Acme',
+              email: 'a@x.com',
+              phone: '+1',
+              notes: 'Note',
+              created_at: '2025-01-01',
+            },
+          ]}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      </MemoryRouter>
     )
 
     expect(screen.getByText('clients.name')).toBeInTheDocument()
@@ -46,7 +49,9 @@ describe('ClientsTable', () => {
       created_at: '2025-01-01',
     }
     render(
-      <ClientsTable clients={[client]} onEdit={onEdit} onDelete={onDelete} />
+      <MemoryRouter>
+        <ClientsTable clients={[client]} onEdit={onEdit} onDelete={onDelete} />
+      </MemoryRouter>
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'clients.edit' }))
