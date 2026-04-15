@@ -49,12 +49,15 @@ artifacts:
 
       Sections:
       - **Overview**: High-level explanation of the new use cases. What user flows or scenarios does this change introduce? Keep it concise.
-      - **Use Cases to Test**: Bullet list of each use case that will be tested. Each item MUST be 5 words or fewer. These map to E2E or manual test scenarios.
+      - **Manual Test Flows (human checklist)**: Bullet list written as practical manual verification steps, each including expected behavior.
+      - **Decision Matrices**: One or more 2D input/output matrices. Rows and columns represent two input axes (state, trigger, action, condition), and each cell captures expected outcome for that combination. These matrices should cover ALL planned tests.
+      - **Edge Cases (explicit)**: Bullet list of edge cases that may be missed in happy-path flows (malformed input, missing entities, duplicates, concurrency/race-like situations, fallback rendering).
 
-      Example:
-      - Create expense from transaction
-      - Edit expense category
-      - Delete expense
+      Matrix guidance:
+      - Use Markdown tables.
+      - Give each matrix a short title (`Matrix A — <topic>`).
+      - Keep outcome statements deterministic and testable.
+      - Prefer complete coverage over shortness.
     requires:
       - proposal
   - id: specs
