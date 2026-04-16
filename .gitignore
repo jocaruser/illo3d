@@ -37,3 +37,4 @@ tsconfig.node.tsbuildinfo
 test-results/
 /public/fixtures/
 .e2e-fixtures/
+tests/e2e/.auth/

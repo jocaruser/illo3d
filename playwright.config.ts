@@ -1,10 +1,15 @@
 /**
  * E2E policy (illo3d):
  * - Chromium only by default (no extra browser matrix).
+ * - Setup project runs once per `playwright test`: seeds `.e2e-fixtures`, Dev Login + open Local CSV shop,
+ *   saves `storageState` to `tests/e2e/.auth/storage-state.json`. Chromium project depends on setup and loads that file.
  * - workers: 1 — single Vite server and one `.e2e-fixtures` tree; parallel workers would race CSV writes.
  *   Use test.describe.configure({ mode: 'serial' }) where tests in a file depend on order.
  * - fullyParallel: true lets independent files run in parallel when workers > 1 locally.
  * - When `CI` is set (e.g. ad-hoc automation): retries 2 and GitHub reporter to absorb rare flakes.
+ *
+ * Specs that must start logged out or without a saved shop SHALL use
+ * `test.use({ storageState: { cookies: [], origins: [] } })` on their describe block.
  *
  * The app must already be served (e.g. `make e2e-test` starts Vite and sets PLAYWRIGHT_BASE_URL).
  */
@@ -26,9 +31,14 @@ export default defineConfig({
     screenshot: 'only-on-failure',
   },
   projects: [
+    { name: 'setup', testMatch: /.*\.setup\.ts/ },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/e2e/.auth/storage-state.json',
+      },
     },
   ],
 })

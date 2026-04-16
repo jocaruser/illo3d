@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), GitHub Actions CI on pull requests to `main` (Docker `app` image, install, `make build`, `make lint`, `make test`; e2e not in CI), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory quality gates locally and for agents (build, lint, unit tests, e2e), Playwright coverage mapped to feature specs, shared e2e auth/shop setup, multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers).
+Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), GitHub Actions CI on pull requests to `main` (Docker `app` image, install, `make build`, `make lint`, `make test`; Playwright image build and `make e2e-test`), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory quality gates locally and for agents (build, lint, unit tests, e2e), Playwright coverage mapped to feature specs, shared e2e auth/shop setup (setup project and `storageState`), multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers, setup project).
 
 ## Repository documentation
 
@@ -172,6 +172,15 @@ The project SHALL include .gitignore, .cursorignore, and .dockerignore files tha
 - **WHEN** Docker image is built
 - **THEN** node_modules is not copied into the build context (uses .dockerignore)
 
+### Requirement: Generated Playwright e2e auth state is not committed
+
+The repository SHALL list the directory used for generated Playwright `storageState` files (e.g. `tests/e2e/.auth/`) in `.gitignore` so local and CI runs do not produce tracked artifacts.
+
+#### Scenario: Auth state path is ignored by git
+
+- **WHEN** `make e2e-test` runs and the setup project writes `storageState` to the configured path
+- **THEN** that path is covered by `.gitignore` and is not required to be committed for the suite to pass
+
 ### Requirement: Environment template documents required configuration
 
 The project SHALL include a .env.example file documenting required environment variables without actual secret values.
@@ -243,10 +252,11 @@ The full Playwright e2e test suite SHALL pass when running `make e2e-test`. All 
 - **WHEN** developer runs `make e2e-test`
 - **THEN** Playwright reports all e2e spec files passed with 0 failures
 
-#### Scenario: E2E is required before merge via local or agent quality gate
+#### Scenario: E2E is required before merge via CI and local or agent quality gate
 
 - **WHEN** a change is considered ready to merge
-- **THEN** `make e2e-test` (or full `make quality-gate`) has been run successfully outside the GitHub Actions CI workflow, as enforced by project rules and review practice
+- **THEN** the pull request workflow has completed `make e2e-test` successfully on `main`
+- **AND** project rules and review practice MAY additionally require local or agent `make quality-gate` before merge
 
 ### Requirement: Cursor rule enforces quality gates
 
@@ -271,18 +281,19 @@ A Cursor rule SHALL exist that instructs AI agents to validate build, lint, test
 
 ### Requirement: CI workflow runs build, lint, and unit tests on pull requests
 
-A GitHub Actions workflow SHALL exist at `.github/workflows/ci.yml` that triggers on pull requests targeting `main`. The workflow SHALL build the Docker image for the `app` service (from the repository `Dockerfile`), start only the `app` container, install dependencies, and run `make build`, `make lint`, and `make test` in sequence. The workflow SHALL NOT build the Playwright image or run `make e2e-test`. All steps MUST pass for the workflow to report success.
+A GitHub Actions workflow SHALL exist at `.github/workflows/ci.yml` that triggers on pull requests targeting `main`. The workflow SHALL build the Docker image for the `app` service (from the repository `Dockerfile`), start only the `app` container, install dependencies, and run `make build`, `make lint`, and `make test` in sequence. The workflow SHALL also build the Docker image for Playwright (from the repository `Dockerfile.playwright`, with BuildKit layer caching consistent with existing CI cache strategy) and run `make e2e-test`. All steps MUST pass for the workflow to report success.
 
 #### Scenario: PR triggers CI
 
 - **WHEN** a developer opens or updates a pull request targeting `main`
 - **THEN** the CI workflow starts automatically
 
-#### Scenario: CI runs build, lint, and unit tests
+#### Scenario: CI runs build, lint, unit tests, and e2e
 
 - **WHEN** the CI workflow executes
-- **THEN** it runs `make build`, `make lint`, and `make test` in sequence inside the `app` Docker container
-- **AND** the workflow succeeds only if all three commands exit with code 0
+- **THEN** it runs `make build`, `make lint`, and `make test` in sequence inside the `app` Docker context as today
+- **AND** it builds the Playwright image and runs `make e2e-test` successfully
+- **AND** the workflow succeeds only if every step exits with code 0
 
 #### Scenario: CI fails on lint error
 
@@ -293,6 +304,11 @@ A GitHub Actions workflow SHALL exist at `.github/workflows/ci.yml` that trigger
 
 - **WHEN** the PR introduces a failing unit test
 - **THEN** `make test` fails and the CI workflow reports failure
+
+#### Scenario: CI fails on e2e failure
+
+- **WHEN** the PR introduces a failing Playwright test or breaks the e2e harness
+- **THEN** `make e2e-test` fails and the CI workflow reports failure
 
 ### Requirement: CI caches Docker layers and dependencies
 
@@ -350,13 +366,26 @@ The repository SHALL run an `auto-merge` job as part of `.github/workflows/ci.ym
 
 ### Requirement: E2E tests use a single shared authenticated shop setup
 
-The Playwright test suite SHALL provide one canonical mechanism (e.g. extended fixture or equivalent) that performs Dev Login and opens the Local CSV shop for the default e2e scenario. Authenticated specs that need an open shop SHALL use this mechanism instead of duplicating equivalent helper functions in each spec file.
+The Playwright test suite SHALL provide one canonical authenticated-shop path for the default Chromium project: a **setup project** (or equivalent) that runs once per `playwright test` invocation, seeds the e2e ephemeral fixtures directory for the default scenario, performs **Dev Login** and completes the **Local CSV open existing shop** flow, and persists Playwright **`storageState`** to a generated file under the repository (e.g. under `tests/e2e/.auth/`). The main Chromium project SHALL depend on that setup project and load the saved `storageState` by default.
+
+The extended fixture (e.g. `openCsvShop`) SHALL reset the active `fixtureScenario` into `.e2e-fixtures` before each test that uses it, then navigate directly to the authenticated app (e.g. `/transactions`) and wait until the shop reports **ready for interaction** (the same class of readiness signal used today for loading / connecting, with a bounded timeout). It SHALL NOT repeat Dev Login or the CSV shop-open wizard clicks for each test.
+
+Specs that MUST start **unauthenticated** or **without an active shop** (login page, route-guard redirects, wizard overlay without shop completion) SHALL opt out of the default `storageState` (e.g. `test.use({ storageState: { cookies: [], origins: [] } })`) on the relevant `describe` blocks or nested describes.
+
+Authenticated specs that need an open shop SHALL use the shared fixture instead of duplicating an equivalent full login + shop-open helper in each spec file.
 
 #### Scenario: Spec obtains ready-to-use authenticated shop session
 
-- **WHEN** a Playwright test that requires an open shop runs
-- **THEN** the shared setup performs Dev Login and completes the CSV shop open flow for the active `fixtureScenario`
-- **AND** the test does not rely on a copy-pasted login helper unique to that file
+- **WHEN** a Playwright test that requires an open shop runs under the default Chromium project
+- **THEN** the setup project has already produced valid `storageState` for Dev Login and an active Local CSV shop
+- **AND** the shared fixture refreshes golden fixture data for the active `fixtureScenario`, navigates to the app, and waits until the shop is ready
+- **AND** the test does not rely on a copy-pasted full login + shop-open sequence unique to that file
+
+#### Scenario: Unauthenticated and wizard specs stay isolated
+
+- **WHEN** a spec file that asserts login, redirect-to-login, or wizard-without-shop behavior runs
+- **THEN** it runs without the default saved `storageState` on the relevant tests
+- **AND** behaviors under test match prior expectations (no false “already logged in” state)
 
 ### Requirement: E2E assertions honor dialog-gated and controlled fields
 
@@ -483,7 +512,7 @@ The system SHALL have Playwright coverage that verifies the Expenses list view s
 
 ### Requirement: E2E tests run via Makefile and pass before merge
 
-The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL start a dedicated Vite server with ephemeral fixtures, run Playwright against it, and clean up afterward. The target SHALL NOT modify `public/fixtures/`. All e2e tests SHALL pass with zero failures before considering implementation complete (locally, via `make quality-gate`, or as required by project automation rules). GitHub Actions CI SHALL NOT execute `make e2e-test`.
+The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL start a dedicated Vite server with ephemeral fixtures, run Playwright against it, and clean up afterward. The target SHALL NOT modify `public/fixtures/`. All e2e tests SHALL pass with zero failures before considering implementation complete (locally, via `make quality-gate`, or as required by project automation rules). GitHub Actions CI SHALL execute `make e2e-test` as part of the pull request workflow.
 
 #### Scenario: E2E tests run via Makefile
 
@@ -501,9 +530,14 @@ The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL sta
 - **WHEN** `make e2e-test` completes (pass or fail)
 - **THEN** `public/fixtures/` is unchanged from before the run
 
+#### Scenario: E2E runs in CI on pull requests
+
+- **WHEN** a pull request targets `main` and CI executes successfully
+- **THEN** `make e2e-test` has completed with exit code 0 in that workflow
+
 ### Requirement: Playwright configuration documents execution policy
 
-The Playwright configuration or project documentation SHALL state how many workers are used when running e2e locally, when `serial` mode is required, and whether an additional browser project (e.g. Firefox) can be enabled via environment variable. The default `make e2e-test` path SHALL remain green without mandatory extra browsers.
+The Playwright configuration or project documentation SHALL state how many workers are used when running e2e locally, when `serial` mode is required, whether an additional browser project (e.g. Firefox) can be enabled via environment variable, and that a **setup project** produces saved authentication `storageState` consumed by the default Chromium project. The default `make e2e-test` path SHALL remain green without mandatory extra browsers.
 
 #### Scenario: Default e2e remains Chromium-only
 
@@ -514,3 +548,8 @@ The Playwright configuration or project documentation SHALL state how many worke
 
 - **WHEN** a maintainer enables the documented optional browser flag locally
 - **THEN** the same specs execute against the additional project without changing production code
+
+#### Scenario: Setup project and storage state are documented
+
+- **WHEN** a maintainer reads the Playwright config header or linked developer docs
+- **THEN** they can see that authentication is seeded once via a setup project and reused via `storageState`, and why unauthenticated specs must opt out

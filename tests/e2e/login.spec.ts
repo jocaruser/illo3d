@@ -1,5 +1,7 @@
 import { test, expect } from './fixtures'
 
+test.use({ storageState: { cookies: [], origins: [] } })
+
 test.describe('Login flow', () => {
   test('login page shows illo3d brand and sign-in options', async ({ page }) => {
     await page.goto('/login', { waitUntil: 'load' })

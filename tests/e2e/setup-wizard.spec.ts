@@ -1,5 +1,7 @@
 import { test, expect } from './fixtures'
 
+test.use({ storageState: { cookies: [], origins: [] } })
+
 /** Dev login; in CSV mode wizard shows immediately (no shop set). */
 async function devLoginAndShowWizard(page: import('@playwright/test').Page) {
   await page.goto('/login', { waitUntil: 'load' })

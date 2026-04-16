@@ -1,11 +1,15 @@
 import { test, expect } from './fixtures'
 
 test.describe('Job pieces (job detail)', () => {
-  test('unauthenticated user is redirected from /jobs/J1 to /login', async ({
-    page,
-  }) => {
-    await page.goto('/jobs/J1', { waitUntil: 'load' })
-    await expect(page).toHaveURL(/\/login/)
+  test.describe('unauthenticated', () => {
+    test.use({ storageState: { cookies: [], origins: [] } })
+
+    test('unauthenticated user is redirected from /jobs/J1 to /login', async ({
+      page,
+    }) => {
+      await page.goto('/jobs/J1', { waitUntil: 'load' })
+      await expect(page).toHaveURL(/\/login/)
+    })
   })
 
   test('pieces table shows fixture data and expandable lines', async ({

@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
+import { persist } from 'zustand/middleware'
+import { appPersistJSONStorage } from '@/stores/persistStorage'
 
 export interface User {
   email: string
@@ -40,7 +41,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => sessionStorage),
+      storage: appPersistJSONStorage(),
     }
   )
 )
