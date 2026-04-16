@@ -14,6 +14,10 @@ import {
   type SheetName,
 } from './config'
 import type { ValidationError } from './validateStructure'
+import {
+  normalizeSheetMatrixFromApi,
+  normalizeSheetMatrixFromCsvLines,
+} from './sheetMatrix'
 
 export interface SheetsRepository {
   readRows<T extends object>(
@@ -45,6 +49,21 @@ export interface SheetsRepository {
   getSheetNames(spreadsheetId: string): Promise<string[]>
   getHeaderRow(spreadsheetId: string, sheetName: string): Promise<string[]>
   createSpreadsheet(): Promise<string>
+  /** Full sheet as rows: [header, ...data]. Header row is canonical `SHEET_HEADERS`. */
+  readSheetMatrix(
+    spreadsheetId: string,
+    sheetName: SheetName
+  ): Promise<string[][]>
+  /** Overwrites the entire sheet from `matrix` (including header row). */
+  replaceSheetMatrix(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    matrix: string[][]
+  ): Promise<void>
+  /** Google Sheets numeric sheetId per tab; empty for CSV/local. */
+  getSheetIdMap(
+    spreadsheetId: string
+  ): Promise<Partial<Record<SheetName, number>>>
 }
 
 function rowToObject<T extends object>(
@@ -255,6 +274,86 @@ export class GoogleSheetsRepository implements SheetsRepository {
     if (!response.ok) {
       throw new Error(`Failed to delete ${sheetName} row: ${response.status}`)
     }
+  }
+
+  async readSheetMatrix(
+    spreadsheetId: string,
+    sheetName: SheetName
+  ): Promise<string[][]> {
+    const accessToken = await getAccessToken()
+    const range = `'${sheetName}'!A:ZZ`
+    const response = await sheetsFetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}`,
+      accessToken
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to read matrix ${sheetName}: ${response.status}`)
+    }
+    const data = (await response.json()) as { values?: unknown[][] }
+    return normalizeSheetMatrixFromApi(sheetName, data.values || [])
+  }
+
+  async replaceSheetMatrix(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    matrix: string[][]
+  ): Promise<void> {
+    if (matrix.length === 0) {
+      throw new Error(`replaceSheetMatrix: empty matrix for ${sheetName}`)
+    }
+    const accessToken = await getAccessToken()
+    const clearRange = encodeURIComponent(`'${sheetName}'!A:ZZ`)
+    const clearResponse = await sheetsFetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${clearRange}:clear`,
+      accessToken,
+      { method: 'POST', body: '{}' }
+    )
+    if (!clearResponse.ok) {
+      throw new Error(
+        `Failed to clear ${sheetName}: ${clearResponse.status}`
+      )
+    }
+    const putRange = encodeURIComponent(`'${sheetName}'!A1`)
+    const putResponse = await sheetsFetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${putRange}?valueInputOption=USER_ENTERED`,
+      accessToken,
+      {
+        method: 'PUT',
+        body: JSON.stringify({ values: matrix }),
+      }
+    )
+    if (!putResponse.ok) {
+      throw new Error(`Failed to write ${sheetName}: ${putResponse.status}`)
+    }
+  }
+
+  async getSheetIdMap(
+    spreadsheetId: string
+  ): Promise<Partial<Record<SheetName, number>>> {
+    const accessToken = await getAccessToken()
+    const response = await sheetsFetch(
+      `/spreadsheets/${spreadsheetId}?fields=sheets.properties(sheetId,title)`,
+      accessToken
+    )
+    if (!response.ok) {
+      throw new Error(`Failed to fetch sheet ids: ${response.status}`)
+    }
+    const data = (await response.json()) as {
+      sheets?: { properties?: { sheetId?: number; title?: string } }[]
+    }
+    const map: Partial<Record<SheetName, number>> = {}
+    for (const s of data.sheets || []) {
+      const title = s.properties?.title
+      const id = s.properties?.sheetId
+      if (
+        title &&
+        id !== undefined &&
+        (SHEET_NAMES as readonly string[]).includes(title)
+      ) {
+        map[title as SheetName] = id
+      }
+    }
+    return map
   }
 
   async createSpreadsheet(): Promise<string> {
@@ -469,6 +568,47 @@ export class CsvSheetsRepository implements SheetsRepository {
     if (!response.ok) {
       throw new Error(`Failed to delete ${sheetName}: ${response.status}`)
     }
+  }
+
+  async readSheetMatrix(
+    spreadsheetId: string,
+    sheetName: SheetName
+  ): Promise<string[][]> {
+    const folder = this.folderFromSpreadsheetId(spreadsheetId)
+    const csvText = await this.fetchCsv(sheetName, folder)
+    const lines = csvText.trimEnd().split(/\r?\n/)
+    return normalizeSheetMatrixFromCsvLines(sheetName, lines)
+  }
+
+  async replaceSheetMatrix(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    matrix: string[][]
+  ): Promise<void> {
+    if (matrix.length === 0) {
+      throw new Error(`replaceSheetMatrix: empty matrix for ${sheetName}`)
+    }
+    const folder = this.folderFromSpreadsheetId(spreadsheetId)
+    const response = await fetch('/api/sheets/replace', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        spreadsheetId,
+        folder,
+        sheetName,
+        matrix,
+      }),
+    })
+    if (!response.ok) {
+      throw new Error(`Failed to replace ${sheetName}: ${response.status}`)
+    }
+  }
+
+  async getSheetIdMap(
+    spreadsheetId: string
+  ): Promise<Partial<Record<SheetName, number>>> {
+    void spreadsheetId
+    return {}
   }
 
   async createSpreadsheet(): Promise<string> {

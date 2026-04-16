@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import type { SheetsConnectionStatus } from '@/stores/sheetsStore'
+import type { WorkbookStatus } from '@/stores/workbookStore'
 
 interface ConnectionStatusProps {
-  status: SheetsConnectionStatus
+  status: WorkbookStatus
   errorMessage: string | null
   onRetry?: () => void
 }
@@ -14,11 +14,11 @@ export function ConnectionStatus({
 }: ConnectionStatusProps) {
   const { t } = useTranslation()
 
-  if (status === 'connected') {
+  if (status === 'ready') {
     return null
   }
 
-  if (status === 'connecting') {
+  if (status === 'idle' || status === 'loading') {
     return (
       <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
         {t('errors.connectionConnecting')}

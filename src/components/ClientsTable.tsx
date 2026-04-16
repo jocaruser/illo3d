@@ -15,7 +15,7 @@ interface ClientsTableProps {
   /** Comma-joined tag names per client id (for name link tooltip). */
   tagTitleByClientId?: ReadonlyMap<string, string>
   onEdit: (client: Client) => void
-  onDelete: (client: Client) => void
+  onArchive: (client: Client) => void
 }
 
 function clientComparable(client: Client, key: string): string | number {
@@ -40,7 +40,7 @@ export function ClientsTable({
   tagSearchLineByClientId,
   tagTitleByClientId,
   onEdit,
-  onDelete,
+  onArchive,
 }: ClientsTableProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
@@ -198,10 +198,10 @@ export function ClientsTable({
                     </button>
                     <button
                       type="button"
-                      onClick={() => onDelete(client)}
-                      className="text-red-600 hover:text-red-800"
+                      onClick={() => onArchive(client)}
+                      className="text-amber-700 hover:text-amber-900"
                     >
-                      {t('clients.delete')}
+                      {t('lifecycle.archive')}
                     </button>
                   </td>
                 </tr>

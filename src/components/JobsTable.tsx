@@ -56,7 +56,7 @@ interface JobsTableProps {
   tagSearchLineByJobId?: ReadonlyMap<string, string>
   onStatusSelect: (job: Job, nextStatus: Job['status']) => void
   onEdit: (job: Job) => void
-  onDelete: (job: Job) => void
+  onArchive: (job: Job) => void
   statusUpdatingId: string | null
 }
 
@@ -67,7 +67,7 @@ export function JobsTable({
   tagSearchLineByJobId,
   onStatusSelect,
   onEdit,
-  onDelete,
+  onArchive,
   statusUpdatingId,
 }: JobsTableProps) {
   const { t } = useTranslation()
@@ -248,11 +248,11 @@ export function JobsTable({
                     </button>
                     <button
                       type="button"
-                      data-testid={`job-delete-${job.id}`}
-                      onClick={() => onDelete(job)}
+                      data-testid={`job-archive-${job.id}`}
+                      onClick={() => onArchive(job)}
                       className="text-red-600 hover:text-red-800"
                     >
-                      {t('jobs.deleteJob')}
+                      {t('lifecycle.archive')}
                     </button>
                   </td>
                 </tr>

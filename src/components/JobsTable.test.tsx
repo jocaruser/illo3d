@@ -19,9 +19,9 @@ vi.mock('react-i18next', () => ({
 }))
 
 describe('JobsTable', () => {
-  it('renders actions column and calls onEdit and onDelete', () => {
+  it('renders actions column and calls onEdit and onArchive', () => {
     const onEdit = vi.fn()
-    const onDelete = vi.fn()
+    const onArchive = vi.fn()
     const onStatusSelect = vi.fn()
     const job = {
       id: 'J1',
@@ -37,7 +37,7 @@ describe('JobsTable', () => {
           clients={[{ id: 'CL1', name: 'Acme', created_at: '2025-01-01' }]}
           onStatusSelect={onStatusSelect}
           onEdit={onEdit}
-          onDelete={onDelete}
+          onArchive={onArchive}
           statusUpdatingId={null}
         />
       </MemoryRouter>
@@ -49,15 +49,15 @@ describe('JobsTable', () => {
       '/clients/CL1'
     )
     fireEvent.click(screen.getByTestId('job-edit-J1'))
-    fireEvent.click(screen.getByTestId('job-delete-J1'))
+    fireEvent.click(screen.getByTestId('job-archive-J1'))
     expect(onEdit).toHaveBeenCalledWith(job)
-    expect(onDelete).toHaveBeenCalledWith(job)
+    expect(onArchive).toHaveBeenCalledWith(job)
   })
 
   it('shows tag tooltip on job id hover when tags are provided', async () => {
     const user = userEvent.setup()
     const onEdit = vi.fn()
-    const onDelete = vi.fn()
+    const onArchive = vi.fn()
     const onStatusSelect = vi.fn()
     const job = {
       id: 'J1',
@@ -75,7 +75,7 @@ describe('JobsTable', () => {
           tagTitleByJobId={tagTitle}
           onStatusSelect={onStatusSelect}
           onEdit={onEdit}
-          onDelete={onDelete}
+          onArchive={onArchive}
           statusUpdatingId={null}
         />
       </MemoryRouter>

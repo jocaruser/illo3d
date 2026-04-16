@@ -1,4 +1,7 @@
-import { getSheetsRepository } from '@/services/sheets/repository'
+import { updateDataRowById } from '@/lib/workbook/matrixOps'
+import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import { matrixToJobs } from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
 import type { Job } from '@/types/money'
 
 export interface UpdateJobPayload {
@@ -8,40 +11,34 @@ export interface UpdateJobPayload {
   price?: number
 }
 
-function sheetRowFromJob(job: Job): Record<string, unknown> {
-  return {
-    id: job.id,
-    client_id: job.client_id,
-    description: job.description,
-    status: job.status,
-    price:
-      job.price !== undefined && job.price !== null ? job.price : '',
-    created_at: job.created_at,
-  }
-}
-
 export async function updateJob(
   spreadsheetId: string,
   jobId: string,
   payload: UpdateJobPayload
 ): Promise<void> {
-  const repo = getSheetsRepository()
-  const rows = await repo.readRows<Job>(spreadsheetId, 'jobs')
-  const idx = rows.findIndex((r) => r.id === jobId)
-  if (idx === -1) {
+  void spreadsheetId
+  const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
+  const existing = jobs.find((r) => r.id === jobId)
+  if (!existing) {
     throw new Error(`Job ${jobId} not found`)
   }
-  const existing = rows[idx]
   const next: Job = {
     ...existing,
     description: payload.description.trim(),
     client_id: payload.client_id,
     price: payload.price,
   }
-  await repo.updateRow(
-    spreadsheetId,
-    'jobs',
-    idx + 1,
-    sheetRowFromJob(next)
-  )
+  const row: Record<string, unknown> = {
+    id: next.id,
+    client_id: next.client_id,
+    description: next.description,
+    status: next.status,
+    price:
+      next.price !== undefined && next.price !== null ? next.price : '',
+    created_at: next.created_at,
+    archived: next.archived ?? '',
+    deleted: next.deleted ?? '',
+  }
+
+  patchWorkbookTab('jobs', (m) => updateDataRowById('jobs', m, jobId, row))
 }

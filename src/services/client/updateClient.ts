@@ -1,6 +1,7 @@
-import { getSheetsRepository } from '@/services/sheets/repository'
-import type { Client } from '@/types/money'
-import type { SheetName } from '@/services/sheets/config'
+import { updateDataRowById } from '@/lib/workbook/matrixOps'
+import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import { matrixToClients } from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
 
 export interface UpdateClientPayload {
   name: string
@@ -17,17 +18,13 @@ export async function updateClient(
   clientId: string,
   payload: UpdateClientPayload
 ): Promise<void> {
-  const repo = getSheetsRepository()
-  const clients = await repo.readRows<Client>(
-    spreadsheetId,
-    'clients' as SheetName
-  )
-  const idx = clients.findIndex((c) => c.id === clientId)
-  if (idx === -1) {
+  void spreadsheetId
+  const clients = matrixToClients(useWorkbookStore.getState().tabs.clients)
+  const existing = clients.find((c) => c.id === clientId)
+  if (!existing) {
     throw new Error(`Client ${clientId} not found`)
   }
-  const existing = clients[idx]
-  const row = {
+  const row: Record<string, unknown> = {
     id: existing.id,
     name: payload.name.trim(),
     email: payload.email?.trim() ?? '',
@@ -37,6 +34,11 @@ export async function updateClient(
     lead_source: payload.lead_source?.trim() ?? '',
     address: payload.address?.trim() ?? '',
     created_at: existing.created_at,
+    archived: existing.archived ?? '',
+    deleted: existing.deleted ?? '',
   }
-  await repo.updateRow(spreadsheetId, 'clients' as SheetName, idx + 1, row)
+
+  patchWorkbookTab('clients', (m) =>
+    updateDataRowById('clients', m, clientId, row),
+  )
 }

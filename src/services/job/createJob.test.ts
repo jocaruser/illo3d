@@ -1,49 +1,55 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { createJob } from './createJob'
-
-const mockAppendRows = vi.fn()
-const mockReadRows = vi.fn()
-
-vi.mock('@/services/sheets/repository', () => ({
-  getSheetsRepository: () => ({
-    readRows: mockReadRows,
-    appendRows: mockAppendRows,
-  }),
-}))
+import { matrixToJobs } from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { matrixWithRows, resetAndSeedWorkbook } from '@/test/workbookHarness'
 
 describe('createJob', () => {
   beforeEach(() => {
-    mockAppendRows.mockReset()
-    mockReadRows.mockReset()
-    mockReadRows.mockResolvedValue([])
+    useWorkbookStore.getState().reset()
   })
 
   it('appends job with J1 id and draft status', async () => {
+    resetAndSeedWorkbook({})
+
     await createJob('spreadsheet-1', {
       client_id: 'CL1',
       description: 'Test print',
     })
 
-    expect(mockAppendRows).toHaveBeenCalledTimes(1)
-    expect(mockAppendRows).toHaveBeenCalledWith(
-      'spreadsheet-1',
-      'jobs',
-      [
-        expect.objectContaining({
-          id: 'J1',
-          client_id: 'CL1',
-          description: 'Test print',
-          status: 'draft',
-          price: '',
-        }),
-      ]
-    )
-    const row = mockAppendRows.mock.calls[0][2][0] as { created_at: string }
-    expect(row.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+    const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
+    expect(jobs).toHaveLength(1)
+    expect(jobs[0]).toMatchObject({
+      id: 'J1',
+      client_id: 'CL1',
+      description: 'Test print',
+      status: 'draft',
+    })
+    expect(jobs[0].price).toBeUndefined()
+    expect(jobs[0].created_at).toMatch(/^\d{4}-\d{2}-\d{2}T/)
   })
 
   it('increments job id when jobs exist', async () => {
-    mockReadRows.mockResolvedValue([{ id: 'J1' }, { id: 'J2' }])
+    resetAndSeedWorkbook({
+      jobs: matrixWithRows('jobs', [
+        {
+          id: 'J1',
+          client_id: 'CL1',
+          description: 'a',
+          status: 'draft',
+          price: '',
+          created_at: '2025-01-01',
+        },
+        {
+          id: 'J2',
+          client_id: 'CL1',
+          description: 'b',
+          status: 'draft',
+          price: '',
+          created_at: '2025-01-02',
+        },
+      ]),
+    })
 
     await createJob('spreadsheet-1', {
       client_id: 'CL2',
@@ -51,33 +57,24 @@ describe('createJob', () => {
       price: 42,
     })
 
-    expect(mockAppendRows).toHaveBeenCalledWith(
-      'spreadsheet-1',
-      'jobs',
-      [
-        expect.objectContaining({
-          id: 'J3',
-          price: 42,
-        }),
-      ]
-    )
+    const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
+    expect(jobs.find((j) => j.id === 'J3')).toMatchObject({
+      price: 42,
+      description: 'Next',
+    })
   })
 
   it('allows price 0', async () => {
+    resetAndSeedWorkbook({})
+
     await createJob('spreadsheet-1', {
       client_id: 'CL1',
       description: 'Gift',
       price: 0,
     })
 
-    expect(mockAppendRows).toHaveBeenCalledWith(
-      'spreadsheet-1',
-      'jobs',
-      [
-        expect.objectContaining({
-          price: 0,
-        }),
-      ]
-    )
+    expect(
+      matrixToJobs(useWorkbookStore.getState().tabs.jobs)[0]?.price,
+    ).toBe(0)
   })
 })

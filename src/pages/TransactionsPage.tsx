@@ -1,82 +1,56 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
-import { useSheetsStore } from '@/stores/sheetsStore'
 import { useShopStore } from '@/stores/shopStore'
-import { connect } from '@/services/sheets/connection'
-import { useTransactions } from '@/hooks/useTransactions'
-import { useClients } from '@/hooks/useClients'
-import { useInventory } from '@/hooks/useInventory'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { getSheetsRepository } from '@/services/sheets/repository'
+import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { TransactionsTable } from '@/components/TransactionsTable'
 import { BalanceDisplay } from '@/components/BalanceDisplay'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
-import { QueryError } from '@/components/QueryError'
 import { CreateExpensePopup } from '@/components/CreateExpensePopup'
 import { calculateBalance } from '@/utils/money'
 import { useTranslation } from 'react-i18next'
+import type { Transaction } from '@/types/money'
+
+function isActiveTransaction(txn: Transaction): boolean {
+  return txn.archived !== 'true' && txn.deleted !== 'true'
+}
 
 export function TransactionsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const [popupOpen, setPopupOpen] = useState(false)
   const activeShop = useShopStore((s) => s.activeShop)
   const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const {
-    status,
-    errorMessage,
-    setConnecting,
-    setConnected,
-    setError,
-  } = useSheetsStore()
+  const workbookStatus = useWorkbookStore((s) => s.status)
+  const workbookError = useWorkbookStore((s) => s.error)
+  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
 
-  const {
-    data: transactions = [],
-    isLoading: transactionsLoading,
-    isError: transactionsError,
-    refetch: refetchTransactions,
-  } = useTransactions(spreadsheetId)
-  const { data: clients = [] } = useClients(spreadsheetId)
-  const { data: inventory = [] } = useInventory(spreadsheetId)
+  const { transactions: allTransactions, clients, inventory } =
+    useWorkbookEntities()
+  const transactions = useMemo(
+    () => allTransactions.filter(isActiveTransaction),
+    [allTransactions],
+  )
 
   const inventoryByExpenseId = useMemo(() => {
     const map = new Map<string, string>()
     for (const row of inventory) {
+      if (row.archived === 'true' || row.deleted === 'true') continue
       if (row.expense_id) map.set(row.expense_id, row.id)
     }
     return map
   }, [inventory])
 
-  useEffect(() => {
+  const handleRetry = () => {
     if (!spreadsheetId) return
-    setConnecting()
-    connect(spreadsheetId).then((result) => {
-      if (result.ok) {
-        setConnected(result.spreadsheetId)
-      } else {
-        setError(result.error)
-      }
-    })
-  }, [spreadsheetId, setConnecting, setConnected, setError])
-
-  const handleRetry = async () => {
-    if (!spreadsheetId) return
-    setConnecting()
-    const result = await connect(spreadsheetId)
-    if (result.ok) {
-      setConnected(result.spreadsheetId)
-    } else {
-      setError(result.error)
-    }
+    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
   }
 
-  const balance = calculateBalance(transactions.map((t) => t.amount))
+  const balance = calculateBalance(transactions.map((tx) => tx.amount))
 
   const handleExpenseSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
-    queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
     navigate('/expenses')
   }
 
@@ -86,13 +60,13 @@ export function TransactionsPage() {
 
       {spreadsheetId ? (
         <ConnectionStatus
-          status={status}
-          errorMessage={errorMessage}
+          status={workbookStatus}
+          errorMessage={workbookError}
           onRetry={handleRetry}
         />
       ) : null}
 
-      {status === 'connected' && (
+      {workbookStatus === 'ready' && (
         <>
           <div className="mb-4 flex items-center justify-between">
             <BalanceDisplay balance={balance} />
@@ -105,11 +79,7 @@ export function TransactionsPage() {
             </button>
           </div>
 
-          {transactionsError ? (
-            <QueryError onRetry={() => void refetchTransactions()} />
-          ) : transactionsLoading ? (
-            <LoadingSpinner />
-          ) : transactions.length === 0 ? (
+          {transactions.length === 0 ? (
             <EmptyState messageKey="transactions.empty" />
           ) : (
             <TransactionsTable

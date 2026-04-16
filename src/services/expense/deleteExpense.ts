@@ -1,57 +1,78 @@
-import { getSheetsRepository } from '@/services/sheets/repository'
-import type { SheetName } from '@/services/sheets/config'
-import type { Expense, Inventory, Transaction } from '@/types/money'
+import { updateDataRowById } from '@/lib/workbook/matrixOps'
+import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import {
+  matrixToExpenses,
+  matrixToInventory,
+  matrixToTransactions,
+} from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
 
 export async function deleteExpense(
   spreadsheetId: string,
   expenseId: string
 ): Promise<void> {
-  const repo = getSheetsRepository()
-  const expenses = await repo.readRows<Expense>(
-    spreadsheetId,
-    'expenses' as SheetName
-  )
-  const inventory = await repo.readRows<Inventory>(
-    spreadsheetId,
-    'inventory' as SheetName
-  )
-  const transactions = await repo.readRows<Transaction>(
-    spreadsheetId,
-    'transactions' as SheetName
-  )
-
-  const expenseIdx = expenses.findIndex((e) => e.id === expenseId)
-  if (expenseIdx === -1) {
+  void spreadsheetId
+  const tabs = useWorkbookStore.getState().tabs
+  const expenses = matrixToExpenses(tabs.expenses)
+  const exp = expenses.find((e) => e.id === expenseId)
+  if (!exp) {
     throw new Error(`Expense ${expenseId} not found`)
   }
 
-  const txIndices: number[] = []
-  transactions.forEach((t, i) => {
-    if (t.ref_type === 'expense' && t.ref_id === expenseId) {
-      txIndices.push(i)
-    }
-  })
-  const invIdx = inventory.findIndex((inv) => inv.expense_id === expenseId)
-
-  if (invIdx !== -1) {
-    await repo.deleteRow(
-      spreadsheetId,
-      'inventory' as SheetName,
-      invIdx + 1
-    )
-  }
-
-  for (const ti of [...txIndices].sort((a, b) => b - a)) {
-    await repo.deleteRow(
-      spreadsheetId,
-      'transactions' as SheetName,
-      ti + 1
-    )
-  }
-
-  await repo.deleteRow(
-    spreadsheetId,
-    'expenses' as SheetName,
-    expenseIdx + 1
+  patchWorkbookTab('expenses', (m) =>
+    updateDataRowById('expenses', m, expenseId, {
+      id: exp.id,
+      date: exp.date,
+      category: exp.category,
+      amount: exp.amount,
+      notes: exp.notes ?? '',
+      archived: 'true',
+      deleted: exp.deleted ?? '',
+    }),
   )
+
+  const transactions = matrixToTransactions(
+    useWorkbookStore.getState().tabs.transactions,
+  )
+  for (const tx of transactions) {
+    if (tx.ref_type === 'expense' && tx.ref_id === expenseId) {
+      const tid = tx.id
+      patchWorkbookTab('transactions', (m) =>
+        updateDataRowById('transactions', m, tid, {
+          id: tx.id,
+          date: tx.date,
+          type: tx.type,
+          amount: tx.amount,
+          category: tx.category,
+          concept: tx.concept,
+          ref_type: tx.ref_type,
+          ref_id: tx.ref_id,
+          client_id: tx.client_id ?? '',
+          notes: tx.notes ?? '',
+          archived: 'true',
+          deleted: tx.deleted ?? '',
+        }),
+      )
+    }
+  }
+
+  const inventory = matrixToInventory(
+    useWorkbookStore.getState().tabs.inventory,
+  )
+  const inv = inventory.find((i) => i.expense_id === expenseId)
+  if (inv) {
+    patchWorkbookTab('inventory', (m) =>
+      updateDataRowById('inventory', m, inv.id, {
+        id: inv.id,
+        expense_id: inv.expense_id,
+        type: inv.type,
+        name: inv.name,
+        qty_initial: inv.qty_initial,
+        qty_current: inv.qty_current,
+        created_at: inv.created_at,
+        archived: 'true',
+        deleted: inv.deleted ?? '',
+      }),
+    )
+  }
 }

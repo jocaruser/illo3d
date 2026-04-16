@@ -14,7 +14,7 @@ const DEV_SHOP: Shop = {
   folderId: 'dev-fixture-folder-id',
   folderName: 'Dev Fixture Shop',
   spreadsheetId: 'dev-fixture-spreadsheet-id',
-  metadataVersion: '1.0.0',
+  metadataVersion: '2.0.0',
 }
 
 export interface DevFixtures {

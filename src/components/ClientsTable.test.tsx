@@ -19,7 +19,7 @@ vi.mock('react-i18next', () => ({
 describe('ClientsTable', () => {
   it('renders column headers and client rows', () => {
     const onEdit = vi.fn()
-    const onDelete = vi.fn()
+    const onArchive = vi.fn()
     render(
       <MemoryRouter>
         <ClientsTable
@@ -34,7 +34,7 @@ describe('ClientsTable', () => {
             },
           ]}
           onEdit={onEdit}
-          onDelete={onDelete}
+          onArchive={onArchive}
         />
       </MemoryRouter>
     )
@@ -47,9 +47,9 @@ describe('ClientsTable', () => {
     expect(screen.getByText('2025-01-01')).toBeInTheDocument()
   })
 
-  it('calls onEdit and onDelete', () => {
+  it('calls onEdit and onArchive', () => {
     const onEdit = vi.fn()
-    const onDelete = vi.fn()
+    const onArchive = vi.fn()
     const client = {
       id: 'CL1',
       name: 'Acme',
@@ -57,15 +57,15 @@ describe('ClientsTable', () => {
     }
     render(
       <MemoryRouter>
-        <ClientsTable clients={[client]} onEdit={onEdit} onDelete={onDelete} />
+        <ClientsTable clients={[client]} onEdit={onEdit} onArchive={onArchive} />
       </MemoryRouter>
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'clients.edit' }))
-    fireEvent.click(screen.getByRole('button', { name: 'clients.delete' }))
+    fireEvent.click(screen.getByRole('button', { name: 'lifecycle.archive' }))
 
     expect(onEdit).toHaveBeenCalledWith(client)
-    expect(onDelete).toHaveBeenCalledWith(client)
+    expect(onArchive).toHaveBeenCalledWith(client)
   })
 
   it('shows tag tooltip on hover without native title delay', async () => {
@@ -84,7 +84,7 @@ describe('ClientsTable', () => {
           clients={clients}
           tagTitleByClientId={title}
           onEdit={vi.fn()}
-          onDelete={vi.fn()}
+          onArchive={vi.fn()}
         />
       </MemoryRouter>
     )
@@ -114,7 +114,7 @@ describe('ClientsTable', () => {
           clients={clients}
           tagSearchLineByClientId={tagSearch}
           onEdit={vi.fn()}
-          onDelete={vi.fn()}
+          onArchive={vi.fn()}
         />
       </MemoryRouter>
     )

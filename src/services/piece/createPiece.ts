@@ -1,6 +1,8 @@
-import { getSheetsRepository } from '@/services/sheets/repository'
+import { appendDataRow } from '@/lib/workbook/matrixOps'
+import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import { matrixToPieces } from '@/lib/workbook/workbookEntities'
 import { nextNumericId } from '@/utils/id'
-import type { SheetName } from '@/services/sheets/config'
+import { useWorkbookStore } from '@/stores/workbookStore'
 
 export interface CreatePiecePayload {
   job_id: string
@@ -11,24 +13,23 @@ export async function createPiece(
   spreadsheetId: string,
   payload: CreatePiecePayload
 ): Promise<void> {
-  const repo = getSheetsRepository()
-  const existing = await repo.readRows<{ id: string }>(
-    spreadsheetId,
-    'pieces' as SheetName
-  )
+  void spreadsheetId
+  const existing = matrixToPieces(useWorkbookStore.getState().tabs.pieces)
   const pieceId = nextNumericId(
     'P',
-    existing.map((p) => p.id).filter((id): id is string => id != null)
+    existing.map((p) => p.id).filter((id): id is string => id != null),
   )
   const createdAt = new Date().toISOString()
 
-  await repo.appendRows(spreadsheetId, 'pieces' as SheetName, [
-    {
+  patchWorkbookTab('pieces', (m) =>
+    appendDataRow('pieces', m, {
       id: pieceId,
       job_id: payload.job_id,
       name: payload.name.trim(),
       status: 'pending',
       created_at: createdAt,
-    },
-  ])
+      archived: '',
+      deleted: '',
+    }),
+  )
 }

@@ -1,5 +1,12 @@
-import { getSheetsRepository } from '@/services/sheets/repository'
+import { appendDataRow } from '@/lib/workbook/matrixOps'
+import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import {
+  matrixToExpenses,
+  matrixToInventory,
+  matrixToTransactions,
+} from '@/lib/workbook/workbookEntities'
 import { nextNumericId } from '@/utils/id'
+import { useWorkbookStore } from '@/stores/workbookStore'
 import type { ExpenseCategory, InventoryType } from '@/types/money'
 
 export interface CreateExpensePayload {
@@ -18,33 +25,25 @@ export async function createExpense(
   spreadsheetId: string,
   payload: CreateExpensePayload
 ): Promise<void> {
-  const repo = getSheetsRepository()
-  const expenses = await repo.readRows<{ id: string }>(
-    spreadsheetId,
-    'expenses'
-  )
-  const transactions = await repo.readRows<{ id: string }>(
-    spreadsheetId,
-    'transactions'
-  )
+  void spreadsheetId
+  const tabs = useWorkbookStore.getState().tabs
+  const expenses = matrixToExpenses(tabs.expenses)
+  const transactions = matrixToTransactions(tabs.transactions)
   const expenseId = nextNumericId(
     'E',
-    expenses.map((e) => e.id).filter((id): id is string => id != null)
+    expenses.map((e) => e.id).filter((id): id is string => id != null),
   )
   const transactionId = nextNumericId(
     'T',
-    transactions.map((t) => t.id).filter((id): id is string => id != null)
+    transactions.map((t) => t.id).filter((id): id is string => id != null),
   )
 
   let inventoryId: string | undefined
   if (payload.inventory) {
-    const inventoryRows = await repo.readRows<{ id: string }>(
-      spreadsheetId,
-      'inventory'
-    )
+    const inventoryRows = matrixToInventory(tabs.inventory)
     inventoryId = nextNumericId(
       'INV',
-      inventoryRows.map((r) => r.id).filter((id): id is string => id != null)
+      inventoryRows.map((r) => r.id).filter((id): id is string => id != null),
     )
   }
 
@@ -54,6 +53,8 @@ export async function createExpense(
     category: payload.category,
     amount: payload.amount,
     notes: payload.notes ?? '',
+    archived: '',
+    deleted: '',
   }
 
   const transactionRow = {
@@ -67,15 +68,21 @@ export async function createExpense(
     ref_id: expenseId,
     client_id: '',
     notes: payload.notes ?? '',
+    archived: '',
+    deleted: '',
   }
 
-  await repo.appendRows(spreadsheetId, 'expenses', [expenseRow])
-  await repo.appendRows(spreadsheetId, 'transactions', [transactionRow])
+  patchWorkbookTab('expenses', (m) =>
+    appendDataRow('expenses', m, expenseRow),
+  )
+  patchWorkbookTab('transactions', (m) =>
+    appendDataRow('transactions', m, transactionRow),
+  )
 
   if (payload.inventory && inventoryId) {
     const inv = payload.inventory
-    await repo.appendRows(spreadsheetId, 'inventory', [
-      {
+    patchWorkbookTab('inventory', (m) =>
+      appendDataRow('inventory', m, {
         id: inventoryId,
         expense_id: expenseId,
         type: inv.type,
@@ -83,7 +90,9 @@ export async function createExpense(
         qty_initial: inv.quantity,
         qty_current: inv.quantity,
         created_at: new Date().toISOString(),
-      },
-    ])
+        archived: '',
+        deleted: '',
+      }),
+    )
   }
 }

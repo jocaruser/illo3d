@@ -68,6 +68,12 @@
       "tag": "Etiqueta"
     }
   },
+  "lifecycle": {
+    "archive": "Archivar",
+    "softDelete": "Eliminar (lógico)",
+    "unarchive": "Desarchivar",
+    "deletedEntity": "Entidad eliminada"
+  },
   "clients": {
     "title": "Clientes",
     "addClient": "Añadir cliente",
@@ -89,6 +95,8 @@
     "delete": "Eliminar",
     "save": "Guardar",
     "actions": "Acciones",
+    "archiveConfirmTitle": "Archivar cliente",
+    "archiveConfirmMessage": "¿Archivar a {{name}}? Los trabajos vinculados y sus datos se archivarán.",
     "deleteConfirmTitle": "Eliminar cliente",
     "deleteConfirmMessage": "¿Eliminar a {{name}}? No se puede deshacer.",
     "deleteBlockedJobs": "No se puede eliminar este cliente mientras existan trabajos asociados.",
@@ -299,6 +307,8 @@
     "editJob": "Editar",
     "deleteJob": "Eliminar",
     "actions": "Acciones",
+    "archiveConfirmTitle": "Archivar trabajo",
+    "archiveConfirmMessage": "¿Archivar el trabajo {{id}}? Las piezas, notas y etiquetas vinculadas se archivarán.",
     "confirmDeleteTitle": "Eliminar trabajo",
     "confirmDeleteMessage": "¿Eliminar el trabajo {{id}} y todas sus piezas y líneas de material? No se puede deshacer.",
     "client": "Cliente",
@@ -376,5 +386,19 @@
     "errorPermissions": "No tienes permiso para acceder a los datos de esta tienda.",
     "devLoginQuotaError": "El Login Dev no puede crear archivos nuevos de tienda con esta service account. Usa Abrir carpeta existente o inicia sesión con Google OAuth.",
     "errorGeneric": "Algo ha ido mal. Por favor, inténtalo de nuevo."
+  },
+  "workbook": {
+    "loading": "Cargando libro…",
+    "loadFailed": "No se pudo cargar el libro.",
+    "retry": "Reintentar",
+    "refresh": "Actualizar",
+    "save": "Guardar",
+    "discardTitle": "¿Descartar cambios sin guardar?",
+    "discardMessage": "Se perderán las ediciones locales. ¿Volver a cargar los datos?",
+    "discardConfirm": "Descartar y actualizar",
+    "cancel": "Cancelar",
+    "saving": "Guardando…",
+    "saveSuccess": "Libro guardado.",
+    "saveError": "No se pudo guardar el libro."
   }
 }

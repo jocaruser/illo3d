@@ -4,6 +4,7 @@ import {
   type SheetName,
 } from '@/services/sheets/config'
 import type { SheetsRepository } from '@/services/sheets/repository'
+import { normalizeSheetMatrixFromCsvLines } from '@/services/sheets/sheetMatrix'
 import { useAuthStore } from '@/stores/authStore'
 import { useBackendStore } from '@/stores/backendStore'
 import { APP_VERSION } from '@/config/version'
@@ -144,6 +145,41 @@ export class LocalSheetsRepository implements SheetsRepository {
     }
     lines.splice(lineIdx, 1)
     await this.writeFile(handle, csvName, lines.join('\n') + '\n')
+  }
+
+  async readSheetMatrix(
+    spreadsheetId: string,
+    sheetName: SheetName
+  ): Promise<string[][]> {
+    void spreadsheetId
+    const handle = this.getHandle()
+    const csvText = await this.readFile(handle, `${sheetName}.csv`)
+    const lines = csvText.trimEnd().split(/\r?\n/)
+    return normalizeSheetMatrixFromCsvLines(sheetName, lines)
+  }
+
+  async replaceSheetMatrix(
+    spreadsheetId: string,
+    sheetName: SheetName,
+    matrix: string[][]
+  ): Promise<void> {
+    void spreadsheetId
+    if (matrix.length === 0) {
+      throw new Error(`replaceSheetMatrix: empty matrix for ${sheetName}`)
+    }
+    const handle = this.getHandle()
+    const csvName = `${sheetName}.csv`
+    const body =
+      matrix.map((row) => row.map((c) => escapeCsvValue(c)).join(',')).join('\n') +
+      '\n'
+    await this.writeFile(handle, csvName, body)
+  }
+
+  async getSheetIdMap(
+    spreadsheetId: string
+  ): Promise<Partial<Record<SheetName, number>>> {
+    void spreadsheetId
+    return {}
   }
 
   async createSpreadsheet(): Promise<string> {

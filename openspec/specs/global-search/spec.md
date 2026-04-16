@@ -39,18 +39,30 @@ The system SHALL NOT run global search when the trimmed query length is **0 or 1
 
 ### Requirement: Global search entity coverage and local scope
 
-The global search SHALL include suggestions for **clients**, **jobs**, **pieces**, **client notes**, **job notes**, **transactions**, **expenses**, **inventory items**, and **tags** when those entities are available in **local in-memory state** (TanStack Query cache or equivalent session data already loaded). The system SHALL NOT perform additional network or Sheets reads solely to populate global search.
+The global search SHALL include suggestions for **clients**, **jobs**, **pieces**, **client notes**, **job notes**, **transactions**, **expenses**, **inventory items**, and **tags** when those entities are available in the **workbook snapshot store**. The system SHALL NOT perform additional network, Sheets, or CSV reads to populate global search. **Archived and soft-deleted entities SHALL be excluded from search results.**
 
 #### Scenario: Loaded client is findable
 
-- **WHEN** a client row exists in the local client cache
+- **WHEN** a client row exists in the workbook store with `archived` and `deleted` both empty
 - **AND** the user enters a query of at least two characters that matches that client per the fuzzy rules
 - **THEN** a client suggestion appears
 
-#### Scenario: Unloaded dataset produces no suggestion
+#### Scenario: Archived client is not findable
 
-- **WHEN** a job exists only on the server and is not present in local session data
-- **THEN** global search does not return that job
+- **WHEN** a client row exists in the workbook store with `archived: "true"`
+- **AND** the user enters a query matching that client's name
+- **THEN** no suggestion appears for that client
+
+#### Scenario: Soft-deleted entity is not findable
+
+- **WHEN** an entity exists in the workbook store with `deleted: "true"`
+- **THEN** global search does not return that entity regardless of query
+
+#### Scenario: Search reads from store, not backend
+
+- **WHEN** the user types in the global search field
+- **THEN** no `SheetsRepository` method is called
+- **AND** results are derived from the workbook store
 
 ### Requirement: Global search fuzzy parity and date fragments
 

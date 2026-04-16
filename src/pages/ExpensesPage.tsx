@@ -1,45 +1,39 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
-import { useSheetsStore } from '@/stores/sheetsStore'
 import { useShopStore } from '@/stores/shopStore'
-import { connect } from '@/services/sheets/connection'
-import { useExpenses } from '@/hooks/useExpenses'
-import { useInventory } from '@/hooks/useInventory'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { getSheetsRepository } from '@/services/sheets/repository'
+import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { ExpensesTable } from '@/components/ExpensesTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreateExpensePopup } from '@/components/CreateExpensePopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EmptyState } from '@/components/EmptyState'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
-import { QueryError } from '@/components/QueryError'
 import { useTranslation } from 'react-i18next'
 import { updateExpense } from '@/services/expense/updateExpense'
 import { deleteExpense } from '@/services/expense/deleteExpense'
 import type { Expense } from '@/types/money'
 import type { UpdateExpensePayload } from '@/services/expense/updateExpense'
 
+function isActiveExpense(e: Expense): boolean {
+  return e.archived !== 'true' && e.deleted !== 'true'
+}
+
 export function ExpensesPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const activeShop = useShopStore((s) => s.activeShop)
   const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const {
-    status,
-    errorMessage,
-    setConnecting,
-    setConnected,
-    setError,
-  } = useSheetsStore()
+  const workbookStatus = useWorkbookStore((s) => s.status)
+  const workbookError = useWorkbookStore((s) => s.error)
+  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
 
-  const {
-    data: expenses = [],
-    isLoading: expensesLoading,
-    isError: expensesError,
-    refetch: refetchExpenses,
-  } = useExpenses(spreadsheetId)
-  const { data: inventory = [] } = useInventory(spreadsheetId)
+  const { expenses: allExpenses, inventory } = useWorkbookEntities()
+  const expenses = useMemo(
+    () => allExpenses.filter(isActiveExpense),
+    [allExpenses],
+  )
+
   const [createOpen, setCreateOpen] = useState(false)
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Expense | null>(null)
@@ -50,54 +44,24 @@ export function ExpensesPage() {
   const inventoryByExpenseId = useMemo(() => {
     const map = new Map<string, string>()
     for (const item of inventory) {
+      if (item.archived === 'true' || item.deleted === 'true') continue
       map.set(item.expense_id, item.id)
     }
     return map
   }, [inventory])
 
   const handleCreateSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
-    queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
-    queryClient.invalidateQueries({ queryKey: ['inventory', spreadsheetId] })
     navigate('/expenses')
   }
 
-  const handleEditSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
-    queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
-  }
+  const handleEditSuccess = () => {}
 
   const handleUpdateExpense = async (
     expenseId: string,
     payload: UpdateExpensePayload
   ) => {
     if (!spreadsheetId) return
-    const key = ['expenses', spreadsheetId] as const
-    const previous = queryClient.getQueryData<Expense[]>(key)
-    if (previous) {
-      queryClient.setQueryData(
-        key,
-        previous.map((e) =>
-          e.id === expenseId
-            ? {
-                ...e,
-                date: payload.date,
-                category: payload.category,
-                amount: payload.amount,
-                notes: payload.notes,
-              }
-            : e
-        )
-      )
-    }
-    try {
-      await updateExpense(spreadsheetId, expenseId, payload)
-    } catch (e) {
-      if (previous) {
-        queryClient.setQueryData(key, previous)
-      }
-      throw e
-    }
+    await updateExpense(spreadsheetId, expenseId, payload)
   }
 
   const closeExpensePopup = () => {
@@ -111,35 +75,14 @@ export function ExpensesPage() {
     try {
       await deleteExpense(spreadsheetId, deleteTarget.id)
       setDeleteTarget(null)
-      queryClient.invalidateQueries({ queryKey: ['expenses', spreadsheetId] })
-      queryClient.invalidateQueries({ queryKey: ['transactions', spreadsheetId] })
-      queryClient.invalidateQueries({ queryKey: ['inventory', spreadsheetId] })
     } catch {
       setDeleteError(t('errors.deleteFailed'))
     }
   }
 
-  useEffect(() => {
+  const handleRetry = () => {
     if (!spreadsheetId) return
-    setConnecting()
-    connect(spreadsheetId).then((result) => {
-      if (result.ok) {
-        setConnected(result.spreadsheetId)
-      } else {
-        setError(result.error)
-      }
-    })
-  }, [spreadsheetId, setConnecting, setConnected, setError])
-
-  const handleRetry = async () => {
-    if (!spreadsheetId) return
-    setConnecting()
-    const result = await connect(spreadsheetId)
-    if (result.ok) {
-      setConnected(result.spreadsheetId)
-    } else {
-      setError(result.error)
-    }
+    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
   }
 
   return (
@@ -148,13 +91,13 @@ export function ExpensesPage() {
 
       {spreadsheetId ? (
         <ConnectionStatus
-          status={status}
-          errorMessage={errorMessage}
+          status={workbookStatus}
+          errorMessage={workbookError}
           onRetry={handleRetry}
         />
       ) : null}
 
-      {status === 'connected' && (
+      {workbookStatus === 'ready' && (
         <>
           <div className="mb-4 flex items-center justify-between">
             <button
@@ -169,11 +112,7 @@ export function ExpensesPage() {
             </button>
           </div>
 
-          {expensesError ? (
-            <QueryError onRetry={() => void refetchExpenses()} />
-          ) : expensesLoading ? (
-            <LoadingSpinner />
-          ) : expenses.length === 0 ? (
+          {expenses.length === 0 ? (
             <EmptyState messageKey="expenses.empty" />
           ) : (
             <ExpensesTable

@@ -248,18 +248,18 @@ The system SHALL use the Google OAuth credentials from the existing auth system 
 
 ### Requirement: Read operations fetch data from sheets
 
-The system SHALL provide functions to read all rows from any sheet, returning typed data objects. Read operations SHALL use TanStack Query for caching.
+The system SHALL provide functions to read all rows from any sheet, returning typed data objects. List and detail UIs SHALL read entity data from the **workbook snapshot store** after hydration; routine navigation SHALL NOT trigger per-entity repository reads.
 
 #### Scenario: Read all transactions
 
-- **WHEN** app requests transactions data
-- **THEN** system fetches all rows from transactions sheet
-- **AND** returns array of Transaction objects
+- **WHEN** app displays transactions after hydration
+- **THEN** transaction objects are derived from the workbook store's transactions tab
+- **AND** no `readRows` call is made solely for that page navigation
 
-#### Scenario: Cached data is returned on subsequent reads
+#### Scenario: Refresh reloads all tabs
 
-- **WHEN** app requests same data within cache TTL
-- **THEN** cached data is returned without API call
+- **WHEN** the user triggers Refresh
+- **THEN** the system re-reads all tabs via the repository into the workbook store
 
 ### Requirement: Connection status is visible
 
@@ -282,27 +282,52 @@ The system SHALL display connection status in the UI. Status includes: connectin
 
 ## Sheets repository
 
-### Requirement: SheetsRepository interface defines data access contract
+### Requirement: SheetsRepository interface defines tabular access contract
 
-The system SHALL provide a `SheetsRepository` interface (or equivalent abstraction) that defines methods for: reading rows by sheet name, getting sheet names, getting header row by sheet name, and creating a spreadsheet. All Sheets data access SHALL flow through this interface.
+The system SHALL provide a `SheetsRepository` interface with `readRows`, `appendRows`, `updateRow`, `deleteRow`, `getSheetNames`, `getHeaderRow`, and `createSpreadsheet`. All tabular data access SHALL flow through this interface. **The repository is called only during shop open (hydration), Refresh, and Save flows.** No component, hook, or domain service SHALL call repository methods during routine navigation, search, or in-app mutations.
 
-#### Scenario: Interface covers read operations
+#### Scenario: Repository called during hydration
 
-- **WHEN** the system needs to read rows from a sheet
-- **THEN** it calls `readRows(spreadsheetId, sheetName)` on the repository
-- **AND** receives an array of typed objects
+- **WHEN** a shop is opened or Refresh is triggered
+- **THEN** the snapshot orchestration layer calls `readRows` for each tab via the repository
 
-#### Scenario: Interface covers structure validation data
+#### Scenario: Repository not called during navigation
 
-- **WHEN** the system needs to validate spreadsheet structure
-- **THEN** it calls `getSheetNames(spreadsheetId)` and `getHeaderRow(spreadsheetId, sheetName)` on the repository
-- **AND** uses the results to verify expected sheets and headers exist
+- **WHEN** the user navigates between pages
+- **THEN** no `SheetsRepository` method is invoked
 
-#### Scenario: Interface covers spreadsheet creation
+#### Scenario: Repository called during Save
 
-- **WHEN** the setup wizard creates a new shop
-- **THEN** it calls `createSpreadsheet()` on the repository
-- **AND** receives a spreadsheet ID for subsequent operations
+- **WHEN** the user triggers Save
+- **THEN** the snapshot orchestration layer writes all tabs via the repository
+
+### Requirement: SHEET_HEADERS include lifecycle columns
+
+`SHEET_HEADERS` for every tab in `SHEET_NAMES` SHALL include `archived` and `deleted` as the last two columns. `validateStructure` SHALL require these columns when checking header rows.
+
+#### Scenario: Headers include lifecycle columns
+
+- **WHEN** `SHEET_HEADERS` is accessed for any tab
+- **THEN** the array ends with `'archived', 'deleted'`
+
+#### Scenario: Validation rejects missing lifecycle columns
+
+- **WHEN** a workbook tab's header row lacks `archived` or `deleted`
+- **THEN** `validateStructure` reports a validation error for that tab
+
+### Requirement: Snapshot orchestration layer coordinates hydrate, Refresh, Save
+
+The system SHALL provide a snapshot orchestration module (above `SheetsRepository`) that: (1) on hydrate/Refresh, reads all tabs via the repository and populates the workbook store; (2) on Save, writes all tabs from the workbook store via the repository. This module SHALL be the **only** caller of `SheetsRepository` read/write methods for tabular data during normal app usage.
+
+#### Scenario: Orchestration hydrates on shop open
+
+- **WHEN** shop validation succeeds
+- **THEN** the orchestration module reads all tabs and populates the store
+
+#### Scenario: Orchestration writes on Save
+
+- **WHEN** the user triggers Save
+- **THEN** the orchestration module writes all tabs from the store to the backend
 
 ### Requirement: GoogleSheetsRepository implements production backend
 

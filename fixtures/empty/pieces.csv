@@ -1,1 +1,1 @@
-id,job_id,name,status,created_at
+id,job_id,name,status,created_at,archived,deleted

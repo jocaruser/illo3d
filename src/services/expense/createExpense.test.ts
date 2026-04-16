@@ -1,28 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { createExpense } from './createExpense'
-
-const mockAppendRows = vi.fn()
-const mockReadRows = vi.fn()
-
-vi.mock('@/services/sheets/repository', () => ({
-  getSheetsRepository: () => ({
-    readRows: mockReadRows,
-    appendRows: mockAppendRows,
-  }),
-}))
+import {
+  matrixToExpenses,
+  matrixToInventory,
+  matrixToTransactions,
+} from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { matrixWithRows, resetAndSeedWorkbook } from '@/test/workbookHarness'
 
 describe('createExpense', () => {
   beforeEach(() => {
-    mockAppendRows.mockReset()
-    mockReadRows.mockReset()
-    mockReadRows.mockImplementation((_id: string, sheetName: string) => {
-      if (sheetName === 'expenses') return Promise.resolve([])
-      if (sheetName === 'transactions') return Promise.resolve([])
-      return Promise.resolve([])
-    })
+    useWorkbookStore.getState().reset()
   })
 
   it('appends expense and transaction rows with E1 and T1 ids', async () => {
+    resetAndSeedWorkbook({})
+
     await createExpense('spreadsheet-1', {
       date: '2025-01-20',
       category: 'electric',
@@ -30,48 +23,75 @@ describe('createExpense', () => {
       notes: 'Monthly bill',
     })
 
-    expect(mockAppendRows).toHaveBeenCalledTimes(2)
-    expect(mockAppendRows).toHaveBeenNthCalledWith(
-      1,
-      'spreadsheet-1',
-      'expenses',
-      [
-        {
-          id: 'E1',
-          date: '2025-01-20',
-          category: 'electric',
-          amount: 75.5,
-          notes: 'Monthly bill',
-        },
-      ]
+    const expenses = matrixToExpenses(useWorkbookStore.getState().tabs.expenses)
+    const txs = matrixToTransactions(
+      useWorkbookStore.getState().tabs.transactions,
     )
-    expect(mockAppendRows).toHaveBeenNthCalledWith(
-      2,
-      'spreadsheet-1',
-      'transactions',
-      [
-        expect.objectContaining({
-          id: 'T1',
-          date: '2025-01-20',
-          type: 'expense',
-          amount: -75.5,
-          category: 'electric',
-          concept: 'Monthly bill',
-          ref_type: 'expense',
-          ref_id: 'E1',
-          client_id: '',
-        }),
-      ]
-    )
+    expect(expenses).toHaveLength(1)
+    expect(expenses[0]).toMatchObject({
+      id: 'E1',
+      date: '2025-01-20',
+      category: 'electric',
+      amount: 75.5,
+      notes: 'Monthly bill',
+    })
+    expect(txs).toHaveLength(1)
+    expect(txs[0]).toMatchObject({
+      id: 'T1',
+      date: '2025-01-20',
+      type: 'expense',
+      amount: -75.5,
+      category: 'electric',
+      concept: 'Monthly bill',
+      ref_type: 'expense',
+      ref_id: 'E1',
+    })
   })
 
   it('increments ids when expenses and transactions exist', async () => {
-    mockReadRows.mockImplementation((_id: string, sheetName: string) => {
-      if (sheetName === 'expenses')
-        return Promise.resolve([{ id: 'E1' }, { id: 'E2' }])
-      if (sheetName === 'transactions')
-        return Promise.resolve([{ id: 'T1' }, { id: 'T2' }])
-      return Promise.resolve([])
+    resetAndSeedWorkbook({
+      expenses: matrixWithRows('expenses', [
+        {
+          id: 'E1',
+          date: '2025-01-01',
+          category: 'other',
+          amount: '1',
+          notes: '',
+        },
+        {
+          id: 'E2',
+          date: '2025-01-02',
+          category: 'other',
+          amount: '2',
+          notes: '',
+        },
+      ]),
+      transactions: matrixWithRows('transactions', [
+        {
+          id: 'T1',
+          date: '2025-01-01',
+          type: 'expense',
+          amount: '-1',
+          category: 'x',
+          concept: 'x',
+          ref_type: 'expense',
+          ref_id: 'E1',
+          client_id: '',
+          notes: '',
+        },
+        {
+          id: 'T2',
+          date: '2025-01-02',
+          type: 'expense',
+          amount: '-2',
+          category: 'x',
+          concept: 'x',
+          ref_type: 'expense',
+          ref_id: 'E2',
+          client_id: '',
+          notes: '',
+        },
+      ]),
     })
 
     await createExpense('spreadsheet-1', {
@@ -80,42 +100,22 @@ describe('createExpense', () => {
       amount: 30,
     })
 
-    expect(mockAppendRows).toHaveBeenNthCalledWith(
-      1,
-      'spreadsheet-1',
-      'expenses',
-      [
-        {
-          id: 'E3',
-          date: '2025-01-21',
-          category: 'maintenance',
-          amount: 30,
-          notes: '',
-        },
-      ]
+    const expenses = matrixToExpenses(useWorkbookStore.getState().tabs.expenses)
+    const txs = matrixToTransactions(
+      useWorkbookStore.getState().tabs.transactions,
     )
-    expect(mockAppendRows).toHaveBeenNthCalledWith(
-      2,
-      'spreadsheet-1',
-      'transactions',
-      [
-        expect.objectContaining({
-          id: 'T3',
-          ref_id: 'E3',
-          concept: 'maintenance',
-        }),
-      ]
-    )
+    expect(expenses.find((e) => e.id === 'E3')).toMatchObject({
+      category: 'maintenance',
+      amount: 30,
+    })
+    expect(txs.find((t) => t.id === 'T3')).toMatchObject({
+      ref_id: 'E3',
+      concept: 'maintenance',
+    })
   })
 
-  it('does not read or append inventory when inventory is omitted', async () => {
-    const readSheets: string[] = []
-    mockReadRows.mockImplementation((_id: string, sheetName: string) => {
-      readSheets.push(sheetName)
-      if (sheetName === 'expenses') return Promise.resolve([])
-      if (sheetName === 'transactions') return Promise.resolve([])
-      return Promise.resolve([])
-    })
+  it('does not append inventory when inventory is omitted', async () => {
+    resetAndSeedWorkbook({})
 
     await createExpense('spreadsheet-1', {
       date: '2025-01-22',
@@ -123,17 +123,17 @@ describe('createExpense', () => {
       amount: 10,
     })
 
-    expect(readSheets).not.toContain('inventory')
-    expect(mockAppendRows).toHaveBeenCalledTimes(2)
+    expect(
+      matrixToInventory(useWorkbookStore.getState().tabs.inventory),
+    ).toHaveLength(0)
+    expect(matrixToExpenses(useWorkbookStore.getState().tabs.expenses)).toHaveLength(1)
+    expect(
+      matrixToTransactions(useWorkbookStore.getState().tabs.transactions),
+    ).toHaveLength(1)
   })
 
   it('appends inventory row when inventory payload is provided (filament)', async () => {
-    mockReadRows.mockImplementation((_id: string, sheetName: string) => {
-      if (sheetName === 'expenses') return Promise.resolve([])
-      if (sheetName === 'transactions') return Promise.resolve([])
-      if (sheetName === 'inventory') return Promise.resolve([])
-      return Promise.resolve([])
-    })
+    resetAndSeedWorkbook({})
 
     await createExpense('spreadsheet-1', {
       date: '2025-01-23',
@@ -143,35 +143,55 @@ describe('createExpense', () => {
       inventory: { type: 'filament', name: 'PLA White', quantity: 1000 },
     })
 
-    expect(mockAppendRows).toHaveBeenCalledTimes(3)
-    expect(mockAppendRows).toHaveBeenNthCalledWith(
-      3,
-      'spreadsheet-1',
-      'inventory',
-      [
-        expect.objectContaining({
-          id: 'INV1',
-          expense_id: 'E1',
-          type: 'filament',
-          name: 'PLA White',
-          qty_initial: 1000,
-          qty_current: 1000,
-        }),
-      ]
-    )
-    const invCall = mockAppendRows.mock.calls[2][2][0] as {
-      created_at: string
-    }
-    expect(invCall.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+    const inv = matrixToInventory(useWorkbookStore.getState().tabs.inventory)
+    expect(inv).toHaveLength(1)
+    expect(inv[0]).toMatchObject({
+      id: 'INV1',
+      expense_id: 'E1',
+      type: 'filament',
+      name: 'PLA White',
+      qty_initial: 1000,
+      qty_current: 1000,
+    })
+    expect(inv[0].created_at).toMatch(/^\d{4}-\d{2}-\d{2}T/)
   })
 
   it('appends inventory row for equipment type', async () => {
-    mockReadRows.mockImplementation((_id: string, sheetName: string) => {
-      if (sheetName === 'expenses') return Promise.resolve([{ id: 'E1' }])
-      if (sheetName === 'transactions') return Promise.resolve([{ id: 'T1' }])
-      if (sheetName === 'inventory')
-        return Promise.resolve([{ id: 'INV1' }])
-      return Promise.resolve([])
+    resetAndSeedWorkbook({
+      expenses: matrixWithRows('expenses', [
+        {
+          id: 'E1',
+          date: '2025-01-01',
+          category: 'other',
+          amount: '1',
+          notes: '',
+        },
+      ]),
+      transactions: matrixWithRows('transactions', [
+        {
+          id: 'T1',
+          date: '2025-01-01',
+          type: 'expense',
+          amount: '-1',
+          category: 'x',
+          concept: 'x',
+          ref_type: 'expense',
+          ref_id: 'E1',
+          client_id: '',
+          notes: '',
+        },
+      ]),
+      inventory: matrixWithRows('inventory', [
+        {
+          id: 'INV1',
+          expense_id: 'E1',
+          type: 'filament',
+          name: 'x',
+          qty_initial: '1',
+          qty_current: '1',
+          created_at: '2025-01-01T00:00:00.000Z',
+        },
+      ]),
     })
 
     await createExpense('spreadsheet-1', {
@@ -182,20 +202,15 @@ describe('createExpense', () => {
       inventory: { type: 'equipment', name: 'Ender 3', quantity: 1 },
     })
 
-    expect(mockAppendRows).toHaveBeenNthCalledWith(
-      3,
-      'spreadsheet-1',
-      'inventory',
-      [
-        expect.objectContaining({
-          id: 'INV2',
-          expense_id: 'E2',
-          type: 'equipment',
-          name: 'Ender 3',
-          qty_initial: 1,
-          qty_current: 1,
-        }),
-      ]
-    )
+    const inv = matrixToInventory(useWorkbookStore.getState().tabs.inventory)
+    const last = inv.find((r) => r.id === 'INV2')
+    expect(last).toMatchObject({
+      id: 'INV2',
+      expense_id: 'E2',
+      type: 'equipment',
+      name: 'Ender 3',
+      qty_initial: 1,
+      qty_current: 1,
+    })
   })
 })

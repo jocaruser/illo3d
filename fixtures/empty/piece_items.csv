@@ -1,1 +1,1 @@
-id,piece_id,inventory_id,quantity
+id,piece_id,inventory_id,quantity,archived,deleted

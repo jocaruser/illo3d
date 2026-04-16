@@ -50,20 +50,25 @@ The `illo3d.metadata.json` file SHALL contain: `app` (literal string `"illo3d"`)
 
 ### Requirement: App version constant is maintained
 
-The system SHALL expose an `APP_VERSION` constant (semver string) in `src/config/version.ts`. This constant SHALL be manually bumped following semver conventions. Any change that modifies the spreadsheet schema or metadata structure SHALL evaluate whether it constitutes a breaking change and propose a major version bump.
+The system SHALL expose an `APP_VERSION` constant (semver string) in `src/config/version.ts`. This constant SHALL be manually bumped following semver conventions. The addition of lifecycle columns (`archived`, `deleted`) to `SHEET_HEADERS` constitutes a breaking schema change and SHALL be accompanied by a **major version bump**.
 
 #### Scenario: APP_VERSION is accessible
 
 - **WHEN** any module needs the current app version
 - **THEN** it imports `APP_VERSION` from `@/config/version`
 
+#### Scenario: Major version bumped for schema change
+
+- **WHEN** the release adds lifecycle columns to `SHEET_HEADERS`
+- **THEN** `APP_VERSION` major is incremented (e.g. `1.x.x` to `2.0.0`)
+
 ### Requirement: Version compatibility check uses semver major
 
-The system SHALL compare the major version of the app's `APP_VERSION` with the major version in the metadata file. If the major versions differ, the system SHALL refuse to open the shop and show an error.
+The system SHALL compare the major version of the app's `APP_VERSION` with the major version in the metadata file. If the major versions differ, the system SHALL refuse to open the shop and show an error. Workbooks created before the lifecycle column addition SHALL fail this check after the major bump.
 
 #### Scenario: Same major version is compatible
 
-- **WHEN** app version is `1.2.0` and metadata version is `1.0.0`
+- **WHEN** app version is `2.1.0` and metadata version is `2.0.0`
 - **THEN** the shop is considered compatible and can be opened
 
 #### Scenario: Different major version is incompatible
@@ -73,8 +78,24 @@ The system SHALL compare the major version of the app's `APP_VERSION` with the m
 
 #### Scenario: Same major version with higher minor in metadata
 
-- **WHEN** app version is `1.0.0` and metadata version is `1.3.0`
+- **WHEN** app version is `2.0.0` and metadata version is `2.3.0`
 - **THEN** the shop is considered compatible (same major)
+
+### Requirement: Shop open includes workbook hydration
+
+After metadata validation and structure validation succeed, the shop open flow SHALL **hydrate the workbook snapshot store** with all tab data before transitioning to the main app. The user SHALL see a loading indicator during hydration. If hydration fails, the shop open SHALL fail with an error.
+
+#### Scenario: Workbook hydrated after validation
+
+- **WHEN** the setup wizard completes and validation passes
+- **THEN** the workbook store is populated with all tab data
+- **AND** the app transitions to the main layout
+
+#### Scenario: Hydration failure blocks app
+
+- **WHEN** workbook hydration fails (e.g. network error reading tabs)
+- **THEN** the app shows an error
+- **AND** the main layout is NOT rendered
 
 ## Setup wizard
 

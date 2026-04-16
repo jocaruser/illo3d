@@ -1,6 +1,12 @@
-import { getSheetsRepository } from '@/services/sheets/repository'
+import { updateDataRowById } from '@/lib/workbook/matrixOps'
+import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import {
+  matrixToInventory,
+  matrixToPieceItems,
+  matrixToPieces,
+} from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
 import type { Inventory, Piece, PieceItem, PieceStatus } from '@/types/money'
-import type { SheetName } from '@/services/sheets/config'
 
 export interface UpdatePieceStatusOptions {
   decrementInventory?: boolean
@@ -28,6 +34,8 @@ function sheetRowFromPiece(piece: Piece): Record<string, unknown> {
     name: piece.name,
     status: piece.status,
     created_at: piece.created_at,
+    archived: piece.archived ?? '',
+    deleted: piece.deleted ?? '',
   }
 }
 
@@ -40,6 +48,8 @@ function sheetRowFromInventory(inv: Inventory): Record<string, unknown> {
     qty_initial: inv.qty_initial,
     qty_current: inv.qty_current,
     created_at: inv.created_at,
+    archived: inv.archived ?? '',
+    deleted: inv.deleted ?? '',
   }
 }
 
@@ -47,14 +57,6 @@ function parseQty(value: unknown): number {
   if (typeof value === 'number') return value
   if (typeof value === 'string') return parseFloat(value)
   return Number(value)
-}
-
-function normalizeInventoryRows(rows: Inventory[]): Inventory[] {
-  return rows.map((r) => ({
-    ...r,
-    qty_initial: parseQty(r.qty_initial),
-    qty_current: parseQty(r.qty_current),
-  }))
 }
 
 function normalizePieceItems(lines: PieceItem[]): PieceItem[] {
@@ -78,27 +80,20 @@ export async function updatePieceStatus(
   newStatus: PieceStatus,
   options?: UpdatePieceStatusOptions
 ): Promise<UpdatePieceStatusResult> {
-  const repo = getSheetsRepository()
-  const pieces = await repo.readRows<Piece>(
-    spreadsheetId,
-    'pieces' as SheetName
-  )
+  void spreadsheetId
+  const store = useWorkbookStore.getState()
+  const pieces = matrixToPieces(store.tabs.pieces)
   const pIdx = pieces.findIndex((p) => p.id === piece.id)
   if (pIdx === -1) {
     throw new Error(`Piece ${piece.id} not found`)
   }
 
-  const allItems = await repo.readRows<PieceItem>(
-    spreadsheetId,
-    'piece_items' as SheetName
-  )
+  const allItems = matrixToPieceItems(store.tabs.piece_items)
   const lines = normalizePieceItems(
-    allItems.filter((item) => item.piece_id === piece.id && item.inventory_id)
+    allItems.filter((item) => item.piece_id === piece.id && item.inventory_id),
   )
 
-  const inventoryList = normalizeInventoryRows(
-    await repo.readRows<Inventory>(spreadsheetId, 'inventory' as SheetName)
-  )
+  const inventoryList = matrixToInventory(store.tabs.inventory)
 
   const oldStatus = piece.status
 
@@ -139,12 +134,8 @@ export async function updatePieceStatus(
     for (const inventoryId of needByLot.keys()) {
       const inv = working.get(inventoryId)
       if (!inv) continue
-      const idx = inventoryList.findIndex((i) => i.id === inventoryId)
-      await repo.updateRow(
-        spreadsheetId,
-        'inventory' as SheetName,
-        idx + 1,
-        sheetRowFromInventory(inv)
+      patchWorkbookTab('inventory', (m) =>
+        updateDataRowById('inventory', m, inventoryId, sheetRowFromInventory(inv)),
       )
     }
   }
@@ -160,22 +151,15 @@ export async function updatePieceStatus(
     for (const inventoryId of needByLot.keys()) {
       const inv = working.get(inventoryId)
       if (!inv) continue
-      const idx = inventoryList.findIndex((i) => i.id === inventoryId)
-      await repo.updateRow(
-        spreadsheetId,
-        'inventory' as SheetName,
-        idx + 1,
-        sheetRowFromInventory(inv)
+      patchWorkbookTab('inventory', (m) =>
+        updateDataRowById('inventory', m, inventoryId, sheetRowFromInventory(inv)),
       )
     }
   }
 
   const nextPiece: Piece = { ...piece, status: newStatus }
-  await repo.updateRow(
-    spreadsheetId,
-    'pieces' as SheetName,
-    pIdx + 1,
-    sheetRowFromPiece(nextPiece)
+  patchWorkbookTab('pieces', (m) =>
+    updateDataRowById('pieces', m, piece.id, sheetRowFromPiece(nextPiece)),
   )
 
   return { ok: true }

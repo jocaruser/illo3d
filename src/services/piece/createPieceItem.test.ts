@@ -1,47 +1,46 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { createPieceItem } from './createPieceItem'
-
-const mockAppendRows = vi.fn()
-const mockReadRows = vi.fn()
-
-vi.mock('@/services/sheets/repository', () => ({
-  getSheetsRepository: () => ({
-    readRows: mockReadRows,
-    appendRows: mockAppendRows,
-  }),
-}))
+import { matrixToPieceItems } from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { matrixWithRows, resetAndSeedWorkbook } from '@/test/workbookHarness'
 
 describe('createPieceItem', () => {
   beforeEach(() => {
-    mockAppendRows.mockReset()
-    mockReadRows.mockReset()
-    mockReadRows.mockResolvedValue([])
+    useWorkbookStore.getState().reset()
   })
 
   it('appends piece_item with PI1 id', async () => {
+    resetAndSeedWorkbook({})
+
     await createPieceItem('spreadsheet-1', {
       piece_id: 'P1',
       inventory_id: 'INV1',
       quantity: 12.5,
     })
 
-    expect(mockAppendRows).toHaveBeenCalledTimes(1)
-    expect(mockAppendRows).toHaveBeenCalledWith(
-      'spreadsheet-1',
-      'piece_items',
-      [
-        expect.objectContaining({
-          id: 'PI1',
-          piece_id: 'P1',
-          inventory_id: 'INV1',
-          quantity: 12.5,
-        }),
-      ]
+    const lines = matrixToPieceItems(
+      useWorkbookStore.getState().tabs.piece_items,
     )
+    expect(lines).toHaveLength(1)
+    expect(lines[0]).toMatchObject({
+      id: 'PI1',
+      piece_id: 'P1',
+      inventory_id: 'INV1',
+      quantity: 12.5,
+    })
   })
 
   it('increments line id when piece_items exist', async () => {
-    mockReadRows.mockResolvedValue([{ id: 'PI1' }])
+    resetAndSeedWorkbook({
+      piece_items: matrixWithRows('piece_items', [
+        {
+          id: 'PI1',
+          piece_id: 'P1',
+          inventory_id: 'INV1',
+          quantity: '1',
+        },
+      ]),
+    })
 
     await createPieceItem('spreadsheet-1', {
       piece_id: 'P2',
@@ -49,10 +48,14 @@ describe('createPieceItem', () => {
       quantity: 1,
     })
 
-    expect(mockAppendRows).toHaveBeenCalledWith(
-      'spreadsheet-1',
-      'piece_items',
-      [expect.objectContaining({ id: 'PI2' })]
-    )
+    expect(
+      matrixToPieceItems(
+        useWorkbookStore.getState().tabs.piece_items,
+      ).find((l) => l.id === 'PI2'),
+    ).toMatchObject({
+      piece_id: 'P2',
+      inventory_id: 'INV2',
+      quantity: 1,
+    })
   })
 })

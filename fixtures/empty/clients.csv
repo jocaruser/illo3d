@@ -1,1 +1,1 @@
-id,name,email,phone,notes,preferred_contact,lead_source,address,created_at
+id,name,email,phone,notes,preferred_contact,lead_source,address,created_at,archived,deleted

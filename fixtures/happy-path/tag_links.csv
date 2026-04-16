@@ -1,3 +1,3 @@
-id,tag_id,entity_type,entity_id,created_at
-TL1,TG1,client,CL1,2025-02-02T12:00:00.000Z
-TL2,TG1,job,J1,2025-02-08T12:00:00.000Z
+id,tag_id,entity_type,entity_id,created_at,archived,deleted
+TL1,TG1,client,CL1,2025-02-02T12:00:00.000Z,,
+TL2,TG1,job,J1,2025-02-08T12:00:00.000Z,,

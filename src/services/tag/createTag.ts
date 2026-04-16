@@ -1,28 +1,33 @@
-import { getSheetsRepository } from '@/services/sheets/repository'
+import { appendDataRow } from '@/lib/workbook/matrixOps'
+import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import { matrixToTags } from '@/lib/workbook/workbookEntities'
 import { nextNumericId } from '@/utils/id'
 import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
-import type { SheetName } from '@/services/sheets/config'
+import { useWorkbookStore } from '@/stores/workbookStore'
 
 export async function createTag(
   spreadsheetId: string,
   name: string
 ): Promise<string> {
+  void spreadsheetId
   const normalized = formatTagNameTitleCase(name)
   if (!normalized) {
     throw new Error('Tag name is required')
   }
-  const repo = getSheetsRepository()
-  const existing = await repo.readRows<{ id: string }>(
-    spreadsheetId,
-    'tags' as SheetName
-  )
+  const existing = matrixToTags(useWorkbookStore.getState().tabs.tags)
   const id = nextNumericId(
     'TG',
-    existing.map((r) => r.id).filter((x): x is string => x != null)
+    existing.map((r) => r.id).filter((x): x is string => x != null),
   )
   const created_at = new Date().toISOString()
-  await repo.appendRows(spreadsheetId, 'tags' as SheetName, [
-    { id, name: normalized, created_at },
-  ])
+  patchWorkbookTab('tags', (m) =>
+    appendDataRow('tags', m, {
+      id,
+      name: normalized,
+      created_at,
+      archived: '',
+      deleted: '',
+    }),
+  )
   return id
 }

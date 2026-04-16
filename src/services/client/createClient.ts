@@ -1,6 +1,8 @@
-import { getSheetsRepository } from '@/services/sheets/repository'
+import { appendDataRow } from '@/lib/workbook/matrixOps'
+import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import { matrixToClients } from '@/lib/workbook/workbookEntities'
 import { nextNumericId } from '@/utils/id'
-import type { SheetName } from '@/services/sheets/config'
+import { useWorkbookStore } from '@/stores/workbookStore'
 
 export interface CreateClientPayload {
   name: string
@@ -20,14 +22,11 @@ export async function createClient(
   spreadsheetId: string,
   payload: CreateClientPayload
 ): Promise<void> {
-  const repo = getSheetsRepository()
-  const clients = await repo.readRows<{ id: string }>(
-    spreadsheetId,
-    'clients' as SheetName
-  )
+  void spreadsheetId
+  const clients = matrixToClients(useWorkbookStore.getState().tabs.clients)
   const clientId = nextNumericId(
     'CL',
-    clients.map((c) => c.id).filter((id): id is string => id != null)
+    clients.map((c) => c.id).filter((id): id is string => id != null),
   )
 
   const row = {
@@ -40,7 +39,9 @@ export async function createClient(
     lead_source: payload.lead_source?.trim() ?? '',
     address: payload.address?.trim() ?? '',
     created_at: todayIsoDate(),
+    archived: '',
+    deleted: '',
   }
 
-  await repo.appendRows(spreadsheetId, 'clients' as SheetName, [row])
+  patchWorkbookTab('clients', (m) => appendDataRow('clients', m, row))
 }

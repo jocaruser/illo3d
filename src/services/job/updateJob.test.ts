@@ -1,33 +1,27 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { updateJob } from './updateJob'
-
-const mockUpdateRow = vi.fn()
-const mockReadRows = vi.fn()
-
-vi.mock('@/services/sheets/repository', () => ({
-  getSheetsRepository: () => ({
-    readRows: mockReadRows,
-    updateRow: mockUpdateRow,
-  }),
-}))
+import { matrixToJobs } from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { matrixWithRows, resetAndSeedWorkbook } from '@/test/workbookHarness'
 
 describe('updateJob', () => {
   beforeEach(() => {
-    mockUpdateRow.mockReset()
-    mockReadRows.mockReset()
+    useWorkbookStore.getState().reset()
   })
 
   it('updates description, client_id, and price', async () => {
-    mockReadRows.mockResolvedValue([
-      {
-        id: 'J1',
-        client_id: 'CL1',
-        description: 'Old',
-        status: 'draft',
-        price: 10,
-        created_at: '2025-01-01',
-      },
-    ])
+    resetAndSeedWorkbook({
+      jobs: matrixWithRows('jobs', [
+        {
+          id: 'J1',
+          client_id: 'CL1',
+          description: 'Old',
+          status: 'draft',
+          price: '10',
+          created_at: '2025-01-01',
+        },
+      ]),
+    })
 
     await updateJob('s1', 'J1', {
       description: 'New desc',
@@ -35,7 +29,7 @@ describe('updateJob', () => {
       price: 25,
     })
 
-    expect(mockUpdateRow).toHaveBeenCalledWith('s1', 'jobs', 1, {
+    expect(matrixToJobs(useWorkbookStore.getState().tabs.jobs)[0]).toMatchObject({
       id: 'J1',
       client_id: 'CL2',
       description: 'New desc',
@@ -46,38 +40,33 @@ describe('updateJob', () => {
   })
 
   it('clears price when undefined', async () => {
-    mockReadRows.mockResolvedValue([
-      {
-        id: 'J1',
-        client_id: 'CL1',
-        description: 'X',
-        status: 'draft',
-        price: 10,
-        created_at: '2025-01-01',
-      },
-    ])
+    resetAndSeedWorkbook({
+      jobs: matrixWithRows('jobs', [
+        {
+          id: 'J1',
+          client_id: 'CL1',
+          description: 'X',
+          status: 'draft',
+          price: '10',
+          created_at: '2025-01-01',
+        },
+      ]),
+    })
 
     await updateJob('s1', 'J1', {
       description: 'X',
       client_id: 'CL1',
     })
 
-    expect(mockUpdateRow).toHaveBeenCalledWith('s1', 'jobs', 1, {
-      id: 'J1',
-      client_id: 'CL1',
-      description: 'X',
-      status: 'draft',
-      price: '',
-      created_at: '2025-01-01',
-    })
+    const job = matrixToJobs(useWorkbookStore.getState().tabs.jobs)[0]
+    expect(job?.price).toBeUndefined()
   })
 
   it('throws when job not found', async () => {
-    mockReadRows.mockResolvedValue([])
+    resetAndSeedWorkbook({})
 
     await expect(
-      updateJob('s1', 'J99', { description: 'A', client_id: 'CL1' })
+      updateJob('s1', 'J99', { description: 'A', client_id: 'CL1' }),
     ).rejects.toThrow('Job J99 not found')
-    expect(mockUpdateRow).not.toHaveBeenCalled()
   })
 })

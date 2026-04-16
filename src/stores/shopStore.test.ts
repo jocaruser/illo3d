@@ -13,7 +13,7 @@ describe('shopStore', () => {
       folderId: 'folder-1',
       folderName: 'My Shop',
       spreadsheetId: 'sheet-1',
-      metadataVersion: '1.0.0',
+      metadataVersion: '2.0.0',
     }
     useShopStore.getState().setActiveShop(shop)
 
@@ -26,7 +26,7 @@ describe('shopStore', () => {
       folderId: 'folder-1',
       folderName: 'My Shop',
       spreadsheetId: 'sheet-1',
-      metadataVersion: '1.0.0',
+      metadataVersion: '2.0.0',
     }
     useShopStore.getState().setActiveShop(shop)
     useShopStore.getState().clearActiveShop()
@@ -40,7 +40,7 @@ describe('shopStore', () => {
       folderId: 'folder-1',
       folderName: 'My Shop',
       spreadsheetId: 'sheet-1',
-      metadataVersion: '1.0.0',
+      metadataVersion: '2.0.0',
     }
     useShopStore.getState().setActiveShop(shop)
 
