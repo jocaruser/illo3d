@@ -1,18 +1,9 @@
 import { describe, it, expect } from 'vitest'
 import {
-  computeJobSuggestedPrice,
+  computePieceSuggestedPrice,
   JOB_SUGGESTED_PRICE_MATERIAL_MULTIPLIER,
 } from './jobSuggestedPrice'
-import type { Expense, Inventory, Piece, PieceItem } from '@/types/money'
-
-const basePiece = (overrides: Partial<Piece>): Piece => ({
-  id: 'P1',
-  job_id: 'J1',
-  name: 'Part',
-  status: 'pending',
-  created_at: '2025-01-01',
-  ...overrides,
-})
+import type { Expense, Inventory, PieceItem } from '@/types/money'
 
 const baseLine = (overrides: Partial<PieceItem>): PieceItem => ({
   id: 'PI1',
@@ -41,28 +32,23 @@ const baseExp = (overrides: Partial<Expense> = {}): Expense => ({
   ...overrides,
 })
 
-describe('computeJobSuggestedPrice', () => {
-  it('returns hidden when job has no pieces', () => {
-    const r = computeJobSuggestedPrice('J1', [], [], [], [])
+describe('computePieceSuggestedPrice', () => {
+  it('returns hidden when piece has no lines', () => {
+    const r = computePieceSuggestedPrice('P1', [], [], [])
     expect(r).toEqual({ kind: 'hidden' })
   })
 
-  it('returns hidden when pieces exist but no piece_items', () => {
-    const r = computeJobSuggestedPrice(
-      'J1',
-      [basePiece({ id: 'P1' })],
-      [],
+  it('returns hidden when lines exist but none match piece id', () => {
+    const r = computePieceSuggestedPrice(
+      'P1',
+      [baseLine({ piece_id: 'P2' })],
       [baseInv()],
-      [baseExp()]
+      [baseExp()],
     )
     expect(r).toEqual({ kind: 'hidden' })
   })
 
-  it('sums pending and done pieces and applies multiplier', () => {
-    const pieces = [
-      basePiece({ id: 'P1', status: 'pending' }),
-      basePiece({ id: 'P2', job_id: 'J1', status: 'done' }),
-    ]
+  it('applies multiplier to material subtotal for one piece', () => {
     const lines = [
       baseLine({ id: 'L1', piece_id: 'P1', quantity: 100 }),
       baseLine({
@@ -74,23 +60,31 @@ describe('computeJobSuggestedPrice', () => {
     ]
     const inv = baseInv({ qty_initial: 1000 })
     const exp = baseExp({ amount: 50 })
-    const r = computeJobSuggestedPrice('J1', pieces, lines, [inv], [exp])
+    const r = computePieceSuggestedPrice('P1', lines, [inv], [exp])
     expect(r.kind).toBe('ok')
     if (r.kind !== 'ok') return
-    expect(r.materialSubtotal).toBeCloseTo(15, 10)
+    expect(r.materialSubtotal).toBeCloseTo(5, 10)
     expect(r.suggestedPrice).toBeCloseTo(
-      15 * JOB_SUGGESTED_PRICE_MATERIAL_MULTIPLIER,
-      10
+      5 * JOB_SUGGESTED_PRICE_MATERIAL_MULTIPLIER,
+      10,
+    )
+
+    const r2 = computePieceSuggestedPrice('P2', lines, [inv], [exp])
+    expect(r2.kind).toBe('ok')
+    if (r2.kind !== 'ok') return
+    expect(r2.materialSubtotal).toBeCloseTo(10, 10)
+    expect(r2.suggestedPrice).toBeCloseTo(
+      10 * JOB_SUGGESTED_PRICE_MATERIAL_MULTIPLIER,
+      10,
     )
   })
 
   it('returns error when expense missing', () => {
-    const r = computeJobSuggestedPrice(
-      'J1',
-      [basePiece({ id: 'P1' })],
+    const r = computePieceSuggestedPrice(
+      'P1',
       [baseLine({})],
       [baseInv()],
-      []
+      [],
     )
     expect(r).toEqual({
       kind: 'error',
@@ -99,12 +93,11 @@ describe('computeJobSuggestedPrice', () => {
   })
 
   it('returns error when qty_initial not positive', () => {
-    const r = computeJobSuggestedPrice(
-      'J1',
-      [basePiece({ id: 'P1' })],
+    const r = computePieceSuggestedPrice(
+      'P1',
       [baseLine({})],
       [baseInv({ qty_initial: 0 })],
-      [baseExp()]
+      [baseExp()],
     )
     expect(r.kind).toBe('error')
     if (r.kind !== 'error') return
@@ -113,12 +106,11 @@ describe('computeJobSuggestedPrice', () => {
   })
 
   it('treats zero expense amount as zero unit cost', () => {
-    const r = computeJobSuggestedPrice(
-      'J1',
-      [basePiece({ id: 'P1' })],
+    const r = computePieceSuggestedPrice(
+      'P1',
       [baseLine({ quantity: 500 })],
       [baseInv({ qty_initial: 1000 })],
-      [baseExp({ amount: 0 })]
+      [baseExp({ amount: 0 })],
     )
     expect(r.kind).toBe('ok')
     if (r.kind !== 'ok') return

@@ -6,6 +6,7 @@ import type {
   PieceItem,
   Transaction,
 } from '@/types/money'
+import { jobPricingState } from '@/utils/jobPiecePricing'
 
 export interface ClientDetailMetricsInput {
   clientId: string
@@ -56,25 +57,22 @@ export function computeClientDetailMetrics(
   let outstandingJobs = 0
   for (const j of clientJobs) {
     if (j.status === 'paid' || j.status === 'cancelled') continue
-    const p = j.price
-    const n = typeof p === 'number' ? p : p != null ? Number(p) : 0
-    outstandingJobs += Number.isFinite(n) ? n : 0
+    const st = jobPricingState(j.id, pieces)
+    if (st.kind === 'complete') outstandingJobs += st.total
   }
 
   const jobCount = clientJobs.length
 
-  const pricedNonCancelled = clientJobs.filter(
-    (j) =>
-      j.status !== 'cancelled' &&
-      j.price !== undefined &&
-      j.price !== null &&
-      !Number.isNaN(Number(j.price))
-  )
+  const totalsForAverage: number[] = []
+  for (const j of clientJobs) {
+    if (j.status === 'cancelled') continue
+    const st = jobPricingState(j.id, pieces)
+    if (st.kind === 'complete') totalsForAverage.push(st.total)
+  }
   const averageJobPrice =
-    pricedNonCancelled.length === 0
+    totalsForAverage.length === 0
       ? null
-      : pricedNonCancelled.reduce((s, j) => s + Number(j.price), 0) /
-        pricedNonCancelled.length
+      : totalsForAverage.reduce((s, n) => s + n, 0) / totalsForAverage.length
 
   const jobIds = new Set(clientJobs.map((j) => j.id))
   const invById = new Map(inventoryRows.map((i) => [i.id, i]))

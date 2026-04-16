@@ -1,13 +1,13 @@
-import type { Expense, Inventory, Piece, PieceItem } from '@/types/money'
+import type { Expense, Inventory, PieceItem } from '@/types/money'
 
 export const JOB_SUGGESTED_PRICE_MATERIAL_MULTIPLIER = 3
 
-export type JobSuggestedPriceMissingLot = { id: string; name: string }
+export type PieceSuggestedPriceMissingLot = { id: string; name: string }
 
-export type JobSuggestedPriceResult =
+export type PieceSuggestedPriceResult =
   | { kind: 'hidden' }
   | { kind: 'ok'; materialSubtotal: number; suggestedPrice: number }
-  | { kind: 'error'; lots: JobSuggestedPriceMissingLot[] }
+  | { kind: 'error'; lots: PieceSuggestedPriceMissingLot[] }
 
 function lotLabel(inventoryId: string, inv: Inventory | undefined) {
   return {
@@ -16,20 +16,13 @@ function lotLabel(inventoryId: string, inv: Inventory | undefined) {
   }
 }
 
-export function computeJobSuggestedPrice(
-  jobId: string,
-  pieces: Piece[],
+export function computePieceSuggestedPrice(
+  pieceId: string,
   pieceItems: PieceItem[],
   inventoryRows: Inventory[],
   expenses: Expense[]
-): JobSuggestedPriceResult {
-  const jobPieces = pieces.filter((p) => p.job_id === jobId)
-  if (jobPieces.length === 0) {
-    return { kind: 'hidden' }
-  }
-
-  const pieceIds = new Set(jobPieces.map((p) => p.id))
-  const lines = pieceItems.filter((pi) => pieceIds.has(pi.piece_id))
+): PieceSuggestedPriceResult {
+  const lines = pieceItems.filter((pi) => pi.piece_id === pieceId)
   if (lines.length === 0) {
     return { kind: 'hidden' }
   }
@@ -37,7 +30,7 @@ export function computeJobSuggestedPrice(
   const invById = new Map(inventoryRows.map((i) => [i.id, i]))
   const expById = new Map(expenses.map((e) => [e.id, e]))
 
-  const missing = new Map<string, JobSuggestedPriceMissingLot>()
+  const missing = new Map<string, PieceSuggestedPriceMissingLot>()
   let materialSubtotal = 0
 
   for (const line of lines) {

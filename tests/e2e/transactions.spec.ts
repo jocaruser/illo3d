@@ -12,16 +12,17 @@ test.describe('Transactions page', () => {
   test('transactions table or empty state visible after authenticated user navigates to /transactions', async ({
     page,
   }) => {
-    const transactionsHeading = page.getByRole('heading', { name: 'Transactions' })
-    await expect(transactionsHeading).toBeVisible({ timeout: 10000 })
+    await expect(
+      page.getByText(/connecting to google sheets|conectando a google sheets/i),
+    ).not.toBeVisible({ timeout: 20000 })
+    await expect(
+      page.getByText(/loading workbook|cargando libro/i),
+    ).not.toBeVisible({ timeout: 20000 })
 
-    const tableOrContent = page
+    const tableOrEmpty = page
       .getByRole('table')
       .or(page.getByText(/no transactions|no hay transacciones/i))
-      .or(page.getByText(/connecting|cargando/i))
-      .or(page.getByText(/loading/i))
-      .or(page.getByText(/error|retry|reintentar/i))
-    await expect(tableOrContent).toBeVisible({ timeout: 15000 })
+    await expect(tableOrEmpty).toBeVisible({ timeout: 15000 })
   })
 
   test('balance is displayed when connected to Sheets', async ({ page }) => {

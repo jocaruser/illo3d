@@ -122,7 +122,7 @@ The system SHALL include a `/clients` route protected by the same authentication
 
 ### Requirement: Job data model is defined
 
-The system SHALL support a jobs data model with fields: id (string), client_id (string, FK to clients), description (string), status (enum: draft, in_progress, delivered, paid, cancelled), price (number, optional), created_at (date).
+The system SHALL support a jobs data model with fields: id (string), client_id (string, FK to clients), description (string), status (enum: draft, in_progress, delivered, paid, cancelled), **legacy optional `price` (number) on the jobs sheet for backward compatibility only**, created_at (date). Canonical quoted revenue for a job SHALL be the sum of set `price` values on non-deleted pieces for that job, including archived pieces.
 
 #### Scenario: Job linked to client
 
@@ -136,7 +136,7 @@ The system SHALL support a jobs data model with fields: id (string), client_id (
 
 ### Requirement: Piece data model is defined
 
-The system SHALL support a pieces data model with fields: id (string), job_id (string, FK to jobs), name (string), status (enum: pending, done, failed), created_at (date).
+The system SHALL support a pieces data model with fields: id (string), job_id (string, FK to jobs), name (string), status (enum: pending, done, failed), **price (number, optional)**, created_at (date).
 
 #### Scenario: Piece linked to job
 
@@ -182,14 +182,14 @@ The system SHALL support a piece_items data model with fields: id (string), piec
 
 ### Requirement: Job detail page lists pieces for that job
 
-The system SHALL provide a job detail route `/jobs/:jobId` protected by the same authentication guard as `/jobs`. The system SHALL NOT provide a top-level Pieces tab or `/pieces` route. When the sheet connection is connected, the job detail page SHALL show a summary of the job (description, id, client, status, price, created_at) and a **Pieces** section. The Pieces section SHALL list only pieces whose `job_id` matches `:jobId`, with columns: id, name, status (as a dropdown with `pending`, `done`, `failed` options and i18n labels), and `created_at` (job reference column omitted on this page). Rows SHALL be sorted by `created_at` descending. When no pieces exist for the job, the Pieces section SHALL show an empty state message using i18n.
+The system SHALL provide a job detail route `/jobs/:jobId` protected by the same authentication guard as `/jobs`. The system SHALL NOT provide a top-level Pieces tab or `/pieces` route. When the sheet connection is connected, the job detail page SHALL show a summary of the job (description, id, client, status, **total (derived sum of **set** prices on **non-deleted** pieces **including archived**, formatted as currency; same incompleteness rules as the jobs list when any counting piece is unset; incomplete label with visible highlight per job-management)**, created_at) and a **Pieces** section. The Pieces section SHALL list only pieces whose `job_id` matches `:jobId`, with columns: id, name, **price (optional, editable per implementation)**, status (as a dropdown with `pending`, `done`, `failed` options and i18n labels), and `created_at` (job reference column omitted on this page). Rows SHALL be sorted by `created_at` descending. When no pieces exist for the job, the Pieces section SHALL show an empty state message using i18n.
 
 #### Scenario: Authenticated user opens job detail with pieces
 
 - **WHEN** an authenticated user with an active shop navigates to `/jobs/J1`
 - **AND** the spreadsheet connection succeeds
 - **AND** pieces exist for that job
-- **THEN** the Pieces section shows those pieces with a status dropdown per row
+- **THEN** the Pieces section shows those pieces with a status dropdown per row **and a price column**
 - **AND** no standalone Pieces navigation entry exists in the app header
 
 #### Scenario: Unauthenticated user cannot open job detail
@@ -199,7 +199,7 @@ The system SHALL provide a job detail route `/jobs/:jobId` protected by the same
 
 ### Requirement: fetchPieces and usePieces read pieces sheet
 
-The system SHALL provide `fetchPieces(spreadsheetId)` that reads all rows from the `pieces` sheet via `SheetsRepository`, filters out rows without `id`, parses `status` as a piece status, and returns `Piece` objects sorted by `created_at` descending. The system SHALL provide `usePieces(spreadsheetId)` using TanStack Query with query key `['pieces', spreadsheetId]`, following the same enabled/null pattern as `useJobs`.
+The system SHALL provide `fetchPieces(spreadsheetId)` that reads all rows from the `pieces` sheet via `SheetsRepository`, filters out rows without `id`, parses `status` as a piece status, **parses optional `price` as a number or undefined if empty**, and returns `Piece` objects sorted by `created_at` descending. The system SHALL provide `usePieces(spreadsheetId)` using TanStack Query with query key `['pieces', spreadsheetId]`, following the same enabled/null pattern as `useJobs`.
 
 #### Scenario: Hooks load when spreadsheet is available
 
@@ -217,12 +217,17 @@ The system SHALL provide `fetchPieceItems(spreadsheetId)` that reads all rows fr
 
 ### Requirement: Piece rows expand to show piece_items
 
-The system SHALL allow the user to expand a piece row to view a nested list of that piece's `piece_items`. The nested list SHALL show: piece_item id, inventory lot name (resolved from the inventory sheet), quantity, remaining lot quantity (`qty_current`), and redo margin. The redo margin SHALL be calculated as `floor((qty_current - quantity) / quantity)` and displayed with a label: "safe" (2+ redos, green), "tight" (1 redo, yellow), or "risky" (0 redos, red). The nested section SHALL include a control to add a new piece_item to that piece. Collapsing a row SHALL hide its nested list.
+The system SHALL allow the user to expand a piece row to view a nested list of that piece's `piece_items`. The nested list SHALL show: piece_item id, inventory lot name (resolved from the inventory sheet), quantity, **material cost** (quantity × unit cost, where unit cost is `expense.amount / inventory.qty_initial` when computable; otherwise a placeholder such as em dash), remaining lot quantity (`qty_current`), and redo margin. The redo margin SHALL be calculated as `floor((qty_current - quantity) / quantity)` and displayed with a label: "safe" (2+ redos, green), "tight" (1 redo, yellow), or "risky" (0 redos, red). The nested section SHALL include a control to add a new piece_item to that piece. Collapsing a row SHALL hide its nested list.
 
 #### Scenario: User expands a piece with lines
 
 - **WHEN** the user expands a piece that has piece_items
-- **THEN** each related piece_item appears with inventory name, quantity, remaining lot quantity, and redo margin indicator
+- **THEN** each related piece_item appears with inventory name, quantity, **material cost**, remaining lot quantity, and redo margin indicator
+
+#### Scenario: Material cost column formats currency when computable
+
+- **WHEN** a piece_item references inventory with a linked expense and positive `qty_initial`
+- **THEN** the material cost cell shows currency-formatted `quantity × (expense.amount / qty_initial)`
 
 #### Scenario: Piece_item shows risky redo margin
 
@@ -236,7 +241,7 @@ The system SHALL allow the user to expand a piece row to view a nested list of t
 
 ### Requirement: CreatePiecePopup creates a piece for a selected job
 
-The system SHALL provide `CreatePiecePopup` that collects a required piece name. When opened from a context without a fixed job, the popup SHALL also collect a required job via a searchable list from cached jobs data (same interaction pattern as `CreateJobPopup` client picker). When opened from a job detail page, the job SHALL be fixed to that job and the job picker SHALL NOT be shown. On successful submit, the system SHALL call `createPiece` to append a row with generated `P`-prefixed id, `status` `pending`, and current ISO timestamp for `created_at`. The popup SHALL be closable without saving. All user-visible strings SHALL use i18n (English and Spanish).
+The system SHALL provide `CreatePiecePopup` that collects a required piece name **and optional piece price (number, 0 allowed)**. When opened from a context without a fixed job, the popup SHALL also collect a required job via a searchable list from cached jobs data (same interaction pattern as `CreateJobPopup` client picker). When opened from a job detail page, the job SHALL be fixed to that job and the job picker SHALL NOT be shown. On successful submit, the system SHALL call `createPiece` to append a row with generated `P`-prefixed id, `status` `pending`, **optional price**, and current ISO timestamp for `created_at`. The popup SHALL be closable without saving. All user-visible strings SHALL use i18n (English and Spanish).
 
 #### Scenario: Valid create appends piece row with job picker
 
@@ -257,7 +262,7 @@ The system SHALL provide `CreatePiecePopup` that collects a required piece name.
 
 ### Requirement: createPiece service appends pieces
 
-The system SHALL provide `createPiece(spreadsheetId, { job_id, name })` that generates the next `P`-prefixed id from existing piece ids, and appends one row to the `pieces` sheet with `status` `pending` and `created_at` set to the current time in ISO-8601 format.
+The system SHALL provide `createPiece(spreadsheetId, { job_id, name, price? })` that generates the next `P`-prefixed id from existing piece ids, and appends one row to the `pieces` sheet with `status` `pending`, **`price` if provided**, and `created_at` set to the current time in ISO-8601 format.
 
 #### Scenario: Id increments after existing pieces
 
@@ -491,7 +496,7 @@ The system SHALL support a transactions data model with fields: id (string), dat
 
 ### Requirement: Job detail fetches expenses for price suggestion
 
-The job detail page SHALL fetch expense rows for the active spreadsheet so suggested pricing can resolve `expense.amount` for each inventory lot’s `expense_id`.
+The job detail page SHALL fetch expense rows for the active spreadsheet so **per-piece** suggested pricing can resolve `expense.amount` for each inventory lot’s `expense_id`.
 
 #### Scenario: Expenses loaded with job detail
 
@@ -500,30 +505,30 @@ The job detail page SHALL fetch expense rows for the active spreadsheet so sugge
 
 ### Requirement: Job price is suggested based on materials
 
-The system SHALL surface a **suggested** job price derived from BOM material cost when the user opens **Edit job** from the **job detail** page (`/jobs/:jobId`). The material subtotal SHALL be the sum, over **every** `piece` with that `job_id` and **every** `status` (`pending`, `done`, `failed`), of every `piece_item` on that piece: `piece_item.quantity × unit_cost`, where `unit_cost` for the referenced inventory lot is `expense.amount / inventory.qty_initial` using the `expense` row linked by `inventory.expense_id`. All `InventoryType` values (`filament`, `consumable`, `equipment`) SHALL use the same rule. The suggested price SHALL be the material subtotal multiplied by **3** (hardcoded). The system SHALL NOT persist the suggested price unless the user saves the job form with that value in the price field.
+The system SHALL surface **suggested price per piece** derived from that **single piece’s** BOM material cost. The material subtotal for a piece SHALL be the sum over every `piece_item` on that piece of `piece_item.quantity × unit_cost`, where `unit_cost` for the referenced inventory lot is `expense.amount / inventory.qty_initial` using the `expense` row linked by `inventory.expense_id`. All `InventoryType` values (`filament`, `consumable`, `equipment`) SHALL use the same rule. The suggested price for that piece SHALL be the piece material subtotal multiplied by **3** (hardcoded). The system SHALL NOT persist the suggested price unless the user saves **that piece’s price** (e.g. apply control writing the piece row).
 
-The suggestion affordance SHALL appear **beside** the optional price input in the same dialog used to edit a job (`CreateJobPopup`) **only** when that dialog is opened from the job detail page. The jobs list **create-job** flow SHALL NOT show this suggestion.
+The suggestion affordance SHALL appear **on job detail** next to **each piece’s price** (or in the piece edit/create flow), **not** inside `CreateJobPopup` for the job header.
 
-When the job has **no** pieces, or its pieces have **no** `piece_items` rows in aggregate, the system SHALL **not** render the suggestion region (including no €0).
+When the piece has **no** `piece_items` rows, the system SHALL **not** render the suggestion region for that piece (including no €0).
 
-When **any** `piece_item` line requires a lot whose `unit_cost` cannot be computed (missing inventory row, missing or unmatched expense for `expense_id`, or `qty_initial` not strictly greater than zero), the system SHALL **not** show a numeric suggestion or partial total; it SHALL show **only** an error state that lists every affected lot with identifiable **id** and/or **name**, using i18n-capable copy.
+When **any** `piece_item` line for that piece requires a lot whose `unit_cost` cannot be computed (missing inventory row, missing or unmatched expense for `expense_id`, or `qty_initial` not strictly greater than zero), the system SHALL **not** show a numeric suggestion for that piece; it SHALL show **only** an error state listing every affected lot with identifiable **id** and/or **name**, using i18n-capable copy.
 
 When `unit_cost` can be computed, `expense.amount` MAY be zero (yielding zero unit cost for that lot).
 
 The displayed suggestion SHALL **recompute** when inputs change (including after TanStack Query refresh or invalidation of pieces, piece_items, inventory, or expenses).
 
-The system SHALL **not** copy the suggested amount into the price field when the dialog opens; the field SHALL continue to reflect the stored `job.price` when editing. When the user activates the suggested price control (e.g. button click), the price field SHALL be set to the suggested amount **rounded to two decimal places**, replacing the current input value.
+The system SHALL **not** copy the suggested amount into the piece price field when the control first renders; when the user activates the suggested price control (e.g. button click), **that piece’s** price field SHALL be set to the suggested amount **rounded to two decimal places**.
 
 All user-visible labels, errors, and helper text for this feature SHALL use i18next with English and Spanish entries.
 
-#### Scenario: Material cost includes all piece statuses
+#### Scenario: Material cost uses only that piece’s lines
 
-- **WHEN** a job has pieces in `pending`, `done`, and `failed` with `piece_items`
-- **THEN** the material subtotal includes quantities from every such piece
+- **WHEN** a piece has `piece_items` referencing priced lots
+- **THEN** the material subtotal includes only quantities from that piece’s lines
 
 #### Scenario: Suggested price is three times material subtotal
 
-- **WHEN** the material subtotal is computable for the job
+- **WHEN** the material subtotal is computable for the piece
 - **THEN** the suggested price equals that subtotal multiplied by 3
 
 #### Scenario: Unit cost uses purchase amount and initial quantity
@@ -531,47 +536,37 @@ All user-visible labels, errors, and helper text for this feature SHALL use i18n
 - **WHEN** an inventory lot has `qty_initial` greater than zero and a linked expense with amount `A`
 - **THEN** `unit_cost` for that lot is `A / qty_initial` for suggestion purposes
 
-#### Scenario: No suggestion when there is no BOM
+#### Scenario: No suggestion when piece has no BOM lines
 
-- **WHEN** the job has no pieces, or no `piece_items` exist for any of its pieces
-- **THEN** the suggestion region is not shown
+- **WHEN** the piece has zero `piece_items`
+- **THEN** the suggestion region for that piece is not shown
 
 #### Scenario: Error when any referenced lot cannot be priced
 
-- **WHEN** at least one `piece_item` references a lot that cannot yield `unit_cost`
-- **THEN** no numeric suggestion is shown
+- **WHEN** at least one `piece_item` on the piece references a lot that cannot yield `unit_cost`
+- **THEN** no numeric suggestion is shown for that piece
 - **AND** an error lists each affected inventory lot (id and/or name)
 
-#### Scenario: Suggestion not on jobs list create
+#### Scenario: Click applies rounded suggestion to piece price
 
-- **WHEN** the user opens create job from the jobs list
-- **THEN** no material-based price suggestion is shown
+- **WHEN** a numeric suggestion is shown for a piece and the user activates the apply control
+- **THEN** that piece’s price input updates to the suggested value rounded to two decimal places
 
-#### Scenario: Click applies rounded suggestion to price field
+#### Scenario: Custom piece price still used when saved
 
-- **WHEN** a numeric suggestion is shown and the user activates the apply control
-- **THEN** the price input updates to the suggested value rounded to two decimal places
-
-#### Scenario: Dialog open does not auto-apply suggestion
-
-- **WHEN** the user opens edit job from job detail
-- **THEN** the price field is not filled from the suggestion until the user activates the apply control
-
-#### Scenario: Custom price still used when saved
-
-- **WHEN** the user sets a custom price and saves the job
-- **THEN** the stored job price is the saved value (suggestion is advisory only until applied)
+- **WHEN** the user sets a custom price for a piece and saves
+- **THEN** the stored piece price is the saved value (suggestion is advisory only until applied)
 
 ### Requirement: Paying a job creates income transaction
 
-The system SHALL create an income transaction when a job status changes to "paid" **by default**, via the `updateJobStatus` service when income creation is not disabled. The transaction SHALL have type "income", the job's price as amount, and reference the job. When a transaction is created, `updateJobStatus` SHALL update the job row and append the transaction in a single logical operation. If the job had no price before the transition, the price confirmed in the paid confirmation flow SHALL be written to the job row alongside the status change. The user MAY opt out via the jobs UI (e.g. unchecked "create income transaction" on the paid confirmation dialog); when opted out, the job row SHALL still update to "paid" with the confirmed price but **no** new transaction row SHALL be appended. Leaving "paid" and entering "paid" again later without opt-out MAY append another income transaction; the UI SHALL confirm before leaving "paid" to reduce duplicate risk.
+The system SHALL create an income transaction when a job status changes to "paid" **by default**, via the `updateJobStatus` service when income creation is not disabled. The transaction SHALL have type "income", amount equal to **derived total** (sum of **set** piece prices on **non-deleted** pieces **including archived**), and reference the job. **Derived total** MAY be 0 when pieces are explicitly priced at zero. When a transaction is created, `updateJobStatus` SHALL update the job row and append the transaction in a single logical operation. The transition to paid SHALL be **rejected** if any counting piece has **unset** `price` (see job-management paid gating). The user MAY opt out via the jobs UI (e.g. unchecked "create income transaction" on the paid confirmation dialog); when opted out, the job row SHALL still update to "paid" but **no** new transaction row SHALL be appended. Leaving "paid" and entering "paid" again later without opt-out MAY append another income transaction; the UI SHALL confirm before leaving "paid" to reduce duplicate risk.
 
 #### Scenario: Job payment creates transaction by default
 
 - **WHEN** job.status changes to "paid" via `updateJobStatus` with default income-transaction behavior
 - **THEN** transaction is created with:
   - type: "income"
-  - amount: job.price
+  - amount: **derived total**
   - category: "job"
   - concept: job.description
   - ref_type: "job"
@@ -581,21 +576,23 @@ The system SHALL create an income transaction when a job status changes to "paid
 #### Scenario: Job payment without new transaction when user opts out
 
 - **WHEN** job.status changes to "paid" and the user has opted out of creating an income transaction
-- **THEN** the job row is updated to paid with the agreed price
+- **THEN** the job row is updated to paid
 - **AND** no new row is appended to the transactions sheet
 
-#### Scenario: Price written during paid transition
+#### Scenario: Zero payment amount creates zero-amount transaction
 
-- **WHEN** job.status changes to "paid" via `updateJobStatus`
-- **AND** a price is provided in the paid confirmation flow
-- **THEN** the job's price field is updated to the provided value
-- **AND** when a transaction is created, it uses the provided price as amount
-
-#### Scenario: Zero price creates zero-amount transaction
-
-- **WHEN** job.status changes to "paid" with price 0 and default income-transaction behavior
+- **WHEN** job.status changes to "paid" with confirmed amount 0 and default income-transaction behavior
 - **THEN** a transaction is created with amount 0
 - **AND** this is valid (gift job)
+
+### Requirement: updatePiecePrice updates piece quote
+
+The system SHALL provide a way to persist an optional `price` on an existing piece (e.g. `updatePiece` or dedicated `updatePiecePrice`) in the workbook store, validating numeric input and preserving other piece fields.
+
+#### Scenario: Price update writes pieces sheet
+
+- **WHEN** the user saves a new price for piece "P1"
+- **THEN** the pieces matrix row for P1 reflects the updated `price` after save
 
 ### Requirement: Expenses page displays expense table
 

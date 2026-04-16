@@ -1,6 +1,7 @@
 import { SHEET_HEADERS, type SheetName } from '@/services/sheets/config'
 import { parseClientNoteSeverity } from '@/services/clientNote/severity'
 import { parseJobRow } from '@/services/sheets/jobs'
+import { parsePieceRow } from '@/services/sheets/pieces'
 import type {
   Client,
   CrmNote,
@@ -10,7 +11,6 @@ import type {
   Job,
   Piece,
   PieceItem,
-  PieceStatus,
   Tag,
   TagEntityType,
   TagLink,
@@ -49,23 +49,11 @@ export function matrixToJobs(matrix: string[][] | undefined): Job[] {
     .sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
 }
 
-const PIECE_STATUSES: PieceStatus[] = ['pending', 'done', 'failed']
-
-function parsePieceStatus(value: unknown): PieceStatus {
-  if (typeof value === 'string' && PIECE_STATUSES.includes(value as PieceStatus)) {
-    return value as PieceStatus
-  }
-  return 'pending'
-}
-
 export function matrixToPieces(matrix: string[][] | undefined): Piece[] {
   const rows = matrixToObjects<Piece>('pieces', matrix)
   return rows
     .filter((r) => r.id)
-    .map((r) => ({
-      ...r,
-      status: parsePieceStatus(r.status),
-    }))
+    .map((r) => parsePieceRow(r))
     .sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
 }
 

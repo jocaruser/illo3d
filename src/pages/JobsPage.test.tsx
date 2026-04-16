@@ -49,7 +49,7 @@ describe('JobsPage', () => {
     ]
     const jobsMatrix = [
       [...SHEET_HEADERS.jobs],
-      ['J1', 'CL1', 'Widget', 'draft', '', '2025-01-01', '', ''],
+      ['J1', 'CL1', 'Widget', 'draft', '', '', '2025-01-01', '', ''],
     ]
     useWorkbookStore.setState({
       status: 'ready',
@@ -100,7 +100,7 @@ describe('JobsPage', () => {
         ],
         jobs: [
           [...SHEET_HEADERS.jobs],
-          ['JX', 'CL1', 'Paid job', 'paid', '10', '2025-01-01', '', ''],
+          ['JX', 'CL1', 'Paid job', 'paid', '10', '', '2025-01-01', '', ''],
         ],
       },
     })

@@ -8,7 +8,6 @@ import { useWorkbookStore } from '@/stores/workbookStore'
 export interface CreateJobPayload {
   client_id: string
   description: string
-  price?: number
 }
 
 export async function createJob(
@@ -22,8 +21,6 @@ export async function createJob(
     jobs.map((j) => j.id).filter((id): id is string => id != null),
   )
   const createdAt = new Date().toISOString()
-  const priceCell =
-    payload.price !== undefined && payload.price !== null ? payload.price : ''
   const draftColumn = jobs
     .filter((j) => j.status === 'draft')
     .sort(compareJobsForKanban)
@@ -39,7 +36,7 @@ export async function createJob(
       client_id: payload.client_id,
       description: payload.description,
       status: 'draft',
-      price: priceCell,
+      price: '',
       board_order: boardOrder,
       created_at: createdAt,
       archived: '',

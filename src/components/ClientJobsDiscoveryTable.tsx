@@ -1,36 +1,28 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { Job } from '@/types/money'
-import { formatCurrency } from '@/utils/money'
+import type { Job, Piece } from '@/types/money'
+import { jobTotalSortValue } from '@/utils/jobPiecePricing'
+import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildJobSearchBlob } from '@/lib/listTable/searchBlobs'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
 
-function formatJobPrice(price: number | undefined): string {
-  if (price === undefined || price === null || Number.isNaN(price)) {
-    return '—'
-  }
-  return formatCurrency(price)
-}
-
-function embeddedJobComparable(job: Job, key: string, clientName: string): string | number {
+function embeddedJobComparable(
+  job: Job,
+  key: string,
+  clientName: string,
+  pieces: Piece[],
+): string | number {
   switch (key) {
     case 'description':
       return (job.description.trim() || job.id).toLowerCase()
     case 'status':
       return job.status
     case 'price':
-      if (
-        job.price === undefined ||
-        job.price === null ||
-        Number.isNaN(Number(job.price))
-      ) {
-        return Number.POSITIVE_INFINITY
-      }
-      return Number(job.price)
+      return jobTotalSortValue(job.id, pieces)
     case 'created_at':
       return job.created_at
     default:
@@ -40,12 +32,14 @@ function embeddedJobComparable(job: Job, key: string, clientName: string): strin
 
 interface ClientJobsDiscoveryTableProps {
   jobs: Job[]
+  pieces: Piece[]
   /** Resolved client name for search blob (all rows share this client). */
   clientName: string
 }
 
 export function ClientJobsDiscoveryTable({
   jobs,
+  pieces,
   clientName,
 }: ClientJobsDiscoveryTableProps) {
   const { t } = useTranslation()
@@ -71,9 +65,9 @@ export function ClientJobsDiscoveryTable({
         (j) => j.id,
         sortKey,
         sortDir,
-        (j, key) => embeddedJobComparable(j, key, clientName)
+        (j, key) => embeddedJobComparable(j, key, clientName, pieces)
       ),
-    [filtered, sortKey, sortDir, clientName]
+    [filtered, sortKey, sortDir, clientName, pieces]
   )
 
   const onSortChange = (key: string) => {
@@ -132,9 +126,9 @@ export function ClientJobsDiscoveryTable({
                 onSortChange={onSortChange}
                 alignEnd
                 thClassName="hidden lg:table-cell"
-                ariaLabel={sortAria(t('jobs.colPrice'), 'price')}
+                ariaLabel={sortAria(t('jobs.colTotal'), 'price')}
               >
-                {t('jobs.colPrice')}
+                {t('jobs.colTotal')}
               </SortableColumnHeader>
               <SortableColumnHeader
                 columnKey="created_at"
@@ -177,7 +171,11 @@ export function ClientJobsDiscoveryTable({
                     {t(`jobs.status.${job.status}`)}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 lg:table-cell">
-                    {formatJobPrice(job.price)}
+                    <JobPricingTotalDisplay
+                      jobId={job.id}
+                      pieces={pieces}
+                      t={t}
+                    />
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 lg:table-cell">
                     {job.created_at}

@@ -8,8 +8,6 @@ import type { Job } from '@/types/money'
 export interface UpdateJobPayload {
   description: string
   client_id: string
-  /** Omitted or undefined means clear price in the sheet. */
-  price?: number
 }
 
 export async function updateJob(
@@ -27,7 +25,6 @@ export async function updateJob(
     ...existing,
     description: payload.description.trim(),
     client_id: payload.client_id,
-    price: payload.price,
   }
 
   patchWorkbookTab('jobs', (m) =>

@@ -38,6 +38,7 @@ describe('createJob', () => {
           description: 'a',
           status: 'draft',
           price: '',
+          board_order: '',
           created_at: '2025-01-01',
         },
         {
@@ -46,6 +47,7 @@ describe('createJob', () => {
           description: 'b',
           status: 'draft',
           price: '',
+          board_order: '',
           created_at: '2025-01-02',
         },
       ]),
@@ -54,27 +56,25 @@ describe('createJob', () => {
     await createJob('spreadsheet-1', {
       client_id: 'CL2',
       description: 'Next',
-      price: 42,
     })
 
     const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
     expect(jobs.find((j) => j.id === 'J3')).toMatchObject({
-      price: 42,
       description: 'Next',
     })
+    expect(jobs.find((j) => j.id === 'J3')?.price).toBeUndefined()
   })
 
-  it('allows price 0', async () => {
+  it('creates job with empty sheet price', async () => {
     resetAndSeedWorkbook({})
 
     await createJob('spreadsheet-1', {
       client_id: 'CL1',
       description: 'Gift',
-      price: 0,
     })
 
     expect(
       matrixToJobs(useWorkbookStore.getState().tabs.jobs)[0]?.price,
-    ).toBe(0)
+    ).toBeUndefined()
   })
 })

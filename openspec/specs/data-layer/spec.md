@@ -303,7 +303,7 @@ The system SHALL provide a `SheetsRepository` interface with `readRows`, `append
 
 ### Requirement: SHEET_HEADERS include lifecycle columns
 
-`SHEET_HEADERS` for every tab in `SHEET_NAMES` SHALL include `archived` and `deleted` as the last two columns. `validateStructure` SHALL require these columns when checking header rows.
+`SHEET_HEADERS` for every tab in `SHEET_NAMES` SHALL include `archived` and `deleted` as the last two columns. **`SHEET_HEADERS.pieces` SHALL include a `price` column** (optional numeric field in the sheet, empty when unset) **before** `created_at`. `validateStructure` SHALL require these columns when checking header rows.
 
 #### Scenario: Headers include lifecycle columns
 
@@ -314,6 +314,20 @@ The system SHALL provide a `SheetsRepository` interface with `readRows`, `append
 
 - **WHEN** a workbook tab's header row lacks `archived` or `deleted`
 - **THEN** `validateStructure` reports a validation error for that tab
+
+#### Scenario: Pieces headers include price column
+
+- **WHEN** `SHEET_HEADERS.pieces` is read
+- **THEN** the array includes `price` before `created_at`
+
+### Requirement: Workbook migration adds pieces price column
+
+When opening or validating a workbook that predates piece-level pricing, the system SHALL upgrade or reject per existing schema rules: either **add** the `price` column to `pieces` headers and empty cells for existing rows, or surface a clear validation error. Golden fixtures SHALL be updated to include the new column.
+
+#### Scenario: Happy-path fixture includes pieces price header
+
+- **WHEN** tests load the happy-path fixture
+- **THEN** `pieces.csv` header row includes `price` in the position required by `SHEET_HEADERS.pieces`
 
 ### Requirement: Snapshot orchestration layer coordinates hydrate, Refresh, Save
 

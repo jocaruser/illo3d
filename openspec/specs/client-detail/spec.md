@@ -89,7 +89,7 @@ The client detail page SHALL connect to the spreadsheet on mount and display `Co
 
 ### Requirement: Client detail metrics strip
 
-Below the header, the system SHALL display a metrics strip with at least: **Paid (ledger)** = sum of `amount` for transactions where `type` is `income` and `client_id` matches this client; **Outstanding (jobs)** = sum of `job.price` (0 if missing) for jobs where `client_id` matches and `status` is neither `paid` nor `cancelled`; **Job count** = count of all jobs for this client; **Average job price** = arithmetic mean of `price` over jobs for this client where `price` is numeric and `status` is not `cancelled`; **Materials (estimate)** = sum over this client’s jobs of material cost for pieces with `status` in `done` or `failed`, where material cost for a piece is the sum of `piece_item.quantity × unit_cost(inventory)` and `unit_cost` is `expense.amount / inventory.qty_initial` for the linked expense. Metrics SHALL use distinct i18n labels so **Paid (ledger)** is not confused with **Outstanding (jobs)**.
+Below the header, the system SHALL display a metrics strip with at least: **Paid (ledger)** = sum of `amount` for transactions where `type` is `income` and `client_id` matches this client; **Outstanding (jobs)** = sum of **derived job totals** for jobs where `client_id` matches and `status` is neither `paid` nor `cancelled`, where each **derived job total** is the sum of **set** `price` on **non-deleted** pieces (**including** archived) for that job—jobs with **any** unset piece price on counting pieces SHALL contribute **0** or be excluded per the same incompleteness rule as the jobs table (implementation SHALL be consistent with `/jobs`); **Job count** = count of all jobs for this client; **Average job price** = arithmetic mean of **derived job totals** over non-cancelled jobs using the same completeness rules; **Materials (estimate)** = sum over this client’s jobs of material cost for pieces with `status` in `done` or `failed`, where material cost for a piece is the sum of `piece_item.quantity × unit_cost(inventory)` and `unit_cost` is `expense.amount / inventory.qty_initial` for the linked expense. Metrics SHALL use distinct i18n labels so **Paid (ledger)** is not confused with **Outstanding (jobs)**.
 
 #### Scenario: Metrics use ledger for paid total
 
@@ -98,7 +98,7 @@ Below the header, the system SHALL display a metrics strip with at least: **Paid
 
 #### Scenario: Outstanding excludes paid and cancelled
 
-- **WHEN** client has one draft job price €10 and one paid job price €20
+- **WHEN** client has one draft job with derived total €10 and one paid job with derived total €20
 - **THEN** Outstanding (jobs) shows €10
 
 #### Scenario: Materials uses done and failed pieces only
@@ -123,7 +123,7 @@ The system SHALL render a notes section with inline add, per-row edit, per-row d
 
 ### Requirement: Client detail jobs section
 
-The system SHALL list jobs whose `client_id` matches `:clientId`, initially ordered by `created_at` descending with stable secondary ordering by job `id` when timestamps tie, matching the default ordering of the main jobs table until the user changes sort. Each job description (or id fallback when description is empty) SHALL link to `/jobs/:jobId`. Columns SHALL include at least description, status, price (formatted as currency), and created_at. The embedded list SHALL expose the same shared list discovery controls (search, fuzzy matching, sortable data columns, responsive column visibility) defined in the `list-table-discovery` capability. When there are no jobs, the system SHALL show table headers with an empty body and a primary control to add a job that opens `CreateJobPopup` with `presetClientId` set to this client.
+The system SHALL list jobs whose `client_id` matches `:clientId`, initially ordered by `created_at` descending with stable secondary ordering by job `id` when timestamps tie, matching the default ordering of the main jobs table until the user changes sort. Each job description (or id fallback when description is empty) SHALL link to `/jobs/:jobId`. Columns SHALL include at least description, status, **total (derived from pieces, formatted as currency; incomplete label with highlight when applicable)**, and created_at. The embedded list SHALL expose the same shared list discovery controls (search, fuzzy matching, sortable data columns, responsive column visibility) defined in the `list-table-discovery` capability. When there are no jobs, the system SHALL show table headers with an empty body and a primary control to add a job that opens `CreateJobPopup` with `presetClientId` set to this client.
 
 #### Scenario: Job description links to job detail
 

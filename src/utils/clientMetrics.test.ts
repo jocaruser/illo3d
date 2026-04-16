@@ -58,15 +58,25 @@ describe('computeClientDetailMetrics', () => {
 
   it('outstanding sums non-paid non-cancelled job prices', () => {
     const jobs: Job[] = [
-      job({ id: 'J1', client_id: 'CL1', status: 'draft', price: 10 }),
+      job({ id: 'J1', client_id: 'CL1', status: 'draft' }),
       job({ id: 'J2', client_id: 'CL1', status: 'paid', price: 99 }),
       job({ id: 'J3', client_id: 'CL1', status: 'cancelled', price: 5 }),
+    ]
+    const pieces = [
+      {
+        id: 'P1',
+        job_id: 'J1',
+        name: 'a',
+        status: 'pending' as const,
+        price: 10,
+        created_at: '2025-01-01',
+      },
     ]
     const m = computeClientDetailMetrics({
       clientId: 'CL1',
       jobs,
       transactions: [],
-      pieces: [],
+      pieces,
       pieceItems: [],
       inventoryRows: [],
       expenses: [],
@@ -77,15 +87,25 @@ describe('computeClientDetailMetrics', () => {
 
   it('average job price excludes cancelled and missing price', () => {
     const jobs: Job[] = [
-      job({ id: 'J1', client_id: 'CL1', status: 'delivered', price: 20 }),
+      job({ id: 'J1', client_id: 'CL1', status: 'delivered' }),
       job({ id: 'J2', client_id: 'CL1', status: 'cancelled', price: 100 }),
       job({ id: 'J3', client_id: 'CL1', status: 'draft' }),
+    ]
+    const pieces = [
+      {
+        id: 'P1',
+        job_id: 'J1',
+        name: 'a',
+        status: 'pending' as const,
+        price: 20,
+        created_at: '2025-01-01',
+      },
     ]
     const m = computeClientDetailMetrics({
       clientId: 'CL1',
       jobs,
       transactions: [],
-      pieces: [],
+      pieces,
       pieceItems: [],
       inventoryRows: [],
       expenses: [],

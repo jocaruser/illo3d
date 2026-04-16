@@ -8,6 +8,7 @@ import type { Job } from '@/types/money'
 import type { JobStatus } from '@/types/money'
 
 export interface UpdateJobStatusOptions {
+  /** Sum of set piece prices; required when newStatus is paid. */
   paidPrice?: number
   createIncomeTransaction?: boolean
 }
@@ -28,12 +29,11 @@ export async function updateJobStatus(
   let nextJob: Job = { ...job, status: newStatus }
 
   if (newStatus === 'paid') {
-    const resolved =
-      options?.paidPrice !== undefined ? options.paidPrice : job.price
-    if (resolved === undefined || resolved === null) {
-      throw new Error('Paid job requires a price')
+    const resolved = options?.paidPrice
+    if (resolved === undefined || resolved === null || Number.isNaN(Number(resolved))) {
+      throw new Error('Paid job requires paidPrice from piece totals')
     }
-    nextJob = { ...nextJob, price: Number(resolved) }
+    nextJob = { ...nextJob, status: 'paid' }
   }
 
   patchWorkbookTab('jobs', (m) =>
@@ -47,7 +47,7 @@ export async function updateJobStatus(
     return nextJob
   }
 
-  const amount = nextJob.price ?? 0
+  const amount = Number(options?.paidPrice ?? 0)
   const transactions = matrixToTransactions(
     useWorkbookStore.getState().tabs.transactions,
   )

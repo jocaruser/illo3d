@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Job, JobStatus } from '@/types/money'
+import type { Job, JobStatus, Piece } from '@/types/money'
 import { compareJobsForKanban } from '@/utils/kanbanJobSort'
 import { KanbanColumn } from './KanbanColumn'
 import { endKanbanJobDrag } from './kanbanDnd'
@@ -19,6 +19,7 @@ function isActiveJob(j: Job): boolean {
 
 interface KanbanBoardProps {
   jobs: Job[]
+  pieces: Piece[]
   clientsById: Map<string, string>
   onJobMoveToStatus: (
     job: Job,
@@ -30,6 +31,7 @@ interface KanbanBoardProps {
 
 export function KanbanBoard({
   jobs,
+  pieces,
   clientsById,
   onJobMoveToStatus,
   statusUpdatingId,
@@ -93,6 +95,7 @@ export function KanbanBoard({
             key={status}
             status={status}
             jobs={byStatus.get(status) ?? []}
+            pieces={pieces}
             clientsById={clientsById}
             columnTitle={titleForStatus(status)}
             onDropJob={handleDrop}

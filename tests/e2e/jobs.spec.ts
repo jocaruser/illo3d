@@ -104,7 +104,9 @@ test.describe('Jobs page', () => {
       page.getByRole('heading', { name: /mark job as paid|marcar como pagado/i })
     ).toBeVisible({ timeout: 5000 })
 
-    await page.locator('#paid-price-input').fill('42')
+    await expect(
+      page.getByRole('dialog').getByText(/€42[.,]00/)
+    ).toBeVisible()
 
     await page
       .getByRole('checkbox', {
@@ -154,7 +156,7 @@ test.describe('Jobs page', () => {
     await expect(incomeRow.first()).toBeVisible({ timeout: 15000 })
   })
 
-  test('marking draft job paid without price requires price input', async ({
+  test('marking draft job paid is blocked until every piece has a price', async ({
     page,
     openCsvShop,
   }) => {
@@ -166,18 +168,13 @@ test.describe('Jobs page', () => {
     await j1PaidFlow.selectOption('paid')
     await expect(j1PaidFlow).toHaveValue('draft')
 
-    await expect(page.locator('#paid-price-input')).toBeVisible({ timeout: 5000 })
-    await page.locator('#paid-price-input').fill('9.99')
-
-    await page.getByRole('button', { name: /confirm|confirmar/i }).click()
+    await expect(page.getByRole('alert')).toContainText(
+      /set a price on every piece|indica un precio en cada pieza/i,
+    )
 
     await expect(
       page.getByRole('heading', { name: /mark job as paid|marcar como pagado/i })
-    ).not.toBeVisible({
-      timeout: 10000,
-    })
-
-    await expect(j1PaidFlow).toHaveValue('paid', { timeout: 15000 })
+    ).toHaveCount(0)
   })
 
   test('leaving paid status shows confirmation about duplicate transactions', async ({

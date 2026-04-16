@@ -211,6 +211,7 @@ export function DashboardPage() {
             </h3>
             <KanbanBoard
               jobs={jobs}
+              pieces={pieces}
               clientsById={clientsById}
               onJobMoveToStatus={(job, next, insertBeforeId) => {
                 if (!spreadsheetId) return

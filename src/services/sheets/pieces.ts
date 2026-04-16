@@ -11,6 +11,21 @@ function parsePieceStatus(value: unknown): PieceStatus {
   return 'pending'
 }
 
+export function parsePieceRow(r: Piece): Piece {
+  const rawPrice = r.price as unknown
+  let price: number | undefined
+  if (rawPrice !== undefined && rawPrice !== null && rawPrice !== '') {
+    const n =
+      typeof rawPrice === 'string' ? parseFloat(rawPrice) : Number(rawPrice)
+    price = Number.isNaN(n) ? undefined : n
+  }
+  return {
+    ...r,
+    status: parsePieceStatus(r.status),
+    price,
+  }
+}
+
 export async function fetchPieces(spreadsheetId: string): Promise<Piece[]> {
   const repository = getSheetsRepository()
   const rows = await repository.readRows<Piece>(
@@ -19,9 +34,6 @@ export async function fetchPieces(spreadsheetId: string): Promise<Piece[]> {
   )
   return rows
     .filter((r) => r.id)
-    .map((r) => ({
-      ...r,
-      status: parsePieceStatus(r.status),
-    }))
+    .map(parsePieceRow)
     .sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
 }
