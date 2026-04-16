@@ -10,7 +10,7 @@ describe('Breadcrumbs', () => {
         <Breadcrumbs
           ariaLabel="Trail"
           items={[
-            { label: 'Home', to: '/transactions' },
+            { label: 'Home', to: '/dashboard' },
             { label: 'Clients' },
           ]}
         />
@@ -20,7 +20,7 @@ describe('Breadcrumbs', () => {
     const nav = screen.getByRole('navigation', { name: 'Trail' })
     expect(nav).toBeInTheDocument()
 
-    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/transactions')
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/dashboard')
 
     const current = screen.getByText('Clients')
     expect(current).toHaveAttribute('aria-current', 'page')

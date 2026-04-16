@@ -1,12 +1,17 @@
 import { test, expect } from './fixtures'
 
 test.describe('Transactions page', () => {
+  test.beforeEach(async ({ page, openCsvShop }) => {
+    void openCsvShop
+    await page.goto('/transactions', { waitUntil: 'load' })
+    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
+      timeout: 30000,
+    })
+  })
+
   test('transactions table or empty state visible after authenticated user navigates to /transactions', async ({
     page,
-    openCsvShop,
   }) => {
-    void openCsvShop
-
     const transactionsHeading = page.getByRole('heading', { name: 'Transactions' })
     await expect(transactionsHeading).toBeVisible({ timeout: 10000 })
 
@@ -19,9 +24,7 @@ test.describe('Transactions page', () => {
     await expect(tableOrContent).toBeVisible({ timeout: 15000 })
   })
 
-  test('balance is displayed when connected to Sheets', async ({ page, openCsvShop }) => {
-    void openCsvShop
-
+  test('balance is displayed when connected to Sheets', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
     })
@@ -31,12 +34,7 @@ test.describe('Transactions page', () => {
     await expect(balanceLabel.or(connectingOrError)).toBeVisible({ timeout: 15000 })
   })
 
-  test('no edit or delete buttons visible in transactions UI', async ({
-    page,
-    openCsvShop,
-  }) => {
-    void openCsvShop
-
+  test('no edit or delete buttons visible in transactions UI', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
     })

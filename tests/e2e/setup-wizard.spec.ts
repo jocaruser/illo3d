@@ -8,7 +8,7 @@ async function devLoginAndShowWizard(page: import('@playwright/test').Page) {
   const devLoginButton = page.getByTestId('dev-login-button')
   await expect(devLoginButton).toBeVisible({ timeout: 15000 })
   await devLoginButton.click()
-  await expect(page).toHaveURL(/\/transactions/)
+  await expect(page).toHaveURL(/\/dashboard/)
 }
 
 /** Complete wizard by opening configured fixture folder (CSV mode, VITE_LOCAL_CSV_FIXTURE_FOLDER). */
@@ -51,7 +51,7 @@ test.describe('Setup wizard', () => {
     await devLoginAndShowWizard(page)
     await completeWizardWithFolder(page)
 
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
       timeout: 5000,
     })
     await expect(page.getByRole('button', { name: /open existing shop|abrir tienda existente/i })).not.toBeVisible()

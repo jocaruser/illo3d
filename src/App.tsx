@@ -25,6 +25,7 @@ import { ClientsPage } from './pages/ClientsPage'
 import { JobsPage } from './pages/JobsPage'
 import { JobDetailPage } from './pages/JobDetailPage'
 import { ClientDetailPage } from './pages/ClientDetailPage'
+import { DashboardPage } from './pages/DashboardPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
 import { useWorkbookStore } from './stores/workbookStore'
@@ -152,6 +153,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const navLinks = (
     <>
+      <NavLink to="/dashboard" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
+        {t('nav.dashboard')}
+      </NavLink>
       <NavLink to="/clients" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
         {t('nav.clients')}
       </NavLink>
@@ -331,9 +335,9 @@ function RootRedirect() {
     return <Navigate to="/login" replace />
   }
   if (!activeShop) {
-    return <Navigate to="/transactions" replace />
+    return <Navigate to="/dashboard" replace />
   }
-  return <Navigate to="/transactions" replace />
+  return <Navigate to="/dashboard" replace />
 }
 
 export default function App() {
@@ -346,6 +350,16 @@ export default function App() {
           element={
             <Layout>
               <RootRedirect />
+            </Layout>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <DashboardPage />
+              </ProtectedRoute>
             </Layout>
           }
         />

@@ -1,6 +1,7 @@
 import { appendDataRow } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToJobs } from '@/lib/workbook/workbookEntities'
+import { compareJobsForKanban } from '@/utils/kanbanJobSort'
 import { nextNumericId } from '@/utils/id'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
@@ -23,6 +24,14 @@ export async function createJob(
   const createdAt = new Date().toISOString()
   const priceCell =
     payload.price !== undefined && payload.price !== null ? payload.price : ''
+  const draftColumn = jobs
+    .filter((j) => j.status === 'draft')
+    .sort(compareJobsForKanban)
+  const maxOrder = draftColumn.reduce(
+    (m, j) => Math.max(m, j.board_order ?? 0),
+    0,
+  )
+  const boardOrder = maxOrder + 1000
 
   patchWorkbookTab('jobs', (m) =>
     appendDataRow('jobs', m, {
@@ -31,6 +40,7 @@ export async function createJob(
       description: payload.description,
       status: 'draft',
       price: priceCell,
+      board_order: boardOrder,
       created_at: createdAt,
       archived: '',
       deleted: '',

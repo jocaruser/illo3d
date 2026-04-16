@@ -1,6 +1,7 @@
 import { appendDataRow, updateDataRowById } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToJobs, matrixToTransactions } from '@/lib/workbook/workbookEntities'
+import { jobToJobsSheetRow } from '@/services/job/jobsSheetRow'
 import { nextNumericId } from '@/utils/id'
 import { useWorkbookStore } from '@/stores/workbookStore'
 import type { Job } from '@/types/money'
@@ -11,26 +12,12 @@ export interface UpdateJobStatusOptions {
   createIncomeTransaction?: boolean
 }
 
-function sheetRowFromJob(job: Job): Record<string, unknown> {
-  return {
-    id: job.id,
-    client_id: job.client_id,
-    description: job.description,
-    status: job.status,
-    price:
-      job.price !== undefined && job.price !== null ? job.price : '',
-    created_at: job.created_at,
-    archived: job.archived ?? '',
-    deleted: job.deleted ?? '',
-  }
-}
-
 export async function updateJobStatus(
   spreadsheetId: string,
   job: Job,
   newStatus: JobStatus,
   options?: UpdateJobStatusOptions
-): Promise<void> {
+): Promise<Job> {
   void spreadsheetId
   const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
   const idx = jobs.findIndex((r) => r.id === job.id)
@@ -50,14 +37,14 @@ export async function updateJobStatus(
   }
 
   patchWorkbookTab('jobs', (m) =>
-    updateDataRowById('jobs', m, job.id, sheetRowFromJob(nextJob)),
+    updateDataRowById('jobs', m, job.id, jobToJobsSheetRow(nextJob)),
   )
 
   if (newStatus !== 'paid') {
-    return
+    return nextJob
   }
   if (options?.createIncomeTransaction === false) {
-    return
+    return nextJob
   }
 
   const amount = nextJob.price ?? 0
@@ -86,4 +73,6 @@ export async function updateJobStatus(
       deleted: '',
     }),
   )
+
+  return nextJob
 }

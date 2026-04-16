@@ -10,7 +10,7 @@ async function openSearchPanel(page: Page) {
 test.describe('Global header search', () => {
   test.beforeEach(async ({ page, openCsvShop }) => {
     void openCsvShop
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
       timeout: 10000,
     })
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })

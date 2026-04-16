@@ -7,11 +7,14 @@ test.describe('Inventory page', () => {
   }) => {
     void openCsvShop
 
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
       timeout: 10000,
     })
 
-    await page.getByRole('link', { name: 'Inventory' }).click()
+    await page
+      .getByRole('link', { name: 'Inventory', exact: true })
+      .first()
+      .click()
     await expect(page).toHaveURL(/\/inventory/)
     await expect(page.getByRole('heading', { name: 'Inventory' })).toBeVisible({
       timeout: 10000,

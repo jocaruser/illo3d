@@ -19,7 +19,7 @@ test.describe('Navigation chrome', () => {
     })
 
     await expect(page.getByRole('navigation', { name: /breadcrumb/i })).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Transactions' })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: /dashboard|panel/i })).toHaveAttribute(
       'aria-current',
       'page',
     )

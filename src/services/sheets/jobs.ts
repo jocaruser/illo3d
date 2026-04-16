@@ -10,9 +10,17 @@ export function parseJobRow(r: Job): Job {
       typeof rawPrice === 'string' ? parseFloat(rawPrice) : Number(rawPrice)
     price = Number.isNaN(n) ? undefined : n
   }
+  const rawBoard = r.board_order as unknown
+  let board_order: number | undefined
+  if (rawBoard !== undefined && rawBoard !== null && rawBoard !== '') {
+    const n =
+      typeof rawBoard === 'string' ? parseFloat(rawBoard) : Number(rawBoard)
+    board_order = Number.isNaN(n) ? undefined : Math.trunc(n)
+  }
   return {
     ...r,
     price,
+    board_order,
   }
 }
 

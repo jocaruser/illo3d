@@ -2,12 +2,13 @@ import { test, expect } from './fixtures'
 
 test.describe('Create expense flow', () => {
   test.describe.configure({ mode: 'serial' })
-  test('Add expense button opens popup from transactions page', async ({
-    page,
-    openCsvShop,
-  }) => {
-    void openCsvShop
 
+  test.beforeEach(async ({ page, openCsvShop }) => {
+    void openCsvShop
+    await page.goto('/transactions', { waitUntil: 'load' })
+  })
+
+  test('Add expense button opens popup from transactions page', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
     })
@@ -27,12 +28,7 @@ test.describe('Create expense flow', () => {
     })
   })
 
-  test('create expense with inventory adds inventory row', async ({
-    page,
-    openCsvShop,
-  }) => {
-    void openCsvShop
-
+  test('create expense with inventory adds inventory row', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
     })
@@ -79,11 +75,7 @@ test.describe('Create expense flow', () => {
     await expect(page.getByText('e2e filament marker')).toBeVisible({ timeout: 15000 })
   })
 
-  test('create expense without inventory does not append inventory sheet', async ({
-    page,
-    openCsvShop,
-  }) => {
-    void openCsvShop
+  test('create expense without inventory does not append inventory sheet', async ({ page }) => {
     const appendPayloads: { sheetName?: string }[] = []
     page.on('request', (req) => {
       if (req.method() !== 'POST' || !req.url().includes('/api/sheets/append')) {
@@ -130,9 +122,7 @@ test.describe('Create expense flow', () => {
     expect(appendPayloads.filter((p) => p.sheetName === 'inventory')).toHaveLength(0)
   })
 
-  test('create expense and redirect to expenses page', async ({ page, openCsvShop }) => {
-    void openCsvShop
-
+  test('create expense and redirect to expenses page', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
     })

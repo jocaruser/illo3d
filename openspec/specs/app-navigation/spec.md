@@ -8,7 +8,13 @@ Define how the authenticated app shell shows **current section** in the top navi
 
 ### Requirement: Top navigation shows active section
 
-The system SHALL render primary section links (Clients, Jobs, Transactions, Expenses, Inventory) in the app header. When the user is authenticated and has an **active shop**, the system SHALL also render the **global entity search** control in the header (alongside—not instead of—section links). The link whose route matches the current location SHALL use visually distinct styling from inactive links so users can see which page they are on. The logo or home link behavior SHALL NOT cause every route to appear active. Focusing or typing in the global search SHALL NOT by itself change which section link is active; active styling SHALL depend only on the current route.
+The system SHALL render primary section links (Dashboard, Clients, Jobs, Transactions, Expenses, Inventory) in the app header. When the user is authenticated and has an **active shop**, the system SHALL also render the **global entity search** control in the header (alongside—not instead of—section links). The link whose route matches the current location SHALL use visually distinct styling from inactive links so users can see which page they are on. The logo or home link behavior SHALL NOT cause every route to appear active. Focusing or typing in the global search SHALL NOT by itself change which section link is active; active styling SHALL depend only on the current route.
+
+#### Scenario: Dashboard nav is active on dashboard page
+
+- **WHEN** authenticated user is on `/dashboard`
+- **THEN** the Dashboard header link uses the active styling
+- **AND** other section links use inactive styling
 
 #### Scenario: Clients nav is active on clients page
 
@@ -67,7 +73,12 @@ The system SHALL provide a reusable `Breadcrumbs` component that accepts an orde
 
 ### Requirement: Breadcrumbs on main layout pages
 
-The system SHALL show the `Breadcrumbs` component on every page that uses the main authenticated layout with the primary section navigation: Clients, Jobs, Transactions, Expenses, and Inventory. Breadcrumb labels SHALL follow the same language as the rest of the UI (i18n). The system SHALL NOT require breadcrumbs on the login page.
+The system SHALL show the `Breadcrumbs` component on every page that uses the main authenticated layout with the primary section navigation: Dashboard, Clients, Jobs, Transactions, Expenses, and Inventory. Breadcrumb labels SHALL follow the same language as the rest of the UI (i18n). The system SHALL NOT require breadcrumbs on the login page.
+
+#### Scenario: Dashboard page shows breadcrumbs
+
+- **WHEN** authenticated user views the Dashboard page
+- **THEN** breadcrumbs are visible above the main page content
 
 #### Scenario: Clients page shows breadcrumbs
 

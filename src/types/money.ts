@@ -102,6 +102,8 @@ export interface Job {
   description: string
   status: JobStatus
   price?: number
+  /** Kanban column ordering (optional in sheet; lower sorts first). */
+  board_order?: number
   created_at: string
   archived?: string
   deleted?: string

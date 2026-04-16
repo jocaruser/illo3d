@@ -17,6 +17,7 @@
     "sortedDescending": "{{column}}, orden descendente"
   },
   "page": {
+    "dashboard": "Panel",
     "transactions": "Transacciones",
     "expenses": "Gastos"
   },
@@ -42,7 +43,36 @@
     "ariaLabel": "Migas de pan",
     "home": "Inicio"
   },
+  "dashboard": {
+    "balance": "Saldo",
+    "activeJobs": "Trabajos activos",
+    "revenueThisMonth": "Ingresos del mes",
+    "piecesThisWeek": "Piezas terminadas (7 días)",
+    "addExpense": "Añadir gasto",
+    "addJob": "Añadir trabajo",
+    "viewAll": "Ver todo",
+    "recentEmpty": "Aún no hay entradas.",
+    "recentTransactions": "Transacciones recientes",
+    "recentExpenses": "Gastos recientes",
+    "kanban": {
+      "draft": "Borrador",
+      "inProgress": "En curso",
+      "delivered": "Entregado",
+      "paid": "Pagado",
+      "cancelled": "Cancelado",
+      "empty": "Sin trabajos",
+      "viewAll": "Ver todos los trabajos",
+      "jobSingular": "trabajo",
+      "jobPlural": "trabajos"
+    },
+    "inventory": {
+      "alerts": "Alertas de stock",
+      "healthy": "Los niveles de stock están bien.",
+      "viewAll": "Ver inventario"
+    }
+  },
   "nav": {
+    "dashboard": "Panel",
     "clients": "Clientes",
     "jobs": "Trabajos",
     "pieces": "Piezas",
