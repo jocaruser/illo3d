@@ -77,8 +77,9 @@ lint:
 format:
 	$(APP) pnpm format
 
+# Forward CI env into the container so Vitest can tune parallelism (GitHub sets CI=true on the host).
 test:
-	$(APP) pnpm test
+	docker compose exec -e CI -e GITHUB_ACTIONS app pnpm test
 
 restore-fixtures:
 	rm -rf public/fixtures/*

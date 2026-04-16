@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { useShopStore } from './shopStore'
 
 describe('shopStore', () => {
@@ -40,7 +40,7 @@ describe('shopStore', () => {
     expect(state.activeShop).toBeNull()
   })
 
-  it('should persist active shop', async () => {
+  it('should persist active shop', () => {
     const shop = {
       folderId: 'folder-1',
       folderName: 'My Shop',
@@ -51,10 +51,8 @@ describe('shopStore', () => {
 
     const persist =
       import.meta.env.PROD ? sessionStorage : localStorage
-    await vi.waitFor(() => {
-      expect(persist.getItem('shop-storage')).toBeTruthy()
-    })
     const stored = persist.getItem('shop-storage')
+    expect(stored).toBeTruthy()
     expect(JSON.parse(stored!).state.activeShop).toEqual(shop)
   })
 })
