@@ -1,5 +1,10 @@
-import { getSheetsRepository } from '@/services/sheets/repository'
-import type { SheetName } from '@/services/sheets/config'
+import {
+  ensureMatrix,
+  headerIndex,
+  updateLastDataRowById,
+} from '@/lib/workbook/matrixOps'
+import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import { useWorkbookStore } from '@/stores/workbookStore'
 import { assertClientNoteSeverity } from '@/services/clientNote/severity'
 import {
   formatReferencedEntityIdsCell,
@@ -16,38 +21,38 @@ export async function updateJobNote(
   noteId: string,
   payload: UpdateJobNotePayload,
 ): Promise<void> {
-  const repo = getSheetsRepository()
-  const notes = await repo.readRows<Record<string, string>>(
-    spreadsheetId,
-    'crm_notes' as SheetName,
-  )
-  const matches = notes.reduce<number[]>((acc, n, i) => {
-    if (n.id?.trim() === noteId) acc.push(i)
-    return acc
-  }, [])
+  void spreadsheetId
+  const m0 = ensureMatrix(useWorkbookStore.getState().tabs, 'crm_notes')
+  const idc = headerIndex('crm_notes', 'id')
+  const matches: number[] = []
+  for (let i = 1; i < m0.length; i++) {
+    if ((m0[i][idc] ?? '').trim() === noteId.trim()) matches.push(i)
+  }
   const idx = matches.length ? matches[matches.length - 1] : -1
   if (idx === -1) {
     throw new Error(`Job note ${noteId} not found`)
   }
-  const existing = notes[idx]
+  const existing = m0[idx]
+  const headers = m0[0]
+  const get = (h: string) =>
+    existing[headers.indexOf(h)]?.trim() ?? ''
   const severity = assertClientNoteSeverity(payload.severity)
   const body = payload.body.trim()
   const referenced_entity_ids = formatReferencedEntityIdsCell(
     parseMentionEntityIdsFromText(body),
   )
   const row = {
-    id: existing.id?.trim() ?? '',
-    entity_type: existing.entity_type?.trim() ?? 'job',
-    entity_id: existing.entity_id?.trim() ?? '',
+    id: get('id'),
+    entity_type: get('entity_type') || 'job',
+    entity_id: get('entity_id'),
     body,
     referenced_entity_ids,
     severity,
-    created_at: existing.created_at?.trim() ?? '',
+    created_at: get('created_at'),
+    archived: get('archived'),
+    deleted: get('deleted'),
   }
-  await repo.updateRow(
-    spreadsheetId,
-    'crm_notes' as SheetName,
-    idx + 1,
-    row,
+  patchWorkbookTab('crm_notes', (m) =>
+    updateLastDataRowById('crm_notes', m, noteId, row),
   )
 }

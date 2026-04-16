@@ -14,8 +14,8 @@ describe('CsvSheetsRepository', () => {
       ok: true,
       text: () =>
         Promise.resolve(
-          'id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes\n' +
-            't1,2025-01-15,income,100.50,Sales,Print job A,,,c1,First sale'
+          'id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes,archived,deleted\n' +
+            't1,2025-01-15,income,100.50,Sales,Print job A,,,c1,First sale,,'
         ),
     })
 
@@ -54,7 +54,7 @@ describe('CsvSheetsRepository', () => {
       ok: true,
       text: () =>
         Promise.resolve(
-          'id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes'
+          'id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes,archived,deleted'
         ),
     })
 
@@ -75,6 +75,8 @@ describe('CsvSheetsRepository', () => {
       'ref_id',
       'client_id',
       'notes',
+      'archived',
+      'deleted',
     ])
   })
 
@@ -87,7 +89,7 @@ describe('CsvSheetsRepository', () => {
   it('extracts folder from spreadsheetId with csv-fixture- prefix', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      text: () => Promise.resolve('id,name\nc1,Acme'),
+      text: () => Promise.resolve('id,name,archived,deleted\nc1,Acme,,'),
     })
 
     const repo = new CsvSheetsRepository('happy-path')
@@ -191,7 +193,8 @@ describe('CsvSheetsRepository', () => {
     // See public/fixtures/README.md for the fixture convention.
     mockFetch.mockResolvedValue({
       ok: true,
-      text: () => Promise.resolve('id,name\nc1,"Acme, Inc."'),
+      text: () =>
+        Promise.resolve('id,name,archived,deleted\nc1,"Acme, Inc.",,'),
     })
 
     const repo = new CsvSheetsRepository('happy-path')

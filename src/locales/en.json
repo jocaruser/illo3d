@@ -68,6 +68,12 @@
       "tag": "Tag"
     }
   },
+  "lifecycle": {
+    "archive": "Archive",
+    "softDelete": "Soft delete",
+    "unarchive": "Un-archive",
+    "deletedEntity": "Deleted entity"
+  },
   "clients": {
     "title": "Clients",
     "addClient": "Add client",
@@ -89,6 +95,8 @@
     "delete": "Delete",
     "save": "Save",
     "actions": "Actions",
+    "archiveConfirmTitle": "Archive client",
+    "archiveConfirmMessage": "Archive {{name}}? Linked jobs and their data will be archived.",
     "deleteConfirmTitle": "Delete client",
     "deleteConfirmMessage": "Delete {{name}}? This cannot be undone.",
     "deleteBlockedJobs": "This client cannot be deleted while jobs reference them.",
@@ -299,6 +307,8 @@
     "editJob": "Edit",
     "deleteJob": "Delete",
     "actions": "Actions",
+    "archiveConfirmTitle": "Archive job",
+    "archiveConfirmMessage": "Archive job {{id}}? Linked pieces, notes, and tags will be archived.",
     "confirmDeleteTitle": "Delete job",
     "confirmDeleteMessage": "Delete job {{id}} and all its pieces and material lines? This cannot be undone.",
     "client": "Client",
@@ -376,5 +386,19 @@
     "errorPermissions": "You do not have permission to access this shop's data.",
     "devLoginQuotaError": "Dev Login cannot create new shop files with this service account. Use Open existing folder or sign in with Google OAuth.",
     "errorGeneric": "Something went wrong. Please try again."
+  },
+  "workbook": {
+    "loading": "Loading workbook…",
+    "loadFailed": "Could not load workbook.",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "save": "Save",
+    "discardTitle": "Discard unsaved changes?",
+    "discardMessage": "Your local edits will be lost. Reload data from storage?",
+    "discardConfirm": "Discard and refresh",
+    "cancel": "Cancel",
+    "saving": "Saving…",
+    "saveSuccess": "Workbook saved.",
+    "saveError": "Could not save workbook."
   }
 }

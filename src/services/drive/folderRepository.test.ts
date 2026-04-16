@@ -11,7 +11,7 @@ describe('CsvFolderRepository', () => {
   it('readMetadata fetches illo3d.metadata.json and returns parsed JSON', async () => {
     const metadata = {
       app: 'illo3d',
-      version: '1.0.0',
+      version: '2.0.0',
       spreadsheetId: 'csv-fixture-happy-path',
       createdAt: '2025-01-01T00:00:00.000Z',
       createdBy: 'dev@illo3d.local',

@@ -1,1 +1,1 @@
-id,expense_id,type,name,qty_initial,qty_current,created_at
+id,expense_id,type,name,qty_initial,qty_current,created_at,archived,deleted

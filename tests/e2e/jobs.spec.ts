@@ -64,25 +64,13 @@ test.describe('Jobs page', () => {
     await expect(page.getByText('e2e job marker')).toBeVisible({ timeout: 20000 })
   })
 
-  test('draft to in_progress sends row update', async ({ page, openCsvShop }) => {
+  test('draft to in_progress updates status in workbook', async ({ page, openCsvShop }) => {
     void openCsvShop
-    const rowRequests: { method?: string; url?: string }[] = []
-    page.on('request', (req) => {
-      if (req.url().includes('/api/sheets/row')) {
-        rowRequests.push({ method: req.method(), url: req.url() })
-      }
-    })
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
     const j1Status = page.locator('#job-status-J1')
     await j1Status.selectOption('in_progress')
-    await expect(j1Status).toHaveValue('in_progress')
-
-    await expect
-      .poll(() => rowRequests.filter((r) => r.method === 'PUT').length)
-      .toBeGreaterThan(0)
-
     await expect(j1Status).toHaveValue('in_progress')
   })
 
@@ -134,24 +122,11 @@ test.describe('Jobs page', () => {
     await expect(j2Status).toHaveValue('paid', { timeout: 15000 })
   })
 
-  test('marking delivered job paid shows confirmation and appends transaction', async ({
+  test('marking delivered job paid shows confirmation and adds income transaction', async ({
     page,
     openCsvShop,
   }) => {
     void openCsvShop
-    const appendPayloads: { sheetName?: string; rows?: unknown[] }[] = []
-    page.on('request', (req) => {
-      if (req.method() !== 'POST' || !req.url().includes('/api/sheets/append')) {
-        return
-      }
-      const raw = req.postData()
-      if (!raw) return
-      try {
-        appendPayloads.push(JSON.parse(raw) as { sheetName?: string; rows?: unknown[] })
-      } catch {
-        /* ignore */
-      }
-    })
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
@@ -166,17 +141,17 @@ test.describe('Jobs page', () => {
 
     await page.getByRole('button', { name: /confirm|confirmar/i }).click()
 
-    await expect
-      .poll(() => appendPayloads.filter((p) => p.sheetName === 'transactions').length)
-      .toBeGreaterThan(0)
-
     await expect(deskStatus).toHaveValue('paid', { timeout: 15000 })
 
-    const txAppend = appendPayloads.filter((p) => p.sheetName === 'transactions')
-    const lastTx = txAppend[txAppend.length - 1].rows?.[0] as Record<string, unknown>
-    expect(lastTx?.type).toBe('income')
-    expect(lastTx?.ref_type).toBe('job')
-    expect(Number(lastTx?.amount)).toBe(35.5)
+    await page.getByRole('link', { name: /transactions|transacciones/i }).click()
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 15000,
+    })
+    const incomeRow = page
+      .getByRole('row')
+      .filter({ hasText: /35[.,]50/ })
+      .filter({ hasText: /income|ingreso/i })
+    await expect(incomeRow.first()).toBeVisible({ timeout: 15000 })
   })
 
   test('marking draft job paid without price requires price input', async ({

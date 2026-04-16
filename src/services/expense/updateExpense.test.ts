@@ -1,52 +1,42 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { updateExpense } from './updateExpense'
-
-const mockUpdateRow = vi.fn()
-const mockReadRows = vi.fn()
-
-vi.mock('@/services/sheets/repository', () => ({
-  getSheetsRepository: () => ({
-    readRows: mockReadRows,
-    updateRow: mockUpdateRow,
-  }),
-}))
+import {
+  matrixToExpenses,
+  matrixToTransactions,
+} from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { matrixWithRows, resetAndSeedWorkbook } from '@/test/workbookHarness'
 
 describe('updateExpense', () => {
   beforeEach(() => {
-    mockUpdateRow.mockReset()
-    mockReadRows.mockReset()
+    useWorkbookStore.getState().reset()
   })
 
   it('updates expense and linked transaction', async () => {
-    mockReadRows.mockImplementation((_id: string, sheet: string) => {
-      if (sheet === 'expenses') {
-        return Promise.resolve([
-          {
-            id: 'E1',
-            date: '2025-01-01',
-            category: 'other',
-            amount: 10,
-            notes: '',
-          },
-        ])
-      }
-      if (sheet === 'transactions') {
-        return Promise.resolve([
-          {
-            id: 'T1',
-            date: '2025-01-01',
-            type: 'expense',
-            amount: -10,
-            category: 'other',
-            concept: 'other',
-            ref_type: 'expense',
-            ref_id: 'E1',
-            client_id: '',
-            notes: '',
-          },
-        ])
-      }
-      return Promise.resolve([])
+    resetAndSeedWorkbook({
+      expenses: matrixWithRows('expenses', [
+        {
+          id: 'E1',
+          date: '2025-01-01',
+          category: 'other',
+          amount: '10',
+          notes: '',
+        },
+      ]),
+      transactions: matrixWithRows('transactions', [
+        {
+          id: 'T1',
+          date: '2025-01-01',
+          type: 'expense',
+          amount: '-10',
+          category: 'other',
+          concept: 'other',
+          ref_type: 'expense',
+          ref_id: 'E1',
+          client_id: '',
+          notes: '',
+        },
+      ]),
     })
 
     await updateExpense('s1', 'E1', {
@@ -56,14 +46,18 @@ describe('updateExpense', () => {
       notes: 'PLA',
     })
 
-    expect(mockUpdateRow).toHaveBeenCalledWith('s1', 'expenses', 1, {
+    const expenses = matrixToExpenses(useWorkbookStore.getState().tabs.expenses)
+    const txs = matrixToTransactions(
+      useWorkbookStore.getState().tabs.transactions,
+    )
+    expect(expenses[0]).toMatchObject({
       id: 'E1',
       date: '2025-02-02',
       category: 'filament',
       amount: 20,
       notes: 'PLA',
     })
-    expect(mockUpdateRow).toHaveBeenCalledWith('s1', 'transactions', 1, {
+    expect(txs[0]).toMatchObject({
       id: 'T1',
       date: '2025-02-02',
       type: 'expense',
@@ -72,40 +66,35 @@ describe('updateExpense', () => {
       concept: 'PLA',
       ref_type: 'expense',
       ref_id: 'E1',
-      client_id: '',
       notes: 'PLA',
     })
   })
 
   it('uses category as concept when notes empty', async () => {
-    mockReadRows.mockImplementation((_id: string, sheet: string) => {
-      if (sheet === 'expenses') {
-        return Promise.resolve([
-          {
-            id: 'E1',
-            date: '2025-01-01',
-            category: 'other',
-            amount: 10,
-            notes: 'old',
-          },
-        ])
-      }
-      if (sheet === 'transactions') {
-        return Promise.resolve([
-          {
-            id: 'T1',
-            date: '2025-01-01',
-            type: 'expense',
-            amount: -10,
-            category: 'other',
-            concept: 'old',
-            ref_type: 'expense',
-            ref_id: 'E1',
-            notes: 'old',
-          },
-        ])
-      }
-      return Promise.resolve([])
+    resetAndSeedWorkbook({
+      expenses: matrixWithRows('expenses', [
+        {
+          id: 'E1',
+          date: '2025-01-01',
+          category: 'other',
+          amount: '10',
+          notes: 'old',
+        },
+      ]),
+      transactions: matrixWithRows('transactions', [
+        {
+          id: 'T1',
+          date: '2025-01-01',
+          type: 'expense',
+          amount: '-10',
+          category: 'other',
+          concept: 'old',
+          ref_type: 'expense',
+          ref_id: 'E1',
+          client_id: '',
+          notes: 'old',
+        },
+      ]),
     })
 
     await updateExpense('s1', 'E1', {
@@ -115,16 +104,13 @@ describe('updateExpense', () => {
       notes: '',
     })
 
-    expect(mockUpdateRow).toHaveBeenCalledWith(
-      's1',
-      'transactions',
-      1,
-      expect.objectContaining({
-        concept: 'electric',
-        category: 'electric',
-        amount: -15,
-        notes: '',
-      })
+    const txs = matrixToTransactions(
+      useWorkbookStore.getState().tabs.transactions,
     )
+    expect(txs[0]).toMatchObject({
+      concept: 'electric',
+      category: 'electric',
+      amount: -15,
+    })
   })
 })

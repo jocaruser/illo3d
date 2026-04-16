@@ -98,3 +98,41 @@ The system SHALL show the `Breadcrumbs` component on every page that uses the ma
 
 - **WHEN** user views the login page
 - **THEN** breadcrumbs are not shown
+
+### Requirement: Refresh control in top navigation
+
+The system SHALL render a **Refresh** button in the authenticated app header whenever the user has an **active shop**. The button SHALL be visible alongside primary section links, global search, and auth status. The button SHALL have an accessible label (i18n). Activating Refresh SHALL reload the workbook from the backend as defined in the `workbook-snapshot` spec.
+
+#### Scenario: Refresh button visible with active shop
+
+- **WHEN** authenticated user has an active shop
+- **THEN** a Refresh button is visible in the header
+
+#### Scenario: Refresh button not visible without shop
+
+- **WHEN** authenticated user does not have an active shop (e.g. wizard is showing)
+- **THEN** no Refresh button is rendered
+
+#### Scenario: Refresh button label is translatable
+
+- **WHEN** the UI locale is Spanish
+- **THEN** the Refresh button label uses the Spanish translation
+
+### Requirement: Save control in top navigation
+
+The system SHALL render a **Save** button in the authenticated app header whenever the user has an **active shop**. The button SHALL be visible alongside primary section links, global search, Refresh, and auth status. The button SHALL have an accessible label (i18n). Activating Save SHALL persist the workbook to the backend as defined in the `workbook-snapshot` spec.
+
+#### Scenario: Save button visible with active shop
+
+- **WHEN** authenticated user has an active shop
+- **THEN** a Save button is visible in the header
+
+#### Scenario: Save button not visible without shop
+
+- **WHEN** authenticated user does not have an active shop
+- **THEN** no Save button is rendered
+
+#### Scenario: Save button label is translatable
+
+- **WHEN** the UI locale is Spanish
+- **THEN** the Save button label uses the Spanish translation

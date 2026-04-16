@@ -1,15 +1,13 @@
-import { getSheetsRepository } from '@/services/sheets/repository'
+import { appendDataRow, updateDataRowById } from '@/lib/workbook/matrixOps'
+import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import { matrixToJobs, matrixToTransactions } from '@/lib/workbook/workbookEntities'
 import { nextNumericId } from '@/utils/id'
+import { useWorkbookStore } from '@/stores/workbookStore'
 import type { Job } from '@/types/money'
 import type { JobStatus } from '@/types/money'
 
 export interface UpdateJobStatusOptions {
-  /** When marking paid and the job has no price yet, the confirmed price (0 allowed). */
   paidPrice?: number
-  /**
-   * When marking paid: if true (default), appends an income transaction.
-   * Set false to update the job only (e.g. payment already recorded elsewhere).
-   */
   createIncomeTransaction?: boolean
 }
 
@@ -22,6 +20,8 @@ function sheetRowFromJob(job: Job): Record<string, unknown> {
     price:
       job.price !== undefined && job.price !== null ? job.price : '',
     created_at: job.created_at,
+    archived: job.archived ?? '',
+    deleted: job.deleted ?? '',
   }
 }
 
@@ -31,13 +31,12 @@ export async function updateJobStatus(
   newStatus: JobStatus,
   options?: UpdateJobStatusOptions
 ): Promise<void> {
-  const repo = getSheetsRepository()
-  const rows = await repo.readRows<Job>(spreadsheetId, 'jobs')
-  const idx = rows.findIndex((r) => r.id === job.id)
+  void spreadsheetId
+  const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
+  const idx = jobs.findIndex((r) => r.id === job.id)
   if (idx === -1) {
     throw new Error(`Job ${job.id} not found`)
   }
-  const rowIndex = idx + 1
 
   let nextJob: Job = { ...job, status: newStatus }
 
@@ -50,11 +49,8 @@ export async function updateJobStatus(
     nextJob = { ...nextJob, price: Number(resolved) }
   }
 
-  await repo.updateRow(
-    spreadsheetId,
-    'jobs',
-    rowIndex,
-    sheetRowFromJob(nextJob)
+  patchWorkbookTab('jobs', (m) =>
+    updateDataRowById('jobs', m, job.id, sheetRowFromJob(nextJob)),
   )
 
   if (newStatus !== 'paid') {
@@ -65,18 +61,17 @@ export async function updateJobStatus(
   }
 
   const amount = nextJob.price ?? 0
-  const transactions = await repo.readRows<{ id: string }>(
-    spreadsheetId,
-    'transactions'
+  const transactions = matrixToTransactions(
+    useWorkbookStore.getState().tabs.transactions,
   )
   const transactionId = nextNumericId(
     'T',
-    transactions.map((t) => t.id).filter((id): id is string => id != null)
+    transactions.map((t) => t.id).filter((id): id is string => id != null),
   )
   const today = new Date().toISOString().slice(0, 10)
 
-  await repo.appendRows(spreadsheetId, 'transactions', [
-    {
+  patchWorkbookTab('transactions', (m) =>
+    appendDataRow('transactions', m, {
       id: transactionId,
       date: today,
       type: 'income',
@@ -87,6 +82,8 @@ export async function updateJobStatus(
       ref_id: nextJob.id,
       client_id: nextJob.client_id ?? '',
       notes: '',
-    },
-  ])
+      archived: '',
+      deleted: '',
+    }),
+  )
 }

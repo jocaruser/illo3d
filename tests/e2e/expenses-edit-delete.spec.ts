@@ -19,9 +19,13 @@ test.describe('Expenses edit and delete', () => {
     ).toBeVisible()
 
     await page.locator('#expense-amount').fill('31.50')
-    await page.getByRole('button', { name: /save|guardar/i }).click()
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /save|guardar/i })
+      .click()
 
-    await expect(row.getByText(/31[.,]50/)).toBeVisible({ timeout: 20000 })
+    const updatedRow = page.getByRole('row', { name: /PLA White/i })
+    await expect(updatedRow.getByText(/31[.,]50/)).toBeVisible({ timeout: 20000 })
   })
 
   test('delete expense removes row', async ({ page, openCsvShop }) => {

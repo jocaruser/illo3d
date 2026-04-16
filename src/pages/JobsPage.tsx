@@ -1,24 +1,18 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSheetsStore } from '@/stores/sheetsStore'
 import { useShopStore } from '@/stores/shopStore'
-import { connect } from '@/services/sheets/connection'
-import { useJobs } from '@/hooks/useJobs'
-import { useClients } from '@/hooks/useClients'
-import { useTags } from '@/hooks/useTags'
-import { useTagLinks } from '@/hooks/useTagLinks'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { getSheetsRepository } from '@/services/sheets/repository'
+import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import { updateJobStatus } from '@/services/job/updateJobStatus'
 import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import { JobsTable } from '@/components/JobsTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { EmptyState } from '@/components/EmptyState'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { QueryError } from '@/components/QueryError'
 import type { Job, JobStatus } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
@@ -31,28 +25,23 @@ function jobHasPrice(job: Job): boolean {
   )
 }
 
+function isActiveJob(j: Job): boolean {
+  return j.archived !== 'true' && j.deleted !== 'true'
+}
+
 export function JobsPage() {
   const { t } = useTranslation()
-  const queryClient = useQueryClient()
   const activeShop = useShopStore((s) => s.activeShop)
   const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const {
-    status,
-    errorMessage,
-    setConnecting,
-    setConnected,
-    setError,
-  } = useSheetsStore()
+  const workbookStatus = useWorkbookStore((s) => s.status)
+  const workbookError = useWorkbookStore((s) => s.error)
+  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
 
-  const {
-    data: jobs = [],
-    isLoading: jobsLoading,
-    isError: jobsError,
-    refetch: refetchJobs,
-  } = useJobs(spreadsheetId)
-  const { data: clients = [] } = useClients(spreadsheetId)
-  const { data: tags = [] } = useTags(spreadsheetId)
-  const { data: tagLinks = [] } = useTagLinks(spreadsheetId)
+  const { jobs: allJobs, clients, tags, tagLinks } = useWorkbookEntities()
+  const jobs = useMemo(
+    () => allJobs.filter(isActiveJob),
+    [allJobs],
+  )
 
   const { tagSearchLineByJobId, tagTitleByJobId } = useMemo(() => {
     const namesByJob = new Map<string, string[]>()
@@ -78,7 +67,7 @@ export function JobsPage() {
   }, [tags, tagLinks])
   const [popupOpen, setPopupOpen] = useState(false)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Job | null>(null)
+  const [archiveTarget, setArchiveTarget] = useState<Job | null>(null)
   const [cancelDialogJob, setCancelDialogJob] = useState<Job | null>(null)
   const [paidDialogJob, setPaidDialogJob] = useState<Job | null>(null)
   const [paidPriceInput, setPaidPriceInput] = useState('')
@@ -88,37 +77,12 @@ export function JobsPage() {
     next: JobStatus
   } | null>(null)
   const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [archiveError, setArchiveError] = useState<string | null>(null)
   const [statusError, setStatusError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const handleRetry = () => {
     if (!spreadsheetId) return
-    setConnecting()
-    connect(spreadsheetId).then((result) => {
-      if (result.ok) {
-        setConnected(result.spreadsheetId)
-      } else {
-        setError(result.error)
-      }
-    })
-  }, [spreadsheetId, setConnecting, setConnected, setError])
-
-  const handleRetry = async () => {
-    if (!spreadsheetId) return
-    setConnecting()
-    const result = await connect(spreadsheetId)
-    if (result.ok) {
-      setConnected(result.spreadsheetId)
-    } else {
-      setError(result.error)
-    }
-  }
-
-  const invalidateJobData = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
-    await queryClient.invalidateQueries({
-      queryKey: ['transactions', spreadsheetId],
-    })
+    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
   }
 
   const commitStatus = async (
@@ -131,7 +95,6 @@ export function JobsPage() {
     setStatusError(null)
     try {
       await updateJobStatus(spreadsheetId, job, next, options)
-      await invalidateJobData()
     } catch {
       setStatusError(t('errors.actionFailed'))
     } finally {
@@ -197,9 +160,7 @@ export function JobsPage() {
 
   const jobPopupOpen = popupOpen || editingJob !== null
 
-  const handleCreateSuccess = () => {
-    void queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
-  }
+  const handleMutationSuccess = async () => {}
 
   const closeJobPopup = () => {
     setPopupOpen(false)
@@ -211,53 +172,17 @@ export function JobsPage() {
     payload: UpdateJobPayload
   ) => {
     if (!spreadsheetId) return
-    const key = ['jobs', spreadsheetId] as const
-    const previous = queryClient.getQueryData<Job[]>(key)
-    if (previous) {
-      queryClient.setQueryData(
-        key,
-        previous.map((j) =>
-          j.id === jobId
-            ? {
-                ...j,
-                description: payload.description,
-                client_id: payload.client_id,
-                price: payload.price,
-              }
-            : j
-        )
-      )
-    }
-    try {
-      await updateJob(spreadsheetId, jobId, payload)
-    } catch (e) {
-      if (previous) {
-        queryClient.setQueryData(key, previous)
-      }
-      throw e
-    }
+    await updateJob(spreadsheetId, jobId, payload)
   }
 
-  const invalidateJobPieces = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
-    await queryClient.invalidateQueries({ queryKey: ['pieces', spreadsheetId] })
-    await queryClient.invalidateQueries({
-      queryKey: ['piece_items', spreadsheetId],
-    })
-  }
-
-  const confirmDeleteJob = async () => {
-    if (!spreadsheetId || !deleteTarget) return
-    setDeleteError(null)
+  const confirmArchiveJob = async () => {
+    if (!spreadsheetId || !archiveTarget) return
+    setArchiveError(null)
     try {
-      await deleteJob(spreadsheetId, deleteTarget.id)
-      setDeleteTarget(null)
-      await invalidateJobPieces()
-      await queryClient.invalidateQueries({
-        queryKey: ['crm_notes', spreadsheetId],
-      })
+      await deleteJob(spreadsheetId, archiveTarget.id)
+      setArchiveTarget(null)
     } catch {
-      setDeleteError(t('errors.deleteFailed'))
+      setArchiveError(t('errors.deleteFailed'))
     }
   }
 
@@ -266,8 +191,8 @@ export function JobsPage() {
       <h2 className="mb-6 text-2xl font-bold text-gray-800">{t('jobs.title')}</h2>
 
       <ConnectionStatus
-        status={status}
-        errorMessage={errorMessage}
+        status={workbookStatus}
+        errorMessage={workbookError}
         onRetry={handleRetry}
       />
 
@@ -277,7 +202,7 @@ export function JobsPage() {
         </div>
       )}
 
-      {status === 'connected' && (
+      {workbookStatus === 'ready' && (
         <>
           <div className="mb-4 flex items-center justify-end">
             <button
@@ -290,11 +215,7 @@ export function JobsPage() {
             </button>
           </div>
 
-          {jobsError ? (
-            <QueryError onRetry={() => void refetchJobs()} />
-          ) : jobsLoading ? (
-            <LoadingSpinner />
-          ) : jobs.length === 0 ? (
+          {jobs.length === 0 ? (
             <EmptyState messageKey="jobs.empty" />
           ) : (
             <JobsTable
@@ -307,7 +228,10 @@ export function JobsPage() {
                 void handleStatusSelect(job, next)
               }}
               onEdit={(job) => setEditingJob(job)}
-              onDelete={(job) => setDeleteTarget(job)}
+              onArchive={(job) => {
+                setArchiveError(null)
+                setArchiveTarget(job)
+              }}
             />
           )}
         </>
@@ -316,7 +240,7 @@ export function JobsPage() {
       <CreateJobPopup
         isOpen={jobPopupOpen}
         onClose={closeJobPopup}
-        onSuccess={handleCreateSuccess}
+        onSuccess={handleMutationSuccess}
         spreadsheetId={spreadsheetId}
         clients={clients}
         initialJob={editingJob}
@@ -324,23 +248,23 @@ export function JobsPage() {
       />
 
       <ConfirmDialog
-        isOpen={!!deleteTarget}
-        title={t('jobs.confirmDeleteTitle')}
-        message={t('jobs.confirmDeleteMessage', {
-          id: deleteTarget?.id ?? '',
+        isOpen={!!archiveTarget}
+        title={t('jobs.archiveConfirmTitle')}
+        message={t('jobs.archiveConfirmMessage', {
+          id: archiveTarget?.id ?? '',
         })}
-        confirmLabel={t('jobs.confirm')}
+        confirmLabel={t('lifecycle.archive')}
         cancelLabel={t('jobs.cancel')}
         onCancel={() => {
-          setDeleteTarget(null)
-          setDeleteError(null)
+          setArchiveTarget(null)
+          setArchiveError(null)
         }}
         onConfirm={() => {
-          void confirmDeleteJob()
+          void confirmArchiveJob()
         }}
       >
-        {deleteError ? (
-          <p className="text-sm text-red-600">{deleteError}</p>
+        {archiveError ? (
+          <p className="text-sm text-red-600">{archiveError}</p>
         ) : null}
       </ConfirmDialog>
 

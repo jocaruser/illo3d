@@ -4,26 +4,14 @@ import { MemoryRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { JobsPage } from './JobsPage'
 import { useShopStore } from '@/stores/shopStore'
-import { useSheetsStore } from '@/stores/sheetsStore'
-import { fetchJobs } from '@/services/sheets/jobs'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { SHEET_HEADERS } from '@/services/sheets/config'
 import { updateJobStatus } from '@/services/job/updateJobStatus'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
-}))
-
-vi.mock('@/services/sheets/connection', () => ({
-  connect: vi.fn().mockResolvedValue({ ok: true, spreadsheetId: 'csv-fixture-happy-path' }),
-}))
-
-vi.mock('@/services/sheets/jobs', () => ({
-  fetchJobs: vi.fn(),
-}))
-
-vi.mock('@/services/sheets/clients', () => ({
-  fetchClients: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock('@/services/job/updateJobStatus', () => ({
@@ -51,26 +39,30 @@ describe('JobsPage', () => {
         folderId: 'happy-path',
         folderName: 'happy-path',
         spreadsheetId: 'csv-fixture-happy-path',
-        metadataVersion: '1.0.0',
+        metadataVersion: '2.0.0',
       },
     })
-    useSheetsStore.setState({
-      status: 'connecting',
-      spreadsheetId: null,
-      errorMessage: null,
-    })
-    vi.mocked(fetchJobs).mockResolvedValue([
-      {
-        id: 'J1',
-        client_id: 'CL1',
-        description: 'Widget',
-        status: 'draft',
-        created_at: '2025-01-01',
+    useWorkbookStore.getState().reset()
+    const clientsMatrix = [
+      [...SHEET_HEADERS.clients],
+      ['CL1', 'Acme', '', '', '', '', '', '', '2025-01-01', '', ''],
+    ]
+    const jobsMatrix = [
+      [...SHEET_HEADERS.jobs],
+      ['J1', 'CL1', 'Widget', 'draft', '', '2025-01-01', '', ''],
+    ]
+    useWorkbookStore.setState({
+      status: 'ready',
+      spreadsheetId: 'csv-fixture-happy-path',
+      error: null,
+      tabs: {
+        clients: clientsMatrix,
+        jobs: jobsMatrix,
       },
-    ])
+    })
   })
 
-  it('shows jobs title and table when data loads', async () => {
+  it('shows jobs title and table when workbook is ready', async () => {
     renderPage()
 
     expect(screen.getByText('jobs.title')).toBeInTheDocument()
@@ -82,7 +74,15 @@ describe('JobsPage', () => {
   })
 
   it('shows empty state when there are no jobs', async () => {
-    vi.mocked(fetchJobs).mockResolvedValue([])
+    useWorkbookStore.setState({
+      tabs: {
+        clients: [
+          [...SHEET_HEADERS.clients],
+          ['CL1', 'Acme', '', '', '', '', '', '', '2025-01-01', '', ''],
+        ],
+        jobs: [[...SHEET_HEADERS.jobs]],
+      },
+    })
 
     renderPage()
 
@@ -92,16 +92,18 @@ describe('JobsPage', () => {
   })
 
   it('asks for confirmation when leaving paid status', async () => {
-    vi.mocked(fetchJobs).mockResolvedValue([
-      {
-        id: 'JX',
-        client_id: 'CL1',
-        description: 'Paid job',
-        status: 'paid',
-        price: 10,
-        created_at: '2025-01-01',
+    useWorkbookStore.setState({
+      tabs: {
+        clients: [
+          [...SHEET_HEADERS.clients],
+          ['CL1', 'Acme', '', '', '', '', '', '', '2025-01-01', '', ''],
+        ],
+        jobs: [
+          [...SHEET_HEADERS.jobs],
+          ['JX', 'CL1', 'Paid job', 'paid', '10', '2025-01-01', '', ''],
+        ],
       },
-    ])
+    })
 
     renderPage()
 

@@ -120,14 +120,17 @@ test.describe('Clients page', () => {
 
     const newName = `Acme E2E ${Date.now()}`
     await page.locator('#client-name').fill(newName)
-    await page.getByRole('button', { name: /save|guardar/i }).click()
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /save|guardar/i })
+      .click()
 
     await expect(page.getByRole('cell', { name: newName })).toBeVisible({
       timeout: 20000,
     })
   })
 
-  test('delete client removes row when no jobs reference client', async ({
+  test('archive client removes row from list', async ({
     page,
     openCsvShop,
   }) => {
@@ -138,11 +141,15 @@ test.describe('Clients page', () => {
     })
 
     const row = page.getByRole('row', { name: /Acme Corp/i })
-    await row.getByRole('button', { name: /delete|eliminar/i }).click()
+    await row
+      .getByRole('button', { name: /archive|archivar|delete|eliminar/i })
+      .click()
 
-    const confirmOverlay = page.locator('div.fixed.inset-0.z-\\[60\\]')
-    await confirmOverlay
-      .getByRole('button', { name: /delete|eliminar/i })
+    await page
+      .getByRole('dialog', {
+        name: /archive client|archivar cliente|delete client|eliminar cliente/i,
+      })
+      .getByRole('button', { name: /archive|archivar|delete|eliminar/i })
       .click()
 
     await expect(page.getByRole('row', { name: /Acme Corp/i })).not.toBeVisible({
@@ -150,7 +157,10 @@ test.describe('Clients page', () => {
     })
   })
 
-  test('delete client blocked when jobs reference client', async ({ page, openCsvShop }) => {
+  test('archive client with jobs removes client from list (cascade)', async ({
+    page,
+    openCsvShop,
+  }) => {
     void openCsvShop
     await page.getByRole('link', { name: 'Clients' }).click()
     await expect(page.getByRole('heading', { name: 'Clients' })).toBeVisible({
@@ -158,17 +168,19 @@ test.describe('Clients page', () => {
     })
 
     const row = page.getByRole('row', { name: /Beta LLC/i })
-    await row.getByRole('button', { name: /delete|eliminar/i }).click()
-
-    const confirmOverlay = page.locator('div.fixed.inset-0.z-\\[60\\]')
-    await confirmOverlay
-      .getByRole('button', { name: /delete|eliminar/i })
+    await row
+      .getByRole('button', { name: /archive|archivar|delete|eliminar/i })
       .click()
 
-    await expect(
-      page.getByText(
-        /cannot be deleted while jobs reference|no se puede eliminar este cliente mientras existan trabajos/i
-      )
-    ).toBeVisible({ timeout: 10000 })
+    await page
+      .getByRole('dialog', {
+        name: /archive client|archivar cliente|delete client|eliminar cliente/i,
+      })
+      .getByRole('button', { name: /archive|archivar|delete|eliminar/i })
+      .click()
+
+    await expect(page.getByRole('row', { name: /Beta LLC/i })).not.toBeVisible({
+      timeout: 20000,
+    })
   })
 })

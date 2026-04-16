@@ -2,15 +2,19 @@ import { useId, useMemo, useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useShopStore } from '@/stores/shopStore'
-import { useClients } from '@/hooks/useClients'
-import { useJobs } from '@/hooks/useJobs'
-import { usePieces } from '@/hooks/usePieces'
-import { useCrmNotes } from '@/hooks/useCrmNotes'
-import { useTransactions } from '@/hooks/useTransactions'
-import { useExpenses } from '@/hooks/useExpenses'
-import { useInventory } from '@/hooks/useInventory'
-import { useTags } from '@/hooks/useTags'
-import { useTagLinks } from '@/hooks/useTagLinks'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import {
+  matrixToClients,
+  matrixToCrmNotes,
+  matrixToExpenses,
+  matrixToInventory,
+  matrixToJobs,
+  matrixToPieces,
+  matrixToTagLinks,
+  matrixToTags,
+  matrixToTransactions,
+} from '@/lib/workbook/workbookEntities'
+import { excludeArchivedDeleted } from '@/lib/globalSearch/activeEntities'
 import { buildGlobalSearchRows } from '@/lib/globalSearch/buildRows'
 import { selectGlobalSearchResults } from '@/lib/globalSearch/selectResults'
 import type { GlobalSearchHit } from '@/lib/globalSearch/types'
@@ -23,15 +27,33 @@ export function GlobalHeaderSearch() {
   const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const spreadsheetId = useShopStore((s) => s.activeShop?.spreadsheetId ?? null)
-  const { data: clients = [] } = useClients(spreadsheetId)
-  const { data: jobs = [] } = useJobs(spreadsheetId)
-  const { data: pieces = [] } = usePieces(spreadsheetId)
-  const { data: crmNotes = [] } = useCrmNotes(spreadsheetId)
-  const { data: transactions = [] } = useTransactions(spreadsheetId)
-  const { data: expenses = [] } = useExpenses(spreadsheetId)
-  const { data: inventory = [] } = useInventory(spreadsheetId)
-  const { data: tags = [] } = useTags(spreadsheetId)
-  const { data: tagLinks = [] } = useTagLinks(spreadsheetId)
+  const workbookReady = useWorkbookStore((s) => s.status === 'ready')
+  const tabs = useWorkbookStore((s) => s.tabs)
+
+  const {
+    clients,
+    jobs,
+    pieces,
+    crmNotes,
+    transactions,
+    expenses,
+    inventory,
+    tags,
+    tagLinks,
+  } = useMemo(
+    () => ({
+      clients: excludeArchivedDeleted(matrixToClients(tabs.clients)),
+      jobs: excludeArchivedDeleted(matrixToJobs(tabs.jobs)),
+      pieces: excludeArchivedDeleted(matrixToPieces(tabs.pieces)),
+      crmNotes: excludeArchivedDeleted(matrixToCrmNotes(tabs.crm_notes)),
+      transactions: excludeArchivedDeleted(matrixToTransactions(tabs.transactions)),
+      expenses: excludeArchivedDeleted(matrixToExpenses(tabs.expenses)),
+      inventory: excludeArchivedDeleted(matrixToInventory(tabs.inventory)),
+      tags: excludeArchivedDeleted(matrixToTags(tabs.tags)),
+      tagLinks: excludeArchivedDeleted(matrixToTagLinks(tabs.tag_links)),
+    }),
+    [tabs],
+  )
 
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
@@ -102,7 +124,7 @@ export function GlobalHeaderSearch() {
     }
   }
 
-  if (!spreadsheetId) {
+  if (!spreadsheetId || !workbookReady) {
     return null
   }
 

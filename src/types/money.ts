@@ -58,6 +58,8 @@ export interface CrmNote {
   referenced_entity_ids: string
   severity: ClientNoteSeverity
   created_at: string
+  archived?: string
+  deleted?: string
 }
 
 export interface Client {
@@ -70,6 +72,8 @@ export interface Client {
   lead_source?: string
   address?: string
   created_at: string
+  archived?: string
+  deleted?: string
 }
 
 export type TagEntityType = 'client' | 'job'
@@ -78,6 +82,8 @@ export interface Tag {
   id: string
   name: string
   created_at: string
+  archived?: string
+  deleted?: string
 }
 
 export interface TagLink {
@@ -86,6 +92,8 @@ export interface TagLink {
   entity_type: TagEntityType
   entity_id: string
   created_at: string
+  archived?: string
+  deleted?: string
 }
 
 export interface Job {
@@ -95,6 +103,8 @@ export interface Job {
   status: JobStatus
   price?: number
   created_at: string
+  archived?: string
+  deleted?: string
 }
 
 export interface Piece {
@@ -103,6 +113,8 @@ export interface Piece {
   name: string
   status: PieceStatus
   created_at: string
+  archived?: string
+  deleted?: string
 }
 
 export interface PieceItem {
@@ -110,6 +122,8 @@ export interface PieceItem {
   piece_id: string
   inventory_id: string
   quantity: number
+  archived?: string
+  deleted?: string
 }
 
 export interface Inventory {
@@ -120,6 +134,8 @@ export interface Inventory {
   qty_initial: number
   qty_current: number
   created_at: string
+  archived?: string
+  deleted?: string
 }
 
 export interface Expense {
@@ -128,6 +144,8 @@ export interface Expense {
   category: ExpenseCategory
   amount: number
   notes?: string
+  archived?: string
+  deleted?: string
 }
 
 export interface Transaction {
@@ -141,4 +159,6 @@ export interface Transaction {
   ref_id: string
   client_id?: string
   notes?: string
+  archived?: string
+  deleted?: string
 }

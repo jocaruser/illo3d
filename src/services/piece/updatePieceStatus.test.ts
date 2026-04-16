@@ -1,16 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { updatePieceStatus } from './updatePieceStatus'
 import type { Inventory, Piece, PieceItem } from '@/types/money'
-
-const mockUpdateRow = vi.fn()
-const mockReadRows = vi.fn()
-
-vi.mock('@/services/sheets/repository', () => ({
-  getSheetsRepository: () => ({
-    readRows: mockReadRows,
-    updateRow: mockUpdateRow,
-  }),
-}))
+import { matrixToInventory, matrixToPieces } from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { matrixWithRows, resetAndSeedWorkbook } from '@/test/workbookHarness'
 
 const basePiece: Piece = {
   id: 'P1',
@@ -30,7 +23,7 @@ const inv1: Inventory = {
   created_at: '2025-01-02T00:00:00.000Z',
 }
 
-function mockSheetsState(opts: {
+function seedPieceFixture(opts: {
   piece?: Piece
   lines?: PieceItem[]
   inventory?: Inventory[]
@@ -38,22 +31,48 @@ function mockSheetsState(opts: {
   const piece = opts.piece ?? basePiece
   const lines = opts.lines ?? []
   const inventory = opts.inventory ?? [inv1]
-  mockReadRows.mockImplementation((_id: string, sheet: string) => {
-    if (sheet === 'pieces') return Promise.resolve([piece])
-    if (sheet === 'piece_items') return Promise.resolve(lines)
-    if (sheet === 'inventory') return Promise.resolve(inventory)
-    return Promise.resolve([])
+
+  resetAndSeedWorkbook({
+    pieces: matrixWithRows('pieces', [
+      {
+        id: piece.id,
+        job_id: piece.job_id,
+        name: piece.name,
+        status: piece.status,
+        created_at: piece.created_at,
+      },
+    ]),
+    piece_items: matrixWithRows(
+      'piece_items',
+      lines.map((l) => ({
+        id: l.id,
+        piece_id: l.piece_id,
+        inventory_id: l.inventory_id,
+        quantity: l.quantity,
+      })),
+    ),
+    inventory: matrixWithRows(
+      'inventory',
+      inventory.map((i) => ({
+        id: i.id,
+        expense_id: i.expense_id,
+        type: i.type,
+        name: i.name,
+        qty_initial: i.qty_initial,
+        qty_current: i.qty_current,
+        created_at: i.created_at,
+      })),
+    ),
   })
 }
 
 describe('updatePieceStatus', () => {
   beforeEach(() => {
-    mockUpdateRow.mockReset()
-    mockReadRows.mockReset()
+    useWorkbookStore.getState().reset()
   })
 
   it('decrements inventory and updates piece when marking done with decrement', async () => {
-    mockSheetsState({
+    seedPieceFixture({
       lines: [
         {
           id: 'PI1',
@@ -70,23 +89,18 @@ describe('updatePieceStatus', () => {
     })
 
     expect(result).toEqual({ ok: true })
-    expect(mockUpdateRow).toHaveBeenCalledWith(
-      's1',
-      'inventory',
-      1,
-      expect.objectContaining({ id: 'INV1', qty_current: 60 })
-    )
-    expect(mockUpdateRow).toHaveBeenCalledWith(
-      's1',
-      'pieces',
-      1,
-      expect.objectContaining({ id: 'P1', status: 'done' })
+    expect(
+      matrixToInventory(useWorkbookStore.getState().tabs.inventory)[0]
+        ?.qty_current,
+    ).toBe(60)
+    expect(matrixToPieces(useWorkbookStore.getState().tabs.pieces)[0]?.status).toBe(
+      'done',
     )
   })
 
   it('restores inventory when reverting done to pending with restore', async () => {
     const donePiece: Piece = { ...basePiece, status: 'done' }
-    mockSheetsState({
+    seedPieceFixture({
       piece: donePiece,
       lines: [
         {
@@ -104,22 +118,17 @@ describe('updatePieceStatus', () => {
     })
 
     expect(result).toEqual({ ok: true })
-    expect(mockUpdateRow).toHaveBeenCalledWith(
-      's1',
-      'inventory',
-      1,
-      expect.objectContaining({ id: 'INV1', qty_current: 100 })
-    )
-    expect(mockUpdateRow).toHaveBeenCalledWith(
-      's1',
-      'pieces',
-      1,
-      expect.objectContaining({ id: 'P1', status: 'pending' })
+    expect(
+      matrixToInventory(useWorkbookStore.getState().tabs.inventory)[0]
+        ?.qty_current,
+    ).toBe(100)
+    expect(matrixToPieces(useWorkbookStore.getState().tabs.pieces)[0]?.status).toBe(
+      'pending',
     )
   })
 
   it('returns insufficient_stock when decrement requested but stock too low', async () => {
-    mockSheetsState({
+    seedPieceFixture({
       lines: [
         {
           id: 'PI1',
@@ -140,11 +149,13 @@ describe('updatePieceStatus', () => {
       reason: 'insufficient_stock',
       lots: [{ inventoryId: 'INV1', need: 150, have: 100 }],
     })
-    expect(mockUpdateRow).not.toHaveBeenCalled()
+    expect(
+      matrixToPieces(useWorkbookStore.getState().tabs.pieces)[0]?.status,
+    ).toBe('pending')
   })
 
   it('updates piece only when decrement is skipped', async () => {
-    mockSheetsState({
+    seedPieceFixture({
       lines: [
         {
           id: 'PI1',
@@ -160,18 +171,18 @@ describe('updatePieceStatus', () => {
     })
 
     expect(result).toEqual({ ok: true })
-    expect(mockUpdateRow).toHaveBeenCalledTimes(1)
-    expect(mockUpdateRow).toHaveBeenCalledWith(
-      's1',
-      'pieces',
-      1,
-      expect.objectContaining({ status: 'done' })
+    expect(
+      matrixToInventory(useWorkbookStore.getState().tabs.inventory)[0]
+        ?.qty_current,
+    ).toBe(100)
+    expect(matrixToPieces(useWorkbookStore.getState().tabs.pieces)[0]?.status).toBe(
+      'done',
     )
   })
 
   it('updates piece only when restore is skipped', async () => {
     const donePiece: Piece = { ...basePiece, status: 'done' }
-    mockSheetsState({
+    seedPieceFixture({
       piece: donePiece,
       lines: [
         {
@@ -188,37 +199,34 @@ describe('updatePieceStatus', () => {
     })
 
     expect(result).toEqual({ ok: true })
-    expect(mockUpdateRow).toHaveBeenCalledTimes(1)
-    expect(mockUpdateRow).toHaveBeenCalledWith(
-      's1',
-      'pieces',
-      1,
-      expect.objectContaining({ status: 'pending' })
+    expect(
+      matrixToInventory(useWorkbookStore.getState().tabs.inventory)[0]
+        ?.qty_current,
+    ).toBe(100)
+    expect(matrixToPieces(useWorkbookStore.getState().tabs.pieces)[0]?.status).toBe(
+      'pending',
     )
   })
 
   it('throws when piece is not found', async () => {
-    mockReadRows.mockImplementation((_id: string, sheet: string) => {
-      if (sheet === 'pieces') return Promise.resolve([])
-      return Promise.resolve([])
-    })
+    resetAndSeedWorkbook({})
 
     await expect(
-      updatePieceStatus('s1', basePiece, 'done', { decrementInventory: false })
+      updatePieceStatus('s1', basePiece, 'done', { decrementInventory: false }),
     ).rejects.toThrow('Piece P1 not found')
   })
 
   it('throws when decrement requested with no lines', async () => {
-    mockSheetsState({ lines: [] })
+    seedPieceFixture({ lines: [] })
 
     await expect(
-      updatePieceStatus('s1', basePiece, 'done', { decrementInventory: true })
+      updatePieceStatus('s1', basePiece, 'done', { decrementInventory: true }),
     ).rejects.toThrow('no material lines')
   })
 
   it('reclassifies failed to done without touching inventory', async () => {
     const failedPiece: Piece = { ...basePiece, status: 'failed' }
-    mockSheetsState({
+    seedPieceFixture({
       piece: failedPiece,
       lines: [
         {
@@ -235,12 +243,12 @@ describe('updatePieceStatus', () => {
     })
 
     expect(result).toEqual({ ok: true })
-    expect(mockUpdateRow).toHaveBeenCalledTimes(1)
-    expect(mockUpdateRow).toHaveBeenCalledWith(
-      's1',
-      'pieces',
-      1,
-      expect.objectContaining({ status: 'done' })
+    expect(
+      matrixToInventory(useWorkbookStore.getState().tabs.inventory)[0]
+        ?.qty_current,
+    ).toBe(100)
+    expect(matrixToPieces(useWorkbookStore.getState().tabs.pieces)[0]?.status).toBe(
+      'done',
     )
   })
 })

@@ -1,76 +1,72 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { deleteCrmNotesForEntity } from './deleteCrmNotesForEntity'
-
-const mockDeleteRow = vi.fn()
-const mockReadRows = vi.fn()
-
-vi.mock('@/services/sheets/repository', () => ({
-  getSheetsRepository: () => ({
-    readRows: mockReadRows,
-    deleteRow: mockDeleteRow,
-  }),
-}))
+import { matrixToCrmNotes } from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { matrixWithRows, resetAndSeedWorkbook } from '@/test/workbookHarness'
 
 describe('deleteCrmNotesForEntity', () => {
   beforeEach(() => {
-    mockDeleteRow.mockReset()
-    mockReadRows.mockReset()
+    useWorkbookStore.getState().reset()
   })
 
   it('deletes matching rows in reverse index order', async () => {
-    mockReadRows.mockResolvedValue([
-      {
-        id: 'CN1',
-        entity_type: 'client',
-        entity_id: 'CL1',
-        body: 'a',
-        referenced_entity_ids: '',
-        severity: 'info',
-        created_at: '',
-      },
-      {
-        id: 'CN2',
-        entity_type: 'client',
-        entity_id: 'CL1',
-        body: 'b',
-        referenced_entity_ids: '',
-        severity: 'info',
-        created_at: '',
-      },
-      {
-        id: 'JN1',
-        entity_type: 'job',
-        entity_id: 'J1',
-        body: 'j',
-        referenced_entity_ids: '',
-        severity: 'info',
-        created_at: '',
-      },
-    ])
+    resetAndSeedWorkbook({
+      crm_notes: matrixWithRows('crm_notes', [
+        {
+          id: 'CN1',
+          entity_type: 'client',
+          entity_id: 'CL1',
+          body: 'a',
+          referenced_entity_ids: '',
+          severity: 'info',
+          created_at: '2025-01-01',
+        },
+        {
+          id: 'CN2',
+          entity_type: 'client',
+          entity_id: 'CL1',
+          body: 'b',
+          referenced_entity_ids: '',
+          severity: 'info',
+          created_at: '2025-01-02',
+        },
+        {
+          id: 'JN1',
+          entity_type: 'job',
+          entity_id: 'J1',
+          body: 'j',
+          referenced_entity_ids: '',
+          severity: 'info',
+          created_at: '2025-01-01',
+        },
+      ]),
+    })
 
     await deleteCrmNotesForEntity('s1', 'client', 'CL1')
 
-    expect(mockDeleteRow.mock.calls).toEqual([
-      ['s1', 'crm_notes', 2],
-      ['s1', 'crm_notes', 1],
-    ])
+    const notes = matrixToCrmNotes(useWorkbookStore.getState().tabs.crm_notes)
+    expect(notes.map((n) => n.id).sort()).toEqual(['JN1'])
   })
 
   it('matches unknown future entity_type strings', async () => {
-    mockReadRows.mockResolvedValue([
-      {
-        id: 'N1',
-        entity_type: 'workspace',
-        entity_id: 'W1',
-        body: '',
-        referenced_entity_ids: '',
-        severity: 'info',
-        created_at: '',
-      },
-    ])
+    resetAndSeedWorkbook({
+      crm_notes: matrixWithRows('crm_notes', [
+        {
+          id: 'N1',
+          entity_type: 'workspace',
+          entity_id: 'W1',
+          body: '',
+          referenced_entity_ids: '',
+          severity: 'info',
+          created_at: '2025-01-01',
+        },
+      ]),
+    })
 
     await deleteCrmNotesForEntity('s1', 'workspace', 'W1')
 
-    expect(mockDeleteRow).toHaveBeenCalledWith('s1', 'crm_notes', 1)
+    expect(
+      matrixToCrmNotes(useWorkbookStore.getState().tabs.crm_notes),
+    ).toHaveLength(0)
   })
 })

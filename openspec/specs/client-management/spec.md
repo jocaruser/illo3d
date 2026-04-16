@@ -2,55 +2,58 @@
 
 ## Purpose
 
-In-app listing, creation, editing, and deletion of clients: dedicated `/clients` route, table backed by the clients sheet with per-row edit and delete actions, modal form to append and update clients, `createClient`, `updateClient`, and `deleteClient` services, header navigation, and i18n for all clients UI strings.
+In-app listing, creation, editing, and archiving of clients: dedicated `/clients` route, table backed by the workbook store with per-row edit and archive actions, modal form to create and update clients in memory, `createClient`, `updateClient`, and `deleteClient` (archive/cascade) services, header navigation, and i18n for all clients UI strings.
 
 ## Requirements
 
-### Requirement: Clients page displays client table
+### Requirement: Clients table displays active clients
 
-The system SHALL provide a `/clients` route that displays a table of all clients from the clients sheet. The table SHALL show: name, email, phone, notes, created_at, and per-row actions to edit and delete the client. The **name** column SHALL render each client’s name as the visible text of a link to `/clients/:clientId` for that client’s id.
+The system SHALL provide a `/clients` route that displays a table of all **active** clients (where `archived` is not `"true"` and `deleted` is not `"true"`) from the workbook store. The table SHALL show: name, email, phone, notes, created_at, and per-row actions to edit and **archive** the client. The **name** column SHALL render each client's name as the visible text of a link to `/clients/:clientId`.
 
-#### Scenario: Clients table renders with data
+#### Scenario: Table shows only active clients
+
+- **WHEN** authenticated user visits `/clients`
+- **THEN** the table shows clients where `archived` and `deleted` are both empty/false
+- **AND** archived or soft-deleted clients are not shown
+
+#### Scenario: Each row has Edit and Archive actions
+
+- **WHEN** the clients table renders
+- **THEN** each row includes Edit and Archive actions (not Delete)
+
+#### Scenario: Empty state shown when no active clients
 
 - **WHEN** authenticated user navigates to `/clients`
-- **AND** clients exist in the sheet
-- **THEN** table displays all clients with name, email, phone, notes, and created_at columns
-- **AND** each row includes Edit and Delete actions
-
-#### Scenario: Empty state shown when no clients
-
-- **WHEN** authenticated user navigates to `/clients`
-- **AND** no clients exist in the sheet
+- **AND** no active clients exist in the workbook store
 - **THEN** table shows empty state message
-
-#### Scenario: Edit and delete actions are visible
-
-- **WHEN** user views the clients table and at least one client exists
-- **THEN** Edit and Delete controls are visible for each row
 
 #### Scenario: Client name links to detail
 
 - **WHEN** the table displays a client with id "CL1" and name "Acme"
 - **THEN** the name cell shows "Acme" as the label of a link to `/clients/CL1`
 
-### Requirement: Clients page shows connection status
+### Requirement: Client detail embedded jobs table shows all children including archived
 
-The system SHALL display the sheets connection status on the clients page. The page SHALL connect to the spreadsheet on mount and show connecting, connected, or error states using the same `ConnectionStatus` component as other pages.
+The client detail page's embedded jobs table SHALL show **all jobs** for that client, regardless of lifecycle state. Active jobs render normally with full actions. Archived jobs render with **strikethrough styling** and offer only **Un-archive** (no Edit). Soft-deleted jobs render with strikethrough and display **"Deleted entity"** (i18n) as the name. This embedded table is the place where the user can see and manage the full history of a client's jobs.
 
-#### Scenario: Connection status while connecting
+#### Scenario: Archived job visible in client detail jobs table
 
-- **WHEN** the clients page loads
-- **THEN** the connection status indicator is visible while connecting
+- **WHEN** a client has an archived job
+- **AND** the user views the client detail page
+- **THEN** the archived job appears in the jobs table with strikethrough styling
+- **AND** Un-archive action is available, Edit is not
 
-#### Scenario: Table shown after connected
+#### Scenario: Soft-deleted job visible in client detail jobs table
 
-- **WHEN** connection succeeds
-- **THEN** the clients table (or empty state) is displayed
+- **WHEN** a client has a soft-deleted job
+- **AND** the user views the client detail page
+- **THEN** the soft-deleted job appears with strikethrough styling and "Deleted entity" label
 
-#### Scenario: Error with retry on connection failure
+#### Scenario: Active job renders normally in client detail jobs table
 
-- **WHEN** connection fails
-- **THEN** an error message with retry option is displayed
+- **WHEN** a client has an active job
+- **AND** the user views the client detail page
+- **THEN** the active job appears normally with Edit and Archive actions
 
 ### Requirement: CreateClientPopup is a reusable modal form
 
@@ -73,22 +76,22 @@ The system SHALL provide a CreateClientPopup component that renders a modal with
 - **THEN** a validation error is shown
 - **AND** no client is created
 
-#### Scenario: Successful submission creates client and refreshes table
+#### Scenario: Successful submission creates client in memory
 
 - **WHEN** user fills in a valid name and submits in create mode
-- **THEN** a client record is appended to the clients sheet
+- **THEN** a client record is added to the workbook store
 - **AND** the popup closes
-- **AND** the clients table refreshes to show the new client
+- **AND** the clients table shows the new client without a repository write
 
 #### Scenario: Edit mode opens with prefilled values
 
 - **WHEN** user opens the popup from Edit on a client row
 - **THEN** name, email, phone, notes, preferred_contact, lead_source, and address are prefilled from that client
 
-#### Scenario: Successful edit updates client and refreshes table
+#### Scenario: Successful edit updates client in memory
 
 - **WHEN** user changes fields and submits in edit mode
-- **THEN** the corresponding row in the clients sheet is updated
+- **THEN** the corresponding row in the workbook store is updated
 - **AND** the popup closes
 - **AND** the clients table reflects the updated values
 
@@ -98,7 +101,7 @@ The system SHALL display an "Add client" button on the `/clients` page. Clicking
 
 #### Scenario: Button visible on clients page
 
-- **WHEN** user views `/clients` and connection is established
+- **WHEN** user views `/clients` and the workbook store is ready
 - **THEN** "Add client" button is visible
 
 #### Scenario: Button opens popup
@@ -106,71 +109,58 @@ The system SHALL display an "Add client" button on the `/clients` page. Clicking
 - **WHEN** user clicks "Add client"
 - **THEN** CreateClientPopup opens
 
-### Requirement: createClient service appends client row
+### Requirement: createClient service operates in memory
 
-The system SHALL provide a `createClient` service that appends a row to the clients sheet via the SheetsRepository. The service SHALL generate an auto-incrementing ID with "CL" prefix (CL1, CL2, ...) and set `created_at` to the current ISO date. The row SHALL include nullable fields preferred_contact, lead_source, and address as empty strings when omitted.
+The `createClient` service SHALL generate an auto-incrementing ID with "CL" prefix from the in-memory clients array, add the new row to the workbook store, and set the dirty flag. It SHALL NOT call `SheetsRepository.readRows` or `appendRows`.
 
-#### Scenario: Client row appended with generated ID
+#### Scenario: Client created in memory
 
-- **WHEN** createClient is called with name and optional CRM fields
-- **THEN** a row is appended to the clients sheet with a "CL"-prefixed ID and current date as created_at
+- **WHEN** the user creates a new client via the form
+- **THEN** the client row is added to the workbook store
+- **AND** the dirty flag is set
+- **AND** no backend call occurs
 
 #### Scenario: ID increments based on existing clients
 
-- **WHEN** clients CL1 and CL2 already exist
+- **WHEN** clients CL1 and CL2 already exist in the store
 - **AND** createClient is called
 - **THEN** the new client gets ID CL3
 
-### Requirement: Client delete uses confirmation dialog
+### Requirement: Client archive uses confirmation dialog
 
-The system SHALL require confirmation before deleting a client. The UI SHALL use the existing ConfirmDialog pattern. On confirm, the system SHALL call `deleteClient`; on cancel, no data change occurs.
+The system SHALL require confirmation before archiving a client. The UI SHALL use the existing ConfirmDialog pattern. On confirm, the system SHALL set the client's `archived` flag to `"true"` in the workbook store and cascade archive to the client's jobs and their children. On cancel, no change occurs.
 
-#### Scenario: Delete prompts for confirmation
+#### Scenario: Archive prompts for confirmation
 
-- **WHEN** user clicks Delete on a client row
-- **THEN** a confirmation dialog is shown with the client name or identifier
+- **WHEN** user clicks Archive on a client row
+- **THEN** a confirmation dialog appears warning about archiving
 
-#### Scenario: Cancel leaves data unchanged
+#### Scenario: Archive cascades to jobs
 
-- **WHEN** user cancels the delete confirmation
-- **THEN** the client row remains in the sheet and table
+- **WHEN** user confirms archiving a client
+- **THEN** the client is archived in the workbook store
+- **AND** all jobs for that client are archived
+- **AND** each job's children (pieces, piece_items, notes, tag_links) are archived
 
-### Requirement: deleteClient refuses when jobs reference the client
+### Requirement: updateClient service operates in memory
 
-The system SHALL NOT delete a client if any job row has `client_id` equal to that client’s id. The service SHALL fail with an error suitable for display; no sheet rows are removed.
+The `updateClient` service SHALL find the client row by ID in the workbook store, update its fields, and set the dirty flag. It SHALL NOT call `SheetsRepository.readRows` or `updateRow`.
 
-#### Scenario: Delete blocked when jobs exist
+#### Scenario: Client updated in memory
 
-- **WHEN** deleteClient is called for a client id that is referenced by at least one job
-- **THEN** the operation fails without deleting the client row
+- **WHEN** the user edits and saves a client
+- **THEN** the client row is updated in the workbook store
+- **AND** the dirty flag is set
+- **AND** no backend call occurs
 
-#### Scenario: Delete allowed when no jobs reference client
+### Requirement: Client table reflects store updates immediately
 
-- **WHEN** deleteClient is called for a client id not referenced by any job
-- **THEN** that client row is removed from the clients sheet
+The clients table UI SHALL reflect edits as soon as the in-memory `updateClient` completes successfully.
 
-#### Scenario: Delete removes client-scoped CRM notes
-
-- **WHEN** deleteClient succeeds for a client that has `crm_notes` rows with `entity_type` `client` and matching `entity_id`
-- **THEN** those `crm_notes` rows are removed before the client row is deleted
-
-### Requirement: updateClient service updates client row
-
-The system SHALL provide an `updateClient` service that writes changes to the existing clients row via `SheetsRepository.updateRow`. The service SHALL preserve `id` and `created_at`; it SHALL update name, email, phone, notes, preferred_contact, lead_source, and address from the payload.
-
-#### Scenario: Client row updated in sheet
-
-- **WHEN** updateClient is called with spreadsheet id, client id, and field values
-- **THEN** the row for that client id is overwritten with the new values and original id and created_at
-
-### Requirement: Optimistic update for client edit
-
-The clients table UI SHALL apply an optimistic update when an edit save succeeds locally before the server round-trip completes, and SHALL reconcile on error (e.g. invalidate queries or restore prior data).
-
-#### Scenario: Table updates optimistically on edit
+#### Scenario: Table shows edited values after save
 
 - **WHEN** user saves an edit and the update succeeds
-- **THEN** the table shows the edited values without requiring a full refetch for correctness
+- **THEN** the table shows the edited values from the workbook store
 
 ### Requirement: Clients navigation link in header
 
@@ -210,9 +200,9 @@ All user-facing strings on the clients page (table headers, button labels, empty
 - **WHEN** empty state is shown
 - **THEN** message comes from i18n keys
 
-#### Scenario: Edit, delete, and confirmation strings are translatable
+#### Scenario: Edit, archive, and confirmation strings are translatable
 
-- **WHEN** clients table shows Edit and Delete actions or a delete confirmation dialog
+- **WHEN** clients table shows Edit and Archive actions or an archive confirmation dialog
 - **THEN** action labels and confirmation copy use i18n keys
 
 ### Requirement: Clients list shows linked tags in an instant tooltip

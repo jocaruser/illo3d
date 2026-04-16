@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   BrowserRouter,
   Routes,
@@ -9,8 +9,9 @@ import {
   useLocation,
 } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useQueryClient } from '@tanstack/react-query'
+import { matrixToClients, matrixToJobs } from '@/lib/workbook/workbookEntities'
 import { AuthStatus } from './components/AuthStatus'
+import { ConfirmDialog } from './components/ConfirmDialog'
 import { GlobalHeaderSearch } from './components/GlobalHeaderSearch'
 import { Breadcrumbs } from './components/Breadcrumbs'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -26,7 +27,8 @@ import { JobDetailPage } from './pages/JobDetailPage'
 import { ClientDetailPage } from './pages/ClientDetailPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
-import type { Client, Job } from './types/money'
+import { useWorkbookStore } from './stores/workbookStore'
+import { getSheetsRepository } from '@/services/sheets/repository'
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {
   return isActive
@@ -37,27 +39,16 @@ function navLinkClassName({ isActive }: { isActive: boolean }) {
 export function Layout({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation()
   const location = useLocation()
-  const queryClient = useQueryClient()
   const [menuOpen, setMenuOpen] = useState(false)
 
   const resolveJobDescription = (jobId: string): string | undefined => {
-    const queries = queryClient.getQueriesData<Job[]>({ queryKey: ['jobs'] })
-    for (const [, data] of queries) {
-      const job = data?.find((j) => j.id === jobId)
-      if (job) return job.description
-    }
-    return undefined
+    const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
+    return jobs.find((j) => j.id === jobId)?.description
   }
 
   const resolveClientName = (clientId: string): string | undefined => {
-    const queries = queryClient.getQueriesData<Client[]>({
-      queryKey: ['clients'],
-    })
-    for (const [, data] of queries) {
-      const client = data?.find((c) => c.id === clientId)
-      if (client) return client.name
-    }
-    return undefined
+    const clients = matrixToClients(useWorkbookStore.getState().tabs.clients)
+    return clients.find((c) => c.id === clientId)?.name
   }
 
   const breadcrumbItems = getBreadcrumbItems(
@@ -70,6 +61,89 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const activeShop = useShopStore((s) => s.activeShop)
   const logout = useAuthStore((s) => s.logout)
   const clearActiveShop = useShopStore((s) => s.clearActiveShop)
+  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
+  const refreshWorkbook = useWorkbookStore((s) => s.refresh)
+  const saveWorkbook = useWorkbookStore((s) => s.save)
+  const resetWorkbook = useWorkbookStore((s) => s.reset)
+  const workbookStatus = useWorkbookStore((s) => s.status)
+  const workbookError = useWorkbookStore((s) => s.error)
+  const workbookDirty = useWorkbookStore((s) => s.dirty)
+
+  const [refreshConfirmOpen, setRefreshConfirmOpen] = useState(false)
+  const [saveBusy, setSaveBusy] = useState(false)
+  const [saveFeedback, setSaveFeedback] = useState<
+    null | { kind: 'success' } | { kind: 'error'; message: string }
+  >(null)
+
+  useEffect(() => {
+    const spreadsheetId = activeShop?.spreadsheetId
+    if (!spreadsheetId) {
+      resetWorkbook()
+      return
+    }
+    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
+  }, [activeShop?.spreadsheetId, hydrateWorkbook, resetWorkbook])
+
+  useEffect(() => {
+    if (!workbookDirty) return
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [workbookDirty])
+
+  useEffect(() => {
+    if (saveFeedback?.kind !== 'success') return
+    const id = window.setTimeout(() => setSaveFeedback(null), 2800)
+    return () => window.clearTimeout(id)
+  }, [saveFeedback])
+
+  const runRefresh = () => {
+    void refreshWorkbook(getSheetsRepository())
+  }
+
+  const onRefreshClick = () => {
+    if (workbookStatus === 'loading' || saveBusy) return
+    if (workbookDirty) {
+      setRefreshConfirmOpen(true)
+      return
+    }
+    runRefresh()
+  }
+
+  const confirmRefreshDiscard = () => {
+    setRefreshConfirmOpen(false)
+    runRefresh()
+  }
+
+  const onSaveClick = async () => {
+    if (workbookStatus !== 'ready' || saveBusy || !workbookDirty) return
+    setSaveFeedback(null)
+    setSaveBusy(true)
+    try {
+      await saveWorkbook(getSheetsRepository())
+      setSaveFeedback({ kind: 'success' })
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      setSaveFeedback({ kind: 'error', message })
+    } finally {
+      setSaveBusy(false)
+    }
+  }
+
+  const workbookActionsVisible = Boolean(isAuthenticated && activeShop)
+  const refreshDisabled =
+    workbookStatus === 'loading' ||
+    saveBusy ||
+    workbookStatus === 'idle' ||
+    !activeShop?.spreadsheetId
+  const saveDisabled =
+    workbookStatus !== 'ready' ||
+    saveBusy ||
+    !workbookDirty ||
+    !activeShop?.spreadsheetId
 
   const handleWizardCancel = () => {
     clearActiveShop()
@@ -107,7 +181,29 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </Link>
               <nav className="hidden gap-6 md:flex">{navLinks}</nav>
             </div>
-            <div className="flex shrink-0 items-center gap-4">
+            <div className="flex shrink-0 items-center gap-2 md:gap-4">
+              {workbookActionsVisible ? (
+                <div className="hidden items-center gap-2 sm:flex">
+                  <button
+                    type="button"
+                    data-testid="workbook-refresh"
+                    disabled={refreshDisabled}
+                    onClick={onRefreshClick}
+                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {t('workbook.refresh')}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="workbook-save"
+                    disabled={saveDisabled}
+                    onClick={() => void onSaveClick()}
+                    className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {saveBusy ? t('workbook.saving') : t('workbook.save')}
+                  </button>
+                </div>
+              ) : null}
               <AuthStatus />
               <button
                 type="button"
@@ -132,7 +228,64 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           {isAuthenticated && activeShop ? (
-            <div className="mt-3 w-full md:max-w-xl">
+            <div className="mt-3 w-full md:max-w-xl space-y-2">
+              {workbookActionsVisible ? (
+                <div className="flex flex-wrap items-center gap-2 sm:hidden">
+                  <button
+                    type="button"
+                    data-testid="workbook-refresh-mobile"
+                    disabled={refreshDisabled}
+                    onClick={onRefreshClick}
+                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {t('workbook.refresh')}
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="workbook-save-mobile"
+                    disabled={saveDisabled}
+                    onClick={() => void onSaveClick()}
+                    className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  >
+                    {saveBusy ? t('workbook.saving') : t('workbook.save')}
+                  </button>
+                </div>
+              ) : null}
+              {saveFeedback?.kind === 'success' ? (
+                <p className="text-sm text-green-800" role="status">
+                  {t('workbook.saveSuccess')}
+                </p>
+              ) : null}
+              {saveFeedback?.kind === 'error' ? (
+                <p className="text-sm text-red-700" role="alert">
+                  {t('workbook.saveError')}
+                  {saveFeedback.message ? `: ${saveFeedback.message}` : ''}
+                </p>
+              ) : null}
+              {workbookStatus === 'loading' ? (
+                <p className="text-sm text-gray-600" role="status">
+                  {t('workbook.loading')}
+                </p>
+              ) : null}
+              {workbookStatus === 'error' && workbookError ? (
+                <div className="flex flex-wrap items-center gap-2 text-sm text-red-700">
+                  <span>{t('workbook.loadFailed')}</span>
+                  <button
+                    type="button"
+                    className="rounded border border-red-300 px-2 py-0.5 font-medium hover:bg-red-50"
+                    onClick={() => {
+                      if (activeShop?.spreadsheetId) {
+                        void hydrateWorkbook(
+                          getSheetsRepository(),
+                          activeShop.spreadsheetId
+                        )
+                      }
+                    }}
+                  >
+                    {t('workbook.retry')}
+                  </button>
+                </div>
+              ) : null}
               <GlobalHeaderSearch />
             </div>
           ) : null}
@@ -157,6 +310,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
           onOpenComplete={() => {}}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={refreshConfirmOpen}
+        title={t('workbook.discardTitle')}
+        message={t('workbook.discardMessage')}
+        confirmLabel={t('workbook.discardConfirm')}
+        cancelLabel={t('workbook.cancel')}
+        onConfirm={confirmRefreshDiscard}
+        onCancel={() => setRefreshConfirmOpen(false)}
+      />
     </div>
   )
 }

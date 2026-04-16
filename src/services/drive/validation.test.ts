@@ -36,7 +36,7 @@ describe('validateShopFolder', () => {
   it('returns version error when major version differs', async () => {
     mockReadMetadata.mockResolvedValue({
       app: 'illo3d',
-      version: '2.0.0',
+      version: '1.0.0',
       spreadsheetId: 'sheet-1',
       createdAt: '2026-01-01',
       createdBy: 'user@example.com',
@@ -51,7 +51,7 @@ describe('validateShopFolder', () => {
   it('returns permissions error when structure validation fails', async () => {
     mockReadMetadata.mockResolvedValue({
       app: 'illo3d',
-      version: '1.0.0',
+      version: '2.0.0',
       spreadsheetId: 'sheet-1',
       createdAt: '2026-01-01',
       createdBy: 'user@example.com',

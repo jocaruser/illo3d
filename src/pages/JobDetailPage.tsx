@@ -1,24 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { useSheetsStore } from '@/stores/sheetsStore'
 import { useShopStore } from '@/stores/shopStore'
-import { connect } from '@/services/sheets/connection'
-import { usePieces } from '@/hooks/usePieces'
-import { usePieceItems } from '@/hooks/usePieceItems'
-import { useJobs } from '@/hooks/useJobs'
-import { useClients } from '@/hooks/useClients'
-import { useCrmNotes } from '@/hooks/useCrmNotes'
-import { useTags } from '@/hooks/useTags'
-import { useTagLinks } from '@/hooks/useTagLinks'
-import { useInventory } from '@/hooks/useInventory'
-import { useExpenses } from '@/hooks/useExpenses'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { getSheetsRepository } from '@/services/sheets/repository'
+import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { EmptyState } from '@/components/EmptyState'
 import { CreatePiecePopup } from '@/components/CreatePiecePopup'
 import { CreatePieceItemPopup } from '@/components/CreatePieceItemPopup'
@@ -26,7 +16,6 @@ import { PiecesTable } from '@/components/PiecesTable'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
 import { CreateJobPopup, type SuggestedPricingInput } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { QueryError } from '@/components/QueryError'
 import { JobNotesSection } from '@/components/JobNotesSection'
 import { JobTagsSection } from '@/components/JobTagsSection'
 import { updatePieceStatus } from '@/services/piece/updatePieceStatus'
@@ -100,31 +89,23 @@ export function JobDetailPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { jobId = '' } = useParams<{ jobId: string }>()
-  const queryClient = useQueryClient()
   const activeShop = useShopStore((s) => s.activeShop)
   const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const {
-    status,
-    errorMessage,
-    setConnecting,
-    setConnected,
-    setError,
-  } = useSheetsStore()
+  const workbookStatus = useWorkbookStore((s) => s.status)
+  const workbookError = useWorkbookStore((s) => s.error)
+  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
 
   const {
-    data: jobs = [],
-    isLoading: jobsLoading,
-    isError: jobsError,
-    refetch: refetchJobs,
-  } = useJobs(spreadsheetId)
-  const { data: clients = [] } = useClients(spreadsheetId)
-  const { data: allPieces = [], isLoading: piecesLoading } =
-    usePieces(spreadsheetId)
-  const { data: pieceItems = [], isLoading: itemsLoading } =
-    usePieceItems(spreadsheetId)
-  const { data: inventory = [] } = useInventory(spreadsheetId)
-  const { data: expenses = [] } = useExpenses(spreadsheetId)
-  const { data: crmNotes = [] } = useCrmNotes(spreadsheetId)
+    jobs,
+    clients,
+    pieces: allPieces,
+    pieceItems,
+    inventory,
+    expenses,
+    crmNotes,
+    tags,
+    tagLinks,
+  } = useWorkbookEntities()
   const jobNotes = useMemo((): JobNote[] => {
     const list = crmNotes
       .filter((n) => n.entity_type === 'job' && n.entity_id === jobId)
@@ -140,8 +121,6 @@ export function JobDetailPage() {
       )
     return list.sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
   }, [crmNotes, jobId])
-  const { data: tags = [] } = useTags(spreadsheetId)
-  const { data: tagLinks = [] } = useTagLinks(spreadsheetId)
 
   const job = useMemo(() => jobs.find((j) => j.id === jobId), [jobs, jobId])
 
@@ -154,8 +133,8 @@ export function JobDetailPage() {
   const [expandedPieceId, setExpandedPieceId] = useState<string | null>(null)
   const [linePieceId, setLinePieceId] = useState<string | null>(null)
   const [editingJob, setEditingJob] = useState<Job | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Job | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [archiveTarget, setArchiveTarget] = useState<Job | null>(null)
+  const [archiveError, setArchiveError] = useState<string | null>(null)
   const [pieceStatusFlow, setPieceStatusFlow] =
     useState<PieceStatusFlow>(null)
   const [decrementInventory, setDecrementInventory] = useState(true)
@@ -182,19 +161,7 @@ export function JobDetailPage() {
   }, [job, editingJob, allPieces, pieceItems, inventory, expenses])
 
   useEffect(() => {
-    if (!spreadsheetId) return
-    setConnecting()
-    connect(spreadsheetId).then((result) => {
-      if (result.ok) {
-        setConnected(result.spreadsheetId)
-      } else {
-        setError(result.error)
-      }
-    })
-  }, [spreadsheetId, setConnecting, setConnected, setError])
-
-  useEffect(() => {
-    if (status !== 'connected' || !job) return
+    if (workbookStatus !== 'ready' || !job) return
     const anchor = location.hash.replace(/^#/, '')
     if (!anchor.startsWith('piece-')) return
     const id = window.setTimeout(() => {
@@ -204,112 +171,41 @@ export function JobDetailPage() {
       })
     }, 0)
     return () => window.clearTimeout(id)
-  }, [status, job, location.hash, pieces.length, piecesLoading, itemsLoading])
+  }, [
+    workbookStatus,
+    job,
+    location.hash,
+    pieces.length,
+  ])
 
-  const handleRetry = async () => {
+  const handleRetry = () => {
     if (!spreadsheetId) return
-    setConnecting()
-    const result = await connect(spreadsheetId)
-    if (result.ok) {
-      setConnected(result.spreadsheetId)
-    } else {
-      setError(result.error)
-    }
+    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
   }
 
-  const invalidatePieces = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['pieces', spreadsheetId] })
-  }
-
-  const invalidatePieceItems = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ['piece_items', spreadsheetId],
-    })
-  }
-
-  const invalidateInventory = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ['inventory', spreadsheetId],
-    })
-  }
-
-  const invalidateJobs = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
-  }
-
-  const invalidateJobNotes = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ['crm_notes', spreadsheetId],
-    })
-  }
-
-  const invalidateJobTags = async () => {
-    await queryClient.invalidateQueries({
-      queryKey: ['tags', spreadsheetId],
-    })
-    await queryClient.invalidateQueries({
-      queryKey: ['tag_links', spreadsheetId],
-    })
-  }
+  const handleMutationSuccess = async () => {}
 
   const handleUpdateJob = async (
     jobIdParam: string,
     payload: UpdateJobPayload
   ) => {
     if (!spreadsheetId) return
-    const key = ['jobs', spreadsheetId] as const
-    const previous = queryClient.getQueryData<Job[]>(key)
-    if (previous) {
-      queryClient.setQueryData(
-        key,
-        previous.map((j) =>
-          j.id === jobIdParam
-            ? {
-                ...j,
-                description: payload.description,
-                client_id: payload.client_id,
-                price: payload.price,
-              }
-            : j
-        )
-      )
-    }
-    try {
-      await updateJob(spreadsheetId, jobIdParam, payload)
-    } catch (e) {
-      if (previous) {
-        queryClient.setQueryData(key, previous)
-      }
-      throw e
-    }
+    await updateJob(spreadsheetId, jobIdParam, payload)
   }
 
   const closeEditPopup = () => setEditingJob(null)
 
-  const confirmDeleteJob = async () => {
-    if (!spreadsheetId || !deleteTarget) return
-    setDeleteError(null)
+  const confirmArchiveJob = async () => {
+    if (!spreadsheetId || !archiveTarget) return
+    setArchiveError(null)
     try {
-      await deleteJob(spreadsheetId, deleteTarget.id)
-      setDeleteTarget(null)
-      await queryClient.invalidateQueries({ queryKey: ['jobs', spreadsheetId] })
-      await queryClient.invalidateQueries({ queryKey: ['pieces', spreadsheetId] })
-      await queryClient.invalidateQueries({
-        queryKey: ['piece_items', spreadsheetId],
-      })
-      await queryClient.invalidateQueries({
-        queryKey: ['crm_notes', spreadsheetId],
-      })
-      await queryClient.invalidateQueries({
-        queryKey: ['tag_links', spreadsheetId],
-      })
+      await deleteJob(spreadsheetId, archiveTarget.id)
+      setArchiveTarget(null)
       navigate('/jobs')
     } catch {
-      setDeleteError(t('errors.deleteFailed'))
+      setArchiveError(t('errors.deleteFailed'))
     }
   }
-
-  const listLoading = piecesLoading || itemsLoading
 
   const commitPieceStatusChange = async (
     piece: Piece,
@@ -333,9 +229,6 @@ export function JobDetailPage() {
         )
         return
       }
-      await invalidatePieces()
-      await invalidatePieceItems()
-      await invalidateInventory()
       setPieceStatusFlow(null)
     } catch (e) {
       setPieceStatusError(
@@ -420,16 +313,12 @@ export function JobDetailPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <ConnectionStatus
-        status={status}
-        errorMessage={errorMessage}
+        status={workbookStatus}
+        errorMessage={workbookError}
         onRetry={handleRetry}
       />
 
-      {status === 'connected' && jobsError && (
-        <QueryError onRetry={() => void refetchJobs()} />
-      )}
-
-      {status === 'connected' && !jobsError && !jobsLoading && jobId && !job && (
+      {workbookStatus === 'ready' && jobId && !job && (
         <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
           <p className="text-gray-600">{t('jobs.jobNotFound')}</p>
           <Link
@@ -441,23 +330,26 @@ export function JobDetailPage() {
         </div>
       )}
 
-      {status === 'connected' && job && (
+      {workbookStatus === 'ready' && job && (
         <EntityDetailPage
           backTo="/jobs"
           backLabel={t('jobs.backToList')}
           title={job.description}
           fields={detailFields}
           editLabel={t('jobs.editJob')}
-          deleteLabel={t('jobs.deleteJob')}
+          deleteLabel={t('lifecycle.archive')}
           onEdit={() => setEditingJob(job)}
-          onDelete={() => setDeleteTarget(job)}
+          onDelete={() => {
+            setArchiveError(null)
+            setArchiveTarget(job)
+          }}
         >
           <JobTagsSection
             spreadsheetId={spreadsheetId}
             jobId={job.id}
             tags={tags}
             tagLinks={tagLinks}
-            onChanged={invalidateJobTags}
+            onChanged={handleMutationSuccess}
           />
 
           <JobNotesSection
@@ -467,7 +359,7 @@ export function JobDetailPage() {
             clients={clients}
             jobs={jobs}
             pieces={allPieces}
-            onChanged={invalidateJobNotes}
+            onChanged={handleMutationSuccess}
           />
 
           <div className="mb-4 flex items-center justify-between gap-4">
@@ -493,9 +385,7 @@ export function JobDetailPage() {
             </div>
           ) : null}
 
-          {listLoading ? (
-            <LoadingSpinner />
-          ) : pieces.length === 0 ? (
+          {pieces.length === 0 ? (
             <EmptyState messageKey="pieces.empty" />
           ) : (
             <PiecesTable
@@ -521,9 +411,7 @@ export function JobDetailPage() {
       <CreateJobPopup
         isOpen={editingJob !== null}
         onClose={closeEditPopup}
-        onSuccess={() => {
-          void invalidateJobs()
-        }}
+        onSuccess={handleMutationSuccess}
         spreadsheetId={spreadsheetId}
         clients={clients}
         initialJob={editingJob}
@@ -532,32 +420,30 @@ export function JobDetailPage() {
       />
 
       <ConfirmDialog
-        isOpen={!!deleteTarget}
-        title={t('jobs.confirmDeleteTitle')}
-        message={t('jobs.confirmDeleteMessage', {
-          id: deleteTarget?.id ?? '',
+        isOpen={!!archiveTarget}
+        title={t('jobs.archiveConfirmTitle')}
+        message={t('jobs.archiveConfirmMessage', {
+          id: archiveTarget?.id ?? '',
         })}
-        confirmLabel={t('jobs.confirm')}
+        confirmLabel={t('lifecycle.archive')}
         cancelLabel={t('jobs.cancel')}
         onCancel={() => {
-          setDeleteTarget(null)
-          setDeleteError(null)
+          setArchiveTarget(null)
+          setArchiveError(null)
         }}
         onConfirm={() => {
-          void confirmDeleteJob()
+          void confirmArchiveJob()
         }}
       >
-        {deleteError ? (
-          <p className="text-sm text-red-600">{deleteError}</p>
+        {archiveError ? (
+          <p className="text-sm text-red-600">{archiveError}</p>
         ) : null}
       </ConfirmDialog>
 
       <CreatePiecePopup
         isOpen={createOpen}
         onClose={() => setCreateOpen(false)}
-        onSuccess={() => {
-          void invalidatePieces()
-        }}
+        onSuccess={handleMutationSuccess}
         spreadsheetId={spreadsheetId}
         jobs={jobs}
         presetJobId={job?.id}
@@ -566,9 +452,7 @@ export function JobDetailPage() {
       <CreatePieceItemPopup
         isOpen={linePieceId != null}
         onClose={() => setLinePieceId(null)}
-        onSuccess={() => {
-          void invalidatePieceItems()
-        }}
+        onSuccess={handleMutationSuccess}
         spreadsheetId={spreadsheetId}
         pieceId={linePieceId}
         inventory={inventory}

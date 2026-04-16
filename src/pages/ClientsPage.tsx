@@ -1,49 +1,37 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { useSheetsStore } from '@/stores/sheetsStore'
+import { useMemo, useState } from 'react'
 import { useShopStore } from '@/stores/shopStore'
-import { connect } from '@/services/sheets/connection'
-import { useClients } from '@/hooks/useClients'
-import { useTags } from '@/hooks/useTags'
-import { useTagLinks } from '@/hooks/useTagLinks'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { getSheetsRepository } from '@/services/sheets/repository'
+import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import { ClientsTable } from '@/components/ClientsTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreateClientPopup } from '@/components/CreateClientPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EmptyState } from '@/components/EmptyState'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
-import { QueryError } from '@/components/QueryError'
 import { useTranslation } from 'react-i18next'
 import { updateClient } from '@/services/client/updateClient'
-import {
-  CLIENT_DELETE_BLOCKED_JOBS,
-  deleteClient,
-} from '@/services/client/deleteClient'
+import { deleteClient } from '@/services/client/deleteClient'
 import type { Client } from '@/types/money'
 import type { UpdateClientPayload } from '@/services/client/updateClient'
 
+function isActiveEntity(c: Client): boolean {
+  return c.archived !== 'true' && c.deleted !== 'true'
+}
+
 export function ClientsPage() {
   const { t } = useTranslation()
-  const queryClient = useQueryClient()
   const activeShop = useShopStore((s) => s.activeShop)
   const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const {
-    status,
-    errorMessage,
-    setConnecting,
-    setConnected,
-    setError,
-  } = useSheetsStore()
+  const workbookStatus = useWorkbookStore((s) => s.status)
+  const workbookError = useWorkbookStore((s) => s.error)
+  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
 
-  const {
-    data: clients = [],
-    isLoading: clientsLoading,
-    isError: clientsError,
-    refetch: refetchClients,
-  } = useClients(spreadsheetId)
-  const { data: tags = [] } = useTags(spreadsheetId)
-  const { data: tagLinks = [] } = useTagLinks(spreadsheetId)
+  const { clients: allClients, tags, tagLinks } = useWorkbookEntities()
+  const clients = useMemo(
+    () => allClients.filter(isActiveEntity),
+    [allClients],
+  )
 
   const { tagSearchLineByClientId, tagTitleByClientId } = useMemo(() => {
     const namesByClient = new Map<string, string[]>()
@@ -70,50 +58,19 @@ export function ClientsPage() {
 
   const [createOpen, setCreateOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Client | null>(null)
-  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [archiveTarget, setArchiveTarget] = useState<Client | null>(null)
+  const [archiveError, setArchiveError] = useState<string | null>(null)
 
   const clientPopupOpen = createOpen || editingClient !== null
 
-  const handleMutationSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['clients', spreadsheetId] })
-    queryClient.invalidateQueries({ queryKey: ['crm_notes', spreadsheetId] })
-  }
+  const handleMutationSuccess = () => {}
 
   const handleUpdateClient = async (
     clientId: string,
     payload: UpdateClientPayload
   ) => {
     if (!spreadsheetId) return
-    const key = ['clients', spreadsheetId] as const
-    const previous = queryClient.getQueryData<Client[]>(key)
-    if (previous) {
-      queryClient.setQueryData(
-        key,
-        previous.map((c) =>
-          c.id === clientId
-            ? {
-                ...c,
-                name: payload.name,
-                email: payload.email,
-                phone: payload.phone,
-                notes: payload.notes,
-                preferred_contact: payload.preferred_contact,
-                lead_source: payload.lead_source,
-                address: payload.address,
-              }
-            : c
-        )
-      )
-    }
-    try {
-      await updateClient(spreadsheetId, clientId, payload)
-    } catch (e) {
-      if (previous) {
-        queryClient.setQueryData(key, previous)
-      }
-      throw e
-    }
+    await updateClient(spreadsheetId, clientId, payload)
   }
 
   const closeClientPopup = () => {
@@ -121,45 +78,22 @@ export function ClientsPage() {
     setEditingClient(null)
   }
 
-  const confirmDeleteClient = async () => {
-    if (!spreadsheetId || !deleteTarget) return
-    setDeleteError(null)
+  const confirmArchiveClient = async () => {
+    if (!spreadsheetId || !archiveTarget) return
+    setArchiveError(null)
     try {
-      await deleteClient(spreadsheetId, deleteTarget.id)
-      setDeleteTarget(null)
-      handleMutationSuccess()
+      await deleteClient(spreadsheetId, archiveTarget.id)
+      setArchiveTarget(null)
     } catch (e) {
-      const msg =
-        e instanceof Error && e.message === CLIENT_DELETE_BLOCKED_JOBS
-          ? t('clients.deleteBlockedJobs')
-          : e instanceof Error
-            ? e.message
-            : t('wizard.errorGeneric')
-      setDeleteError(msg)
+      setArchiveError(
+        e instanceof Error ? e.message : t('wizard.errorGeneric'),
+      )
     }
   }
 
-  useEffect(() => {
+  const handleRetry = () => {
     if (!spreadsheetId) return
-    setConnecting()
-    connect(spreadsheetId).then((result) => {
-      if (result.ok) {
-        setConnected(result.spreadsheetId)
-      } else {
-        setError(result.error)
-      }
-    })
-  }, [spreadsheetId, setConnecting, setConnected, setError])
-
-  const handleRetry = async () => {
-    if (!spreadsheetId) return
-    setConnecting()
-    const result = await connect(spreadsheetId)
-    if (result.ok) {
-      setConnected(result.spreadsheetId)
-    } else {
-      setError(result.error)
-    }
+    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
   }
 
   return (
@@ -170,13 +104,13 @@ export function ClientsPage() {
 
       {spreadsheetId ? (
         <ConnectionStatus
-          status={status}
-          errorMessage={errorMessage}
+          status={workbookStatus}
+          errorMessage={workbookError}
           onRetry={handleRetry}
         />
       ) : null}
 
-      {status === 'connected' && (
+      {workbookStatus === 'ready' && (
         <>
           <div className="mb-4 flex items-center justify-end">
             <button
@@ -191,11 +125,7 @@ export function ClientsPage() {
             </button>
           </div>
 
-          {clientsError ? (
-            <QueryError onRetry={() => void refetchClients()} />
-          ) : clientsLoading ? (
-            <LoadingSpinner />
-          ) : clients.length === 0 ? (
+          {clients.length === 0 ? (
             <EmptyState messageKey="clients.empty" />
           ) : (
             <ClientsTable
@@ -206,9 +136,9 @@ export function ClientsPage() {
                 setCreateOpen(false)
                 setEditingClient(c)
               }}
-              onDelete={(c) => {
-                setDeleteError(null)
-                setDeleteTarget(c)
+              onArchive={(c) => {
+                setArchiveError(null)
+                setArchiveTarget(c)
               }}
             />
           )}
@@ -225,21 +155,21 @@ export function ClientsPage() {
       />
 
       <ConfirmDialog
-        isOpen={deleteTarget !== null}
-        title={t('clients.deleteConfirmTitle')}
-        message={t('clients.deleteConfirmMessage', {
-          name: deleteTarget?.name ?? '',
+        isOpen={archiveTarget !== null}
+        title={t('clients.archiveConfirmTitle')}
+        message={t('clients.archiveConfirmMessage', {
+          name: archiveTarget?.name ?? '',
         })}
-        confirmLabel={t('clients.delete')}
+        confirmLabel={t('lifecycle.archive')}
         cancelLabel={t('clients.cancel')}
-        onConfirm={confirmDeleteClient}
+        onConfirm={confirmArchiveClient}
         onCancel={() => {
-          setDeleteTarget(null)
-          setDeleteError(null)
+          setArchiveTarget(null)
+          setArchiveError(null)
         }}
       >
-        {deleteError ? (
-          <p className="text-sm text-red-600">{deleteError}</p>
+        {archiveError ? (
+          <p className="text-sm text-red-600">{archiveError}</p>
         ) : null}
       </ConfirmDialog>
     </div>

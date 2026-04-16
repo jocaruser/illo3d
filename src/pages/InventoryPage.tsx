@@ -1,55 +1,35 @@
-import { useEffect } from 'react'
-import { useSheetsStore } from '@/stores/sheetsStore'
+import { useMemo } from 'react'
 import { useShopStore } from '@/stores/shopStore'
-import { connect } from '@/services/sheets/connection'
-import { useInventory } from '@/hooks/useInventory'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { getSheetsRepository } from '@/services/sheets/repository'
+import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { InventoryTable } from '@/components/InventoryTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
-import { QueryError } from '@/components/QueryError'
 import { useTranslation } from 'react-i18next'
+import type { Inventory } from '@/types/money'
+
+function isActiveInventory(row: Inventory): boolean {
+  return row.archived !== 'true' && row.deleted !== 'true'
+}
 
 export function InventoryPage() {
   const { t } = useTranslation()
   const activeShop = useShopStore((s) => s.activeShop)
   const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const {
-    status,
-    errorMessage,
-    setConnecting,
-    setConnected,
-    setError,
-  } = useSheetsStore()
+  const workbookStatus = useWorkbookStore((s) => s.status)
+  const workbookError = useWorkbookStore((s) => s.error)
+  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
 
-  const {
-    data: items = [],
-    isLoading: inventoryLoading,
-    isError: inventoryError,
-    refetch: refetchInventory,
-  } = useInventory(spreadsheetId)
+  const { inventory: allInventory } = useWorkbookEntities()
+  const items = useMemo(
+    () => allInventory.filter(isActiveInventory),
+    [allInventory],
+  )
 
-  useEffect(() => {
+  const handleRetry = () => {
     if (!spreadsheetId) return
-    setConnecting()
-    connect(spreadsheetId).then((result) => {
-      if (result.ok) {
-        setConnected(result.spreadsheetId)
-      } else {
-        setError(result.error)
-      }
-    })
-  }, [spreadsheetId, setConnecting, setConnected, setError])
-
-  const handleRetry = async () => {
-    if (!spreadsheetId) return
-    setConnecting()
-    const result = await connect(spreadsheetId)
-    if (result.ok) {
-      setConnected(result.spreadsheetId)
-    } else {
-      setError(result.error)
-    }
+    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
   }
 
   return (
@@ -60,19 +40,15 @@ export function InventoryPage() {
 
       {spreadsheetId ? (
         <ConnectionStatus
-          status={status}
-          errorMessage={errorMessage}
+          status={workbookStatus}
+          errorMessage={workbookError}
           onRetry={handleRetry}
         />
       ) : null}
 
-      {status === 'connected' && (
+      {workbookStatus === 'ready' && (
         <>
-          {inventoryError ? (
-            <QueryError onRetry={() => void refetchInventory()} />
-          ) : inventoryLoading ? (
-            <LoadingSpinner />
-          ) : items.length === 0 ? (
+          {items.length === 0 ? (
             <EmptyState messageKey="inventory.empty" />
           ) : (
             <InventoryTable items={items} />

@@ -25,7 +25,7 @@ describe('LocalFolderRepository', () => {
   it('readMetadata returns parsed metadata when handle and file exist', async () => {
     const metadata = {
       app: 'illo3d',
-      version: '1.0.0',
+      version: '2.0.0',
       spreadsheetId: 'local-test-shop',
       createdAt: '2025-01-01T00:00:00.000Z',
       createdBy: 'dev@illo3d.local',

@@ -27,15 +27,30 @@ test.describe('Job edit and delete', () => {
       'e2e-cascade-delete-note-marker'
     )
     await expect(page.getByRole('row', { name: /E2E disposable job/i })).toBeVisible()
-    await page.getByTestId('job-delete-J5').click()
-    await page.getByRole('button', { name: /confirm|confirmar/i }).click()
+    await page.getByTestId('job-archive-J5').click()
+    await page
+      .getByRole('dialog', {
+        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
+      })
+      .getByRole('button', { name: /archive|archivar/i })
+      .click()
     await expect(
-      page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
+      page.getByRole('heading', {
+        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
+      })
     ).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('row', { name: /E2E disposable job/i })).toHaveCount(0)
 
+    await page.getByTestId('workbook-save').click()
+    await expect(page.getByText(/workbook saved|libro guardado/i)).toBeVisible({
+      timeout: 20000,
+    })
+
     const after = fs.readFileSync(notesPath, 'utf8')
-    expect(after).not.toContain('e2e-cascade-delete-note-marker')
+    const jn5Line = after.split(/\r?\n/).find((line) => line.startsWith('JN5,'))
+    expect(jn5Line).toBeDefined()
+    expect(jn5Line).toContain('e2e-cascade-delete-note-marker')
+    expect(jn5Line).toMatch(/,true(,|$)/)
     expect(after).toContain('JN1')
   })
 
@@ -104,14 +119,23 @@ test.describe('Job edit and delete', () => {
     })
 
     await expect(page.getByRole('row', { name: /Logo keychain batch/i })).toBeVisible()
-    await page.getByTestId('job-delete-J4').click()
+    await page.getByTestId('job-archive-J4').click()
     await expect(
-      page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
+      page.getByRole('heading', {
+        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
+      })
     ).toBeVisible()
 
-    await page.getByRole('button', { name: /confirm|confirmar/i }).click()
+    await page
+      .getByRole('dialog', {
+        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
+      })
+      .getByRole('button', { name: /archive|archivar/i })
+      .click()
     await expect(
-      page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
+      page.getByRole('heading', {
+        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
+      })
     ).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('row', { name: /Logo keychain batch/i })).toHaveCount(0)
   })
@@ -125,10 +149,17 @@ test.describe('Job edit and delete', () => {
     })
 
     await expect(page.getByRole('row', { name: /Replacement gear/i })).toBeVisible()
-    await page.getByTestId('job-delete-J2').click()
-    await page.getByRole('button', { name: /confirm|confirmar/i }).click()
+    await page.getByTestId('job-archive-J2').click()
+    await page
+      .getByRole('dialog', {
+        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
+      })
+      .getByRole('button', { name: /archive|archivar/i })
+      .click()
     await expect(
-      page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
+      page.getByRole('heading', {
+        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
+      })
     ).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('row', { name: /Replacement gear/i })).toHaveCount(0)
 
@@ -149,7 +180,12 @@ test.describe('Job edit and delete', () => {
     await expect(page).toHaveURL(/\/jobs\/J3/)
 
     await page.getByTestId('entity-detail-delete').click()
-    await page.getByRole('button', { name: /confirm|confirmar/i }).click()
+    await page
+      .getByRole('dialog', {
+        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
+      })
+      .getByRole('button', { name: /archive|archivar/i })
+      .click()
 
     await expect(page).toHaveURL(/\/jobs$/)
     await expect(page.getByRole('row', { name: /Desk organizer/i })).toHaveCount(0)
@@ -184,14 +220,18 @@ test.describe('Job edit and delete', () => {
       timeout: 15000,
     })
 
-    await page.getByTestId('job-delete-J1').click()
+    await page.getByTestId('job-archive-J1').click()
     await expect(
-      page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
+      page.getByRole('heading', {
+        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
+      })
     ).toBeVisible()
 
     await page.getByRole('button', { name: /cancel|cancelar/i }).click()
     await expect(
-      page.getByRole('heading', { name: /delete job|eliminar trabajo/i })
+      page.getByRole('heading', {
+        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
+      })
     ).not.toBeVisible({ timeout: 5000 })
     await expect(page.getByRole('row', { name: /Phone case prototype/i })).toBeVisible()
   })

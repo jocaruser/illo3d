@@ -45,6 +45,55 @@ export function sheetsAppendPlugin(): Plugin {
           return null
         }
 
+        if (req.method === 'POST' && pathname === '/api/sheets/replace') {
+          let body = ''
+          req.on('data', (chunk) => { body += chunk })
+          req.on('end', () => {
+            try {
+              const parsed = JSON.parse(body) as {
+                folder: string
+                sheetName: string
+                matrix: string[][]
+              }
+              const { folder, sheetName, matrix } = parsed
+              const matrixOk =
+                Array.isArray(matrix) &&
+                matrix.length > 0 &&
+                matrix.every(
+                  (row) =>
+                    Array.isArray(row) &&
+                    row.every((c) => typeof c === 'string')
+                )
+              if (!folder || !sheetName || !matrixOk) {
+                res.statusCode = 400
+                res.end(JSON.stringify({ error: 'Invalid request' }))
+                return
+              }
+              const csvPath = resolveCsvPath(fixturesRoot, folder, sheetName)
+              if (!csvPath) {
+                res.statusCode = 400
+                res.end(JSON.stringify({ error: 'Invalid folder or path' }))
+                return
+              }
+              const lines = matrix.map((row) =>
+                row.map((c) => escapeCsvValue(c)).join(',')
+              )
+              fs.writeFileSync(csvPath, lines.join('\n') + '\n', 'utf8')
+              res.statusCode = 200
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ ok: true }))
+            } catch (err) {
+              res.statusCode = 500
+              res.end(
+                JSON.stringify({
+                  error: err instanceof Error ? err.message : 'Unknown error',
+                })
+              )
+            }
+          })
+          return
+        }
+
         if (req.method === 'PUT' && pathname === '/api/sheets/row') {
           let body = ''
           req.on('data', (chunk) => { body += chunk })

@@ -27,24 +27,11 @@ test.describe('Create expense flow', () => {
     })
   })
 
-  test('create expense with inventory sends inventory append request', async ({
+  test('create expense with inventory adds inventory row', async ({
     page,
     openCsvShop,
   }) => {
     void openCsvShop
-    const appendPayloads: { sheetName?: string; rows?: unknown[] }[] = []
-    page.on('request', (req) => {
-      if (req.method() !== 'POST' || !req.url().includes('/api/sheets/append')) {
-        return
-      }
-      const raw = req.postData()
-      if (!raw) return
-      try {
-        appendPayloads.push(JSON.parse(raw) as { sheetName?: string; rows?: unknown[] })
-      } catch {
-        /* ignore */
-      }
-    })
 
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
@@ -85,15 +72,11 @@ test.describe('Create expense flow', () => {
         .filter({ hasText: 'e2e filament marker' })
     ).toBeVisible()
 
-    const inventoryAppends = appendPayloads.filter((p) => p.sheetName === 'inventory')
-    expect(inventoryAppends.length).toBeGreaterThanOrEqual(1)
-    const row = inventoryAppends[inventoryAppends.length - 1].rows?.[0] as Record<
-      string,
-      unknown
-    >
-    expect(row?.type).toBe('filament')
-    expect(row?.name).toBe('e2e filament marker')
-    expect(row?.qty_initial).toBe(500)
+    await page.getByRole('link', { name: /inventory|inventario/i }).click()
+    await expect(page.getByRole('heading', { name: /inventory|inventario/i })).toBeVisible({
+      timeout: 15000,
+    })
+    await expect(page.getByText('e2e filament marker')).toBeVisible({ timeout: 15000 })
   })
 
   test('create expense without inventory does not append inventory sheet', async ({

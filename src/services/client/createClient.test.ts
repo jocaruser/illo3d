@@ -1,34 +1,36 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { createClient } from './createClient'
-
-const mockAppendRows = vi.fn()
-const mockReadRows = vi.fn()
-
-vi.mock('@/services/sheets/repository', () => ({
-  getSheetsRepository: () => ({
-    readRows: mockReadRows,
-    appendRows: mockAppendRows,
-  }),
-}))
+import { matrixToClients } from '@/lib/workbook/workbookEntities'
+import { useWorkbookStore } from '@/stores/workbookStore'
+import { matrixWithRows, resetAndSeedWorkbook } from '@/test/workbookHarness'
 
 describe('createClient', () => {
   beforeEach(() => {
-    mockAppendRows.mockReset()
-    mockReadRows.mockReset()
-    mockReadRows.mockImplementation((_id: string, sheetName: string) => {
-      if (sheetName === 'clients') return Promise.resolve([])
-      return Promise.resolve([])
-    })
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2025-06-15T12:00:00.000Z'))
   })
 
   afterEach(() => {
     vi.useRealTimers()
+    useWorkbookStore.getState().reset()
   })
 
   it('appends client row with CL1 when no CL-prefixed ids exist', async () => {
-    mockReadRows.mockResolvedValue([{ id: 'c1' }])
+    resetAndSeedWorkbook({
+      clients: matrixWithRows('clients', [
+        {
+          id: 'c1',
+          name: 'Other',
+          email: '',
+          phone: '',
+          notes: '',
+          preferred_contact: '',
+          lead_source: '',
+          address: '',
+          created_at: '2025-01-01',
+        },
+      ]),
+    })
 
     await createClient('spreadsheet-1', {
       name: 'New Corp',
@@ -37,43 +39,48 @@ describe('createClient', () => {
       notes: 'Hi',
     })
 
-    expect(mockAppendRows).toHaveBeenCalledTimes(1)
-    expect(mockAppendRows).toHaveBeenCalledWith('spreadsheet-1', 'clients', [
-      {
-        id: 'CL1',
-        name: 'New Corp',
-        email: 'n@example.com',
-        phone: '+1',
-        notes: 'Hi',
-        preferred_contact: '',
-        lead_source: '',
-        address: '',
-        created_at: '2025-06-15',
-      },
-    ])
+    const clients = matrixToClients(useWorkbookStore.getState().tabs.clients)
+    expect(clients.find((c) => c.id === 'CL1')).toMatchObject({
+      id: 'CL1',
+      name: 'New Corp',
+      email: 'n@example.com',
+      phone: '+1',
+      notes: 'Hi',
+      created_at: '2025-06-15',
+    })
   })
 
   it('increments to CL3 when CL1 and CL2 exist', async () => {
-    mockReadRows.mockResolvedValue([{ id: 'CL1' }, { id: 'CL2' }])
-
-    await createClient('spreadsheet-1', { name: 'Next' })
-
-    expect(mockAppendRows).toHaveBeenCalledWith(
-      'spreadsheet-1',
-      'clients',
-      [
-        expect.objectContaining({
-          id: 'CL3',
-          name: 'Next',
+    resetAndSeedWorkbook({
+      clients: matrixWithRows('clients', [
+        {
+          id: 'CL1',
+          name: 'A',
           email: '',
           phone: '',
           notes: '',
           preferred_contact: '',
           lead_source: '',
           address: '',
-          created_at: '2025-06-15',
-        }),
-      ]
-    )
+          created_at: '2025-01-01',
+        },
+        {
+          id: 'CL2',
+          name: 'B',
+          email: '',
+          phone: '',
+          notes: '',
+          preferred_contact: '',
+          lead_source: '',
+          address: '',
+          created_at: '2025-01-01',
+        },
+      ]),
+    })
+
+    await createClient('spreadsheet-1', { name: 'Next' })
+
+    const clients = matrixToClients(useWorkbookStore.getState().tabs.clients)
+    expect(clients.find((c) => c.id === 'CL3')?.name).toBe('Next')
   })
 })

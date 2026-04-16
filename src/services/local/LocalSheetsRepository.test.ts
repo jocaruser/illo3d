@@ -50,8 +50,8 @@ describe('LocalSheetsRepository', () => {
 
   it('readRows parses CSV and returns objects keyed by headers', async () => {
     const csv =
-      'id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes\n' +
-      't1,2025-01-15,income,100.50,Sales,Print job A,,,c1,First sale'
+      'id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes,archived,deleted\n' +
+      't1,2025-01-15,income,100.50,Sales,Print job A,,,c1,First sale,,'
     const handle = createMockHandle({ 'transactions.csv': csv })
     useBackendStore.setState({ localDirectoryHandle: handle })
 
@@ -74,7 +74,7 @@ describe('LocalSheetsRepository', () => {
   it('readRows returns empty array when CSV has only headers', async () => {
     const handle = createMockHandle({
       'transactions.csv':
-        'id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes',
+        'id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes,archived,deleted',
     })
     useBackendStore.setState({ localDirectoryHandle: handle })
 
@@ -102,7 +102,7 @@ describe('LocalSheetsRepository', () => {
   it('getHeaderRow returns first line of CSV as headers', async () => {
     const handle = createMockHandle({
       'transactions.csv':
-        'id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes',
+        'id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes,archived,deleted',
     })
     useBackendStore.setState({ localDirectoryHandle: handle })
 
@@ -120,6 +120,8 @@ describe('LocalSheetsRepository', () => {
       'ref_id',
       'client_id',
       'notes',
+      'archived',
+      'deleted',
     ])
   })
 
@@ -141,8 +143,8 @@ describe('LocalSheetsRepository', () => {
 
   it('appendRows appends rows to existing CSV file', async () => {
     const initial =
-      'id,date,category,amount,notes\n' +
-      'e1,2025-01-20,Materials,25.00,Test'
+      'id,date,category,amount,notes,archived,deleted\n' +
+      'e1,2025-01-20,Materials,25.00,Test,,'
     const handle = createMockHandle({ 'expenses.csv': initial })
     useBackendStore.setState({ localDirectoryHandle: handle })
 
@@ -158,9 +160,9 @@ describe('LocalSheetsRepository', () => {
 
   it('deleteRow removes the 1-based data row and preserves header', async () => {
     const initial =
-      'id,name,email,phone,notes,preferred_contact,lead_source,address,created_at\n' +
-      'c1,Acme,,,note1,,,,2025-01-01\n' +
-      'c2,Other,,,note2,,,,2025-01-02\n'
+      'id,name,email,phone,notes,preferred_contact,lead_source,address,created_at,archived,deleted\n' +
+      'c1,Acme,,,note1,,,,2025-01-01,,\n' +
+      'c2,Other,,,note2,,,,2025-01-02,,\n'
     const handle = createMockHandle({ 'clients.csv': initial })
     useBackendStore.setState({ localDirectoryHandle: handle })
 
@@ -175,8 +177,8 @@ describe('LocalSheetsRepository', () => {
   it('deleteRow rejects invalid row index', async () => {
     const handle = createMockHandle({
       'clients.csv':
-        'id,name,email,phone,notes,preferred_contact,lead_source,address,created_at\n' +
-        'c1,A,,,,,,,',
+        'id,name,email,phone,notes,preferred_contact,lead_source,address,created_at,archived,deleted\n' +
+        'c1,A,,,,,,,,,',
     })
     useBackendStore.setState({ localDirectoryHandle: handle })
 

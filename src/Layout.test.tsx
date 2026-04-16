@@ -1,10 +1,40 @@
-import { render, screen, within } from '@testing-library/react'
+import {
+  render,
+  screen,
+  within,
+  waitFor,
+  fireEvent,
+  act,
+} from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Layout } from './App'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
+import { useWorkbookStore } from './stores/workbookStore'
+import type { SheetName } from './services/sheets/config'
+import { emptySheetMatrix } from './services/sheets/sheetMatrix'
+
+const { mockReadSheetMatrix, mockReplaceSheetMatrix } = vi.hoisted(() => ({
+  mockReadSheetMatrix: vi.fn(),
+  mockReplaceSheetMatrix: vi.fn(),
+}))
+
+vi.mock('@/services/sheets/repository', () => ({
+  getSheetsRepository: () => ({
+    readRows: vi.fn(),
+    appendRows: vi.fn(),
+    updateRow: vi.fn(),
+    deleteRow: vi.fn(),
+    getSheetNames: vi.fn(),
+    getHeaderRow: vi.fn(),
+    createSpreadsheet: vi.fn(),
+    readSheetMatrix: mockReadSheetMatrix,
+    replaceSheetMatrix: mockReplaceSheetMatrix,
+    getSheetIdMap: vi.fn(async () => ({})),
+  }),
+}))
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -16,6 +46,12 @@ describe('Layout', () => {
   let qc: QueryClient
 
   beforeEach(() => {
+    vi.clearAllMocks()
+    mockReadSheetMatrix.mockImplementation(async (_id: string, name: SheetName) =>
+      emptySheetMatrix(name),
+    )
+    mockReplaceSheetMatrix.mockResolvedValue(undefined)
+    useWorkbookStore.getState().reset()
     qc = new QueryClient({
       defaultOptions: {
         queries: {
@@ -44,7 +80,7 @@ describe('Layout', () => {
         folderId: 'f',
         folderName: 'Shop',
         spreadsheetId: 's',
-        metadataVersion: '1.0.0',
+        metadataVersion: '2.0.0',
       },
     })
   })
@@ -152,7 +188,7 @@ describe('Layout', () => {
     expect(jobsLinks[0]).toHaveAttribute('aria-current', 'page')
   })
 
-  it('shows global header search when authenticated with active shop', () => {
+  it('shows global header search when authenticated with active shop', async () => {
     render(
       <QueryClientProvider client={qc}>
         <MemoryRouter initialEntries={['/jobs']}>
@@ -170,6 +206,65 @@ describe('Layout', () => {
       </QueryClientProvider>,
     )
 
-    expect(screen.getByTestId('global-header-search')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByTestId('global-header-search')).toBeInTheDocument()
+    })
+  })
+
+  it('shows workbook refresh and save when authenticated with active shop', async () => {
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/jobs']}>
+          <Routes>
+            <Route
+              path="/jobs"
+              element={
+                <Layout>
+                  <div>content</div>
+                </Layout>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('workbook-refresh')).not.toBeDisabled()
+    })
+    expect(screen.getByTestId('workbook-save')).toBeDisabled()
+  })
+
+  it('opens discard confirmation when refreshing with a dirty workbook', async () => {
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/jobs']}>
+          <Routes>
+            <Route
+              path="/jobs"
+              element={
+                <Layout>
+                  <div>content</div>
+                </Layout>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('workbook-refresh')).not.toBeDisabled()
+    })
+
+    act(() => {
+      useWorkbookStore.setState({ dirty: true })
+    })
+    fireEvent.click(screen.getByTestId('workbook-refresh'))
+
+    expect(
+      await screen.findByRole('heading', { name: 'workbook.discardTitle' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('workbook.discardMessage')).toBeInTheDocument()
   })
 })

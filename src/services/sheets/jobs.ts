@@ -2,7 +2,7 @@ import { getSheetsRepository } from './repository'
 import type { Job } from '@/types/money'
 import type { SheetName } from './config'
 
-function parseJobRow(r: Job): Job {
+export function parseJobRow(r: Job): Job {
   const rawPrice = r.price as unknown
   let price: number | undefined
   if (rawPrice !== undefined && rawPrice !== null && rawPrice !== '') {
