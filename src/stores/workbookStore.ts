@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { create } from 'zustand'
 import { SHEET_NAMES, type SheetName } from '@/services/sheets/config'
 import type { SheetsRepository } from '@/services/sheets/repository'
@@ -26,6 +27,7 @@ import {
   matrixToTags,
   matrixToTransactions,
 } from '@/lib/workbook/workbookEntities'
+import { applyPiecePricingMigrations } from '@/lib/workbook/migratePiecePricing'
 
 export type WorkbookStatus = 'idle' | 'loading' | 'ready' | 'error'
 
@@ -85,10 +87,11 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
     set({ status: 'loading', error: null, spreadsheetId })
     try {
       const { tabs, sheetIds } = await loadAllTabs(repository, spreadsheetId)
+      const { tabs: migrated, modified } = applyPiecePricingMigrations(tabs)
       set({
-        tabs,
+        tabs: migrated,
         sheetIds,
-        dirty: false,
+        dirty: modified,
         status: 'ready',
         error: null,
         spreadsheetId,
@@ -110,10 +113,11 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
     set({ status: 'loading', error: null })
     try {
       const { tabs, sheetIds } = await loadAllTabs(repository, spreadsheetId)
+      const { tabs: migrated, modified } = applyPiecePricingMigrations(tabs)
       set({
-        tabs,
+        tabs: migrated,
         sheetIds,
-        dirty: false,
+        dirty: modified,
         status: 'ready',
         error: null,
       })
@@ -147,41 +151,51 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
 
 /** Entity rows derived from the in-memory workbook (tabs must be loaded). */
 export function useSnapshotClients(): Client[] {
-  return useWorkbookStore((s) => matrixToClients(s.tabs.clients))
+  const matrix = useWorkbookStore((s) => s.tabs.clients)
+  return useMemo(() => matrixToClients(matrix), [matrix])
 }
 
 export function useSnapshotJobs(): Job[] {
-  return useWorkbookStore((s) => matrixToJobs(s.tabs.jobs))
+  const matrix = useWorkbookStore((s) => s.tabs.jobs)
+  return useMemo(() => matrixToJobs(matrix), [matrix])
 }
 
 export function useSnapshotPieces(): Piece[] {
-  return useWorkbookStore((s) => matrixToPieces(s.tabs.pieces))
+  const matrix = useWorkbookStore((s) => s.tabs.pieces)
+  return useMemo(() => matrixToPieces(matrix), [matrix])
 }
 
 export function useSnapshotPieceItems(): PieceItem[] {
-  return useWorkbookStore((s) => matrixToPieceItems(s.tabs.piece_items))
+  const matrix = useWorkbookStore((s) => s.tabs.piece_items)
+  return useMemo(() => matrixToPieceItems(matrix), [matrix])
 }
 
 export function useSnapshotCrmNotes(): CrmNote[] {
-  return useWorkbookStore((s) => matrixToCrmNotes(s.tabs.crm_notes))
+  const matrix = useWorkbookStore((s) => s.tabs.crm_notes)
+  return useMemo(() => matrixToCrmNotes(matrix), [matrix])
 }
 
 export function useSnapshotTransactions(): Transaction[] {
-  return useWorkbookStore((s) => matrixToTransactions(s.tabs.transactions))
+  const matrix = useWorkbookStore((s) => s.tabs.transactions)
+  return useMemo(() => matrixToTransactions(matrix), [matrix])
 }
 
 export function useSnapshotExpenses(): Expense[] {
-  return useWorkbookStore((s) => matrixToExpenses(s.tabs.expenses))
+  const matrix = useWorkbookStore((s) => s.tabs.expenses)
+  return useMemo(() => matrixToExpenses(matrix), [matrix])
 }
 
 export function useSnapshotInventory(): Inventory[] {
-  return useWorkbookStore((s) => matrixToInventory(s.tabs.inventory))
+  const matrix = useWorkbookStore((s) => s.tabs.inventory)
+  return useMemo(() => matrixToInventory(matrix), [matrix])
 }
 
 export function useSnapshotTags(): Tag[] {
-  return useWorkbookStore((s) => matrixToTags(s.tabs.tags))
+  const matrix = useWorkbookStore((s) => s.tabs.tags)
+  return useMemo(() => matrixToTags(matrix), [matrix])
 }
 
 export function useSnapshotTagLinks(): TagLink[] {
-  return useWorkbookStore((s) => matrixToTagLinks(s.tabs.tag_links))
+  const matrix = useWorkbookStore((s) => s.tabs.tag_links)
+  return useMemo(() => matrixToTagLinks(matrix), [matrix])
 }

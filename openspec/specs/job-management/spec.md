@@ -8,13 +8,13 @@ Jobs table page with domain services for creating and managing print jobs: `/job
 
 ### Requirement: Jobs page displays job table
 
-The system SHALL provide a `/jobs` route protected by the same authentication guard as other data pages. The route SHALL display a table of **active** jobs from the workbook store (`archived` and `deleted` not `"true"`). The table SHALL show: description (as the primary link to job detail), client name (resolved from client_id), status, price (formatted as €), and created_at. The system SHALL NOT show a separate id-only column. Until the user changes sort via column-header (or equivalent) controls, the table SHALL order rows by `created_at` descending with stable secondary ordering by job `id` when timestamps tie. The table SHALL provide the shared list discovery controls (search, fuzzy matching, sortable data columns, responsive column visibility) defined in the `list-table-discovery` capability. The **client name** cell SHALL be the visible text of a link to `/clients/:clientId` for that job’s `client_id`.
+The system SHALL provide a `/jobs` route protected by the same authentication guard as other data pages. The route SHALL display a table of **active** jobs from the workbook store (`archived` and `deleted` not `"true"`). The table SHALL show: description (as the primary link to job detail), client name (resolved from client_id), status, **total**, and created_at. **Total** SHALL use **non-deleted** pieces for that job (**including** `archived: "true"`). If **every** such piece has a **set** `price`, **total** SHALL be the sum (formatted as €), including zeros. If **any** such piece has **unset** `price`, the **total** cell SHALL **not** show a single misleading currency-only value (e.g. show an incomplete placeholder or label per i18n). The incomplete-pricing label SHALL use **visually distinct** styling (e.g. highlighted badge: colored background and border) so it is not mistaken for a monetary amount. The system SHALL NOT show a separate id-only column. Until the user changes sort via column-header (or equivalent) controls, the table SHALL order rows by `created_at` descending with stable secondary ordering by job `id` when timestamps tie. The table SHALL provide the shared list discovery controls (search, fuzzy matching, sortable data columns, responsive column visibility) defined in the `list-table-discovery` capability. The **client name** cell SHALL be the visible text of a link to `/clients/:clientId` for that job’s `client_id`.
 
 #### Scenario: Jobs table renders with data
 
 - **WHEN** authenticated user navigates to `/jobs`
 - **AND** active jobs exist in the workbook store
-- **THEN** table displays those jobs with description (link), client name, status, price, and created_at columns
+- **THEN** table displays those jobs with description (link), client name, status, **total**, and created_at columns
 - **AND** jobs are ordered by `created_at` descending before any user sort change
 
 #### Scenario: Empty state shown when no active jobs
@@ -80,7 +80,7 @@ The jobs table SHALL display an "Actions" column (right-aligned) with Edit and *
 #### Scenario: Edit button opens popup in edit mode
 
 - **WHEN** user clicks Edit on a job row
-- **THEN** the job popup opens pre-filled with that job's description, client, and price
+- **THEN** the job popup opens pre-filled with that job's description and client (**not** a job-level price field)
 
 #### Scenario: Archive button opens confirmation dialog
 
@@ -139,20 +139,25 @@ The system SHALL provide a `StatusDropdown` component that renders a `<select>` 
 
 ### Requirement: Confirmation dialog for paid transition
 
-The system SHALL display a confirmation dialog when the user changes a job's status to "paid". If the job has a price set (including 0), the dialog SHALL display the price and ask for confirmation. If the job has no price (null/empty), the dialog SHALL require the user to enter a price before confirming. A price of 0 SHALL be valid (gifts). The dialog SHALL have confirm and cancel actions.
+The system SHALL **not** allow a job's status to change to "paid" while **any** **non-deleted** piece for that job (**including** archived pieces) has an **unset** `price` (empty / null). **Explicit numeric 0** counts as set. When all such pieces have a set price, let **derived total** be the sum of their `price` values (zeros included). When the user changes status to "paid" and gating passes, the system SHALL display a confirmation dialog showing **derived total** (including €0.00) and ask for confirmation. The dialog SHALL **not** include a separate payment-amount field to override or split across pieces. The dialog SHALL have confirm and cancel actions.
 
-#### Scenario: Paid confirmation with existing price
+#### Scenario: Paid confirmation with positive derived total
 
-- **WHEN** user changes status to "paid" on a job with price €45
-- **THEN** a confirmation dialog appears showing "Mark as paid for €45.00?"
+- **WHEN** user changes status to "paid" on a job whose counting pieces all have set prices summing to €45
+- **THEN** a confirmation dialog appears showing "Mark as paid for €45.00?" (or equivalent i18n)
 - **AND** user can confirm or cancel
 
-#### Scenario: Paid confirmation requires price when missing
+#### Scenario: Paid blocked when any piece price unset
 
-- **WHEN** user changes status to "paid" on a job with no price
-- **THEN** a confirmation dialog appears with a price input field
-- **AND** the confirm button is disabled until a valid price is entered
-- **AND** 0 is accepted as a valid price
+- **WHEN** user changes status to "paid" on a job that has at least one non-deleted piece with unset `price`
+- **THEN** the status does **not** change to paid
+- **AND** the user sees an error explaining that all piece prices must be set (i18n)
+
+#### Scenario: Paid confirmation with all prices zero
+
+- **WHEN** user changes status to "paid" on a job whose counting pieces all have price **0** (set)
+- **THEN** a confirmation dialog appears showing €0.00 (or equivalent)
+- **AND** user can confirm or cancel
 
 #### Scenario: Paid confirmation cancelled
 
@@ -162,7 +167,7 @@ The system SHALL display a confirmation dialog when the user changes a job's sta
 
 ### Requirement: Paid confirmation includes income transaction option
 
-The paid confirmation dialog SHALL include a checkbox indicating whether to create an income transaction for the payment. The checkbox SHALL default to **checked**. Labels SHALL use i18n. When the user confirms with the checkbox checked, `updateJobStatus` SHALL run with default transaction behavior (append income). When the user confirms with the checkbox unchecked, `updateJobStatus` SHALL run with transaction creation disabled so the job updates to "paid" with the confirmed price but no new transaction row is appended.
+The paid confirmation dialog SHALL include a checkbox indicating whether to create an income transaction for the payment. The checkbox SHALL default to **checked**. Labels SHALL use i18n. When the user confirms with the checkbox checked, `updateJobStatus` SHALL run with default transaction behavior (append income). When the user confirms with the checkbox unchecked, `updateJobStatus` SHALL run with transaction creation disabled so the job updates to "paid" with **derived total** as the logical payment amount but no new transaction row is appended.
 
 #### Scenario: Income transaction checkbox defaults to checked
 
@@ -172,7 +177,7 @@ The paid confirmation dialog SHALL include a checkbox indicating whether to crea
 #### Scenario: Unchecked checkbox skips transaction append
 
 - **WHEN** the user confirms paid with the income-transaction checkbox unchecked
-- **THEN** the job row is updated to paid with the agreed price
+- **THEN** the job row is updated to paid
 - **AND** no new transaction is created
 
 #### Scenario: Checked checkbox appends income transaction
@@ -259,12 +264,13 @@ The system SHALL provide a generic `ConfirmDialog` component that renders a moda
 
 ### Requirement: CreateJobPopup is a modal form
 
-The system SHALL provide a `CreateJobPopup` component that renders a modal with a form. The form SHALL collect: client (required, searchable dropdown from cached client data), description (required, text input), and price (optional, number input where 0 is valid). The popup SHALL be closable via overlay click or cancel button. The component SHALL accept an optional `initialJob` prop (`Job`). When `initialJob` is provided, the popup SHALL operate in edit mode: the title SHALL use the edit job label, fields SHALL pre-fill from the job, and submit SHALL call `updateJob` instead of `createJob`. The client picker, description input, and price input SHALL behave the same in create and edit modes. The popup SHALL accept an optional `onUpdateJob` callback for optimistic-update integration.
+The system SHALL provide a `CreateJobPopup` component that renders a modal with a form. The form SHALL collect: client (required, searchable dropdown from cached client data) and description (required, text input). The popup SHALL **not** include a job-level price field; pricing SHALL be edited per piece on job detail. The popup SHALL be closable via overlay click or cancel button. The component SHALL accept an optional `initialJob` prop (`Job`). When `initialJob` is provided, the popup SHALL operate in edit mode: the title SHALL use the edit job label, fields SHALL pre-fill from the job (**description and client only**), and submit SHALL call `updateJob` instead of `createJob`. The popup SHALL accept an optional `onUpdateJob` callback for optimistic-update integration.
 
 #### Scenario: Popup opens and shows form fields
 
 - **WHEN** user clicks "Add job" button
-- **THEN** modal displays with client dropdown, description input, and price input
+- **THEN** modal displays with client dropdown and description input
+- **AND** no job-level price input is shown
 
 #### Scenario: Client dropdown is searchable
 
@@ -284,16 +290,6 @@ The system SHALL provide a `CreateJobPopup` component that renders a modal with 
 - **THEN** a validation error is shown
 - **AND** no job is created
 
-#### Scenario: Price is optional and accepts zero
-
-- **WHEN** user submits with a price of 0
-- **THEN** the job is created with price 0
-
-#### Scenario: Price accepts empty value
-
-- **WHEN** user submits without entering a price
-- **THEN** the job is created with no price (null)
-
 #### Scenario: Popup can be closed without submitting
 
 - **WHEN** user opens the popup
@@ -309,8 +305,8 @@ The system SHALL provide a `CreateJobPopup` component that renders a modal with 
 
 #### Scenario: Popup pre-fills in edit mode
 
-- **WHEN** the popup opens with `initialJob` set to a job with description "Phone case", client "CL2", and price 30
-- **THEN** the description field shows "Phone case", the client picker shows client CL2, and the price field shows 30
+- **WHEN** the popup opens with `initialJob` set to a job with description "Phone case" and client "CL2"
+- **THEN** the description field shows "Phone case" and the client picker shows client CL2
 
 #### Scenario: Edit mode uses update title
 
@@ -320,7 +316,7 @@ The system SHALL provide a `CreateJobPopup` component that renders a modal with 
 #### Scenario: Edit submission calls updateJob
 
 - **WHEN** user edits description to "Lamp base" and submits in edit mode
-- **THEN** `updateJob` is called with the job's ID and the new field values
+- **THEN** `updateJob` is called with the job's ID and the new field values (**without** price)
 - **AND** the popup closes
 - **AND** the jobs table reflects the workbook store
 
@@ -377,22 +373,17 @@ The `createJob` service SHALL generate an auto-incrementing ID from the in-memor
 
 ### Requirement: updateJobStatus service updates status and optional income transaction
 
-The system SHALL provide an `updateJobStatus` service that updates a job's status in the workbook store. The service SHALL find the job's row in the in-memory jobs matrix and match by ID. If the new status is "paid", the service SHALL append an income transaction to the workbook store **unless** the caller passes an option to skip transaction creation (e.g. `createIncomeTransaction: false`). Omitting that option SHALL preserve default behavior (append income transaction).
+The system SHALL provide an `updateJobStatus` service that updates a job's status in the workbook store. The service SHALL find the job's row in the in-memory jobs matrix and match by ID. If the new status is "paid", the service SHALL append an income transaction to the workbook store **unless** the caller passes an option to skip transaction creation (e.g. `createIncomeTransaction: false`). Omitting that option SHALL preserve default behavior (append income transaction). The **income amount** SHALL equal **derived total** (sum of set piece prices for non-deleted pieces, including archived). The caller SHALL supply this amount (e.g. `paidPrice`) when transitioning to paid. The service SHALL **not** rely on persisting that amount on the `jobs` row for correctness. The service SHALL **not** modify piece `price` rows as part of marking paid to force a different total.
 
 #### Scenario: Status updated in workbook store
 
 - **WHEN** updateJobStatus is called with job ID and new status
 - **THEN** the job's row in the workbook store is updated with the new status
 
-#### Scenario: Paid status also updates price
-
-- **WHEN** updateJobStatus is called with status "paid" and a price value
-- **THEN** the job's row is updated with both the new status and the price
-
 #### Scenario: Paid status creates income transaction by default
 
 - **WHEN** updateJobStatus is called with status "paid" and transaction creation is not disabled
-- **THEN** a transaction row is added to the workbook store with type "income", the job's price as amount, category "job", the job's description as concept, ref_type "job", ref_id as the job's ID, and the job's client_id
+- **THEN** a transaction row is added to the workbook store with type "income", the **confirmed payment amount** as amount, category "job", the job's description as concept, ref_type "job", ref_id as the job's ID, and the job's client_id
 
 #### Scenario: Paid status skips transaction when opted out
 
@@ -407,19 +398,13 @@ The system SHALL provide an `updateJobStatus` service that updates a job's statu
 
 ### Requirement: updateJob service updates header fields only
 
-The system SHALL provide an `updateJob(spreadsheetId, jobId, payload)` service that updates a job's `description`, `client_id`, and `price` fields in the workbook store. The service SHALL preserve `id`, `status`, and `created_at` unchanged. The service SHALL NOT create, modify, or delete any transaction rows. The service SHALL find the job row in the in-memory jobs matrix and update it in place.
+The system SHALL provide an `updateJob(spreadsheetId, jobId, payload)` service that updates a job's `description` and `client_id` fields in the workbook store. The service SHALL preserve `id`, `status`, and `created_at` unchanged. The service SHALL NOT create, modify, or delete any transaction rows. The service SHALL find the job row in the in-memory jobs matrix and update it in place.
 
 #### Scenario: Header fields updated in store
 
-- **WHEN** `updateJob` is called with jobId "J5" and payload `{ description: "Lamp", client_id: "CL3", price: 25 }`
+- **WHEN** `updateJob` is called with jobId "J5" and payload `{ description: "Lamp", client_id: "CL3" }`
 - **THEN** the job row for J5 is updated with those values
 - **AND** `id`, `status`, and `created_at` remain unchanged
-
-#### Scenario: Price can be cleared
-
-- **WHEN** `updateJob` is called with `price` as undefined
-- **THEN** the price field in the sheet is set to empty
-- **AND** no transaction side effects occur
 
 #### Scenario: Job not found throws error
 
@@ -479,7 +464,7 @@ The system SHALL provide a generic `EntityDetailPage` component that renders: a 
 
 #### Scenario: EntityDetailPage renders header with fields
 
-- **WHEN** `EntityDetailPage` is rendered with title "Phone case" and fields [id: "J1", client: "Alice", price: "€30"]
+- **WHEN** `EntityDetailPage` is rendered with title "Phone case" and fields [id: "J1", client: "Alice", **total**: derived sum of **set** piece prices on **non-deleted** pieces (**including** archived), or incomplete label with highlight when any counting piece price is unset]
 - **THEN** the header card displays the title and all field label-value pairs
 
 #### Scenario: Back link navigates to list
@@ -494,17 +479,37 @@ The system SHALL provide a generic `EntityDetailPage` component that renders: a 
 
 ### Requirement: Job entities are parsed from the workbook store
 
-The system SHALL derive `Job` objects for UI from the jobs tab matrix held in the workbook store (filtering out rows without id, parsing price as a number or undefined if empty, sorting by created_at descending as needed). Hydration SHALL populate that matrix; routine navigation SHALL not call `readRows` for jobs alone.
+The system SHALL derive `Job` objects for UI from the jobs tab matrix held in the workbook store (filtering out rows without id, parsing optional legacy `price` as a number or undefined if empty, sorting by created_at descending as needed). **User-visible job totals SHALL be computed from pieces**, not from `jobs.price`. Hydration SHALL populate that matrix; routine navigation SHALL not call `readRows` for jobs alone.
 
 #### Scenario: Jobs available after hydration
 
 - **WHEN** the workbook store is hydrated
 - **THEN** jobs pages can read Job objects from the store-derived data
 
-#### Scenario: Empty price is returned as undefined
+#### Scenario: Legacy empty job price is returned as undefined
 
 - **WHEN** a job row has an empty price field
-- **THEN** the Job object has price as undefined
+- **THEN** the Job object may have `price` as undefined
+- **AND** UI still shows totals from pieces when rendering lists and detail
+
+### Requirement: Marking paid does not rewrite piece prices
+
+When the user confirms marking a job paid, the system SHALL **not** add or change piece `price` values solely to match a payment total; **derived total** is always read from existing piece rows.
+
+#### Scenario: Confirm paid leaves piece prices unchanged
+
+- **WHEN** counting pieces have set prices summing to €45
+- **AND** the user confirms paid
+- **THEN** each piece's stored `price` is unchanged from before the transition
+
+### Requirement: Incomplete piece pricing is visibly highlighted
+
+When the UI shows the **incomplete pricing** state for a job (at least one non-deleted counting piece exists and any such piece has unset `price`), the i18n incomplete label SHALL use **visually distinct** styling (e.g. colored background and border) wherever that label appears, including: jobs list **Total** column, client detail embedded jobs **Total** column, job detail header **Total** field, and dashboard kanban job cards that show totals when counting pieces exist.
+
+#### Scenario: Incomplete total uses highlight styling
+
+- **WHEN** a surface would show the incomplete pricing label for a job
+- **THEN** that label is not rendered as plain body text alone; it uses prominent styling consistent with a warning or attention badge
 
 ### Requirement: useWorkbookEntities provides reactive workbook data
 

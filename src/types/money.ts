@@ -114,6 +114,7 @@ export interface Piece {
   job_id: string
   name: string
   status: PieceStatus
+  price?: number
   created_at: string
   archived?: string
   deleted?: string

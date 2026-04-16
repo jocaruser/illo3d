@@ -7,6 +7,7 @@ import { useWorkbookStore } from '@/stores/workbookStore'
 export interface CreatePiecePayload {
   job_id: string
   name: string
+  price?: number
 }
 
 export async function createPiece(
@@ -21,12 +22,18 @@ export async function createPiece(
   )
   const createdAt = new Date().toISOString()
 
+  const priceCell =
+    payload.price !== undefined && payload.price !== null
+      ? payload.price
+      : ''
+
   patchWorkbookTab('pieces', (m) =>
     appendDataRow('pieces', m, {
       id: pieceId,
       job_id: payload.job_id,
       name: payload.name.trim(),
       status: 'pending',
+      price: priceCell,
       created_at: createdAt,
       archived: '',
       deleted: '',

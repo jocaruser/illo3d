@@ -1,6 +1,9 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Inventory, Job, Piece, PieceItem } from '@/types/money'
+import type { Expense, Inventory, Job, Piece, PieceItem } from '@/types/money'
+import { computePieceSuggestedPrice } from '@/utils/jobSuggestedPrice'
+import { materialCostForPieceItemLine } from '@/utils/pieceItemMaterialCost'
+import { formatCurrency } from '@/utils/money'
 import { PieceStatusDropdown } from '@/components/PieceStatusDropdown'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
@@ -72,6 +75,11 @@ function pieceComparable(
       return piece.status
     case 'created_at':
       return piece.created_at
+    case 'price': {
+      const p = piece.price
+      if (typeof p !== 'number' || Number.isNaN(p)) return Number.POSITIVE_INFINITY
+      return p
+    }
     default:
       return ''
   }
@@ -82,10 +90,13 @@ interface PiecesTableProps {
   jobs: Job[]
   pieceItems: PieceItem[]
   inventory: Inventory[]
+  expenses: Expense[]
+  spreadsheetId: string | null
   expandedPieceId: string | null
   onToggleExpand: (pieceId: string) => void
   onOpenAddLine: (pieceId: string) => void
   onStatusChange: (piece: Piece, nextStatus: Piece['status']) => void
+  onPiecePriceCommit: (pieceId: string, raw: string) => Promise<void>
   statusUpdatingId?: string | null
   hideJobColumn?: boolean
 }
@@ -95,15 +106,18 @@ export function PiecesTable({
   jobs,
   pieceItems,
   inventory,
+  expenses,
+  spreadsheetId,
   expandedPieceId,
   onToggleExpand,
   onOpenAddLine,
   onStatusChange,
+  onPiecePriceCommit,
   statusUpdatingId = null,
   hideJobColumn = false,
 }: PiecesTableProps) {
   const { t } = useTranslation()
-  const colCount = hideJobColumn ? 5 : 6
+  const colCount = hideJobColumn ? 6 : 7
 
   const [query, setQuery] = useState('')
   const [sortKey, setSortKey] = useState<string | null>(null)
@@ -226,6 +240,17 @@ export function PiecesTable({
                 {t('pieces.colName')}
               </SortableColumnHeader>
               <SortableColumnHeader
+                columnKey="price"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                alignEnd
+                thClassName="hidden md:table-cell"
+                ariaLabel={sortAria(t('pieces.colPrice'), 'price')}
+              >
+                {t('pieces.colPrice')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
                 columnKey="status"
                 sortKey={sortKey}
                 sortDir={sortDir}
@@ -289,6 +314,57 @@ export function PiecesTable({
                       <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 sm:table-cell">
                         {piece.name}
                       </td>
+                      <td className="hidden px-2 py-3 text-sm md:table-cell">
+                        <div className="flex flex-col items-end gap-1">
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            data-testid={`piece-price-${piece.id}`}
+                            key={`${piece.id}-${piece.price ?? 'u'}`}
+                            defaultValue={
+                              piece.price === undefined
+                                ? ''
+                                : String(piece.price)
+                            }
+                            disabled={!spreadsheetId}
+                            onBlur={(e) => {
+                              void onPiecePriceCommit(piece.id, e.target.value)
+                            }}
+                            className="w-24 rounded border border-gray-300 px-2 py-1 text-right text-gray-800 disabled:bg-gray-100"
+                            aria-label={t('pieces.colPrice')}
+                          />
+                          {(() => {
+                            const sug = computePieceSuggestedPrice(
+                              piece.id,
+                              pieceItems,
+                              inventory,
+                              expenses,
+                            )
+                            if (sug.kind !== 'ok') return null
+                            return (
+                              <button
+                                type="button"
+                                data-testid={`piece-suggested-${piece.id}`}
+                                className="text-xs font-medium text-blue-700 hover:text-blue-900"
+                                onClick={() => {
+                                  const rounded = Number(
+                                    sug.suggestedPrice.toFixed(2)
+                                  )
+                                  void onPiecePriceCommit(
+                                    piece.id,
+                                    String(rounded)
+                                  )
+                                }}
+                              >
+                                {t('pieces.suggestedApply', {
+                                  price: formatCurrency(sug.suggestedPrice),
+                                })}
+                              </button>
+                            )
+                          })()}
+                        </div>
+                      </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                         <PieceStatusDropdown
                           pieceId={piece.id}
@@ -338,6 +414,9 @@ export function PiecesTable({
                                     <th className="py-2 pr-4">
                                       {t('pieces.lineColQty')}
                                     </th>
+                                    <th className="py-2 pr-4 text-right">
+                                      {t('pieces.lineColMaterialCost')}
+                                    </th>
                                     <th className="py-2">
                                       {t('pieces.lineColStock')}
                                     </th>
@@ -360,6 +439,18 @@ export function PiecesTable({
                                       </td>
                                       <td className="py-2 pr-4 text-gray-800">
                                         {line.quantity}
+                                      </td>
+                                      <td className="py-2 pr-4 text-right text-gray-800">
+                                        {(() => {
+                                          const cost = materialCostForPieceItemLine(
+                                            line,
+                                            inventory,
+                                            expenses,
+                                          )
+                                          return cost == null
+                                            ? '—'
+                                            : formatCurrency(cost)
+                                        })()}
                                       </td>
                                       <td className="py-2 text-gray-800">
                                         {(() => {

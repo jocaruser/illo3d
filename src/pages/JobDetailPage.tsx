@@ -14,11 +14,12 @@ import { CreatePiecePopup } from '@/components/CreatePiecePopup'
 import { CreatePieceItemPopup } from '@/components/CreatePieceItemPopup'
 import { PiecesTable } from '@/components/PiecesTable'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
-import { CreateJobPopup, type SuggestedPricingInput } from '@/components/CreateJobPopup'
+import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { JobNotesSection } from '@/components/JobNotesSection'
 import { JobTagsSection } from '@/components/JobTagsSection'
 import { updatePieceStatus } from '@/services/piece/updatePieceStatus'
+import { updatePiecePrice } from '@/services/piece/updatePiecePrice'
 import type {
   Inventory,
   Job,
@@ -27,7 +28,7 @@ import type {
   PieceItem,
   PieceStatus,
 } from '@/types/money'
-import { formatCurrency } from '@/utils/money'
+import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
 
 function clientName(
   clients: { id: string; name: string }[],
@@ -35,13 +36,6 @@ function clientName(
 ): string {
   const c = clients.find((x) => x.id === clientId)
   return c?.name ?? clientId
-}
-
-function formatJobPrice(price: number | undefined): string {
-  if (price === undefined || price === null || Number.isNaN(price)) {
-    return '—'
-  }
-  return formatCurrency(price)
 }
 
 function isConsumingPieceStatus(s: PieceStatus): boolean {
@@ -148,17 +142,6 @@ export function JobDetailPage() {
   const [pieceStatusUpdatingId, setPieceStatusUpdatingId] = useState<
     string | null
   >(null)
-
-  const suggestedPricing = useMemo((): SuggestedPricingInput | undefined => {
-    if (!job || !editingJob || editingJob.id !== job.id) return undefined
-    return {
-      jobId: job.id,
-      pieces: allPieces,
-      pieceItems,
-      inventory,
-      expenses,
-    }
-  }, [job, editingJob, allPieces, pieceItems, inventory, expenses])
 
   useEffect(() => {
     if (workbookStatus !== 'ready' || !job) return
@@ -303,8 +286,14 @@ export function JobDetailPage() {
           value: t(`jobs.status.${job.status}`),
         },
         {
-          label: t('jobs.colPrice'),
-          value: formatJobPrice(job.price),
+          label: t('jobs.colTotal'),
+          value: (
+            <JobPricingTotalDisplay
+              jobId={job.id}
+              pieces={allPieces}
+              t={t}
+            />
+          ),
         },
         { label: t('jobs.colCreated'), value: job.created_at },
       ]
@@ -393,6 +382,8 @@ export function JobDetailPage() {
               jobs={jobs}
               pieceItems={pieceItems}
               inventory={inventory}
+              expenses={expenses}
+              spreadsheetId={spreadsheetId}
               expandedPieceId={expandedPieceId}
               onToggleExpand={(id) =>
                 setExpandedPieceId((cur) => (cur === id ? null : id))
@@ -400,6 +391,25 @@ export function JobDetailPage() {
               onOpenAddLine={(id) => setLinePieceId(id)}
               onStatusChange={(p, next) => {
                 void handlePieceStatusSelect(p, next)
+              }}
+              onPiecePriceCommit={async (pieceId, raw) => {
+                if (!spreadsheetId) return
+                const trim = raw.trim()
+                let v: number | undefined
+                if (trim === '') v = undefined
+                else {
+                  const n = parseFloat(trim)
+                  if (Number.isNaN(n) || n < 0) return
+                  v = n
+                }
+                const cur = pieces.find((p) => p.id === pieceId)?.price
+                const same =
+                  (v === undefined && cur === undefined) ||
+                  (v !== undefined &&
+                    cur !== undefined &&
+                    Math.abs(v - cur) < 1e-9)
+                if (same) return
+                await updatePiecePrice(spreadsheetId, pieceId, v)
               }}
               statusUpdatingId={pieceStatusUpdatingId}
               hideJobColumn
@@ -416,7 +426,6 @@ export function JobDetailPage() {
         clients={clients}
         initialJob={editingJob}
         onUpdateJob={handleUpdateJob}
-        suggestedPricing={suggestedPricing}
       />
 
       <ConfirmDialog

@@ -1,8 +1,9 @@
 import { Fragment, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { Job, JobStatus } from '@/types/money'
-import { formatCurrency } from '@/utils/money'
+import type { Job, JobStatus, Piece } from '@/types/money'
+import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
+import { jobPricingState } from '@/utils/jobPiecePricing'
 import {
   KANBAN_JOB_DRAG_MIME,
   beginKanbanJobDrag,
@@ -10,13 +11,13 @@ import {
   getKanbanJobDragId,
   isKanbanJobDragEvent,
 } from './kanbanDnd'
-import { jobHasPrice } from '@/hooks/useJobStatusFlow'
 
 const CANCELLED_CAP = 10
 
 interface KanbanColumnProps {
   status: JobStatus
   jobs: Job[]
+  pieces: Piece[]
   clientsById: Map<string, string>
   columnTitle: string
   onDropJob: (
@@ -82,6 +83,7 @@ function KanbanDropGap({
 export function KanbanColumn({
   status,
   jobs,
+  pieces,
   clientsById,
   columnTitle,
   onDropJob,
@@ -195,11 +197,21 @@ export function KanbanColumn({
                       <p className="mt-1 truncate text-xs text-gray-600">
                         {clientsById.get(job.client_id) ?? ''}
                       </p>
-                      {jobHasPrice(job) ? (
-                        <p className="mt-1 text-sm font-medium text-gray-800">
-                          {formatCurrency(Number(job.price))}
-                        </p>
-                      ) : null}
+                      {(() => {
+                        if (jobPricingState(job.id, pieces).kind === 'empty') {
+                          return null
+                        }
+                        return (
+                          <div className="mt-1">
+                            <JobPricingTotalDisplay
+                              jobId={job.id}
+                              pieces={pieces}
+                              t={t}
+                              size="compact"
+                            />
+                          </div>
+                        )
+                      })()}
                     </div>
                   </div>
                   {idx === visibleJobs.length - 1 ? (

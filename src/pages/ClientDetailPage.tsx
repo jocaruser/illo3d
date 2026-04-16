@@ -308,7 +308,7 @@ export function ClientDetailPage() {
                         {t('jobs.colStatus')}
                       </th>
                       <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600">
-                        {t('jobs.colPrice')}
+                        {t('jobs.colTotal')}
                       </th>
                       <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
                         {t('jobs.colCreated')}
@@ -338,6 +338,7 @@ export function ClientDetailPage() {
             ) : (
               <ClientJobsDiscoveryTable
                 jobs={clientJobs}
+                pieces={pieces}
                 clientName={client.name}
               />
             )}

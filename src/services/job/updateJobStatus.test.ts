@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { updateJobStatus } from './updateJobStatus'
 import type { Job } from '@/types/money'
-import { matrixToJobs, matrixToTransactions } from '@/lib/workbook/workbookEntities'
+import {
+  matrixToJobs,
+  matrixToTransactions,
+} from '@/lib/workbook/workbookEntities'
 import { useWorkbookStore } from '@/stores/workbookStore'
 import { matrixWithRows, resetAndSeedWorkbook } from '@/test/workbookHarness'
 
@@ -13,35 +16,25 @@ const baseJob: Job = {
   created_at: '2025-01-01T00:00:00.000Z',
 }
 
-function seedJobsAndTransactions(
-  jobs: Record<string, string | number | undefined>[],
-  transactions: Record<string, string | number | undefined>[] = [],
-) {
-  resetAndSeedWorkbook({
-    jobs: matrixWithRows('jobs', jobs),
-    transactions:
-      transactions.length > 0
-        ? matrixWithRows('transactions', transactions)
-        : undefined,
-  })
-}
-
 describe('updateJobStatus', () => {
   beforeEach(() => {
     useWorkbookStore.getState().reset()
   })
 
   it('updates row only when moving to in_progress', async () => {
-    seedJobsAndTransactions([
-      {
-        id: baseJob.id,
-        client_id: baseJob.client_id,
-        description: baseJob.description,
-        status: baseJob.status,
-        price: '',
-        created_at: baseJob.created_at,
-      },
-    ])
+    resetAndSeedWorkbook({
+      jobs: matrixWithRows('jobs', [
+        {
+          id: baseJob.id,
+          client_id: baseJob.client_id,
+          description: baseJob.description,
+          status: baseJob.status,
+          price: '',
+          board_order: '',
+          created_at: baseJob.created_at,
+        },
+      ]),
+    })
 
     await updateJobStatus('spreadsheet-1', baseJob, 'in_progress')
 
@@ -53,20 +46,31 @@ describe('updateJobStatus', () => {
     ).toHaveLength(0)
   })
 
-  it('appends income transaction when marking paid with existing price', async () => {
-    const job: Job = { ...baseJob, status: 'delivered', price: 25 }
-    seedJobsAndTransactions(
-      [
+  it('appends income transaction for paidPrice from piece totals', async () => {
+    const job: Job = { ...baseJob, status: 'delivered' }
+    resetAndSeedWorkbook({
+      jobs: matrixWithRows('jobs', [
         {
           id: job.id,
           client_id: job.client_id,
           description: job.description,
           status: job.status,
-          price: 25,
+          price: '',
+          board_order: '',
           created_at: job.created_at,
         },
-      ],
-      [
+      ]),
+      pieces: matrixWithRows('pieces', [
+        {
+          id: 'P1',
+          job_id: 'J1',
+          name: 'Part',
+          status: 'pending',
+          price: 25,
+          created_at: '2025-01-01',
+        },
+      ]),
+      transactions: matrixWithRows('transactions', [
         {
           id: 'T1',
           date: '2025-01-01',
@@ -79,14 +83,14 @@ describe('updateJobStatus', () => {
           client_id: '',
           notes: '',
         },
-      ],
-    )
+      ]),
+    })
 
-    await updateJobStatus('spreadsheet-1', job, 'paid')
+    await updateJobStatus('spreadsheet-1', job, 'paid', { paidPrice: 25 })
 
     const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
     expect(jobs[0]?.status).toBe('paid')
-    expect(jobs[0]?.price).toBe(25)
+    expect(jobs[0]?.price).toBeUndefined()
 
     const txs = matrixToTransactions(
       useWorkbookStore.getState().tabs.transactions,
@@ -101,17 +105,30 @@ describe('updateJobStatus', () => {
     })
   })
 
-  it('uses paidPrice when job has no price', async () => {
-    seedJobsAndTransactions([
-      {
-        id: baseJob.id,
-        client_id: baseJob.client_id,
-        description: baseJob.description,
-        status: baseJob.status,
-        price: '',
-        created_at: baseJob.created_at,
-      },
-    ])
+  it('does not write job sheet price from paidPrice', async () => {
+    resetAndSeedWorkbook({
+      jobs: matrixWithRows('jobs', [
+        {
+          id: baseJob.id,
+          client_id: baseJob.client_id,
+          description: baseJob.description,
+          status: baseJob.status,
+          price: '',
+          board_order: '',
+          created_at: baseJob.created_at,
+        },
+      ]),
+      pieces: matrixWithRows('pieces', [
+        {
+          id: 'P1',
+          job_id: 'J1',
+          name: 'Part',
+          status: 'pending',
+          price: 15,
+          created_at: '2025-01-01',
+        },
+      ]),
+    })
 
     await updateJobStatus('spreadsheet-1', baseJob, 'paid', {
       paidPrice: 15,
@@ -119,7 +136,7 @@ describe('updateJobStatus', () => {
 
     const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
     expect(jobs[0]?.status).toBe('paid')
-    expect(jobs[0]?.price).toBe(15)
+    expect(jobs[0]?.price).toBeUndefined()
 
     const txs = matrixToTransactions(
       useWorkbookStore.getState().tabs.transactions,
@@ -128,19 +145,33 @@ describe('updateJobStatus', () => {
   })
 
   it('does not append transaction when createIncomeTransaction is false', async () => {
-    const job: Job = { ...baseJob, status: 'delivered', price: 25 }
-    seedJobsAndTransactions([
-      {
-        id: job.id,
-        client_id: job.client_id,
-        description: job.description,
-        status: job.status,
-        price: 25,
-        created_at: job.created_at,
-      },
-    ])
+    const job: Job = { ...baseJob, status: 'delivered' }
+    resetAndSeedWorkbook({
+      jobs: matrixWithRows('jobs', [
+        {
+          id: job.id,
+          client_id: job.client_id,
+          description: job.description,
+          status: job.status,
+          price: '',
+          board_order: '',
+          created_at: job.created_at,
+        },
+      ]),
+      pieces: matrixWithRows('pieces', [
+        {
+          id: 'P1',
+          job_id: 'J1',
+          name: 'Part',
+          status: 'pending',
+          price: 25,
+          created_at: '2025-01-01',
+        },
+      ]),
+    })
 
     await updateJobStatus('spreadsheet-1', job, 'paid', {
+      paidPrice: 25,
       createIncomeTransaction: false,
     })
 
@@ -152,21 +183,24 @@ describe('updateJobStatus', () => {
     )
   })
 
-  it('throws when paid without price', async () => {
-    seedJobsAndTransactions([
-      {
-        id: baseJob.id,
-        client_id: baseJob.client_id,
-        description: baseJob.description,
-        status: baseJob.status,
-        price: '',
-        created_at: baseJob.created_at,
-      },
-    ])
+  it('throws when paid without paidPrice', async () => {
+    resetAndSeedWorkbook({
+      jobs: matrixWithRows('jobs', [
+        {
+          id: baseJob.id,
+          client_id: baseJob.client_id,
+          description: baseJob.description,
+          status: baseJob.status,
+          price: '',
+          board_order: '',
+          created_at: baseJob.created_at,
+        },
+      ]),
+    })
 
     await expect(
       updateJobStatus('spreadsheet-1', baseJob, 'paid'),
-    ).rejects.toThrow(/price/i)
+    ).rejects.toThrow(/paidPrice/i)
   })
 
   it('throws when job id not found', async () => {

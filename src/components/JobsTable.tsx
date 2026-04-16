@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { Client, Job } from '@/types/money'
-import { formatCurrency } from '@/utils/money'
+import type { Client, Job, Piece } from '@/types/money'
+import { jobTotalSortValue } from '@/utils/jobPiecePricing'
+import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
 import { StatusDropdown } from './StatusDropdown'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
@@ -16,14 +17,12 @@ function clientName(clients: Client[], clientId: string): string {
   return c?.name ?? clientId
 }
 
-function formatJobPrice(price: number | undefined): string {
-  if (price === undefined || price === null || Number.isNaN(price)) {
-    return '—'
-  }
-  return formatCurrency(price)
-}
-
-function jobComparable(job: Job, key: string, clients: Client[]): string | number {
+function jobComparable(
+  job: Job,
+  key: string,
+  clients: Client[],
+  pieces: Piece[]
+): string | number {
   switch (key) {
     case 'client':
       return clientName(clients, job.client_id).toLowerCase()
@@ -32,14 +31,7 @@ function jobComparable(job: Job, key: string, clients: Client[]): string | numbe
     case 'status':
       return job.status
     case 'price':
-      if (
-        job.price === undefined ||
-        job.price === null ||
-        Number.isNaN(Number(job.price))
-      ) {
-        return Number.POSITIVE_INFINITY
-      }
-      return Number(job.price)
+      return jobTotalSortValue(job.id, pieces)
     case 'created_at':
       return job.created_at
     default:
@@ -49,6 +41,7 @@ function jobComparable(job: Job, key: string, clients: Client[]): string | numbe
 
 interface JobsTableProps {
   jobs: Job[]
+  pieces: Piece[]
   clients: Client[]
   /** Comma-joined tag names per job id (for job id link tooltip). */
   tagTitleByJobId?: ReadonlyMap<string, string>
@@ -62,6 +55,7 @@ interface JobsTableProps {
 
 export function JobsTable({
   jobs,
+  pieces,
   clients,
   tagTitleByJobId,
   tagSearchLineByJobId,
@@ -94,9 +88,9 @@ export function JobsTable({
         (j) => j.id,
         sortKey,
         sortDir,
-        (j, key) => jobComparable(j, key, clients)
+        (j, key) => jobComparable(j, key, clients, pieces)
       ),
-    [filtered, sortKey, sortDir, clients]
+    [filtered, sortKey, sortDir, clients, pieces]
   )
 
   const onSortChange = (key: string) => {
@@ -165,9 +159,9 @@ export function JobsTable({
                 onSortChange={onSortChange}
                 alignEnd
                 thClassName="hidden lg:table-cell"
-                ariaLabel={sortAria(t('jobs.colPrice'), 'price')}
+                ariaLabel={sortAria(t('jobs.colTotal'), 'price')}
               >
-                {t('jobs.colPrice')}
+                {t('jobs.colTotal')}
               </SortableColumnHeader>
               <SortableColumnHeader
                 columnKey="created_at"
@@ -232,7 +226,11 @@ export function JobsTable({
                     />
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 lg:table-cell">
-                    {formatJobPrice(job.price)}
+                    <JobPricingTotalDisplay
+                      jobId={job.id}
+                      pieces={pieces}
+                      t={t}
+                    />
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 lg:table-cell">
                     {job.created_at}

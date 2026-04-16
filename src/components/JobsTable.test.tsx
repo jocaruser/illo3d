@@ -34,6 +34,7 @@ describe('JobsTable', () => {
       <MemoryRouter>
         <JobsTable
           jobs={[job]}
+          pieces={[]}
           clients={[{ id: 'CL1', name: 'Acme', created_at: '2025-01-01' }]}
           onStatusSelect={onStatusSelect}
           onEdit={onEdit}
@@ -71,6 +72,7 @@ describe('JobsTable', () => {
       <MemoryRouter>
         <JobsTable
           jobs={[job]}
+          pieces={[]}
           clients={[{ id: 'CL1', name: 'Acme', created_at: '2025-01-01' }]}
           tagTitleByJobId={tagTitle}
           onStatusSelect={onStatusSelect}

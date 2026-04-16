@@ -60,7 +60,15 @@ export const SHEET_HEADERS: Record<SheetName, readonly string[]> = {
     'created_at',
     ...LIFECYCLE_COLUMNS,
   ],
-  pieces: ['id', 'job_id', 'name', 'status', 'created_at', ...LIFECYCLE_COLUMNS],
+  pieces: [
+    'id',
+    'job_id',
+    'name',
+    'status',
+    'price',
+    'created_at',
+    ...LIFECYCLE_COLUMNS,
+  ],
   piece_items: [
     'id',
     'piece_id',

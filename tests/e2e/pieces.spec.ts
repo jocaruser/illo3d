@@ -37,7 +37,9 @@ test.describe('Job pieces (job detail)', () => {
     await expect(page.getByText('Phone case top shell')).toBeVisible()
 
     await page.getByTestId('expand-piece-P1').click()
-    await expect(page.getByText('42')).toBeVisible()
+    await expect(
+      page.locator('#piece-items-P1').getByRole('cell', { name: '42', exact: true })
+    ).toBeVisible()
     await expect(page.getByText(/PLA White|INV1/)).toBeVisible()
   })
 
@@ -246,7 +248,7 @@ test.describe('Job pieces (job detail)', () => {
     await expect(select.locator('option').nth(1)).toContainText(/\d/)
   })
 
-  test('edit job from detail shows suggested price from BOM', async ({
+  test('piece table offers BOM-based suggested price per piece', async ({
     page,
     openCsvShop,
   }) => {
@@ -260,17 +262,14 @@ test.describe('Job pieces (job detail)', () => {
     await page.getByTestId('job-detail-link-J1').click()
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
-    await page.getByTestId('entity-detail-edit').click()
-    await expect(
-      page.getByRole('heading', { name: /edit job|editar trabajo/i })
-    ).toBeVisible()
-
-    const apply = page.getByTestId('job-suggested-price-apply')
+    const apply = page.getByTestId('piece-suggested-P1')
     await expect(apply).toBeVisible({ timeout: 10000 })
-    await expect(apply).toHaveText(/11\.07/)
+    await expect(apply).toHaveText(/€3[.,]78/)
 
     await apply.click()
-    await expect(page.locator('#job-price')).toHaveValue('11.07')
+    await expect(page.getByTestId('piece-price-P1')).toHaveValue('3.78', {
+      timeout: 10000,
+    })
   })
 
   test('create job from list has no suggested price control', async ({

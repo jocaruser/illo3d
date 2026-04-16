@@ -28,7 +28,7 @@ export function JobsPage() {
   const workbookError = useWorkbookStore((s) => s.error)
   const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
 
-  const { jobs: allJobs, clients, tags, tagLinks } = useWorkbookEntities()
+  const { jobs: allJobs, clients, tags, tagLinks, pieces } = useWorkbookEntities()
   const jobs = useMemo(
     () => allJobs.filter(isActiveJob),
     [allJobs],
@@ -134,6 +134,7 @@ export function JobsPage() {
           ) : (
             <JobsTable
               jobs={jobs}
+              pieces={pieces}
               clients={clients}
               tagTitleByJobId={tagTitleByJobId}
               tagSearchLineByJobId={tagSearchLineByJobId}
