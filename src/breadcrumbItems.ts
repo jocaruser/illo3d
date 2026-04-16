@@ -2,6 +2,7 @@ import type { TFunction } from 'i18next'
 import type { BreadcrumbItem } from '@/components/Breadcrumbs'
 
 const MAIN_ROUTES = [
+  '/dashboard',
   '/clients',
   '/jobs',
   '/transactions',
@@ -16,6 +17,7 @@ function isMainRoute(pathname: string): pathname is MainRoute {
 }
 
 const routeToNavKey: Record<MainRoute, string> = {
+  '/dashboard': 'nav.dashboard',
   '/clients': 'nav.clients',
   '/jobs': 'nav.jobs',
   '/transactions': 'nav.transactions',
@@ -41,7 +43,7 @@ export function getBreadcrumbItems(
     const id = clientDetailMatch[1]
     const name = resolveClientName?.(id)
     return [
-      { label: t('breadcrumb.home'), to: '/transactions' },
+      { label: t('breadcrumb.home'), to: '/dashboard' },
       { label: t('nav.clients'), to: '/clients' },
       { label: name ?? id },
     ]
@@ -52,7 +54,7 @@ export function getBreadcrumbItems(
     const id = jobDetailMatch[1]
     const description = resolveJobDescription?.(id)
     return [
-      { label: t('breadcrumb.home'), to: '/transactions' },
+      { label: t('breadcrumb.home'), to: '/dashboard' },
       { label: t('nav.jobs'), to: '/jobs' },
       { label: description ?? id },
     ]
@@ -63,7 +65,7 @@ export function getBreadcrumbItems(
   }
 
   return [
-    { label: t('breadcrumb.home'), to: '/transactions' },
+    { label: t('breadcrumb.home'), to: '/dashboard' },
     { label: t(routeToNavKey[pathname]) },
   ]
 }

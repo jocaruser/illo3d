@@ -17,6 +17,7 @@
     "sortedDescending": "{{column}}, sorted descending"
   },
   "page": {
+    "dashboard": "Dashboard",
     "transactions": "Transactions",
     "expenses": "Expenses"
   },
@@ -42,7 +43,36 @@
     "ariaLabel": "Breadcrumb",
     "home": "Home"
   },
+  "dashboard": {
+    "balance": "Balance",
+    "activeJobs": "Active jobs",
+    "revenueThisMonth": "Revenue this month",
+    "piecesThisWeek": "Pieces completed (7 days)",
+    "addExpense": "Add expense",
+    "addJob": "Add job",
+    "viewAll": "View all",
+    "recentEmpty": "No entries yet.",
+    "recentTransactions": "Recent transactions",
+    "recentExpenses": "Recent expenses",
+    "kanban": {
+      "draft": "Draft",
+      "inProgress": "In progress",
+      "delivered": "Delivered",
+      "paid": "Paid",
+      "cancelled": "Cancelled",
+      "empty": "No jobs",
+      "viewAll": "View all jobs",
+      "jobSingular": "job",
+      "jobPlural": "jobs"
+    },
+    "inventory": {
+      "alerts": "Stock alerts",
+      "healthy": "All stock levels look healthy.",
+      "viewAll": "View inventory"
+    }
+  },
   "nav": {
+    "dashboard": "Dashboard",
     "clients": "Clients",
     "jobs": "Jobs",
     "pieces": "Pieces",

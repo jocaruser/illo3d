@@ -27,7 +27,7 @@ test.describe('Login flow', () => {
     })
   })
 
-  test('dev login navigates to transactions page', async ({ page }) => {
+  test('dev login navigates to dashboard page', async ({ page }) => {
     await page.goto('/login', { waitUntil: 'load' })
 
     const devLoginButton = page.getByTestId('dev-login-button')
@@ -35,7 +35,7 @@ test.describe('Login flow', () => {
 
     await devLoginButton.click()
 
-    await expect(page).toHaveURL(/\/transactions/)
+    await expect(page).toHaveURL(/\/dashboard/)
 
     await expect(page.getByRole('link', { name: 'illo3d' })).toBeVisible()
   })

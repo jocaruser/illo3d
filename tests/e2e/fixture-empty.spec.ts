@@ -6,6 +6,8 @@ test.describe('Empty CSV fixture scenario', () => {
   test('transactions shows empty state', async ({ page, openCsvShop }) => {
     void openCsvShop
 
+    await page.goto('/transactions', { waitUntil: 'load' })
+
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
     })

@@ -1,1 +1,1 @@
-id,client_id,description,status,price,created_at,archived,deleted
+id,client_id,description,status,price,board_order,created_at,archived,deleted

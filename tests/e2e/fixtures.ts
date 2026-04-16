@@ -37,7 +37,7 @@ export async function waitForShopDataReady(page: Page) {
     page.getByText(/connecting to google sheets|conectando a google sheets/i),
   ).not.toBeVisible({ timeout: 20000 })
   await expect(
-    page.getByRole('heading', { name: /transactions|transacciones/i }),
+    page.getByRole('heading', { name: /dashboard|panel/i }),
   ).toBeVisible({ timeout: 20000 })
   // Zustand persist rehydrates async; header search only mounts when `activeShop` is set (no wizard overlay).
   await expect(page.getByTestId('global-header-search')).toBeVisible({
@@ -53,7 +53,7 @@ export async function devLoginAndOpenCsvShop(page: Page) {
   await expect(devLoginButton).toBeVisible({ timeout: 15000 })
   await devLoginButton.click()
 
-  await expect(page).toHaveURL(/\/transactions/)
+  await expect(page).toHaveURL(/\/dashboard/)
 
   const openExistingButton = page.getByRole('button', {
     name: /open existing shop|abrir tienda existente/i,
@@ -71,7 +71,7 @@ export const test = base.extend<{
   fixtureScenario: string
   /** Reset `.e2e-fixtures` from `fixtures/<fixtureScenario>/`. Runs when opening the CSV shop or when a test pulls this in explicitly (e.g. manual wizard completion). */
   prepareFixtureDir: void
-  /** Opt-in: uses saved `storageState` from setup, resets fixtures, opens `/transactions`, waits for data-ready. */
+  /** Opt-in: uses saved `storageState` from setup, resets fixtures, opens `/dashboard`, waits for data-ready. */
   openCsvShop: void
 }>({
   fixtureScenario: ['happy-path', { option: true }],
@@ -85,7 +85,7 @@ export const test = base.extend<{
   openCsvShop: [
     async ({ page, prepareFixtureDir }, use) => {
       void prepareFixtureDir
-      await page.goto('/transactions', { waitUntil: 'load' })
+      await page.goto('/dashboard', { waitUntil: 'load' })
       await waitForShopDataReady(page)
       await use()
     },

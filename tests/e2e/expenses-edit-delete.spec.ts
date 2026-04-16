@@ -4,7 +4,7 @@ test.describe('Expenses edit and delete', () => {
   test('edit expense updates amount in table', async ({ page, openCsvShop }) => {
     void openCsvShop
 
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
       timeout: 10000,
     })
     await page.getByRole('link', { name: /expenses|gastos/i }).click()
@@ -31,7 +31,7 @@ test.describe('Expenses edit and delete', () => {
   test('delete expense removes row', async ({ page, openCsvShop }) => {
     void openCsvShop
 
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
       timeout: 10000,
     })
     await page.getByRole('link', { name: /expenses|gastos/i }).click()

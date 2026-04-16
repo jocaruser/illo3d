@@ -4,7 +4,7 @@ test.describe('Clients page', () => {
   test('clients table visible after navigating from header', async ({ page, openCsvShop }) => {
     void openCsvShop
 
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
       timeout: 10000,
     })
 
