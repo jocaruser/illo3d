@@ -1,13 +1,8 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
+import { readTestPersistEntry } from './persistStorage'
 import { useShopStore } from './shopStore'
 
 describe('shopStore', () => {
-  beforeEach(() => {
-    sessionStorage.clear()
-    localStorage.clear()
-    useShopStore.setState({ activeShop: null })
-  })
-
   it('should start with no active shop', () => {
     const state = useShopStore.getState()
     expect(state.activeShop).toBeNull()
@@ -49,9 +44,7 @@ describe('shopStore', () => {
     }
     useShopStore.getState().setActiveShop(shop)
 
-    const persist =
-      import.meta.env.PROD ? sessionStorage : localStorage
-    const stored = persist.getItem('shop-storage')
+    const stored = readTestPersistEntry('shop-storage')
     expect(stored).toBeTruthy()
     expect(JSON.parse(stored!).state.activeShop).toEqual(shop)
   })

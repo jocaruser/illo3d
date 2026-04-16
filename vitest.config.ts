@@ -14,7 +14,6 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
     exclude: ['tests/e2e/**', 'node_modules', 'dist'],
-    // GitHub runners are smaller than dev machines; parallel file runs can OOM or flake.
-    ...(isCi ? { fileParallelism: false, maxWorkers: 2 } : {}),
+    ...(isCi ? { maxWorkers: 2 } : {}),
   },
 })

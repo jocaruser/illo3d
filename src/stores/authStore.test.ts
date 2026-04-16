@@ -1,17 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { useAuthStore } from './authStore'
 
 describe('authStore', () => {
-  beforeEach(() => {
-    sessionStorage.clear()
-    localStorage.clear()
-    useAuthStore.setState({
-      user: null,
-      credentials: null,
-      isAuthenticated: false,
-    })
-  })
-
   it('should start with unauthenticated state', () => {
     const state = useAuthStore.getState()
     expect(state.isAuthenticated).toBe(false)
