@@ -9,7 +9,7 @@ export const SHEET_NAMES = [
   'pieces',
   'piece_items',
   'inventory',
-  'expenses',
+  'lots',
   'transactions',
 ] as const
 
@@ -78,15 +78,24 @@ export const SHEET_HEADERS: Record<SheetName, readonly string[]> = {
   ],
   inventory: [
     'id',
-    'expense_id',
     'type',
     'name',
-    'qty_initial',
     'qty_current',
+    'warn_yellow',
+    'warn_orange',
+    'warn_red',
     'created_at',
     ...LIFECYCLE_COLUMNS,
   ],
-  expenses: ['id', 'date', 'category', 'amount', 'notes', ...LIFECYCLE_COLUMNS],
+  lots: [
+    'id',
+    'inventory_id',
+    'transaction_id',
+    'quantity',
+    'amount',
+    'created_at',
+    ...LIFECYCLE_COLUMNS,
+  ],
   transactions: [
     'id',
     'date',

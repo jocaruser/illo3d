@@ -37,7 +37,7 @@ export function ClientDetailPage() {
     pieces,
     pieceItems,
     inventory,
-    expenses,
+    lots,
     transactions,
     crmNotes,
     tags,
@@ -78,7 +78,7 @@ export function ClientDetailPage() {
         pieces,
         pieceItems,
         inventoryRows: inventory,
-        expenses,
+        lots,
       }),
     [
       clientId,
@@ -87,7 +87,7 @@ export function ClientDetailPage() {
       pieces,
       pieceItems,
       inventory,
-      expenses,
+      lots,
     ]
   )
 

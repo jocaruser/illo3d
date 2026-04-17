@@ -2,9 +2,54 @@
 
 ## Purpose
 
-Job-scoped CRM notes and tags on `/jobs/:jobId`, using the unified `crm_notes` sheet and shared mention and severity patterns with client detail, alongside the existing job summary header and pieces workflows defined elsewhere.
+Job detail on `/jobs/:jobId`: job summary, pieces table (status, pricing, lot-based suggested price), inventory consumption on piece status changes, plus job-scoped CRM notes and tags using the unified `crm_notes` sheet and shared mention and severity patterns with client detail.
 
 ## Requirements
+
+### Requirement: Job detail page lists pieces for that job
+
+The system SHALL provide a job detail route `/jobs/:jobId` protected by the same authentication guard as `/jobs`. The system SHALL NOT provide a top-level Pieces tab or `/pieces` route. When the sheet connection is connected, the job detail page SHALL show a summary of the job (description, id, client, status, derived total from piece prices, created_at) and a **Pieces** section. The Pieces section SHALL list only pieces whose `job_id` matches `:jobId`, with columns: id, name, status (as a dropdown with `pending`, `done`, `failed` options and i18n labels), price (editable), per-piece suggested price (from BOM via lot-based avg cost), and `created_at` (job reference column omitted on this page). Rows SHALL be sorted by `created_at` descending. When no pieces exist for the job, the Pieces section SHALL show an empty state message using i18n.
+
+#### Scenario: Authenticated user opens job detail with pieces
+
+- **WHEN** an authenticated user with an active shop navigates to `/jobs/J1`
+- **AND** the spreadsheet connection succeeds
+- **AND** pieces exist for that job
+- **THEN** the Pieces section shows those pieces with a status dropdown per row
+- **AND** no standalone Pieces navigation entry exists in the app header
+
+#### Scenario: Unauthenticated user cannot open job detail
+
+- **WHEN** an unauthenticated user navigates to `/jobs/J1`
+- **THEN** the system redirects to `/login`
+
+### Requirement: Piece status change triggers inventory consumption using inventory items
+
+When a piece status changes to `done` or `failed` and the user confirms with "Decrement from inventory" checked, the system SHALL decrement `inventory.qty_current` by `piece_item.quantity` for each piece_item of that piece, where `piece_item.inventory_id` references the inventory item (material identity). When the piece status reverts to `pending` with "Restore inventory quantities" checked, the system SHALL increment `inventory.qty_current` by `piece_item.quantity`.
+
+#### Scenario: Piece completion decrements inventory qty_current
+
+- **WHEN** piece status changes to "done" or "failed"
+- **AND** the user confirms with "Decrement from inventory" checked
+- **THEN** inventory.qty_current is decremented by piece_item.quantity for each piece_item
+
+#### Scenario: Piece completion without inventory decrement
+
+- **WHEN** piece status changes to "done" or "failed"
+- **AND** the user unchecks "Decrement from inventory"
+- **THEN** inventory.qty_current is NOT modified
+
+#### Scenario: Piece reverts and restores inventory
+
+- **WHEN** piece status changes from "done" or "failed" back to "pending"
+- **AND** the user confirms with "Restore inventory quantities" checked
+- **THEN** inventory.qty_current is incremented by piece_item.quantity for each piece_item
+
+#### Scenario: Piece reverts without inventory restoration
+
+- **WHEN** piece status changes from "done" or "failed" back to "pending"
+- **AND** the user unchecks "Restore inventory quantities"
+- **THEN** inventory.qty_current is NOT modified
 
 ### Requirement: Job-scoped CRM notes in crm_notes sheet
 

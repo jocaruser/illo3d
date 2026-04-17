@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Financial tracking for illo3d: transactions presentation, clients page (list, create, edit, and delete), domain data models (clients, jobs, pieces, piece_items, inventory, expenses, transactions), automated transaction flows, suggested pricing, and expense creation, editing, and deletion via the UI.
+Financial tracking for illo3d: transactions presentation, clients page (list, create, edit, and delete), domain data models (clients, jobs, pieces, piece_items, inventory, lots, transactions), automated transaction flows, lot-based suggested pricing, and purchase recording via the UI (see `purchase-recording` capability).
 
 ## Requirements
 
 ### Requirement: Transactions table is displayed
 
-The system SHALL display a table of all transactions from the transactions sheet. The table SHALL show: date, type (income/expense), amount, category, concept, client name (if applicable). When a transaction row has a `client_id` that resolves to a client name, the client name cell SHALL be the visible text of a link to `/clients/:clientId` for that id. When a transaction has `ref_type` `job` and a non-empty `ref_id`, the concept cell SHALL display the concept string as the visible text of a link to `/jobs/:ref_id`. When a transaction has `ref_type` `expense` and the expense identified by `ref_id` has an associated inventory item (matched via `inventory.expense_id`), the concept cell SHALL display the concept string as the visible text of a link to `/inventory`. When none of these link rules apply, the concept cell SHALL show plain text only (no link).
+The system SHALL display a table of all transactions from the transactions sheet. The table SHALL show: date, type (income/expense), amount, category, concept, client name (if applicable). When a transaction row has a `client_id` that resolves to a client name, the client name cell SHALL be the visible text of a link to `/clients/:clientId` for that id. When a transaction has `ref_type` `job` and a non-empty `ref_id`, the concept cell SHALL display the concept string as the visible text of a link to `/jobs/:ref_id`. When a transaction is of type `expense` and has linked lots (matched via `lots.transaction_id`), the concept cell SHALL display the concept string as the visible text of a link to `/inventory`. When none of these link rules apply, the concept cell SHALL show plain text only (no link).
 
 #### Scenario: Transactions table renders with data
 
@@ -36,29 +36,29 @@ The system SHALL display a table of all transactions from the transactions sheet
 - **WHEN** a transaction has `ref_type` `job` and `ref_id` "J1"
 - **THEN** the concept column shows a link to `/jobs/J1` whose visible text is the concept string
 
-#### Scenario: Expense transaction with inventory links concept to inventory
+#### Scenario: Expense transaction with lots links concept to inventory
 
-- **WHEN** a transaction has `ref_type` `expense` and `ref_id` matching an expense that has a corresponding inventory row
+- **WHEN** a transaction is type `expense` and has at least one lot row with matching `transaction_id`
 - **THEN** the concept column shows a link to `/inventory` whose visible text is the concept string
 
-#### Scenario: Expense transaction without inventory shows plain concept
+#### Scenario: Expense transaction without lots shows plain concept
 
-- **WHEN** a transaction has `ref_type` `expense` and its expense has no corresponding inventory row
+- **WHEN** a transaction is type `expense` and has no lot rows with matching `transaction_id`
 - **THEN** the concept column shows plain text only (no link)
 
 ### Requirement: Transactions table is read-only
 
-The system SHALL NOT allow editing, adding, or deleting transactions directly from the transactions table UI. The transactions table SHALL have no add, edit, or delete controls. Expense-type transactions SHALL be created via the expense creation form; income-type transactions SHALL be created when a job status changes to "paid" with default income behavior, or by other automated flows (see "Paying a job creates income transaction" for UI opt-out). Manual edits to transactions MAY be done directly in Google Sheets.
+The system SHALL NOT allow editing, adding, or deleting transactions directly from the transactions table UI. The transactions table SHALL have no add, edit, or delete controls. Expense-type transactions SHALL be created via the purchase recording flow (`purchase-recording`); income-type transactions SHALL be created when a job status changes to "paid" with default income behavior, or by other automated flows (see "Paying a job creates income transaction" for UI opt-out). Manual edits to transactions MAY be done directly in Google Sheets.
 
 #### Scenario: No edit controls in UI
 
 - **WHEN** user views transactions table
 - **THEN** no add, edit, or delete buttons are visible on the table itself
 
-#### Scenario: Expense transactions created via expense form
+#### Scenario: Expense transactions created via purchase recording
 
-- **WHEN** user creates an expense via CreateExpensePopup
-- **THEN** a transaction record is created automatically with type "expense"
+- **WHEN** user records a purchase via CreatePurchasePopup
+- **THEN** a transaction record is created with type "expense" as defined in `purchase-recording`
 - **AND** the transactions table displays it (read-only)
 
 ### Requirement: Transaction amounts use correct sign convention
@@ -108,7 +108,7 @@ The `TagLink` type SHALL allow `entity_type` values including `client` and `job`
 
 ### Requirement: Clients page is accessible from the app
 
-The system SHALL include a `/clients` route protected by the same authentication guard as `/transactions` and `/expenses`. The route SHALL be listed in the app header navigation.
+The system SHALL include a `/clients` route protected by the same authentication guard as `/transactions`. The route SHALL be listed in the app header navigation.
 
 #### Scenario: Clients route is protected
 
@@ -143,34 +143,6 @@ The system SHALL support a pieces data model with fields: id (string), job_id (s
 - **WHEN** a piece record exists
 - **THEN** it has valid job_id referencing an existing job
 
-#### Scenario: Piece completion triggers inventory consumption
-
-- **WHEN** piece status changes to "done" or "failed"
-- **AND** the user confirms with "Decrement from inventory" checked
-- **THEN** inventory `qty_current` is decremented by `piece_item.quantity` for each piece_item of that piece
-- **AND** the piece status is updated in the pieces sheet
-
-#### Scenario: Piece completion without inventory decrement
-
-- **WHEN** piece status changes to "done" or "failed"
-- **AND** the user unchecks "Decrement from inventory"
-- **THEN** the piece status is updated in the pieces sheet
-- **AND** inventory `qty_current` is NOT modified
-
-#### Scenario: Piece reverts from consuming status to pending
-
-- **WHEN** piece status changes from "done" or "failed" back to "pending"
-- **AND** the user confirms with "Restore inventory quantities" checked
-- **THEN** inventory `qty_current` is incremented by `piece_item.quantity` for each piece_item of that piece
-- **AND** the piece status is updated to "pending"
-
-#### Scenario: Piece reverts without inventory restoration
-
-- **WHEN** piece status changes from "done" or "failed" back to "pending"
-- **AND** the user unchecks "Restore inventory quantities"
-- **THEN** the piece status is updated to "pending"
-- **AND** inventory `qty_current` is NOT modified
-
 ### Requirement: Piece_items data model is defined
 
 The system SHALL support a piece_items data model with fields: id (string), piece_id (string, FK to pieces), inventory_id (string, FK to inventory), quantity (number).
@@ -178,24 +150,7 @@ The system SHALL support a piece_items data model with fields: id (string), piec
 #### Scenario: Piece_item links piece to inventory
 
 - **WHEN** a piece_item record exists
-- **THEN** it connects a piece to an inventory lote with a quantity consumed
-
-### Requirement: Job detail page lists pieces for that job
-
-The system SHALL provide a job detail route `/jobs/:jobId` protected by the same authentication guard as `/jobs`. The system SHALL NOT provide a top-level Pieces tab or `/pieces` route. When the sheet connection is connected, the job detail page SHALL show a summary of the job (description, id, client, status, **total (derived sum of **set** prices on **non-deleted** pieces **including archived**, formatted as currency; same incompleteness rules as the jobs list when any counting piece is unset; incomplete label with visible highlight per job-management)**, created_at) and a **Pieces** section. The Pieces section SHALL list only pieces whose `job_id` matches `:jobId`, with columns: id, name, **price (optional, editable per implementation)**, status (as a dropdown with `pending`, `done`, `failed` options and i18n labels), and `created_at` (job reference column omitted on this page). Rows SHALL be sorted by `created_at` descending. When no pieces exist for the job, the Pieces section SHALL show an empty state message using i18n.
-
-#### Scenario: Authenticated user opens job detail with pieces
-
-- **WHEN** an authenticated user with an active shop navigates to `/jobs/J1`
-- **AND** the spreadsheet connection succeeds
-- **AND** pieces exist for that job
-- **THEN** the Pieces section shows those pieces with a status dropdown per row **and a price column**
-- **AND** no standalone Pieces navigation entry exists in the app header
-
-#### Scenario: Unauthenticated user cannot open job detail
-
-- **WHEN** an unauthenticated user navigates to `/jobs/J1`
-- **THEN** the system redirects to `/login`
+- **THEN** it connects a piece to an inventory item with a quantity consumed
 
 ### Requirement: fetchPieces and usePieces read pieces sheet
 
@@ -217,17 +172,17 @@ The system SHALL provide `fetchPieceItems(spreadsheetId)` that reads all rows fr
 
 ### Requirement: Piece rows expand to show piece_items
 
-The system SHALL allow the user to expand a piece row to view a nested list of that piece's `piece_items`. The nested list SHALL show: piece_item id, inventory lot name (resolved from the inventory sheet), quantity, **material cost** (quantity × unit cost, where unit cost is `expense.amount / inventory.qty_initial` when computable; otherwise a placeholder such as em dash), remaining lot quantity (`qty_current`), and redo margin. The redo margin SHALL be calculated as `floor((qty_current - quantity) / quantity)` and displayed with a label: "safe" (2+ redos, green), "tight" (1 redo, yellow), or "risky" (0 redos, red). The nested section SHALL include a control to add a new piece_item to that piece. Collapsing a row SHALL hide its nested list.
+The system SHALL allow the user to expand a piece row to view a nested list of that piece's `piece_items`. The nested list SHALL show: piece_item id, inventory item name (resolved from the inventory sheet), quantity, **material cost** (quantity × avg unit cost from active lots for that `inventory_id` when computable; otherwise a placeholder such as em dash), remaining quantity (`qty_current` on the inventory item), and redo margin. The redo margin SHALL be calculated as `floor((qty_current - quantity) / quantity)` and displayed with a label: "safe" (2+ redos, green), "tight" (1 redo, yellow), or "risky" (0 redos, red). The nested section SHALL include a control to add a new piece_item to that piece. Collapsing a row SHALL hide its nested list.
 
 #### Scenario: User expands a piece with lines
 
 - **WHEN** the user expands a piece that has piece_items
-- **THEN** each related piece_item appears with inventory name, quantity, **material cost**, remaining lot quantity, and redo margin indicator
+- **THEN** each related piece_item appears with inventory name, quantity, **material cost**, remaining quantity, and redo margin indicator
 
 #### Scenario: Material cost column formats currency when computable
 
-- **WHEN** a piece_item references inventory with a linked expense and positive `qty_initial`
-- **THEN** the material cost cell shows currency-formatted `quantity × (expense.amount / qty_initial)`
+- **WHEN** a piece_item references an inventory item with active lots yielding a defined avg unit cost
+- **THEN** the material cost cell shows currency-formatted `quantity × avg_unit_cost`
 
 #### Scenario: Piece_item shows risky redo margin
 
@@ -272,18 +227,18 @@ The system SHALL provide `createPiece(spreadsheetId, { job_id, name, price? })` 
 
 ### Requirement: CreatePieceItemPopup allocates inventory to a piece
 
-The system SHALL provide `CreatePieceItemPopup` that collects a required inventory lot (select from cached inventory) and a required quantity greater than zero. Each option in the inventory select SHALL display the lot name, id, and remaining quantity (e.g. "PLA White (INV1) — 958g left"). On success it SHALL call `createPieceItem` to append a `piece_items` row. The form layout and validation style SHALL follow `CreateExpensePopup` (overlay close, inline field errors, submit/cancel). All user-visible strings SHALL use i18n. Creating a piece_item SHALL NOT modify `inventory.qty_current`.
+The system SHALL provide `CreatePieceItemPopup` that collects a required inventory item (select from cached inventory) and a required quantity greater than zero. Each option in the inventory select SHALL display the item name, id, and remaining quantity (e.g. "PLA White (INV1) — 958g left"). On success it SHALL call `createPieceItem` to append a `piece_items` row. The form layout and validation style SHALL follow `CreatePurchasePopup` patterns (overlay close, inline field errors, submit/cancel). All user-visible strings SHALL use i18n. Creating a piece_item SHALL NOT modify `inventory.qty_current`.
 
 #### Scenario: Valid line appends piece_item
 
-- **WHEN** the user chooses an inventory lot and enters a positive quantity and submits
+- **WHEN** the user chooses an inventory item and enters a positive quantity and submits
 - **THEN** a new row is appended to the piece_items sheet for the given piece
 - **AND** inventory quantities are unchanged
 
 #### Scenario: Lot picker shows remaining quantity
 
-- **WHEN** the user opens the inventory lot dropdown
-- **THEN** each option displays the lot name, id, and current remaining quantity
+- **WHEN** the user opens the inventory item dropdown
+- **THEN** each option displays the item name, id, and current remaining quantity
 
 #### Scenario: Non-positive quantity is rejected
 
@@ -293,7 +248,7 @@ The system SHALL provide `CreatePieceItemPopup` that collects a required invento
 
 ### Requirement: createPieceItem service appends piece_items
 
-The system SHALL provide `createPieceItem(spreadsheetId, { piece_id, inventory_id, quantity })` that generates the next `PI`-prefixed id from existing piece_item ids and appends one row linking the piece, inventory lot, and quantity.
+The system SHALL provide `createPieceItem(spreadsheetId, { piece_id, inventory_id, quantity })` that generates the next `PI`-prefixed id from existing piece_item ids and appends one row linking the piece, inventory item, and quantity.
 
 #### Scenario: Id increments after existing piece_items
 
@@ -317,20 +272,20 @@ The system SHALL display a `PieceStatusDropdown` component in `PiecesTable` for 
 
 ### Requirement: Confirmation dialog shown before consuming status transition
 
-The system SHALL show a `ConfirmDialog` when piece status changes to `done` or `failed`. The dialog SHALL contain a pre-checked checkbox labeled "Decrement from inventory" (i18n). If all referenced inventory lots have sufficient `qty_current` (>= piece_item quantity), the dialog SHALL show a standard confirmation message. If any lot has insufficient stock, the dialog SHALL show a warning message identifying the insufficient lots but SHALL NOT block confirmation — the user MAY uncheck the decrement checkbox and proceed, or cancel.
+The system SHALL show a `ConfirmDialog` when piece status changes to `done` or `failed`. The dialog SHALL contain a pre-checked checkbox labeled "Decrement from inventory" (i18n). If all referenced inventory items have sufficient `qty_current` (>= piece_item quantity), the dialog SHALL show a standard confirmation message. If any inventory item has insufficient stock, the dialog SHALL show a warning message identifying the insufficient items but SHALL NOT block confirmation — the user MAY uncheck the decrement checkbox and proceed, or cancel.
 
 #### Scenario: Sufficient stock shows standard confirmation
 
 - **WHEN** user selects "done" for a piece with piece_items
-- **AND** all referenced lots have sufficient qty_current
+- **AND** all referenced inventory items have sufficient qty_current
 - **THEN** dialog shows with pre-checked "Decrement from inventory" checkbox
 - **AND** confirm button is enabled
 
 #### Scenario: Insufficient stock shows warning but allows proceed
 
 - **WHEN** user selects "done" for a piece with piece_items
-- **AND** at least one referenced lot has insufficient qty_current
-- **THEN** dialog shows a warning identifying the insufficient lot(s)
+- **AND** at least one referenced inventory item has insufficient qty_current
+- **THEN** dialog shows a warning identifying the insufficient item(s)
 - **AND** "Decrement from inventory" checkbox is shown (user can uncheck to skip)
 - **AND** confirm button is enabled
 
@@ -352,7 +307,7 @@ The system SHALL show a `ConfirmDialog` when piece status changes from `done` or
 #### Scenario: User confirms revert with restore
 
 - **WHEN** user confirms revert with "Restore inventory quantities" checked
-- **THEN** each piece_item's quantity is added back to the lot's qty_current
+- **THEN** each piece_item's quantity is added back to the inventory item's qty_current
 - **AND** piece status is updated to "pending"
 
 ### Requirement: updatePieceStatus service orchestrates status and inventory
@@ -361,17 +316,17 @@ The system SHALL provide `updatePieceStatus(spreadsheetId, piece, newStatus, opt
 1. Reads the pieces sheet to find the piece's row index.
 2. Reads piece_items filtered by piece_id.
 3. Reads inventory sheet.
-4. If `decrementInventory` is true and new status is `done` or `failed`: validates all lots have sufficient qty_current, then decrements each lot's `qty_current` by the corresponding piece_item quantity via `updateRow`.
-5. If `restoreInventory` is true and old status was `done` or `failed` and new status is `pending`: increments each lot's `qty_current` by the corresponding piece_item quantity via `updateRow`.
+4. If `decrementInventory` is true and new status is `done` or `failed`: validates all inventory items have sufficient qty_current, then decrements each inventory item's `qty_current` by the corresponding piece_item quantity via `updateRow`.
+5. If `restoreInventory` is true and old status was `done` or `failed` and new status is `pending`: increments each inventory item's `qty_current` by the corresponding piece_item quantity via `updateRow`.
 6. Updates the piece row status via `updateRow`.
 
-The function SHALL return an error result (not throw) when validation fails, including details of which lots are insufficient.
+The function SHALL return an error result (not throw) when validation fails, including details of which inventory items are insufficient.
 
 #### Scenario: Successful decrement updates inventory and piece
 
 - **WHEN** `updatePieceStatus` is called with `decrementInventory: true` for status "done"
-- **AND** all lots have sufficient stock
-- **THEN** each referenced lot's `qty_current` is decremented
+- **AND** all inventory items have sufficient stock
+- **THEN** each referenced inventory item's `qty_current` is decremented
 - **AND** the piece row status is updated to "done"
 
 #### Scenario: Validation failure returns error details
@@ -384,7 +339,7 @@ The function SHALL return an error result (not throw) when validation fails, inc
 #### Scenario: Restore increments inventory
 
 - **WHEN** `updatePieceStatus` is called with `restoreInventory: true` moving from "done" to "pending"
-- **THEN** each referenced lot's `qty_current` is incremented by the piece_item quantity
+- **THEN** each referenced inventory item's `qty_current` is incremented by the piece_item quantity
 - **AND** the piece row status is updated to "pending"
 
 #### Scenario: Skip decrement updates only piece
@@ -395,56 +350,26 @@ The function SHALL return an error result (not throw) when validation fails, inc
 
 ### Requirement: Inventory data model is defined
 
-The system SHALL support an inventory data model with fields: id (string), expense_id (string, FK to expenses), type (enum: filament, consumable, equipment), name (string), qty_initial (number), qty_current (number), created_at (date).
+The system SHALL support an inventory data model with fields: id (string), type (enum: filament, consumable, equipment), name (string), qty_current (number), warn_yellow (number, default 0), warn_orange (number, default 0), warn_red (number, default 0), created_at (date).
 
-#### Scenario: Inventory represents a purchased lot
+#### Scenario: Inventory item represents material identity
 
-- **WHEN** an inventory record exists
-- **THEN** it references the expense that created it via expense_id
+- **WHEN** an inventory item "PLA White" exists
+- **THEN** it has a unique id, type=filament, name="PLA White", and a qty_current reflecting total stock
 
-#### Scenario: Unit cost is calculated from expense
+#### Scenario: Inventory thresholds are configurable
 
-- **WHEN** unit cost is needed for an inventory item
-- **THEN** it is calculated as: expense.amount / inventory.qty_initial
-
-#### Scenario: Inventory type includes equipment
-
-- **WHEN** an inventory record has type "equipment"
-- **THEN** it represents a physical asset such as a printer or enclosure
-
-### Requirement: Inventory table shows low-stock indicator
-
-The system SHALL visually indicate inventory stock levels in `InventoryTable` by coloring the `qty_current` cell based on the ratio `qty_current / qty_initial`:
-- Ratio > 0.5: no highlight (default)
-- Ratio > 0.3: yellow background
-- Ratio > 0.1: orange background
-- Ratio ≤ 0.1: red background
-
-Equipment items (`qty_initial` ≤ 1) SHALL be excluded from low-stock coloring.
-
-#### Scenario: Filament lot at 25% shows orange
-
-- **WHEN** a filament lot has `qty_initial` 1000 and `qty_current` 250
-- **THEN** the `qty_current` cell has an orange background
-
-#### Scenario: Filament lot at 60% shows no highlight
-
-- **WHEN** a filament lot has `qty_initial` 1000 and `qty_current` 600
-- **THEN** the `qty_current` cell has no special background
-
-#### Scenario: Equipment excluded from coloring
-
-- **WHEN** an equipment item has `qty_initial` 1 and `qty_current` 1
-- **THEN** the `qty_current` cell has no special background
+- **WHEN** an inventory item is created
+- **THEN** warn_yellow, warn_orange, and warn_red default to 0 (disabled)
 
 ### Requirement: Fixture data reflects inventory consumption
 
-The happy-path fixture data SHALL include pieces with realistic statuses and inventory quantities that reflect consumption. At least one piece SHALL have status `done` with piece_items, and the referenced inventory lot's `qty_current` SHALL be decremented by the sum of those piece_items' quantities.
+The happy-path fixture data SHALL include pieces with realistic statuses and inventory quantities that reflect consumption. At least one piece SHALL have status `done` with piece_items, and the referenced inventory item's `qty_current` SHALL be decremented by the sum of those piece_items' quantities.
 
 #### Scenario: Fixture inventory reflects completed piece
 
 - **WHEN** fixture piece P3 has status "done" with piece_item PI3 consuming 15g from INV1
-- **THEN** fixture INV1 `qty_current` SHALL be `qty_initial - 15` (985)
+- **THEN** fixture INV1 `qty_current` SHALL reflect consumption of 15 units by that completed piece (per golden fixture values)
 
 ### Requirement: Piece status change UI strings support i18n
 
@@ -464,98 +389,72 @@ All user-facing strings for redo margin display SHALL use i18next keys, includin
 - **WHEN** a piece_item row renders the redo margin
 - **THEN** margin labels come from i18n keys
 
-### Requirement: Expense data model is defined
-
-The system SHALL support an expenses data model with fields: id (string), date (date), category (enum: filament, consumable, electric, investment, maintenance, other), amount (number), notes (string, optional).
-
-#### Scenario: Expense optionally creates inventory
-
-- **WHEN** an expense is created
-- **AND** the user opts in to creating an inventory record
-- **THEN** a corresponding inventory record is created with the user-specified type, name, and quantity
-
-#### Scenario: Expense without inventory opt-in
-
-- **WHEN** an expense is created
-- **AND** the user does not opt in to creating an inventory record
-- **THEN** no inventory record is created
-
-#### Scenario: Expense creates transaction
-
-- **WHEN** any expense is created
-- **THEN** a transaction record is created with type "expense" and negative amount
-
 ### Requirement: Transaction data model is defined
 
-The system SHALL support a transactions data model with fields: id (string), date (date), type (enum: income, expense), amount (number), category (string), concept (string), ref_type (enum: job, expense), ref_id (string), client_id (string, optional), notes (string, optional).
+The system SHALL support a transactions data model with fields: id (string), date (date), type (enum: income, expense), amount (number), category (string), concept (string), ref_type (string, `job` for income transactions, empty for expense transactions), ref_id (string, job_id for income transactions, empty for expense transactions), client_id (string, optional), notes (string, optional).
 
 #### Scenario: Transaction references its source
 
-- **WHEN** a transaction record exists
-- **THEN** ref_type and ref_id identify whether it came from a job or expense
+- **WHEN** an income transaction record exists
+- **THEN** ref_type is `job` and ref_id identifies the job that created it
 
-### Requirement: Job detail fetches expenses for price suggestion
+#### Scenario: Expense transaction has no ref
 
-The job detail page SHALL fetch expense rows for the active spreadsheet so **per-piece** suggested pricing can resolve `expense.amount` for each inventory lot’s `expense_id`.
+- **WHEN** an expense transaction record exists
+- **THEN** ref_type and ref_id are empty — lots reference the transaction instead
 
-#### Scenario: Expenses loaded with job detail
+### Requirement: Job detail fetches lots and inventory for price suggestion
+
+The job detail page SHALL fetch lot and inventory rows for the active spreadsheet so per-piece suggested pricing can compute average unit cost from lots for each inventory item.
+
+#### Scenario: Lots and inventory loaded with job detail
 
 - **WHEN** an authenticated user views job detail with a connected spreadsheet
-- **THEN** the client loads expenses in addition to jobs, pieces, piece_items, and inventory
+- **THEN** the client loads lots and inventory in addition to jobs, pieces, and piece_items
 
-### Requirement: Job price is suggested based on materials
+### Requirement: Per-piece price is suggested based on materials
 
-The system SHALL surface **suggested price per piece** derived from that **single piece’s** BOM material cost. The material subtotal for a piece SHALL be the sum over every `piece_item` on that piece of `piece_item.quantity × unit_cost`, where `unit_cost` for the referenced inventory lot is `expense.amount / inventory.qty_initial` using the `expense` row linked by `inventory.expense_id`. All `InventoryType` values (`filament`, `consumable`, `equipment`) SHALL use the same rule. The suggested price for that piece SHALL be the piece material subtotal multiplied by **3** (hardcoded). The system SHALL NOT persist the suggested price unless the user saves **that piece’s price** (e.g. apply control writing the piece row).
+The system SHALL surface a **suggested** price per piece derived from BOM material cost. For a given piece, the material subtotal SHALL be the sum of every `piece_item` on that piece: `piece_item.quantity × avg_unit_cost`, where `avg_unit_cost` for the referenced inventory item is `Σ(lot.amount) / Σ(lot.quantity)` across all active lots for that inventory_id. All `InventoryType` values (`filament`, `consumable`, `equipment`) SHALL use the same rule. The suggested price SHALL be the material subtotal multiplied by **3** (hardcoded).
 
-The suggestion affordance SHALL appear **on job detail** next to **each piece’s price** (or in the piece edit/create flow), **not** inside `CreateJobPopup` for the job header.
+When a piece has **no** `piece_items`, the system SHALL **not** render the suggestion for that piece.
 
-When the piece has **no** `piece_items` rows, the system SHALL **not** render the suggestion region for that piece (including no €0).
+When **any** `piece_item` references an inventory item that has no active lots or whose `avg_unit_cost` cannot be computed (missing inventory row, no lots, or total quantity not strictly greater than zero), the system SHALL show an error state listing affected inventory items.
 
-When **any** `piece_item` line for that piece requires a lot whose `unit_cost` cannot be computed (missing inventory row, missing or unmatched expense for `expense_id`, or `qty_initial` not strictly greater than zero), the system SHALL **not** show a numeric suggestion for that piece; it SHALL show **only** an error state listing every affected lot with identifiable **id** and/or **name**, using i18n-capable copy.
+The displayed suggestion SHALL **recompute** when inputs change (including after workbook refresh or invalidation of pieces, piece_items, lots, or inventory).
 
-When `unit_cost` can be computed, `expense.amount` MAY be zero (yielding zero unit cost for that lot).
+#### Scenario: Per-piece BOM suggestion shown
 
-The displayed suggestion SHALL **recompute** when inputs change (including after TanStack Query refresh or invalidation of pieces, piece_items, inventory, or expenses).
+- **WHEN** a piece has piece_items referencing inventory items with lots
+- **THEN** the suggestion shows material subtotal and suggested price (subtotal × 3) for that piece
 
-The system SHALL **not** copy the suggested amount into the piece price field when the control first renders; when the user activates the suggested price control (e.g. button click), **that piece’s** price field SHALL be set to the suggested amount **rounded to two decimal places**.
+#### Scenario: Hidden when piece has no piece_items
 
-All user-visible labels, errors, and helper text for this feature SHALL use i18next with English and Spanish entries.
+- **WHEN** a piece has no piece_items
+- **THEN** no suggestion is shown for that piece
 
-#### Scenario: Material cost uses only that piece’s lines
+#### Scenario: Error when cost cannot be computed
 
-- **WHEN** a piece has `piece_items` referencing priced lots
-- **THEN** the material subtotal includes only quantities from that piece’s lines
+- **WHEN** any piece_item references an inventory item with no active lots
+- **THEN** suggestion shows error listing affected items by id/name
 
-#### Scenario: Suggested price is three times material subtotal
+#### Scenario: Average cost from lots
 
-- **WHEN** the material subtotal is computable for the piece
-- **THEN** the suggested price equals that subtotal multiplied by 3
+- **WHEN** an inventory item has lots with amounts [29.99, 18.99] and quantities [1000, 500]
+- **THEN** avg_unit_cost = (29.99 + 18.99) / (1000 + 500) = 0.03265...
 
-#### Scenario: Unit cost uses purchase amount and initial quantity
+### Requirement: Material cost per piece-item line uses lot-based avg cost
 
-- **WHEN** an inventory lot has `qty_initial` greater than zero and a linked expense with amount `A`
-- **THEN** `unit_cost` for that lot is `A / qty_initial` for suggestion purposes
+The system SHALL provide a `materialCostForPieceItemLine` utility that computes `quantity × avg_unit_cost` for a single piece_item line, where avg_unit_cost is derived from all active lots for the referenced inventory item. If the inventory item is missing or has no lots with positive total quantity, the function SHALL return null.
 
-#### Scenario: No suggestion when piece has no BOM lines
+#### Scenario: Cost computed from lots
 
-- **WHEN** the piece has zero `piece_items`
-- **THEN** the suggestion region for that piece is not shown
+- **WHEN** a piece_item references inventory "PLA White" with lots totaling 1500qty and €48.98 cost, and piece_item.quantity is 15
+- **THEN** materialCostForPieceItemLine returns 15 × (48.98 / 1500) = 0.4898...
 
-#### Scenario: Error when any referenced lot cannot be priced
+#### Scenario: Missing inventory returns null
 
-- **WHEN** at least one `piece_item` on the piece references a lot that cannot yield `unit_cost`
-- **THEN** no numeric suggestion is shown for that piece
-- **AND** an error lists each affected inventory lot (id and/or name)
-
-#### Scenario: Click applies rounded suggestion to piece price
-
-- **WHEN** a numeric suggestion is shown for a piece and the user activates the apply control
-- **THEN** that piece’s price input updates to the suggested value rounded to two decimal places
-
-#### Scenario: Custom piece price still used when saved
-
-- **WHEN** the user sets a custom price for a piece and saves
-- **THEN** the stored piece price is the saved value (suggestion is advisory only until applied)
+- **WHEN** a piece_item references a non-existent inventory_id
+- **THEN** materialCostForPieceItemLine returns null
 
 ### Requirement: Paying a job creates income transaction
 
@@ -594,201 +493,6 @@ The system SHALL provide a way to persist an optional `price` on an existing pie
 - **WHEN** the user saves a new price for piece "P1"
 - **THEN** the pieces matrix row for P1 reflects the updated `price` after save
 
-### Requirement: Expenses page displays expense table
-
-The system SHALL provide an `/expenses` route that displays a table of all expenses from the expenses sheet. The table SHALL show: date, category, amount, notes, and per-row actions to edit and delete each expense. The expenses page SHALL fetch inventory data. When an expense has a corresponding inventory item (matched via `inventory.expense_id`), the notes cell SHALL render the trimmed notes string as the visible text of a link to `/inventory`. When notes are empty but inventory exists, the notes cell MAY render a placeholder (e.g. an em dash) as the link text. When there is no linked inventory item, the notes cell SHALL show plain notes text only and SHALL NOT contain a link. The system SHALL NOT use a separate inventory-only link label in addition to the notes.
-
-#### Scenario: Expenses table renders with data
-
-- **WHEN** user navigates to /expenses
-- **THEN** table displays all expenses sorted by date descending
-- **AND** each row includes Edit and Delete actions when expenses exist
-
-#### Scenario: Empty state when no expenses
-
-- **WHEN** user navigates to /expenses
-- **AND** no expenses exist
-- **THEN** table shows empty state message
-
-#### Scenario: Expense with linked inventory shows notes as link
-
-- **WHEN** user views /expenses
-- **AND** an expense has a corresponding inventory item (matched via inventory.expense_id)
-- **THEN** the expense row notes cell shows a link to /inventory whose visible text is the expense notes (or an agreed placeholder when notes are empty)
-
-#### Scenario: Expense without linked inventory shows no link
-
-- **WHEN** user views /expenses
-- **AND** an expense has no corresponding inventory item
-- **THEN** the expense row notes cell does not contain a link
-
-#### Scenario: Inventory data is fetched on expenses page
-
-- **WHEN** user navigates to /expenses
-- **THEN** both expenses and inventory data are fetched
-- **AND** a mapping from expense_id to inventory id is built from the inventory data
-
-### Requirement: CreateExpensePopup is a reusable modal form
-
-The system SHALL provide a CreateExpensePopup component that renders a modal with a form. The form SHALL collect: date (YYYY-MM-DD), category (enum: filament, consumable, electric, investment, maintenance, other), amount (number), notes (required for submit: non-empty after trimming; the persisted `Expense` type MAY still treat `notes` as optional for legacy rows). The form SHALL include an "Add to inventory" toggle when creating a new expense. When the toggle is checked, the form SHALL additionally collect: inventory type (enum: filament, consumable, equipment), inventory name (prefilled from notes, editable), and quantity (number, > 0). The popup SHALL be closable and usable from multiple pages. The same component SHALL support an edit mode for an existing expense: fields SHALL be prefilled; the inventory toggle and inventory fields SHALL NOT be shown; submit SHALL update the expense and keep the linked transaction consistent.
-
-#### Scenario: Popup opens and shows form fields
-
-- **WHEN** user triggers the popup (e.g. clicks "Add expense")
-- **THEN** modal displays with date, category, amount, notes inputs
-- **AND** category is a select with the six options
-- **AND** an "Add to inventory" toggle is visible and unchecked by default
-
-#### Scenario: Inventory fields shown when toggle is checked
-
-- **WHEN** user checks the "Add to inventory" toggle
-- **THEN** inventory type, name, and quantity fields appear
-- **AND** inventory type is a select with filament, consumable, equipment options
-- **AND** inventory name is prefilled with the current notes value
-- **AND** quantity defaults to 1
-
-#### Scenario: Inventory fields hidden when toggle is unchecked
-
-- **WHEN** the "Add to inventory" toggle is unchecked
-- **THEN** inventory type, name, and quantity fields are not visible
-
-#### Scenario: Quantity hint reflects inventory type
-
-- **WHEN** user selects inventory type "filament"
-- **THEN** quantity field shows hint "(g)"
-- **WHEN** user selects inventory type "consumable" or "equipment"
-- **THEN** quantity field shows hint "(units)"
-
-#### Scenario: Popup can be closed without submitting
-
-- **WHEN** user opens the popup
-- **THEN** user can close it via overlay click or close button
-- **AND** no expense is created
-
-#### Scenario: Edit mode hides inventory section
-
-- **WHEN** user opens the popup in edit mode for an expense
-- **THEN** date, category, amount, and notes are prefilled
-- **AND** "Add to inventory" and related inventory fields are not shown
-
-#### Scenario: Successful edit updates expense and linked transaction
-
-- **WHEN** user submits valid changes in edit mode
-- **THEN** the expense row is updated in the expenses sheet
-- **AND** the transaction row linked via ref_type expense and ref_id is updated to match amount, date, category, concept, and notes conventions used on create
-
-### Requirement: Add expense button on transactions and expenses pages
-
-The system SHALL display an "Add expense" button on the /transactions page and on the /expenses page. Clicking the button SHALL open the CreateExpensePopup.
-
-#### Scenario: Button on transactions page
-
-- **WHEN** user views /transactions
-- **THEN** "Add expense" button is visible
-- **AND** clicking it opens CreateExpensePopup
-
-#### Scenario: Button on expenses page
-
-- **WHEN** user views /expenses
-- **THEN** "Add expense" button is visible
-- **AND** clicking it opens CreateExpensePopup
-
-### Requirement: Form validation before submit
-
-The system SHALL validate the expense form before submission. Date SHALL be required and in YYYY-MM-DD format. Category SHALL be required. Amount SHALL be required and MUST be greater than zero. Notes SHALL be required and MUST contain non-empty text after trimming. In create mode only, when the "Add to inventory" toggle is checked: inventory type SHALL be required, inventory name SHALL be required, and quantity SHALL be required and MUST be greater than zero. In edit mode, inventory fields are not shown and inventory validation SHALL NOT apply.
-
-#### Scenario: Validation rejects empty required fields
-
-- **WHEN** user submits with missing date, category, amount, or notes (empty or whitespace only)
-- **THEN** validation errors are shown
-- **AND** no API call is made
-
-#### Scenario: Validation rejects zero or negative amount
-
-- **WHEN** user submits with amount <= 0
-- **THEN** validation error is shown for amount
-- **AND** no expense is created
-
-#### Scenario: Validation rejects invalid inventory fields when toggle is checked
-
-- **WHEN** user submits with "Add to inventory" checked
-- **AND** inventory name is empty or quantity is <= 0
-- **THEN** validation errors are shown for the invalid inventory fields
-- **AND** no expense is created
-
-#### Scenario: Inventory fields not validated when toggle is unchecked
-
-- **WHEN** user submits with "Add to inventory" unchecked
-- **THEN** inventory fields are not validated
-- **AND** expense is created normally
-
-### Requirement: Successful submit redirects to expenses
-
-The system SHALL redirect the user to /expenses after a successful expense creation. The popup SHALL close and the new expense SHALL appear in the expenses table.
-
-#### Scenario: Redirect after success
-
-- **WHEN** user submits valid expense form
-- **AND** creation succeeds
-- **THEN** popup closes
-- **AND** user is navigated to /expenses
-- **AND** the new expense appears in the table
-
-### Requirement: Expense delete uses confirmation dialog
-
-The system SHALL require confirmation before deleting an expense using the existing ConfirmDialog pattern.
-
-#### Scenario: Delete prompts for confirmation
-
-- **WHEN** user clicks Delete on an expense row
-- **THEN** a confirmation dialog is shown
-
-#### Scenario: Cancel leaves data unchanged
-
-- **WHEN** user cancels the delete confirmation
-- **THEN** the expense row remains in the sheet and table
-
-### Requirement: deleteExpense removes expense and related records
-
-The system SHALL provide a `deleteExpense` service that removes the expense row, removes all transaction rows where `ref_type` is expense and `ref_id` matches the expense id, and removes any inventory row whose `expense_id` matches that expense id. Operations SHALL use `SheetsRepository.deleteRow` (or equivalent) without modifying unrelated rows.
-
-#### Scenario: Expense with transaction deleted
-
-- **WHEN** deleteExpense is called for an expense that has a matching expense transaction row
-- **THEN** both the expense row and the matching transaction row are removed
-
-#### Scenario: Expense with inventory deleted
-
-- **WHEN** deleteExpense is called for an expense that has an inventory row with the same expense_id
-- **THEN** the inventory row is removed along with the expense and its transaction row
-
-### Requirement: updateExpense service updates expense row
-
-The system SHALL provide an `updateExpense` service that updates the expense row via `updateRow` and updates the linked expense transaction row to reflect the new date, amount (negative expense amount), category, concept, and notes consistent with expense creation rules.
-
-#### Scenario: Expense and transaction stay aligned
-
-- **WHEN** updateExpense changes amount or category
-- **THEN** the linked transaction reflects the same business values as after a newly created expense
-
-### Requirement: Optimistic update for expense edit
-
-The expenses table UI SHALL apply an optimistic update when an expense edit save is triggered, and SHALL reconcile on error.
-
-#### Scenario: Table shows edited expense optimistically
-
-- **WHEN** user saves an expense edit
-- **THEN** the table reflects the new values before or without waiting for a full refetch
-
-### Requirement: Expenses UI strings include edit and delete
-
-All new user-visible strings for expense edit, delete, and confirmation flows on the expenses page SHALL use i18next keys.
-
-#### Scenario: Edit and delete labels are translatable
-
-- **WHEN** expenses table renders actions
-- **THEN** action labels and confirm copy use i18n keys
-
 ### Requirement: UI strings support i18n
 
 All user-facing strings in the transactions view SHALL use i18next for translation support.
@@ -802,17 +506,3 @@ All user-facing strings in the transactions view SHALL use i18next for translati
 
 - **WHEN** empty state is shown
 - **THEN** message comes from i18n keys
-
-### Requirement: Expense creation UI strings support i18n
-
-All user-facing strings in the expense creation flow (form labels, buttons, validation messages, table headers, inventory toggle, inventory fields, quantity hints) SHALL use i18next for translation support.
-
-#### Scenario: Form labels are translatable
-
-- **WHEN** CreateExpensePopup renders
-- **THEN** field labels and buttons come from i18n keys
-
-#### Scenario: Inventory section labels are translatable
-
-- **WHEN** "Add to inventory" toggle is checked
-- **THEN** toggle label, inventory type label, inventory name label, quantity label, and quantity hints come from i18n keys

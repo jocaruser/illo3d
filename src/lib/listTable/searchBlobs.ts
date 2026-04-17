@@ -1,7 +1,6 @@
 import type {
   Client,
   CrmNote,
-  Expense,
   Inventory,
   Job,
   Piece,
@@ -51,20 +50,6 @@ export function buildJobSearchBlob(
   ])
 }
 
-export function buildExpenseSearchBlob(
-  expense: Expense,
-  ctx: { categoryLabel: string }
-): string {
-  return joinSearchParts([
-    expense.id,
-    expense.date,
-    expense.category,
-    ctx.categoryLabel,
-    expense.notes,
-    ...moneySearchFragments(expense.amount),
-  ])
-}
-
 export function buildTransactionSearchBlob(
   tx: Transaction,
   ctx: { typeLabel: string; clientLabel: string }
@@ -91,12 +76,13 @@ export function buildInventorySearchBlob(
 ): string {
   return joinSearchParts([
     item.id,
-    item.expense_id,
     item.type,
     ctx.typeLabel,
     item.name,
-    String(item.qty_initial),
     String(item.qty_current),
+    String(item.warn_yellow),
+    String(item.warn_orange),
+    String(item.warn_red),
     item.created_at,
     formatInventoryCreatedDate(item.created_at),
   ])

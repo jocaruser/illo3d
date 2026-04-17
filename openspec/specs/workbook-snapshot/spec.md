@@ -8,12 +8,13 @@ Define the in-memory workbook snapshot: Zustand store as the single source of tr
 
 ### Requirement: Workbook snapshot store holds all tab data
 
-The system SHALL maintain an in-memory workbook store (Zustand) containing the parsed row data for every tab in `SHEET_NAMES`. The store SHALL be the **single source of truth** for all UI reads (list pages, detail pages, global search). No component or hook SHALL issue backend reads (Sheets API or CSV) for tabular data outside of the hydrate, Refresh, and Save flows defined below.
+The system SHALL maintain an in-memory workbook store (Zustand) containing the parsed row data for every tab in `SHEET_NAMES` (which includes `lots` and excludes `expenses`). The store SHALL be the **single source of truth** for all UI reads (list pages, detail pages, global search). No component or hook SHALL issue backend reads (Sheets API or CSV) for tabular data outside of the hydrate, Refresh, and Save flows.
 
 #### Scenario: Store contains all tabs after hydration
 
 - **WHEN** a shop is successfully opened (metadata validated, structure validated)
-- **THEN** the workbook store contains row arrays for every tab in `SHEET_NAMES`
+- **THEN** the workbook store contains row arrays for every tab in `SHEET_NAMES` (including `lots`)
+- **AND** does NOT contain an `expenses` tab
 - **AND** each array matches the data returned by `readRows` for that tab
 
 #### Scenario: Components read from the store

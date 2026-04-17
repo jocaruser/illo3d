@@ -147,6 +147,7 @@ What would you like to do?
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements - don't guess
 - Use contextFiles from CLI output, don't assume specific file names
+- **Bugfix / regression tasks**: When the user asks for TDD or the task is a behavioral fix, follow `.cursor/skills/tdd-bugfix/SKILL.md` (failing test or brief revert → fix → `make quality-gate`) so fixes stay locked by tests
 
 **Fluid Workflow Integration**
 

@@ -187,12 +187,12 @@ The system SHALL update the wizard "Open existing" step so that when running in 
 
 ### Requirement: Spreadsheet is created on first use
 
-The system SHALL create a Google Spreadsheet named `illo3d-data` when the user creates a new shop via the setup wizard. The spreadsheet SHALL contain empty sheets with headers for: clients, crm_notes, tags, tag_links, jobs, pieces, piece_items, inventory, expenses, transactions. The spreadsheet SHALL be moved into the shop's Drive folder after creation.
+The system SHALL create a Google Spreadsheet named `illo3d-data` when the user creates a new shop via the setup wizard. The spreadsheet SHALL contain empty sheets with headers for: clients, crm_notes, tags, tag_links, jobs, pieces, piece_items, inventory, lots, transactions. The spreadsheet SHALL be moved into the shop's Drive folder after creation.
 
 #### Scenario: New shop creates spreadsheet in folder
 
 - **WHEN** the user creates a new shop via the wizard
-- **THEN** system creates the spreadsheet with all required sheets and headers
+- **THEN** system creates the spreadsheet with all required sheets and headers (including lots, excluding expenses)
 - **AND** moves the spreadsheet into the shop's Drive folder
 
 #### Scenario: Existing shop connects to its spreadsheet
@@ -303,7 +303,12 @@ The system SHALL provide a `SheetsRepository` interface with `readRows`, `append
 
 ### Requirement: SHEET_HEADERS include lifecycle columns
 
-`SHEET_HEADERS` for every tab in `SHEET_NAMES` SHALL include `archived` and `deleted` as the last two columns. **`SHEET_HEADERS.pieces` SHALL include a `price` column** (optional numeric field in the sheet, empty when unset) **before** `created_at`. `validateStructure` SHALL require these columns when checking header rows.
+`SHEET_HEADERS` for every tab in `SHEET_NAMES` SHALL include `archived` and `deleted` as the last two columns. `SHEET_NAMES` SHALL be: `clients`, `crm_notes`, `tags`, `tag_links`, `jobs`, `pieces`, `piece_items`, `inventory`, `lots`, `transactions`. The `expenses` entry SHALL NOT be present. **`SHEET_HEADERS.pieces` SHALL include a `price` column** (optional numeric field in the sheet, empty when unset) **before** `created_at`. `validateStructure` SHALL require these columns when checking header rows.
+
+#### Scenario: SHEET_NAMES lists correct tabs
+
+- **WHEN** `SHEET_NAMES` is accessed
+- **THEN** it contains `lots` and does NOT contain `expenses`
 
 #### Scenario: Headers include lifecycle columns
 
@@ -402,7 +407,7 @@ The system SHALL provide a `CsvSheetsRepository` implementation that reads from 
 
 ### Requirement: LocalSheetsRepository implements SheetsRepository via File System Access API
 
-The system SHALL provide a `LocalSheetsRepository` that implements SheetsRepository using a `FileSystemDirectoryHandle`. It SHALL read and write CSV files (one per sheet) in the directory. `createSpreadsheet` SHALL create the metadata file and CSV files with headers for all sheets (including `crm_notes`, `tags`, `tag_links`, and extended `clients` headers per `SHEET_HEADERS`). This implementation SHALL be used when the user creates or opens a Local CSV shop via the directory picker.
+The system SHALL provide a `LocalSheetsRepository` that implements SheetsRepository using a `FileSystemDirectoryHandle`. It SHALL read and write CSV files (one per sheet) in the directory. `createSpreadsheet` SHALL create the metadata file and CSV files with headers for all sheets (including `lots`, excluding `expenses`, and including extended `clients` headers per `SHEET_HEADERS`). This implementation SHALL be used when the user creates or opens a Local CSV shop via the directory picker.
 
 #### Scenario: LocalSheetsRepository reads rows from CSV files
 
@@ -413,7 +418,8 @@ The system SHALL provide a `LocalSheetsRepository` that implements SheetsReposit
 #### Scenario: LocalSheetsRepository creates new shop
 
 - **WHEN** LocalSheetsRepository.createSpreadsheet is called
-- **THEN** it creates `illo3d.metadata.json` and CSV files for all sheets (with header rows)
+- **THEN** it creates `illo3d.metadata.json` and CSV files for all sheets (with header rows including `lots.csv`)
+- **AND** does NOT create `expenses.csv`
 - **AND** returns an identifier for the shop (e.g. directory handle reference)
 
 #### Scenario: LocalSheetsRepository appends rows
@@ -441,7 +447,7 @@ The system SHALL refactor fetchers (e.g. `fetchTransactions`, `fetchClients`), `
 
 ### Requirement: Fixture folders mirror Drive structure
 
-The system SHALL include `fixtures/<folder-name>/` directories at the repository root where folder-name is a descriptive scenario (e.g. `missingcolumn`, `happy-path`, `empty`). Each folder SHALL contain: one CSV per sheet (`transactions.csv`, `clients.csv`, etc.) with headers matching `SHEET_HEADERS`, plus `illo3d.metadata.json`. Multiple fixture folders MAY exist. These golden fixture files SHALL be committed to the repository and SHALL NOT be mutated by runtime code.
+The system SHALL include `fixtures/<folder-name>/` directories at the repository root where folder-name is a descriptive scenario (e.g. `missingcolumn`, `happy-path`, `empty`). Each folder SHALL contain: one CSV per sheet (`transactions.csv`, `clients.csv`, `lots.csv`, `inventory.csv`, etc.) with headers matching `SHEET_HEADERS`, plus `illo3d.metadata.json`. Multiple fixture folders MAY exist. Fixture folders SHALL NOT contain `expenses.csv`. These golden fixture files SHALL be committed to the repository and SHALL NOT be mutated by runtime code.
 
 The dev working copy SHALL live at `public/fixtures/` (gitignored). The app reads and writes this directory as before. `public/fixtures/` is populated by copying from `fixtures/` via `make restore-fixtures`.
 
@@ -449,7 +455,8 @@ The dev working copy SHALL live at `public/fixtures/` (gitignored). The app read
 
 - **WHEN** a golden fixture folder exists (e.g. `fixtures/happy-path/`)
 - **THEN** it contains `illo3d.metadata.json` with app, version, spreadsheetId, createdAt, createdBy
-- **AND** contains CSV files for all sheets with header rows matching `SHEET_HEADERS`
+- **AND** contains CSV files for all sheets (including `lots.csv`) with header rows matching `SHEET_HEADERS`
+- **AND** does NOT contain `expenses.csv`
 - **AND** the folder is committed to git
 
 #### Scenario: Multiple golden fixture folders exist
@@ -587,7 +594,7 @@ The system SHALL support e2e tests that call appendRows without mutating golden 
 
 ### Requirement: File System Access API creates new Local CSV shop
 
-The system SHALL use the File System Access API (`showDirectoryPicker`) to let the user select or create a folder. When creating a new Local CSV shop, the system SHALL write `illo3d.metadata.json` and CSV files (transactions, expenses, clients, etc.) to that folder. Chrome support is required; other browsers MAY show an unsupported message.
+The system SHALL use the File System Access API (`showDirectoryPicker`) to let the user select or create a folder. When creating a new Local CSV shop, the system SHALL write `illo3d.metadata.json` and CSV files (transactions, lots, clients, inventory, etc.) to that folder. Chrome support is required; other browsers MAY show an unsupported message.
 
 #### Scenario: User creates new Local CSV shop
 

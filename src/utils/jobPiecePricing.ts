@@ -16,13 +16,12 @@ export function piecePriceIsSet(piece: Piece): boolean {
 }
 
 export type JobPricingState =
-  | { kind: 'empty' }
   | { kind: 'incomplete' }
   | { kind: 'complete'; total: number }
 
 export function jobPricingState(jobId: string, pieces: Piece[]): JobPricingState {
   const list = countingPiecesForJob(jobId, pieces)
-  if (list.length === 0) return { kind: 'empty' }
+  if (list.length === 0) return { kind: 'incomplete' }
   let total = 0
   for (const p of list) {
     if (!piecePriceIsSet(p)) return { kind: 'incomplete' }
@@ -46,6 +45,5 @@ export function incomeAmountForPaidJob(jobId: string, pieces: Piece[]): number {
 export function jobTotalSortValue(jobId: string, pieces: Piece[]): number {
   const s = jobPricingState(jobId, pieces)
   if (s.kind === 'complete') return s.total
-  if (s.kind === 'empty') return 0
   return Number.POSITIVE_INFINITY
 }

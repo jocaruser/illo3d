@@ -6,9 +6,9 @@ import type {
   Client,
   CrmNote,
   CrmNoteEntityType,
-  Expense,
   Inventory,
   Job,
+  Lot,
   Piece,
   PieceItem,
   Tag,
@@ -98,24 +98,34 @@ export function matrixToTransactions(
   const raw = matrixToObjects<Transaction>('transactions', matrix)
   return raw
     .filter((r) => r.id && r.date)
-    .map((r) => ({
-      ...r,
-      amount:
-        typeof r.amount === 'string' ? parseFloat(r.amount) : Number(r.amount),
-    }))
+    .map((r) => {
+      const legacyRef = String(r.ref_type ?? '').trim()
+      const refIsJob = legacyRef === 'job'
+      return {
+        ...r,
+        ref_type: refIsJob ? ('job' as const) : ('' as const),
+        ref_id: refIsJob ? String(r.ref_id ?? '').trim() : '',
+        amount:
+          typeof r.amount === 'string' ? parseFloat(r.amount) : Number(r.amount),
+      }
+    })
     .sort((a, b) => (b.date > a.date ? 1 : -1))
 }
 
-export function matrixToExpenses(matrix: string[][] | undefined): Expense[] {
-  const raw = matrixToObjects<Expense>('expenses', matrix)
+export function matrixToLots(matrix: string[][] | undefined): Lot[] {
+  const raw = matrixToObjects<Lot>('lots', matrix)
   return raw
-    .filter((r) => r.id && r.date)
+    .filter((r) => r.id && r.inventory_id && r.transaction_id)
     .map((r) => ({
       ...r,
+      quantity:
+        typeof r.quantity === 'string'
+          ? parseFloat(r.quantity)
+          : Number(r.quantity),
       amount:
         typeof r.amount === 'string' ? parseFloat(r.amount) : Number(r.amount),
     }))
-    .sort((a, b) => (b.date > a.date ? 1 : -1))
+    .sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
 }
 
 function parseQty(value: unknown): number {
@@ -124,14 +134,27 @@ function parseQty(value: unknown): number {
   return Number(value)
 }
 
+function parseWarnThreshold(value: unknown): number {
+  if (value === '' || value === undefined || value === null) return 0
+  if (typeof value === 'number') return value
+  if (typeof value === 'string') {
+    const n = parseFloat(value)
+    return Number.isFinite(n) ? n : 0
+  }
+  const n = Number(value)
+  return Number.isFinite(n) ? n : 0
+}
+
 export function matrixToInventory(matrix: string[][] | undefined): Inventory[] {
   const raw = matrixToObjects<Inventory>('inventory', matrix)
   return raw
-    .filter((r) => r.id && r.expense_id && r.created_at)
+    .filter((r) => r.id && r.created_at)
     .map((r) => ({
       ...r,
-      qty_initial: parseQty(r.qty_initial),
       qty_current: parseQty(r.qty_current),
+      warn_yellow: parseWarnThreshold(r.warn_yellow),
+      warn_orange: parseWarnThreshold(r.warn_orange),
+      warn_red: parseWarnThreshold(r.warn_red),
     }))
     .sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
 }

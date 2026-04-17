@@ -3,7 +3,7 @@ import {
   computePieceSuggestedPrice,
   JOB_SUGGESTED_PRICE_MATERIAL_MULTIPLIER,
 } from './jobSuggestedPrice'
-import type { Expense, Inventory, PieceItem } from '@/types/money'
+import type { Inventory, Lot, PieceItem } from '@/types/money'
 
 const baseLine = (overrides: Partial<PieceItem>): PieceItem => ({
   id: 'PI1',
@@ -15,20 +15,23 @@ const baseLine = (overrides: Partial<PieceItem>): PieceItem => ({
 
 const baseInv = (overrides: Partial<Inventory> = {}): Inventory => ({
   id: 'INV1',
-  expense_id: 'E1',
   type: 'filament',
   name: 'PLA',
-  qty_initial: 1000,
   qty_current: 500,
+  warn_yellow: 0,
+  warn_orange: 0,
+  warn_red: 0,
   created_at: '2025-01-01',
   ...overrides,
 })
 
-const baseExp = (overrides: Partial<Expense> = {}): Expense => ({
-  id: 'E1',
-  date: '2025-01-01',
-  category: 'filament',
-  amount: 30,
+const baseLot = (overrides: Partial<Lot> = {}): Lot => ({
+  id: 'L1',
+  inventory_id: 'INV1',
+  transaction_id: 'T1',
+  quantity: 1000,
+  amount: 50,
+  created_at: '2025-01-01',
   ...overrides,
 })
 
@@ -43,24 +46,24 @@ describe('computePieceSuggestedPrice', () => {
       'P1',
       [baseLine({ piece_id: 'P2' })],
       [baseInv()],
-      [baseExp()],
+      [baseLot()],
     )
     expect(r).toEqual({ kind: 'hidden' })
   })
 
   it('applies multiplier to material subtotal for one piece', () => {
     const lines = [
-      baseLine({ id: 'L1', piece_id: 'P1', quantity: 100 }),
+      baseLine({ id: 'PI1', piece_id: 'P1', quantity: 100 }),
       baseLine({
-        id: 'L2',
+        id: 'PI2',
         piece_id: 'P2',
         inventory_id: 'INV1',
         quantity: 200,
       }),
     ]
-    const inv = baseInv({ qty_initial: 1000 })
-    const exp = baseExp({ amount: 50 })
-    const r = computePieceSuggestedPrice('P1', lines, [inv], [exp])
+    const inv = baseInv()
+    const lot = baseLot({ quantity: 1000, amount: 50 })
+    const r = computePieceSuggestedPrice('P1', lines, [inv], [lot])
     expect(r.kind).toBe('ok')
     if (r.kind !== 'ok') return
     expect(r.materialSubtotal).toBeCloseTo(5, 10)
@@ -69,7 +72,7 @@ describe('computePieceSuggestedPrice', () => {
       10,
     )
 
-    const r2 = computePieceSuggestedPrice('P2', lines, [inv], [exp])
+    const r2 = computePieceSuggestedPrice('P2', lines, [inv], [lot])
     expect(r2.kind).toBe('ok')
     if (r2.kind !== 'ok') return
     expect(r2.materialSubtotal).toBeCloseTo(10, 10)
@@ -79,7 +82,7 @@ describe('computePieceSuggestedPrice', () => {
     )
   })
 
-  it('returns error when expense missing', () => {
+  it('returns error when no lots for inventory', () => {
     const r = computePieceSuggestedPrice(
       'P1',
       [baseLine({})],
@@ -92,12 +95,12 @@ describe('computePieceSuggestedPrice', () => {
     })
   })
 
-  it('returns error when qty_initial not positive', () => {
+  it('returns error when lots only have zero quantity', () => {
     const r = computePieceSuggestedPrice(
       'P1',
       [baseLine({})],
-      [baseInv({ qty_initial: 0 })],
-      [baseExp()],
+      [baseInv()],
+      [baseLot({ quantity: 0, amount: 10 })],
     )
     expect(r.kind).toBe('error')
     if (r.kind !== 'error') return
@@ -105,12 +108,12 @@ describe('computePieceSuggestedPrice', () => {
     expect(r.lots[0].id).toBe('INV1')
   })
 
-  it('treats zero expense amount as zero unit cost', () => {
+  it('treats zero total lot amount as zero unit cost', () => {
     const r = computePieceSuggestedPrice(
       'P1',
       [baseLine({ quantity: 500 })],
-      [baseInv({ qty_initial: 1000 })],
-      [baseExp({ amount: 0 })],
+      [baseInv()],
+      [baseLot({ quantity: 1000, amount: 0 })],
     )
     expect(r.kind).toBe('ok')
     if (r.kind !== 'ok') return

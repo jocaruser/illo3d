@@ -37,7 +37,6 @@ describe('global search snapshot filtering', () => {
         pieces: [],
         crmNotes: [],
         transactions: [],
-        expenses: [],
         inventory: [],
         tags: [],
         tagLinks: [],

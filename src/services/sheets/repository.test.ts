@@ -46,7 +46,7 @@ describe('CsvSheetsRepository', () => {
     expect(names).toContain('crm_notes')
     expect(names).toContain('tags')
     expect(names).toContain('tag_links')
-    expect(names).toContain('expenses')
+    expect(names).toContain('lots')
   })
 
   it('getHeaderRow returns first line of CSV as headers', async () => {
@@ -104,8 +104,17 @@ describe('CsvSheetsRepository', () => {
     mockFetch.mockResolvedValue({ ok: true })
 
     const repo = new CsvSheetsRepository('happy-path')
-    await repo.appendRows('csv-fixture-happy-path', 'expenses', [
-      { id: 'E1', date: '2025-01-20', category: 'electric', amount: 50, notes: '' },
+    await repo.appendRows('csv-fixture-happy-path', 'lots', [
+      {
+        id: 'L1',
+        inventory_id: 'INV1',
+        transaction_id: 'T1',
+        quantity: 10,
+        amount: 25,
+        created_at: '2025-01-20',
+        archived: '',
+        deleted: '',
+      },
     ])
 
     expect(mockFetch).toHaveBeenCalledWith(
@@ -116,9 +125,18 @@ describe('CsvSheetsRepository', () => {
         body: JSON.stringify({
           spreadsheetId: 'csv-fixture-happy-path',
           folder: 'happy-path',
-          sheetName: 'expenses',
+          sheetName: 'lots',
           rows: [
-            { id: 'E1', date: '2025-01-20', category: 'electric', amount: 50, notes: '' },
+            {
+              id: 'L1',
+              inventory_id: 'INV1',
+              transaction_id: 'T1',
+              quantity: 10,
+              amount: 25,
+              created_at: '2025-01-20',
+              archived: '',
+              deleted: '',
+            },
           ],
         }),
       })
@@ -127,7 +145,7 @@ describe('CsvSheetsRepository', () => {
 
   it('appendRows does nothing when rows is empty', async () => {
     const repo = new CsvSheetsRepository('happy-path')
-    await repo.appendRows('csv-fixture-happy-path', 'expenses', [])
+    await repo.appendRows('csv-fixture-happy-path', 'lots', [])
     expect(mockFetch).not.toHaveBeenCalled()
   })
 

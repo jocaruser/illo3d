@@ -1,1 +1,1 @@
-id,expense_id,type,name,qty_initial,qty_current,created_at
+id,type,name,qty_current,warn_yellow,warn_orange,warn_red,created_at

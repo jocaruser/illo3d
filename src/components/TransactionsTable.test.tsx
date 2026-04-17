@@ -29,8 +29,8 @@ const expenseTransaction: Transaction = {
   amount: -25,
   category: 'filament',
   concept: 'PLA Negro',
-  ref_type: 'expense',
-  ref_id: 'e001',
+  ref_type: '',
+  ref_id: '',
 }
 
 const mockClients: Client[] = [
@@ -67,14 +67,13 @@ describe('TransactionsTable', () => {
   })
 
   it('links expense concept to inventory when expense has inventory', () => {
-    const map = new Map<string, string>()
-    map.set('e001', 'INV1')
+    const withLots = new Set<string>(['t002'])
     render(
       <MemoryRouter>
         <TransactionsTable
           transactions={[expenseTransaction]}
           clients={mockClients}
-          inventoryByExpenseId={map}
+          expenseTxnIdsWithLots={withLots}
         />
       </MemoryRouter>
     )

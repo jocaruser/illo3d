@@ -26,7 +26,8 @@ export async function updateJobStatus(
     throw new Error(`Job ${job.id} not found`)
   }
 
-  let nextJob: Job = { ...job, status: newStatus }
+  const current = jobs[idx]!
+  let nextJob: Job = { ...current, status: newStatus }
 
   if (newStatus === 'paid') {
     const resolved = options?.paidPrice

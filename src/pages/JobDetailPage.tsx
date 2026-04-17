@@ -95,7 +95,7 @@ export function JobDetailPage() {
     pieces: allPieces,
     pieceItems,
     inventory,
-    expenses,
+    lots,
     crmNotes,
     tags,
     tagLinks,
@@ -382,7 +382,7 @@ export function JobDetailPage() {
               jobs={jobs}
               pieceItems={pieceItems}
               inventory={inventory}
-              expenses={expenses}
+              lots={lots}
               spreadsheetId={spreadsheetId}
               expandedPieceId={expandedPieceId}
               onToggleExpand={(id) =>

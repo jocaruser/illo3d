@@ -5,7 +5,6 @@ export type GlobalSearchEntityKind =
   | 'client_note'
   | 'job_note'
   | 'transaction'
-  | 'expense'
   | 'inventory'
   | 'tag'
 

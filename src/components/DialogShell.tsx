@@ -6,6 +6,8 @@ interface DialogShellProps {
   title: string
   children: React.ReactNode
   overlayClassName?: string
+  /** Optional, for E2E / tests — set on the `role="dialog"` panel */
+  panelTestId?: string
 }
 
 const FOCUSABLE_SELECTOR =
@@ -17,6 +19,7 @@ export function DialogShell({
   title,
   children,
   overlayClassName = 'z-50',
+  panelTestId,
 }: DialogShellProps) {
   const panelRef = useRef<HTMLDivElement>(null)
   const titleId = useId()
@@ -79,6 +82,7 @@ export function DialogShell({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        data-testid={panelTestId}
         className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >

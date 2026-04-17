@@ -8,6 +8,7 @@ alwaysApply: true
 - **Clean Code (Uncle Bob)**: Write code following principles from *Clean Code* by Robert C. Martin: meaningful names, small functions, single responsibility, minimal comments (code explains itself), no duplication, clear abstractions, low coupling, and tests that are clean too.
 - **Use Makefile commands only**: Never run `pnpm`, `docker compose exec`, or similar directly. Use `make dev`, `make build`, `make lint`, `make test`, `make add PKG=...`, `make add-dev PKG=...`, etc.
 - **Validate before finishing**: After any code change, run `make quality-gate`. This runs build, lint, test, and e2e-test in sequence. All must exit with code 0 and report zero errors.
+- **TDD on bug fixes (when requested or clearly a regression)**: Prefer the workflow in `.cursor/skills/tdd-bugfix/SKILL.md`: add or adjust a **failing test** that encodes the correct behavior (optionally after temporarily reverting an existing fix to get a red run), apply the **minimal fix**, then run **`make quality-gate`**. Link new tests to OpenSpec tasks only when that change lives under an active OpenSpec change and it helps traceability.
 - **Linter must be flawless**: ESLint must report 0 problems. Fix any errors or warnings before considering work complete.
 - **Tests must pass**: The full unit test suite must pass with zero failures.
 - **E2E tests must pass**: The full e2e test suite must pass with zero failures.

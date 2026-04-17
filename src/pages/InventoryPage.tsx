@@ -21,10 +21,15 @@ export function InventoryPage() {
   const workbookError = useWorkbookStore((s) => s.error)
   const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
 
-  const { inventory: allInventory } = useWorkbookEntities()
+  const { inventory: allInventory, lots: allLots } = useWorkbookEntities()
   const items = useMemo(
     () => allInventory.filter(isActiveInventory),
     [allInventory],
+  )
+  const lots = useMemo(
+    () =>
+      allLots.filter((l) => l.archived !== 'true' && l.deleted !== 'true'),
+    [allLots],
   )
 
   const handleRetry = () => {
@@ -51,7 +56,7 @@ export function InventoryPage() {
           {items.length === 0 ? (
             <EmptyState messageKey="inventory.empty" />
           ) : (
-            <InventoryTable items={items} />
+            <InventoryTable items={items} lots={lots} />
           )}
         </>
       )}

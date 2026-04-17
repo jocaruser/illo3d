@@ -33,6 +33,7 @@ function sheetRowFromPiece(piece: Piece): Record<string, unknown> {
     job_id: piece.job_id,
     name: piece.name,
     status: piece.status,
+    price: piece.price ?? '',
     created_at: piece.created_at,
     archived: piece.archived ?? '',
     deleted: piece.deleted ?? '',
@@ -42,11 +43,12 @@ function sheetRowFromPiece(piece: Piece): Record<string, unknown> {
 function sheetRowFromInventory(inv: Inventory): Record<string, unknown> {
   return {
     id: inv.id,
-    expense_id: inv.expense_id,
     type: inv.type,
     name: inv.name,
-    qty_initial: inv.qty_initial,
     qty_current: inv.qty_current,
+    warn_yellow: inv.warn_yellow,
+    warn_orange: inv.warn_orange,
+    warn_red: inv.warn_red,
     created_at: inv.created_at,
     archived: inv.archived ?? '',
     deleted: inv.deleted ?? '',

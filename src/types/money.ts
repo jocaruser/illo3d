@@ -7,17 +7,19 @@ export type JobStatus =
 
 export type PieceStatus = 'pending' | 'done' | 'failed'
 
-export type ExpenseCategory =
+/** Categories used on expense-type transactions and the purchase form. */
+export type PurchaseCategory =
   | 'filament'
   | 'consumable'
+  | 'equipment'
   | 'electric'
-  | 'investment'
   | 'maintenance'
   | 'other'
 
 export type TransactionType = 'income' | 'expense'
 
-export type RefType = 'job' | 'expense'
+/** Transaction `ref_type` when linking to another entity; only job income uses `job`. */
+export type RefType = 'job'
 
 export type InventoryType = 'filament' | 'consumable' | 'equipment'
 
@@ -131,22 +133,25 @@ export interface PieceItem {
 
 export interface Inventory {
   id: string
-  expense_id: string
   type: InventoryType
   name: string
-  qty_initial: number
   qty_current: number
+  warn_yellow: number
+  warn_orange: number
+  warn_red: number
   created_at: string
   archived?: string
   deleted?: string
 }
 
-export interface Expense {
+/** Purchase batch / lot linked to one transaction and one inventory material. */
+export interface Lot {
   id: string
-  date: string
-  category: ExpenseCategory
+  inventory_id: string
+  transaction_id: string
+  quantity: number
   amount: number
-  notes?: string
+  created_at: string
   archived?: string
   deleted?: string
 }
@@ -158,7 +163,8 @@ export interface Transaction {
   amount: number
   category: string
   concept: string
-  ref_type: RefType
+  /** Empty when not job-linked (expense transactions use lots instead of ref_id). */
+  ref_type: RefType | ''
   ref_id: string
   client_id?: string
   notes?: string

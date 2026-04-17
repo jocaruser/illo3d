@@ -15,11 +15,22 @@ describe('InventoryTable', () => {
         items={[
           {
             id: 'INV1',
-            expense_id: 'E11',
             type: 'filament',
             name: 'PLA White',
-            qty_initial: 1000,
             qty_current: 1000,
+            warn_yellow: 0,
+            warn_orange: 0,
+            warn_red: 0,
+            created_at: '2025-03-25T12:00:00.000Z',
+          },
+        ]}
+        lots={[
+          {
+            id: 'L1',
+            inventory_id: 'INV1',
+            transaction_id: 'T1',
+            quantity: 1000,
+            amount: 29.99,
             created_at: '2025-03-25T12:00:00.000Z',
           },
         ]}
@@ -28,9 +39,10 @@ describe('InventoryTable', () => {
 
     expect(screen.getByText('inventory.name')).toBeInTheDocument()
     expect(screen.getByText('inventory.typeLabel')).toBeInTheDocument()
+    expect(screen.getByText('inventory.avgUnitCost')).toBeInTheDocument()
     expect(screen.getByText('PLA White')).toBeInTheDocument()
     expect(screen.getByText('inventory.type.filament')).toBeInTheDocument()
-    expect(screen.getAllByText('1000')).toHaveLength(2)
+    expect(screen.getByText('1000')).toBeInTheDocument()
     expect(screen.getByText('2025-03-25')).toBeInTheDocument()
   })
 
@@ -40,14 +52,16 @@ describe('InventoryTable', () => {
         items={[
           {
             id: 'INV1',
-            expense_id: 'E1',
             type: 'equipment',
             name: 'Printer',
-            qty_initial: 1,
             qty_current: 1,
+            warn_yellow: 0,
+            warn_orange: 0,
+            warn_red: 0,
             created_at: '2025-01-01T00:00:00.000Z',
           },
         ]}
+        lots={[]}
       />
     )
 

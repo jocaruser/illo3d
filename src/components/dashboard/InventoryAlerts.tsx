@@ -2,13 +2,18 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Inventory } from '@/types/money'
 
-function qtyTierClass(item: Inventory): string | null {
-  if (item.qty_initial <= 1) return null
-  const ratio = item.qty_current / item.qty_initial
-  if (ratio > 0.5) return null
-  if (ratio > 0.3) return 'border-l-4 border-yellow-400 bg-yellow-50'
-  if (ratio > 0.1) return 'border-l-4 border-orange-500 bg-orange-50'
-  return 'border-l-4 border-red-500 bg-red-50'
+function alertTierClass(item: Inventory): string | null {
+  const q = item.qty_current
+  if (item.warn_red > 0 && q <= item.warn_red) {
+    return 'border-l-4 border-red-500 bg-red-50'
+  }
+  if (item.warn_orange > 0 && q <= item.warn_orange) {
+    return 'border-l-4 border-orange-500 bg-orange-50'
+  }
+  if (item.warn_yellow > 0 && q <= item.warn_yellow) {
+    return 'border-l-4 border-yellow-400 bg-yellow-50'
+  }
+  return null
 }
 
 function isActiveInventory(row: Inventory): boolean {
@@ -24,9 +29,13 @@ export function InventoryAlerts({ items }: InventoryAlertsProps) {
 
   const alerts = items.filter((item) => {
     if (!isActiveInventory(item)) return false
-    if (item.qty_initial <= 1) return false
-    const ratio = item.qty_current / item.qty_initial
-    return ratio <= 0.3
+    if (item.warn_orange <= 0 && item.warn_red <= 0) return false
+    const q = item.qty_current
+    return (
+      (item.warn_yellow > 0 && q <= item.warn_yellow) ||
+      (item.warn_orange > 0 && q <= item.warn_orange) ||
+      (item.warn_red > 0 && q <= item.warn_red)
+    )
   })
 
   return (
@@ -47,7 +56,7 @@ export function InventoryAlerts({ items }: InventoryAlertsProps) {
       ) : (
         <ul className="space-y-2">
           {alerts.map((item) => {
-            const tier = qtyTierClass(item)
+            const tier = alertTierClass(item)
             return (
               <li key={item.id}>
                 <Link
@@ -55,9 +64,7 @@ export function InventoryAlerts({ items }: InventoryAlertsProps) {
                   className={`block rounded-md border border-gray-200 px-3 py-2 text-sm hover:opacity-90 ${tier ?? 'bg-gray-50'}`}
                 >
                   <span className="font-medium text-gray-900">{item.name}</span>
-                  <span className="ml-2 text-gray-600">
-                    {item.qty_current} / {item.qty_initial}
-                  </span>
+                  <span className="ml-2 text-gray-600">{item.qty_current}</span>
                 </Link>
               </li>
             )

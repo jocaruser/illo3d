@@ -54,16 +54,17 @@ describe('money types', () => {
     expect(item.quantity).toBe(150)
   })
 
-  it('Inventory has expense reference', () => {
+  it('Inventory has thresholds and qty', () => {
     const inv: Inventory = {
       id: 'inv001',
-      expense_id: 'e001',
       type: 'filament',
       name: 'PLA',
-      qty_initial: 1000,
       qty_current: 750,
+      warn_yellow: 300,
+      warn_orange: 150,
+      warn_red: 50,
       created_at: '2026-02-28',
     }
-    expect(inv.expense_id).toBe('e001')
+    expect(inv.qty_current).toBe(750)
   })
 })

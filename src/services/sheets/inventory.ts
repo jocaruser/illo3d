@@ -24,11 +24,13 @@ export async function fetchInventory(
     'inventory' as SheetName
   )
   return rows
-    .filter((r) => r.id && r.expense_id && r.created_at)
+    .filter((r) => r.id && r.created_at)
     .map((r) => ({
       ...r,
-      qty_initial: parseQty(r.qty_initial),
       qty_current: parseQty(r.qty_current),
+      warn_yellow: parseQty(r.warn_yellow),
+      warn_orange: parseQty(r.warn_orange),
+      warn_red: parseQty(r.warn_red),
     }))
     .sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
 }
