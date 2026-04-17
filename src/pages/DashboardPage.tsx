@@ -22,6 +22,10 @@ import {
   applyKanbanDrop,
 } from '@/services/job/applyKanbanDrop'
 import { clearKanbanPendingAfterSelect } from '@/utils/clearKanbanPendingAfterSelect'
+import {
+  buildExpenseLotLinkMaps,
+  getTransactionConceptLink,
+} from '@/lib/money/transactionConceptLink'
 
 function isActiveTransaction(txn: Transaction): boolean {
   return txn.archived !== 'true' && txn.deleted !== 'true'
@@ -76,11 +80,17 @@ export function DashboardPage() {
     transactions: allTransactions,
     inventory,
     pieces,
+    lots,
   } = useWorkbookEntities()
 
   const transactions = useMemo(
     () => allTransactions.filter(isActiveTransaction),
     [allTransactions],
+  )
+
+  const { expenseTxnIdsWithLots, inventoryIdByExpenseTxnId } = useMemo(
+    () => buildExpenseLotLinkMaps(lots),
+    [lots],
   )
 
   const clientsById = useMemo(() => {
@@ -106,25 +116,22 @@ export function DashboardPage() {
 
   const recentTransactionRows: RecentListItem[] = useMemo(
     () =>
-      transactions.map((tx) => ({
-        date: tx.date,
-        label: tx.concept,
-        amount: tx.amount,
-      })),
-    [transactions],
+      transactions.map((tx) => {
+        const link = getTransactionConceptLink(
+          tx,
+          expenseTxnIdsWithLots,
+          inventoryIdByExpenseTxnId,
+        )
+        return {
+          id: tx.id,
+          date: tx.date,
+          label: tx.concept,
+          amount: tx.amount,
+          labelLink: link ?? undefined,
+        }
+      }),
+    [transactions, expenseTxnIdsWithLots, inventoryIdByExpenseTxnId],
   )
-
-  const recentExpenseTxRows: RecentListItem[] = useMemo(() => {
-    const expenseTx = transactions
-      .filter((tx) => tx.type === 'expense')
-      .sort((a, b) => (b.date > a.date ? 1 : -1))
-      .slice(0, 5)
-    return expenseTx.map((tx) => ({
-      date: tx.date,
-      label: tx.concept || tx.category,
-      amount: tx.amount,
-    }))
-  }, [transactions])
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
@@ -228,11 +235,6 @@ export function DashboardPage() {
             <RecentList
               items={recentTransactionRows}
               title={t('dashboard.recentTransactions')}
-              viewAllTo="/transactions"
-            />
-            <RecentList
-              items={recentExpenseTxRows}
-              title={t('dashboard.recentSpending')}
               viewAllTo="/transactions"
             />
           </div>
