@@ -9,6 +9,7 @@ import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscov
 import { buildTransactionSearchBlob } from '@/lib/listTable/searchBlobs'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
+import { getTransactionConceptLink } from '@/lib/money/transactionConceptLink'
 
 interface TransactionsTableProps {
   transactions: Transaction[]
@@ -54,31 +55,21 @@ function conceptCell(
   inventoryIdByExpenseTxnId: Map<string, string> | undefined
 ) {
   const text = tx.concept
-  if (tx.ref_type === 'job' && tx.ref_id) {
-    return (
-      <Link
-        to={`/jobs/${tx.ref_id}`}
-        data-testid={`transaction-concept-job-link-${tx.id}`}
-        className="text-blue-600 hover:text-blue-800"
-      >
-        {text}
-      </Link>
-    )
-  }
-  if (tx.type === 'expense' && expenseTxnIdsWithLots?.has(tx.id)) {
-    const invId = inventoryIdByExpenseTxnId?.get(tx.id)
-    const to = invId ? `/inventory/${invId}` : '/inventory'
-    return (
-      <Link
-        to={to}
-        data-testid={`transaction-concept-inventory-link-${tx.id}`}
-        className="text-blue-600 hover:text-blue-800"
-      >
-        {text}
-      </Link>
-    )
-  }
-  return text
+  const link = getTransactionConceptLink(
+    tx,
+    expenseTxnIdsWithLots,
+    inventoryIdByExpenseTxnId
+  )
+  if (!link) return text
+  return (
+    <Link
+      to={link.to}
+      data-testid={link.testId}
+      className="text-blue-600 hover:text-blue-800"
+    >
+      {text}
+    </Link>
+  )
 }
 
 export function TransactionsTable({

@@ -51,7 +51,6 @@
     "viewAll": "Ver todo",
     "recentEmpty": "Aún no hay entradas.",
     "recentTransactions": "Transacciones recientes",
-    "recentSpending": "Gastos recientes",
     "kanban": {
       "draft": "Borrador",
       "inProgress": "En curso",

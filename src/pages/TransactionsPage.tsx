@@ -10,6 +10,7 @@ import { CreatePurchasePopup } from '@/components/CreatePurchasePopup'
 import { calculateBalance } from '@/utils/money'
 import { useTranslation } from 'react-i18next'
 import type { Transaction } from '@/types/money'
+import { buildExpenseLotLinkMaps } from '@/lib/money/transactionConceptLink'
 
 function isActiveTransaction(txn: Transaction): boolean {
   return txn.archived !== 'true' && txn.deleted !== 'true'
@@ -32,25 +33,10 @@ export function TransactionsPage() {
     [allTransactions],
   )
 
-  const expenseTxnIdsWithLots = useMemo(() => {
-    const s = new Set<string>()
-    for (const l of lots) {
-      if (l.archived === 'true' || l.deleted === 'true') continue
-      s.add(l.transaction_id)
-    }
-    return s
-  }, [lots])
-
-  const inventoryIdByExpenseTxnId = useMemo(() => {
-    const m = new Map<string, string>()
-    for (const l of lots) {
-      if (l.archived === 'true' || l.deleted === 'true') continue
-      if (!m.has(l.transaction_id)) {
-        m.set(l.transaction_id, l.inventory_id)
-      }
-    }
-    return m
-  }, [lots])
+  const { expenseTxnIdsWithLots, inventoryIdByExpenseTxnId } = useMemo(
+    () => buildExpenseLotLinkMaps(lots),
+    [lots],
+  )
 
   const balance = calculateBalance(transactions.map((tx) => tx.amount))
 

@@ -4,9 +4,12 @@ import { useTranslation } from 'react-i18next'
 import { formatCurrency } from '@/utils/money'
 
 export interface RecentListItem {
+  /** Stable row id (e.g. transaction id). */
+  id: string
   date: string
   label: string
   amount: number
+  labelLink?: { to: string; testId: string }
 }
 
 interface RecentListProps {
@@ -39,14 +42,24 @@ export function RecentList({ items, title, viewAllTo }: RecentListProps) {
         <p className="text-sm text-gray-500">{t('dashboard.recentEmpty')}</p>
       ) : (
         <ul className="divide-y divide-gray-100">
-          {rows.map((row, i) => (
+          {rows.map((row) => (
             <li
-              key={`${row.date}-${row.label}-${i}`}
+              key={row.id}
               className="flex flex-wrap items-baseline justify-between gap-2 py-2 text-sm"
             >
               <span className="text-gray-500">{row.date}</span>
               <span className="min-w-0 flex-1 truncate text-gray-900">
-                {row.label}
+                {row.labelLink ? (
+                  <Link
+                    to={row.labelLink.to}
+                    data-testid={row.labelLink.testId}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    {row.label}
+                  </Link>
+                ) : (
+                  row.label
+                )}
               </span>
               <span className="font-medium tabular-nums text-gray-800">
                 {formatCurrency(row.amount)}

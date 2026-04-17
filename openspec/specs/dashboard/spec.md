@@ -100,24 +100,39 @@ The system SHALL display an inventory alert widget showing items below stock thr
 
 ---
 
-### Requirement: Recent transactions and expenses on dashboard
+### Requirement: Recent transactions on dashboard
 
-The system SHALL display the 5 most recent active transactions and the 5 most recent active expenses on the dashboard, ordered by `date` descending. Each row SHALL show: date, description/name, and amount. The widgets SHALL include a link to `/transactions` and `/expenses` respectively to view the full list.
+The system SHALL display the 5 most recent active transactions on the dashboard, ordered by `date` descending. Each row SHALL show: date, concept label, and amount. The concept label SHALL follow the same linking rules as the transactions table concept column: when a transaction has `ref_type` `job` and a non-empty `ref_id`, the label SHALL be a link to `/jobs/:ref_id` with visible text equal to the concept string; when the transaction type is `expense` and the transaction has linked lots (matched via `lots.transaction_id`), the label SHALL be a link to `/inventory` or to `/inventory/:id` when the UI resolves a single inventory id the same way as on the transactions page; otherwise the label SHALL be plain text only. The widget SHALL include a control to view the full ledger that navigates to `/transactions`.
 
 #### Scenario: Recent transactions shows last 5
 
 - **WHEN** user views the dashboard and active transactions exist
-- **THEN** the 5 most recent transactions are shown in the recent transactions widget
+- **THEN** at most the 5 most recent transactions by date appear in the recent transactions widget
 
-#### Scenario: Recent expenses shows last 5
+#### Scenario: View all navigates to transactions
 
-- **WHEN** user views the dashboard and active expenses exist
-- **THEN** the 5 most recent expenses are shown in the recent expenses widget
+- **WHEN** user activates the view-all control on the recent transactions widget
+- **THEN** the app navigates to `/transactions`
 
-#### Scenario: Recent transactions widget links to full ledger
+#### Scenario: Job-backed concept links to job
 
-- **WHEN** user clicks the "view all" link in the recent transactions widget
-- **THEN** they are navigated to `/transactions`
+- **WHEN** a displayed row is a transaction with `ref_type` `job` and non-empty `ref_id`
+- **THEN** the concept label is a link to `/jobs/:ref_id` whose visible text is the concept string
+
+#### Scenario: Lot-backed expense concept links toward inventory
+
+- **WHEN** a displayed row is an expense transaction with at least one linked lot
+- **THEN** the concept label is a link to inventory consistent with the transactions table (including specific inventory id when resolved)
+
+#### Scenario: No link when rules do not apply
+
+- **WHEN** a displayed row is a transaction that is not job-backed per link rules and not a lot-backed expense
+- **THEN** the concept label is plain text with no link
+
+#### Scenario: No separate recent spending widget
+
+- **WHEN** user views the dashboard with workbook ready
+- **THEN** the system does not show a second widget whose purpose is only recent expenses or "recent spending" distinct from the recent transactions widget
 
 ---
 
