@@ -15,7 +15,11 @@ interface EntityDetailPageProps {
   deleteLabel: string
   onEdit: () => void
   onDelete: () => void
-  children?: React.ReactNode
+  /** Extra controls inside the header card, below the field list. */
+  belowFields?: ReactNode
+  /** When true, the Edit / Delete buttons are not shown. */
+  hidePrimaryActions?: boolean
+  children?: ReactNode
 }
 
 export function EntityDetailPage({
@@ -27,6 +31,8 @@ export function EntityDetailPage({
   deleteLabel,
   onEdit,
   onDelete,
+  belowFields,
+  hidePrimaryActions = false,
   children,
 }: EntityDetailPageProps) {
   return (
@@ -50,25 +56,28 @@ export function EntityDetailPage({
                 <span className="whitespace-pre-wrap">{f.value}</span>
               </div>
             ))}
+            {belowFields ? <div className="mt-4">{belowFields}</div> : null}
           </div>
-          <div className="flex shrink-0 gap-2">
-            <button
-              type="button"
-              data-testid="entity-detail-edit"
-              onClick={onEdit}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-            >
-              {editLabel}
-            </button>
-            <button
-              type="button"
-              data-testid="entity-detail-delete"
-              onClick={onDelete}
-              className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-            >
-              {deleteLabel}
-            </button>
-          </div>
+          {hidePrimaryActions ? null : (
+            <div className="flex shrink-0 gap-2">
+              <button
+                type="button"
+                data-testid="entity-detail-edit"
+                onClick={onEdit}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              >
+                {editLabel}
+              </button>
+              <button
+                type="button"
+                data-testid="entity-detail-delete"
+                onClick={onDelete}
+                className="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+              >
+                {deleteLabel}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

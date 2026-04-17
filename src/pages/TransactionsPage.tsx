@@ -41,6 +41,17 @@ export function TransactionsPage() {
     return s
   }, [lots])
 
+  const inventoryIdByExpenseTxnId = useMemo(() => {
+    const m = new Map<string, string>()
+    for (const l of lots) {
+      if (l.archived === 'true' || l.deleted === 'true') continue
+      if (!m.has(l.transaction_id)) {
+        m.set(l.transaction_id, l.inventory_id)
+      }
+    }
+    return m
+  }, [lots])
+
   const balance = calculateBalance(transactions.map((tx) => tx.amount))
 
   const handlePurchaseSuccess = () => {
@@ -80,6 +91,7 @@ export function TransactionsPage() {
               transactions={transactions}
               clients={clients}
               expenseTxnIdsWithLots={expenseTxnIdsWithLots}
+              inventoryIdByExpenseTxnId={inventoryIdByExpenseTxnId}
             />
           )}
         </>

@@ -237,6 +237,27 @@
       "equipment": "Equipment"
     }
   },
+  "inventoryDetail": {
+    "backToList": "Back to inventory",
+    "notFound": "No inventory item with this id.",
+    "sectionsEmpty": "No purchase lots or consumption recorded for this material yet.",
+    "lotsTitle": "Purchase lots",
+    "consumptionTitle": "Consumption",
+    "transaction": "Transaction",
+    "piece": "Piece",
+    "job": "Job",
+    "quantity": "Qty",
+    "lotDate": "Date",
+    "lotQuantity": "Quantity",
+    "lotAmount": "Amount",
+    "saveThresholds": "Save thresholds",
+    "saving": "Saving…",
+    "saveError": "Could not save thresholds.",
+    "thresholdsHeading": "Low-stock thresholds",
+    "thresholdYellow": "Caution (yellow)",
+    "thresholdOrange": "Low (orange)",
+    "thresholdRed": "Critical (red)"
+  },
   "transactions": {
     "date": "Date",
     "type": "Type",

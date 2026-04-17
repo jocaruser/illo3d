@@ -15,6 +15,8 @@ interface TransactionsTableProps {
   clients: Client[]
   /** Expense transactions that have at least one lot link to inventory. */
   expenseTxnIdsWithLots?: Set<string>
+  /** First inventory id per expense transaction (from lots). */
+  inventoryIdByExpenseTxnId?: Map<string, string>
 }
 
 function getClientName(clients: Client[], clientId?: string): string {
@@ -48,7 +50,8 @@ function transactionComparable(
 
 function conceptCell(
   tx: Transaction,
-  expenseTxnIdsWithLots: Set<string> | undefined
+  expenseTxnIdsWithLots: Set<string> | undefined,
+  inventoryIdByExpenseTxnId: Map<string, string> | undefined
 ) {
   const text = tx.concept
   if (tx.ref_type === 'job' && tx.ref_id) {
@@ -63,9 +66,11 @@ function conceptCell(
     )
   }
   if (tx.type === 'expense' && expenseTxnIdsWithLots?.has(tx.id)) {
+    const invId = inventoryIdByExpenseTxnId?.get(tx.id)
+    const to = invId ? `/inventory/${invId}` : '/inventory'
     return (
       <Link
-        to="/inventory"
+        to={to}
         data-testid={`transaction-concept-inventory-link-${tx.id}`}
         className="text-blue-600 hover:text-blue-800"
       >
@@ -80,6 +85,7 @@ export function TransactionsTable({
   transactions,
   clients,
   expenseTxnIdsWithLots,
+  inventoryIdByExpenseTxnId,
 }: TransactionsTableProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
@@ -238,7 +244,7 @@ export function TransactionsTable({
                     {tx.category}
                   </td>
                   <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 lg:table-cell">
-                    {conceptCell(tx, expenseTxnIdsWithLots)}
+                    {conceptCell(tx, expenseTxnIdsWithLots, inventoryIdByExpenseTxnId)}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 md:table-cell">
                     {tx.client_id ? (

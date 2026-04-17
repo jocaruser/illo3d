@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Inventory, Lot } from '@/types/money'
 import { computeAvgUnitCost } from '@/utils/avgUnitCost'
@@ -181,7 +182,13 @@ export function InventoryTable({ items, lots }: InventoryTableProps) {
                     className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
                   >
                     <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
-                      {item.name}
+                      <Link
+                        to={`/inventory/${item.id}`}
+                        data-testid={`inventory-table-link-${item.id}`}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        {item.name}
+                      </Link>
                     </td>
                     <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 sm:table-cell">
                       {t(`inventory.type.${item.type}`)}

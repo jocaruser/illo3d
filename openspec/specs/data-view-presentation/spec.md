@@ -23,7 +23,7 @@ The system SHALL wrap the rendered children of `ProtectedRoute` (the authenticat
 
 ### Requirement: In-scope data pages use a shared loading indicator
 
-On the Clients, Transactions, Expenses, and Inventory pages, while the primary list query for that page reports loading (`isLoading` true) and the sheet connection is in the connected state, the system SHALL show a shared loading component (e.g. `LoadingSpinner`) with accessible busy semantics and an i18n label. Ad hoc plain-text “Loading...” paragraphs SHALL NOT be used on those pages.
+On the Clients, Transactions, Expenses, and **Inventory list** pages, while the primary list query for that page reports loading (`isLoading` true) and the sheet connection is in the connected state, the system SHALL show a shared loading component (e.g. `LoadingSpinner`) with accessible busy semantics and an i18n label. Ad hoc plain-text “Loading...” paragraphs SHALL NOT be used on those pages. On the **Inventory detail** page (`/inventory/:inventoryId`), while the sheet connection is in the connected state and the **inventory row for the route id** is not yet available for render from the workbook-backed data source, the system SHALL show the same shared loading component in the main content area.
 
 #### Scenario: Clients page shows shared loading
 
@@ -33,6 +33,13 @@ On the Clients, Transactions, Expenses, and Inventory pages, while the primary l
 #### Scenario: Inventory page shows shared loading
 
 - **WHEN** the inventory list query is loading and the connection is connected
+- **THEN** the shared loading component is visible in the main content area
+
+#### Scenario: Inventory detail shows shared loading
+
+- **WHEN** the user navigates to `/inventory/INV1`
+- **AND** the connection is connected
+- **AND** workbook-backed inventory data needed to resolve INV1 is still loading
 - **THEN** the shared loading component is visible in the main content area
 
 ### Requirement: In-scope data pages use shared empty state
@@ -51,9 +58,9 @@ On the Clients, Transactions, Expenses, and Inventory pages, when the primary li
 
 ### Requirement: Scope of shared list presentation
 
-The shared loading and empty-state requirements in this specification apply to the Clients, Transactions, Expenses, and Inventory pages. Other authenticated data pages (e.g. Jobs) MAY use different loading or empty presentation until they are explicitly brought under this specification.
+The shared loading requirement in this specification applies to the Clients, Transactions, Expenses, **Inventory list**, and **Inventory detail** pages. The shared **empty-state** requirement applies to the Clients, Transactions, Expenses, and Inventory **list** pages as before. Other authenticated data pages (e.g. Jobs) MAY use different loading or empty presentation until they are explicitly brought under this specification.
 
-#### Scenario: Normative scope is limited to named pages
+#### Scenario: Normative scope includes inventory detail loading
 
-- **WHEN** assessing compliance with shared loading and empty-state requirements
-- **THEN** only Clients, Transactions, Expenses, and Inventory are required to use the shared components as specified
+- **WHEN** assessing compliance with the shared loading indicator requirement
+- **THEN** the Inventory detail page is included alongside Clients, Transactions, Expenses, and Inventory list

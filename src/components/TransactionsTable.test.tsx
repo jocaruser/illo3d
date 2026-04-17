@@ -68,17 +68,19 @@ describe('TransactionsTable', () => {
 
   it('links expense concept to inventory when expense has inventory', () => {
     const withLots = new Set<string>(['t002'])
+    const inventoryIdByExpenseTxnId = new Map([['t002', 'INV9']])
     render(
       <MemoryRouter>
         <TransactionsTable
           transactions={[expenseTransaction]}
           clients={mockClients}
           expenseTxnIdsWithLots={withLots}
+          inventoryIdByExpenseTxnId={inventoryIdByExpenseTxnId}
         />
       </MemoryRouter>
     )
     const link = screen.getByTestId('transaction-concept-inventory-link-t002')
-    expect(link).toHaveAttribute('href', '/inventory')
+    expect(link).toHaveAttribute('href', '/inventory/INV9')
     expect(link).toHaveTextContent('PLA Negro')
   })
 

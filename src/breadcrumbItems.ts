@@ -25,16 +25,20 @@ const routeToNavKey: Record<MainRoute, string> = {
 
 const JOB_DETAIL_PATH = /^\/jobs\/([^/]+)$/
 const CLIENT_DETAIL_PATH = /^\/clients\/([^/]+)$/
+const INVENTORY_DETAIL_PATH = /^\/inventory\/([^/]+)$/
 
 export type JobDescriptionResolver = (jobId: string) => string | undefined
 
 export type ClientNameResolver = (clientId: string) => string | undefined
+
+export type InventoryNameResolver = (inventoryId: string) => string | undefined
 
 export function getBreadcrumbItems(
   pathname: string,
   t: TFunction,
   resolveJobDescription?: JobDescriptionResolver,
   resolveClientName?: ClientNameResolver,
+  resolveInventoryName?: InventoryNameResolver,
 ): BreadcrumbItem[] | null {
   const clientDetailMatch = CLIENT_DETAIL_PATH.exec(pathname)
   if (clientDetailMatch) {
@@ -55,6 +59,17 @@ export function getBreadcrumbItems(
       { label: t('breadcrumb.home'), to: '/dashboard' },
       { label: t('nav.jobs'), to: '/jobs' },
       { label: description ?? id },
+    ]
+  }
+
+  const inventoryDetailMatch = INVENTORY_DETAIL_PATH.exec(pathname)
+  if (inventoryDetailMatch) {
+    const id = inventoryDetailMatch[1]
+    const name = resolveInventoryName?.(id)
+    return [
+      { label: t('breadcrumb.home'), to: '/dashboard' },
+      { label: t('nav.inventory'), to: '/inventory' },
+      { label: name ?? id },
     ]
   }
 
