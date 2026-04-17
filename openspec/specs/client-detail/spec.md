@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Per-client CRM view at `/clients/:clientId`: spreadsheet-backed client header (including extended CRM fields where present), identity editing, ledger- and job-derived metrics, unified `crm_notes` sheet with multi-note CRM behavior for client-scoped rows, severities, mention linkify in bodies, and prominence UI, jobs list with links and client-scoped job creation, breadcrumbs and nav active state, and fixture coverage for notes and income-linked metrics.
+Per-client CRM view at `/clients/:clientId`: spreadsheet-backed client header (including extended CRM fields where present), identity editing, ledger- and job-derived metrics, unified `crm_notes` sheet with multi-note CRM behavior for client-scoped rows, severities, mention linkify in bodies, and prominence UI, an **Activity** timeline merging notes, jobs, income, and tags, jobs list with links and client-scoped job creation, breadcrumbs and nav active state, and fixture coverage for notes and income-linked metrics.
 
 ## Requirements
 
@@ -170,3 +170,80 @@ The happy-path fixture data SHALL include a `crm_notes.csv` whose header row mat
 
 - **WHEN** tests load happy-path fixtures
 - **THEN** crm_notes contains at least one valid client-scoped row linked to a fixture client
+
+### Requirement: Client activity timeline section
+
+The client detail page SHALL render an **Activity** section (title SHALL be i18n-keyed) that lists a **timeline** of entries for the current client in **descending** order by event time (newest first). When two entries share the same sort instant, the system SHALL apply a **stable secondary ordering** (fixed priority by entry kind, then lexicographic id) so results do not flicker across renders.
+
+#### Scenario: Timeline is newest-first
+
+- **WHEN** the client has at least two timeline entries with different event times
+- **THEN** the entry with the later event time appears above the earlier entry
+
+#### Scenario: Stable tie-break
+
+- **WHEN** two entries normalize to the same sort instant
+- **THEN** their relative order matches the implementation’s documented kind priority and id tie-break
+
+### Requirement: Timeline entry sources
+
+The timeline SHALL include entries derived only from the following sources, scoped to the viewed client and **active** rows (the same `archived` / `deleted` string semantics as `excludeArchivedDeleted`: exclude when value is `"true"`):
+
+1. **Client CRM notes** — `crm_notes` with `entity_type` `client` and `entity_id` equal to `:clientId`; event time SHALL be `created_at`.
+2. **Job CRM notes** — `crm_notes` with `entity_type` `job` and `entity_id` equal to a job id whose `client_id` is `:clientId`; event time SHALL be `created_at`.
+3. **Job created** — one entry per qualifying job with `client_id` equal to `:clientId`; event time SHALL be `jobs.created_at`; the row SHALL link to `/jobs/:jobId` and MAY surface the job’s **current** `status` as secondary text (i18n).
+4. **Income transactions** — `transactions` with `type` `income` and `client_id` equal to `:clientId`; event time SHALL be derived from `date`; the row SHALL show amount and concept and SHALL deep-link when `ref_type` and `ref_id` resolve to an in-app entity route consistent with existing money-tracking link behavior.
+5. **Client tag links** — `tag_links` with `entity_type` `client` and `entity_id` equal to `:clientId`; event time SHALL be `created_at`; the row SHALL show the tag’s display name when the tag row resolves, with a non-crashing fallback when it does not.
+
+The timeline SHALL NOT synthesize job status **change** history, piece lifecycle events, or purchase/expense rows that are not client-scoped.
+
+#### Scenario: Job note from another client is excluded
+
+- **WHEN** a `crm_notes` row exists for `entity_type` `job` and a job whose `client_id` differs from `:clientId`
+- **THEN** that note does not appear on this client’s timeline
+
+#### Scenario: Archived job excluded
+
+- **WHEN** a job has `archived` set to `"true"`
+- **THEN** no job-created entry and no job-scoped notes for that job appear in the timeline
+
+### Requirement: Timeline presentation and note editing
+
+Timeline rows for CRM notes SHALL render note bodies with the same `@PREFIXid` linkify behavior as the client notes section. Client-note rows in the timeline SHALL be **read-only** in the timeline; create, update, and delete SHALL remain in the existing client notes UI. Job-note rows SHALL link to the job detail page where job notes are edited.
+
+#### Scenario: Mention renders safely
+
+- **WHEN** a timeline note body contains a resolvable `@` mention
+- **THEN** the token renders as a link consistent with `MentionLinkify` behavior on client detail
+
+### Requirement: Timeline empty state and i18n
+
+When no entries qualify, the Activity section SHALL show an i18n empty state. All new user-visible strings introduced for the timeline (section title, entry type labels, empty state, and status snippets) SHALL exist in English and Spanish catalogs.
+
+#### Scenario: Empty client shows empty timeline
+
+- **WHEN** no sources produce entries for the client
+- **THEN** the Activity section still renders with an empty-state message from i18n
+
+### Requirement: Automated tests for client activity timeline
+
+The system SHALL include **unit tests** for timeline construction and ordering rules (including archived/deleted exclusion and client scoping). The system SHALL include at least one **e2e** test that opens client detail on fixture data and asserts that the activity timeline renders with expected content.
+
+#### Scenario: Unit tests guard ordering
+
+- **WHEN** tests run in CI
+- **THEN** timeline builder tests verify ordering and filtering rules without requiring a browser
+
+#### Scenario: E2E smoke
+
+- **WHEN** e2e loads a happy-path client with mixed activity
+- **THEN** the activity timeline region is visible and contains expected text or links
+
+### Requirement: Happy-path fixture coverage for activity timeline
+
+The happy-path fixtures SHALL be extended so at least one client has a **non-empty** mix of timeline sources (e.g. client note, job note on that client’s job, income row with `client_id`, client tag link, and job `created_at` data) sufficient for e2e and manual verification.
+
+#### Scenario: Fixture supports mixed activity
+
+- **WHEN** tests load happy-path fixtures
+- **THEN** at least one client qualifies for a multi-entry timeline without ad-hoc test-only sheet injection

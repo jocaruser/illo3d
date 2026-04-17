@@ -159,7 +159,21 @@
     "tagsComboboxAdd": "Add",
     "tagsComboboxListAria": "Existing tags",
     "tagsComboboxNoMatch": "No matching tags — press Add to create",
-    "tagsRemove": "Remove tag"
+    "tagsRemove": "Remove tag",
+    "activity": {
+      "title": "Activity",
+      "empty": "No activity yet.",
+      "jobLink": "Job: {{description}}",
+      "statusLine": "Status: {{status}}",
+      "incomeConceptFallback": "Income",
+      "kind": {
+        "client_note": "Note",
+        "job_note": "Job note",
+        "job_created": "Job created",
+        "income": "Income",
+        "tag": "Tag"
+      }
+    }
   },
   "jobDetail": {
     "notesTitle": "Notes",

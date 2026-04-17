@@ -27,6 +27,35 @@ test.describe('Client detail CRM', () => {
     await expect(page.getByTestId('client-notes-severity-strip')).toBeVisible()
   })
 
+  test('shows activity timeline with income and tag entries', async ({
+    page,
+    openCsvShop,
+  }) => {
+    void openCsvShop
+
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 20000,
+    })
+
+    await page.getByRole('link', { name: 'Clients' }).click()
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 15000,
+    })
+
+    await page.getByTestId('client-detail-link-CL1').click()
+    await expect(page).toHaveURL(/\/clients\/CL1/)
+
+    const timeline = page.getByTestId('client-activity-timeline')
+    await expect(
+      timeline.getByRole('heading', { name: /activity|actividad/i }),
+    ).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('client-activity-row-income-T13')).toBeVisible()
+    await expect(page.getByTestId('client-activity-row-tag-TL1')).toBeVisible()
+    await expect(
+      page.getByTestId('transaction-concept-job-link-T13'),
+    ).toBeVisible()
+  })
+
   test('jobs table client name links to client detail', async ({
     page,
     openCsvShop,
@@ -68,7 +97,9 @@ test.describe('Client detail CRM', () => {
       .getByPlaceholder(/plain text note|nota en texto plano/i)
       .fill(body)
     await page.getByTestId('client-note-add').click()
-    await expect(page.getByText(body)).toBeVisible({ timeout: 15000 })
+    await expect(
+      page.locator('[data-testid^="client-note-row-"]').getByText(body),
+    ).toBeVisible({ timeout: 15000 })
   })
 
   test('CRM note renders piece @P2 mention as link to job', async ({
