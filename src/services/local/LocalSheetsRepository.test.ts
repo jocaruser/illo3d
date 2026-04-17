@@ -96,7 +96,7 @@ describe('LocalSheetsRepository', () => {
     expect(names).toContain('crm_notes')
     expect(names).toContain('tags')
     expect(names).toContain('tag_links')
-    expect(names).toContain('expenses')
+    expect(names).toContain('lots')
   })
 
   it('getHeaderRow returns first line of CSV as headers', async () => {
@@ -143,17 +143,26 @@ describe('LocalSheetsRepository', () => {
 
   it('appendRows appends rows to existing CSV file', async () => {
     const initial =
-      'id,date,category,amount,notes,archived,deleted\n' +
-      'e1,2025-01-20,Materials,25.00,Test,,'
-    const handle = createMockHandle({ 'expenses.csv': initial })
+      'id,inventory_id,transaction_id,quantity,amount,created_at,archived,deleted\n' +
+      'L1,INV1,T1,1,10,2025-01-20,,'
+    const handle = createMockHandle({ 'lots.csv': initial })
     useBackendStore.setState({ localDirectoryHandle: handle })
 
     const repo = new LocalSheetsRepository()
-    await repo.appendRows('local-test-shop', 'expenses', [
-      { id: 'e2', date: '2025-01-21', category: 'Other', amount: '10.00', notes: '' },
+    await repo.appendRows('local-test-shop', 'lots', [
+      {
+        id: 'L2',
+        inventory_id: 'INV1',
+        transaction_id: 'T2',
+        quantity: 2,
+        amount: 20,
+        created_at: '2025-01-21',
+        archived: '',
+        deleted: '',
+      },
     ])
 
-    expect(handle.getFileHandle).toHaveBeenCalledWith('expenses.csv', {
+    expect(handle.getFileHandle).toHaveBeenCalledWith('lots.csv', {
       create: true,
     })
   })

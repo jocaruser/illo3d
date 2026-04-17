@@ -1,7 +1,6 @@
 import type {
   Client,
   CrmNote,
-  Expense,
   Inventory,
   Job,
   Piece,
@@ -13,7 +12,6 @@ import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import {
   buildClientSearchBlob,
   buildCrmNoteSearchBlob,
-  buildExpenseSearchBlob,
   buildInventorySearchBlob,
   buildJobSearchBlob,
   buildPieceSearchBlob,
@@ -29,7 +27,6 @@ export interface GlobalSearchSourceData {
   pieces: Piece[]
   crmNotes: CrmNote[]
   transactions: Transaction[]
-  expenses: Expense[]
   inventory: Inventory[]
   tags: Tag[]
   tagLinks: TagLink[]
@@ -99,7 +96,6 @@ export function buildGlobalSearchRows(
     pieces,
     crmNotes,
     transactions,
-    expenses,
     inventory,
     tags,
     tagLinks,
@@ -203,21 +199,6 @@ export function buildGlobalSearchRows(
         navigateTo: '/transactions',
         primaryLine: tx.concept,
         secondaryLine: tx.date,
-      },
-    })
-  }
-
-  for (const exp of expenses) {
-    rows.push({
-      blob: buildExpenseSearchBlob(exp, {
-        categoryLabel: t(`expenses.category.${exp.category}`),
-      }),
-      hit: {
-        kind: 'expense',
-        id: exp.id,
-        navigateTo: '/expenses',
-        primaryLine: exp.notes?.trim() || t(`expenses.category.${exp.category}`),
-        secondaryLine: exp.date,
       },
     })
   }

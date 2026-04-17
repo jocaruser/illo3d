@@ -15,7 +15,7 @@ describe('version compatibility', () => {
 
   it('different major version is incompatible', () => {
     const appMajor = parseMajor(APP_VERSION)
-    const metaMajor = parseMajor('1.0.0')
+    const metaMajor = parseMajor(`${appMajor + 1}.0.0`)
     expect(appMajor).not.toBe(metaMajor)
   })
 

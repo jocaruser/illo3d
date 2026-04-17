@@ -19,7 +19,6 @@ import { SetupWizard } from './components/wizard/SetupWizard'
 import { getBreadcrumbItems } from './breadcrumbItems'
 import { LoginPage } from './pages/LoginPage'
 import { TransactionsPage } from './pages/TransactionsPage'
-import { ExpensesPage } from './pages/ExpensesPage'
 import { InventoryPage } from './pages/InventoryPage'
 import { ClientsPage } from './pages/ClientsPage'
 import { JobsPage } from './pages/JobsPage'
@@ -164,9 +163,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </NavLink>
       <NavLink to="/transactions" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
         {t('nav.transactions')}
-      </NavLink>
-      <NavLink to="/expenses" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
-        {t('nav.expenses')}
       </NavLink>
       <NavLink to="/inventory" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
         {t('nav.inventory')}
@@ -413,16 +409,7 @@ export default function App() {
             </Layout>
           }
         />
-        <Route
-          path="/expenses"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <ExpensesPage />
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
+        <Route path="/expenses" element={<Navigate to="/transactions" replace />} />
         <Route
           path="/inventory"
           element={

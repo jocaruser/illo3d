@@ -1,3 +1,3 @@
-id,expense_id,type,name,qty_initial,qty_current,created_at,archived,deleted
-INV1,E11,filament,PLA White,1000,985,2025-03-25T12:00:00.000Z,,
-INV2,E12,equipment,Ender 3,1,1,2025-03-26T12:00:00.000Z,,
+id,type,name,qty_current,warn_yellow,warn_orange,warn_red,created_at,archived,deleted
+INV1,filament,PLA White,985,0,0,0,2025-03-25T12:00:00.000Z,,
+INV2,equipment,Ender 3,1,0,0,0,2025-03-26T12:00:00.000Z,,

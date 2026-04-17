@@ -10,6 +10,11 @@ import {
   incomeAmountForPaidJob,
 } from '@/utils/jobPiecePricing'
 
+export type JobStatusSelectResult =
+  | 'dialog-opened'
+  | 'blocked'
+  | 'committed'
+
 export function useJobStatusFlow(
   spreadsheetId: string | null,
   flowOptions?: {
@@ -55,26 +60,34 @@ export function useJobStatusFlow(
     }
   }
 
-  const handleStatusSelect = async (job: Job, next: JobStatus) => {
-    if (next === job.status) return
+  const handleStatusSelect = async (
+    job: Job,
+    next: JobStatus,
+  ): Promise<JobStatusSelectResult> => {
+    if (next === job.status) return 'committed'
     if (next === 'paid') {
       if (!canMarkJobPaid(job.id, pieces)) {
         setStatusError(t('jobs.paidPricingIncomplete'))
-        return
+        return 'blocked'
       }
       setPaidCreateTransaction(true)
       setPaidDialogJob(job)
-      return
+      return 'dialog-opened'
     }
     if (job.status === 'paid') {
       setLeavePaidPending({ job, next })
-      return
+      return 'dialog-opened'
     }
     if (next === 'cancelled') {
+      if (!canMarkJobPaid(job.id, pieces)) {
+        setStatusError(t('jobs.paidPricingIncomplete'))
+        return 'blocked'
+      }
       setCancelDialogJob(job)
-      return
+      return 'dialog-opened'
     }
     await commitStatus(job, next)
+    return 'committed'
   }
 
   const confirmPaid = async () => {

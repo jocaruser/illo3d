@@ -85,8 +85,8 @@ describe('revenueThisMonth', () => {
         amount: -20,
         category: 'x',
         concept: 'd',
-        ref_type: 'expense',
-        ref_id: 'E1',
+        ref_type: '',
+        ref_id: '',
       },
     ]
     expect(revenueThisMonth(tx, ref)).toBe(150)

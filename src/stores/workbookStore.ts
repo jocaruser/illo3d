@@ -6,9 +6,9 @@ import { emptySheetMatrix } from '@/services/sheets/sheetMatrix'
 import type {
   Client,
   CrmNote,
-  Expense,
   Inventory,
   Job,
+  Lot,
   Piece,
   PieceItem,
   Tag,
@@ -18,7 +18,7 @@ import type {
 import {
   matrixToClients,
   matrixToCrmNotes,
-  matrixToExpenses,
+  matrixToLots,
   matrixToInventory,
   matrixToJobs,
   matrixToPieceItems,
@@ -180,9 +180,9 @@ export function useSnapshotTransactions(): Transaction[] {
   return useMemo(() => matrixToTransactions(matrix), [matrix])
 }
 
-export function useSnapshotExpenses(): Expense[] {
-  const matrix = useWorkbookStore((s) => s.tabs.expenses)
-  return useMemo(() => matrixToExpenses(matrix), [matrix])
+export function useSnapshotLots(): Lot[] {
+  const matrix = useWorkbookStore((s) => s.tabs.lots)
+  return useMemo(() => matrixToLots(matrix), [matrix])
 }
 
 export function useSnapshotInventory(): Inventory[] {

@@ -18,20 +18,22 @@ describe('fetchInventory', () => {
     mockReadRows.mockResolvedValue([
       {
         id: 'INV1',
-        expense_id: 'E1',
         type: 'filament',
         name: 'PLA',
-        qty_initial: '100',
         qty_current: '90',
+        warn_yellow: '0',
+        warn_orange: '0',
+        warn_red: '0',
         created_at: '2025-03-20T12:00:00.000Z',
       },
       {
         id: 'INV2',
-        expense_id: 'E2',
         type: 'equipment',
         name: 'Printer',
-        qty_initial: 1,
         qty_current: 1,
+        warn_yellow: 300,
+        warn_orange: 100,
+        warn_red: 10,
         created_at: '2025-03-25T12:00:00.000Z',
       },
     ])
@@ -42,28 +44,30 @@ describe('fetchInventory', () => {
     expect(rows).toHaveLength(2)
     expect(rows[0].id).toBe('INV2')
     expect(rows[1].id).toBe('INV1')
-    expect(rows[1].qty_initial).toBe(100)
     expect(rows[1].qty_current).toBe(90)
+    expect(rows[0].warn_orange).toBe(100)
   })
 
   it('filters rows missing required fields', async () => {
     mockReadRows.mockResolvedValue([
       {
         id: '',
-        expense_id: 'E1',
         type: 'filament',
         name: 'X',
-        qty_initial: 1,
         qty_current: 1,
+        warn_yellow: 0,
+        warn_orange: 0,
+        warn_red: 0,
         created_at: '2025-01-01T00:00:00.000Z',
       },
       {
         id: 'INV1',
-        expense_id: 'E1',
         type: 'filament',
         name: 'Y',
-        qty_initial: 1,
         qty_current: 1,
+        warn_yellow: 0,
+        warn_orange: 0,
+        warn_red: 0,
         created_at: '2025-01-01T00:00:00.000Z',
       },
     ])

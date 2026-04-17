@@ -25,19 +25,21 @@ test.describe('Inventory page', () => {
     await expect(page.getByText('PLA White')).toBeVisible()
   })
 
-  test('expense row shows inventory link when linked', async ({ page, openCsvShop }) => {
+  test('lot-backed expense transaction links concept to inventory', async ({
+    page,
+    openCsvShop,
+  }) => {
     void openCsvShop
 
-    await page.getByRole('link', { name: 'Expenses' }).click()
-    await expect(page).toHaveURL(/\/expenses/)
-    await expect(page.getByRole('heading', { name: 'Expenses' })).toBeVisible({
+    await page.getByRole('link', { name: /transactions|transacciones/i }).click()
+    await expect(page).toHaveURL(/\/transactions/)
+    await expect(page.getByRole('heading', { name: /transactions|transacciones/i })).toBeVisible({
       timeout: 10000,
     })
 
-    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
-    const rowWithPla = page.getByRole('row').filter({ hasText: 'PLA White' })
-    await expect(
-      rowWithPla.getByRole('link', { name: /PLA White/i })
-    ).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({ timeout: 15000 })
+    const link = page.getByTestId('transaction-concept-inventory-link-T11')
+    await expect(link).toBeVisible({ timeout: 15000 })
+    await expect(link).toHaveText(/PLA White/i)
   })
 })

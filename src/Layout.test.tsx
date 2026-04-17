@@ -66,7 +66,7 @@ describe('Layout', () => {
     qc.setQueryData(['pieces', sid], [])
     qc.setQueryData(['crm_notes', sid], [])
     qc.setQueryData(['transactions', sid], [])
-    qc.setQueryData(['expenses', sid], [])
+    qc.setQueryData(['lots', sid], [])
     qc.setQueryData(['inventory', sid], [])
     qc.setQueryData(['tags', sid], [])
     qc.setQueryData(['tag_links', sid], [])
@@ -115,10 +115,10 @@ describe('Layout', () => {
   it('shows breadcrumbs on main routes', () => {
     render(
       <QueryClientProvider client={qc}>
-        <MemoryRouter initialEntries={['/expenses']}>
+        <MemoryRouter initialEntries={['/inventory']}>
           <Routes>
             <Route
-              path="/expenses"
+              path="/inventory"
               element={
                 <Layout>
                   <div>content</div>
@@ -135,7 +135,7 @@ describe('Layout', () => {
     })
     expect(breadcrumbNav).toBeInTheDocument()
     expect(
-      within(breadcrumbNav).getByText('nav.expenses'),
+      within(breadcrumbNav).getByText('nav.inventory'),
     ).toHaveAttribute('aria-current', 'page')
   })
 

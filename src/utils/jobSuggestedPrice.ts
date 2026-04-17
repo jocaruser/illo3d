@@ -1,4 +1,5 @@
-import type { Expense, Inventory, PieceItem } from '@/types/money'
+import type { Inventory, Lot, PieceItem } from '@/types/money'
+import { computeAvgUnitCost } from '@/utils/avgUnitCost'
 
 export const JOB_SUGGESTED_PRICE_MATERIAL_MULTIPLIER = 3
 
@@ -20,7 +21,7 @@ export function computePieceSuggestedPrice(
   pieceId: string,
   pieceItems: PieceItem[],
   inventoryRows: Inventory[],
-  expenses: Expense[]
+  lots: Lot[]
 ): PieceSuggestedPriceResult {
   const lines = pieceItems.filter((pi) => pi.piece_id === pieceId)
   if (lines.length === 0) {
@@ -28,7 +29,6 @@ export function computePieceSuggestedPrice(
   }
 
   const invById = new Map(inventoryRows.map((i) => [i.id, i]))
-  const expById = new Map(expenses.map((e) => [e.id, e]))
 
   const missing = new Map<string, PieceSuggestedPriceMissingLot>()
   let materialSubtotal = 0
@@ -40,18 +40,9 @@ export function computePieceSuggestedPrice(
       continue
     }
 
-    if (!Number.isFinite(inv.qty_initial) || inv.qty_initial <= 0) {
-      missing.set(inv.id, lotLabel(inv.id, inv))
-      continue
-    }
-
-    const expense = expById.get(inv.expense_id)
-    if (!expense) {
-      missing.set(inv.id, lotLabel(inv.id, inv))
-      continue
-    }
-
-    if (!Number.isFinite(expense.amount)) {
+    const invLots = lots.filter((l) => l.inventory_id === inv.id)
+    const unitCost = computeAvgUnitCost(invLots)
+    if (unitCost == null) {
       missing.set(inv.id, lotLabel(inv.id, inv))
       continue
     }
@@ -63,7 +54,6 @@ export function computePieceSuggestedPrice(
       continue
     }
 
-    const unitCost = expense.amount / inv.qty_initial
     materialSubtotal += qty * unitCost
   }
 

@@ -15,9 +15,10 @@ const piece = (overrides: Partial<Piece> & Pick<Piece, 'id' | 'job_id'>): Piece 
 })
 
 describe('jobPiecePricing', () => {
-  it('treats no counting pieces as empty', () => {
-    expect(jobPricingState('J1', [])).toEqual({ kind: 'empty' })
+  it('treats no counting pieces as incomplete pricing', () => {
+    expect(jobPricingState('J1', [])).toEqual({ kind: 'incomplete' })
     expect(canMarkJobPaid('J1', [])).toBe(false)
+    expect(jobTotalSortValue('J1', [])).toBe(Number.POSITIVE_INFINITY)
   })
 
   it('treats unset piece price as incomplete', () => {

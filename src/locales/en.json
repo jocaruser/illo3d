@@ -18,8 +18,7 @@
   },
   "page": {
     "dashboard": "Dashboard",
-    "transactions": "Transactions",
-    "expenses": "Expenses"
+    "transactions": "Transactions"
   },
   "errors": {
     "routeTitle": "This page couldn’t be displayed",
@@ -48,12 +47,11 @@
     "activeJobs": "Active jobs",
     "revenueThisMonth": "Revenue this month",
     "piecesThisWeek": "Pieces completed (7 days)",
-    "addExpense": "Add expense",
     "addJob": "Add job",
     "viewAll": "View all",
     "recentEmpty": "No entries yet.",
     "recentTransactions": "Recent transactions",
-    "recentExpenses": "Recent expenses",
+    "recentSpending": "Recent spending",
     "kanban": {
       "draft": "Draft",
       "inProgress": "In progress",
@@ -77,7 +75,6 @@
     "jobs": "Jobs",
     "pieces": "Pieces",
     "transactions": "Transactions",
-    "expenses": "Expenses",
     "inventory": "Inventory",
     "toggleMenu": "Toggle menu"
   },
@@ -93,7 +90,6 @@
       "client_note": "Client note",
       "job_note": "Job note",
       "transaction": "Transaction",
-      "expense": "Expense",
       "inventory": "Inventory",
       "tag": "Tag"
     }
@@ -183,20 +179,21 @@
     "tagsComboboxNoMatch": "No matching tags — press Add to create",
     "tagsRemove": "Remove tag"
   },
-  "expenses": {
-    "title": "Add expense",
+  "purchase": {
+    "title": "Record purchase",
+    "recordButton": "Record purchase",
     "date": "Date",
     "category": "Category",
     "amount": "Amount",
     "notes": "Notes",
-    "notesPlaceholder": "Optional notes",
-    "submit": "Create expense",
+    "notesPlaceholder": "Description or reference",
+    "submit": "Save purchase",
     "cancel": "Cancel",
-    "validation.required": "This field is required",
-    "validation.amountPositive": "Amount must be greater than zero",
-    "validation.inventoryNameRequired": "Inventory name is required",
-    "validation.quantityPositive": "Quantity must be greater than zero",
     "addToInventory": "Add to inventory",
+    "totalFromLines": "Total (line items)",
+    "lineExisting": "Existing item",
+    "lineNew": "New item",
+    "inventoryItem": "Inventory item",
     "inventoryTypeLabel": "Inventory type",
     "inventoryType": {
       "filament": "Filament",
@@ -204,25 +201,24 @@
       "equipment": "Equipment"
     },
     "inventoryName": "Inventory name",
-    "inventoryNamePlaceholder": "e.g. PLA White 1kg",
     "quantity": "Quantity",
     "quantityHintGrams": "(g)",
     "quantityHintUnits": "(units)",
+    "lineAmount": "Line cost",
+    "addLine": "+ Add another item",
     "category.filament": "Filament",
     "category.consumable": "Consumable",
+    "category.equipment": "Equipment",
     "category.electric": "Electric",
-    "category.investment": "Investment",
     "category.maintenance": "Maintenance",
     "category.other": "Other",
-    "empty": "No expenses yet.",
-    "addExpense": "Add expense",
-    "editTitle": "Edit expense",
-    "edit": "Edit",
-    "delete": "Delete",
-    "save": "Save",
-    "actions": "Actions",
-    "deleteConfirmTitle": "Delete expense",
-    "deleteConfirmMessage": "Delete expense {{id}} and its linked transaction? This cannot be undone."
+    "validation": {
+      "required": "This field is required",
+      "amountPositive": "Amount must be greater than zero",
+      "inventoryNameRequired": "Inventory name is required",
+      "quantityPositive": "Quantity must be greater than zero",
+      "lineRequired": "Add at least one line item"
+    }
   },
   "inventory": {
     "title": "Inventory",
@@ -230,8 +226,9 @@
     "typeLabel": "Type",
     "qtyInitial": "Qty (initial)",
     "qtyCurrent": "Qty (current)",
+    "avgUnitCost": "Avg unit cost",
     "createdAt": "Created",
-    "empty": "No inventory items yet. Items added through expenses will appear here.",
+    "empty": "No inventory items yet. Record a purchase with “Add to inventory” to create items.",
     "linkLabel": "Inventory",
     "expenseColumn": "Inventory",
     "type": {
@@ -361,7 +358,7 @@
     "colStatus": "Status",
     "colTotal": "Total",
     "totalIncomplete": "Incomplete pricing",
-    "paidPricingIncomplete": "Set a price on every piece for this job before marking it paid.",
+    "paidPricingIncomplete": "Set a price on every piece for this job before moving it to Paid or Cancelled.",
     "colPrice": "Price",
     "colCreated": "Created",
     "statusFieldAria": "Status for job {{id}}",

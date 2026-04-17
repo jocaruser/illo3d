@@ -8,7 +8,7 @@ import { TransactionsTable } from '@/components/TransactionsTable'
 import { BalanceDisplay } from '@/components/BalanceDisplay'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
-import { CreateExpensePopup } from '@/components/CreateExpensePopup'
+import { CreatePurchasePopup } from '@/components/CreatePurchasePopup'
 import { calculateBalance } from '@/utils/money'
 import { useTranslation } from 'react-i18next'
 import type { Transaction } from '@/types/money'
@@ -27,21 +27,20 @@ export function TransactionsPage() {
   const workbookError = useWorkbookStore((s) => s.error)
   const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
 
-  const { transactions: allTransactions, clients, inventory } =
-    useWorkbookEntities()
+  const { transactions: allTransactions, clients, lots } = useWorkbookEntities()
   const transactions = useMemo(
     () => allTransactions.filter(isActiveTransaction),
     [allTransactions],
   )
 
-  const inventoryByExpenseId = useMemo(() => {
-    const map = new Map<string, string>()
-    for (const row of inventory) {
-      if (row.archived === 'true' || row.deleted === 'true') continue
-      if (row.expense_id) map.set(row.expense_id, row.id)
+  const expenseTxnIdsWithLots = useMemo(() => {
+    const s = new Set<string>()
+    for (const l of lots) {
+      if (l.archived === 'true' || l.deleted === 'true') continue
+      s.add(l.transaction_id)
     }
-    return map
-  }, [inventory])
+    return s
+  }, [lots])
 
   const handleRetry = () => {
     if (!spreadsheetId) return
@@ -50,8 +49,8 @@ export function TransactionsPage() {
 
   const balance = calculateBalance(transactions.map((tx) => tx.amount))
 
-  const handleExpenseSuccess = () => {
-    navigate('/expenses')
+  const handlePurchaseSuccess = () => {
+    navigate('/transactions')
   }
 
   return (
@@ -72,10 +71,11 @@ export function TransactionsPage() {
             <BalanceDisplay balance={balance} />
             <button
               type="button"
+              data-testid="transactions-record-purchase"
               onClick={() => setPopupOpen(true)}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              {t('expenses.addExpense')}
+              {t('purchase.recordButton')}
             </button>
           </div>
 
@@ -85,16 +85,16 @@ export function TransactionsPage() {
             <TransactionsTable
               transactions={transactions}
               clients={clients}
-              inventoryByExpenseId={inventoryByExpenseId}
+              expenseTxnIdsWithLots={expenseTxnIdsWithLots}
             />
           )}
         </>
       )}
 
-      <CreateExpensePopup
+      <CreatePurchasePopup
         isOpen={popupOpen}
         onClose={() => setPopupOpen(false)}
-        onSuccess={handleExpenseSuccess}
+        onSuccess={handlePurchaseSuccess}
         spreadsheetId={spreadsheetId}
       />
     </div>

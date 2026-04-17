@@ -89,6 +89,9 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
        - Add WARNING: "Scenario not covered: <scenario name>"
        - Recommendation: "Add test or implementation for scenario: <description>"
 
+   **Regression / bugfix tests**:
+   - For fixes to bugs or regressions, check that behavior is locked by a **failing-then-passing** test (see `.cursor/skills/tdd-bugfix/SKILL.md`). If the fix has no targeted test, add a SUGGESTION to add one before archive.
+
 7. **Verify Coherence**
 
    **Design Adherence**:

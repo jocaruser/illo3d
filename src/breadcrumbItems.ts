@@ -6,7 +6,6 @@ const MAIN_ROUTES = [
   '/clients',
   '/jobs',
   '/transactions',
-  '/expenses',
   '/inventory',
 ] as const
 
@@ -21,7 +20,6 @@ const routeToNavKey: Record<MainRoute, string> = {
   '/clients': 'nav.clients',
   '/jobs': 'nav.jobs',
   '/transactions': 'nav.transactions',
-  '/expenses': 'nav.expenses',
   '/inventory': 'nav.inventory',
 }
 

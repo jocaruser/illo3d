@@ -5,7 +5,7 @@ import { useWorkbookStore } from '@/stores/workbookStore'
 import { getSheetsRepository } from '@/services/sheets/repository'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
-import { CreateExpensePopup } from '@/components/CreateExpensePopup'
+import { CreatePurchasePopup } from '@/components/CreatePurchasePopup'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { useJobStatusFlow } from '@/hooks/useJobStatusFlow'
 import { StatCard } from '@/components/dashboard/StatCard'
@@ -18,18 +18,15 @@ import {
   revenueThisMonth,
   countPiecesCompletedThisWeek,
 } from '@/utils/dashboardStats'
-import type { Expense, JobStatus, Transaction } from '@/types/money'
+import type { JobStatus, Transaction } from '@/types/money'
 import {
   applyKanbanBoardOrderAfterStatusCommit,
   applyKanbanDrop,
 } from '@/services/job/applyKanbanDrop'
+import { clearKanbanPendingAfterSelect } from '@/utils/clearKanbanPendingAfterSelect'
 
 function isActiveTransaction(txn: Transaction): boolean {
   return txn.archived !== 'true' && txn.deleted !== 'true'
-}
-
-function isActiveExpense(e: Expense): boolean {
-  return e.archived !== 'true' && e.deleted !== 'true'
 }
 
 type PendingKanbanPlacement = {
@@ -41,7 +38,7 @@ type PendingKanbanPlacement = {
 
 export function DashboardPage() {
   const { t } = useTranslation()
-  const [expensePopupOpen, setExpensePopupOpen] = useState(false)
+  const [purchasePopupOpen, setPurchasePopupOpen] = useState(false)
   const [jobPopupOpen, setJobPopupOpen] = useState(false)
   const activeShop = useShopStore((s) => s.activeShop)
   const spreadsheetId = activeShop?.spreadsheetId ?? null
@@ -78,7 +75,6 @@ export function DashboardPage() {
     jobs,
     clients,
     transactions: allTransactions,
-    expenses: allExpenses,
     inventory,
     pieces,
   } = useWorkbookEntities()
@@ -86,11 +82,6 @@ export function DashboardPage() {
   const transactions = useMemo(
     () => allTransactions.filter(isActiveTransaction),
     [allTransactions],
-  )
-
-  const expenses = useMemo(
-    () => allExpenses.filter(isActiveExpense),
-    [allExpenses],
   )
 
   const clientsById = useMemo(() => {
@@ -124,20 +115,17 @@ export function DashboardPage() {
     [transactions],
   )
 
-  const recentExpenseRows: RecentListItem[] = useMemo(
-    () =>
-      expenses.map((exp) => {
-        const notesTrim = (exp.notes ?? '').trim()
-        const label =
-          notesTrim !== '' ? notesTrim : t(`expenses.category.${exp.category}`)
-        return {
-          date: exp.date,
-          label,
-          amount: -Math.abs(exp.amount),
-        }
-      }),
-    [expenses, t],
-  )
+  const recentExpenseTxRows: RecentListItem[] = useMemo(() => {
+    const expenseTx = transactions
+      .filter((tx) => tx.type === 'expense')
+      .sort((a, b) => (b.date > a.date ? 1 : -1))
+      .slice(0, 5)
+    return expenseTx.map((tx) => ({
+      date: tx.date,
+      label: tx.concept || tx.category,
+      amount: tx.amount,
+    }))
+  }, [transactions])
 
   const handleRetry = () => {
     if (!spreadsheetId) return
@@ -169,10 +157,10 @@ export function DashboardPage() {
           <div className="mb-4 flex flex-wrap gap-3">
             <button
               type="button"
-              onClick={() => setExpensePopupOpen(true)}
+              onClick={() => setPurchasePopupOpen(true)}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
             >
-              {t('dashboard.addExpense')}
+              {t('purchase.recordButton')}
             </button>
             <button
               type="button"
@@ -229,7 +217,11 @@ export function DashboardPage() {
                       jobId: job.id,
                       insertBeforeId,
                     }
-                    void handleStatusSelect(job, next)
+                    const selectResult = await handleStatusSelect(job, next)
+                    clearKanbanPendingAfterSelect(
+                      selectResult,
+                      pendingKanbanPlacementRef,
+                    )
                   }
                 })()
               }}
@@ -245,18 +237,18 @@ export function DashboardPage() {
               viewAllTo="/transactions"
             />
             <RecentList
-              items={recentExpenseRows}
-              title={t('dashboard.recentExpenses')}
-              viewAllTo="/expenses"
+              items={recentExpenseTxRows}
+              title={t('dashboard.recentSpending')}
+              viewAllTo="/transactions"
             />
           </div>
         </>
       )}
 
-      <CreateExpensePopup
-        isOpen={expensePopupOpen}
-        onClose={() => setExpensePopupOpen(false)}
-        onSuccess={() => setExpensePopupOpen(false)}
+      <CreatePurchasePopup
+        isOpen={purchasePopupOpen}
+        onClose={() => setPurchasePopupOpen(false)}
+        onSuccess={() => setPurchasePopupOpen(false)}
         spreadsheetId={spreadsheetId}
       />
       <CreateJobPopup

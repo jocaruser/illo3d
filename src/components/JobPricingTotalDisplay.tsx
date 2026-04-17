@@ -20,9 +20,6 @@ export function JobPricingTotalDisplay({
   size = 'default',
 }: JobPricingTotalDisplayProps) {
   const s = jobPricingState(jobId, pieces)
-  if (s.kind === 'empty') {
-    return <span className="text-gray-500">—</span>
-  }
   if (s.kind === 'incomplete') {
     const sizeClass = size === 'compact' ? ' text-xs' : ' text-sm'
     return (

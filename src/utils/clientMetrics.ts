@@ -1,11 +1,5 @@
-import type {
-  Expense,
-  Inventory,
-  Job,
-  Piece,
-  PieceItem,
-  Transaction,
-} from '@/types/money'
+import type { Inventory, Job, Lot, Piece, PieceItem, Transaction } from '@/types/money'
+import { computeAvgUnitCost } from '@/utils/avgUnitCost'
 import { jobPricingState } from '@/utils/jobPiecePricing'
 
 export interface ClientDetailMetricsInput {
@@ -15,7 +9,7 @@ export interface ClientDetailMetricsInput {
   pieces: Piece[]
   pieceItems: PieceItem[]
   inventoryRows: Inventory[]
-  expenses: Expense[]
+  lots: Lot[]
 }
 
 export interface ClientDetailMetrics {
@@ -26,21 +20,10 @@ export interface ClientDetailMetrics {
   materialsEstimate: number
 }
 
-function unitCostForInventory(
-  inv: Inventory | undefined,
-  expById: Map<string, Expense>
-): number | null {
-  if (!inv) return null
-  if (!Number.isFinite(inv.qty_initial) || inv.qty_initial <= 0) return null
-  const expense = expById.get(inv.expense_id)
-  if (!expense || !Number.isFinite(expense.amount)) return null
-  return expense.amount / inv.qty_initial
-}
-
 export function computeClientDetailMetrics(
   input: ClientDetailMetricsInput
 ): ClientDetailMetrics {
-  const { clientId, jobs, transactions, pieces, pieceItems, inventoryRows, expenses } =
+  const { clientId, jobs, transactions, pieces, pieceItems, inventoryRows, lots } =
     input
 
   const clientJobs = jobs.filter((j) => j.client_id === clientId)
@@ -76,7 +59,6 @@ export function computeClientDetailMetrics(
 
   const jobIds = new Set(clientJobs.map((j) => j.id))
   const invById = new Map(inventoryRows.map((i) => [i.id, i]))
-  const expById = new Map(expenses.map((e) => [e.id, e]))
 
   let materialsEstimate = 0
   const relevantPieces = pieces.filter(
@@ -88,7 +70,8 @@ export function computeClientDetailMetrics(
   for (const line of pieceItems) {
     if (!pieceIds.has(line.piece_id)) continue
     const inv = invById.get(line.inventory_id)
-    const uc = unitCostForInventory(inv, expById)
+    if (!inv) continue
+    const uc = computeAvgUnitCost(lots.filter((l) => l.inventory_id === inv.id))
     if (uc == null) continue
     const qty =
       typeof line.quantity === 'number' ? line.quantity : Number(line.quantity)

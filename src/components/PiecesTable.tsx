@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Expense, Inventory, Job, Piece, PieceItem } from '@/types/money'
+import type { Inventory, Job, Lot, Piece, PieceItem } from '@/types/money'
 import { computePieceSuggestedPrice } from '@/utils/jobSuggestedPrice'
 import { materialCostForPieceItemLine } from '@/utils/pieceItemMaterialCost'
 import { formatCurrency } from '@/utils/money'
@@ -90,7 +90,7 @@ interface PiecesTableProps {
   jobs: Job[]
   pieceItems: PieceItem[]
   inventory: Inventory[]
-  expenses: Expense[]
+  lots: Lot[]
   spreadsheetId: string | null
   expandedPieceId: string | null
   onToggleExpand: (pieceId: string) => void
@@ -106,7 +106,7 @@ export function PiecesTable({
   jobs,
   pieceItems,
   inventory,
-  expenses,
+  lots,
   spreadsheetId,
   expandedPieceId,
   onToggleExpand,
@@ -339,7 +339,7 @@ export function PiecesTable({
                               piece.id,
                               pieceItems,
                               inventory,
-                              expenses,
+                              lots,
                             )
                             if (sug.kind !== 'ok') return null
                             return (
@@ -445,7 +445,7 @@ export function PiecesTable({
                                           const cost = materialCostForPieceItemLine(
                                             line,
                                             inventory,
-                                            expenses,
+                                            lots,
                                           )
                                           return cost == null
                                             ? '—'

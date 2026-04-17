@@ -75,12 +75,12 @@ test.describe('Global header search', () => {
     })
   })
 
-  test('expense id opens expenses list', async ({ page }) => {
+  test('transaction id opens transactions list', async ({ page }) => {
     const search = page.getByTestId('global-header-search')
-    await search.fill('E1')
+    await search.fill('T11')
     await search.press('Enter')
-    await expect(page).toHaveURL(/\/expenses/)
-    await expect(page.getByRole('heading', { name: 'Expenses' })).toBeVisible({
+    await expect(page).toHaveURL(/\/transactions/)
+    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
     })
   })

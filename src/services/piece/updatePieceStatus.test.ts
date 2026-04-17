@@ -15,11 +15,12 @@ const basePiece: Piece = {
 
 const inv1: Inventory = {
   id: 'INV1',
-  expense_id: 'E1',
   type: 'filament',
   name: 'PLA',
-  qty_initial: 1000,
   qty_current: 100,
+  warn_yellow: 0,
+  warn_orange: 0,
+  warn_red: 0,
   created_at: '2025-01-02T00:00:00.000Z',
 }
 
@@ -39,6 +40,7 @@ function seedPieceFixture(opts: {
         job_id: piece.job_id,
         name: piece.name,
         status: piece.status,
+        price: piece.price ?? '',
         created_at: piece.created_at,
       },
     ]),
@@ -55,11 +57,12 @@ function seedPieceFixture(opts: {
       'inventory',
       inventory.map((i) => ({
         id: i.id,
-        expense_id: i.expense_id,
         type: i.type,
         name: i.name,
-        qty_initial: i.qty_initial,
         qty_current: i.qty_current,
+        warn_yellow: i.warn_yellow,
+        warn_orange: i.warn_orange,
+        warn_red: i.warn_red,
         created_at: i.created_at,
       })),
     ),

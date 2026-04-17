@@ -1,13 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { computeClientDetailMetrics } from './clientMetrics'
-import type {
-  Expense,
-  Inventory,
-  Job,
-  Piece,
-  PieceItem,
-  Transaction,
-} from '@/types/money'
+import type { Inventory, Job, Lot, Piece, PieceItem, Transaction } from '@/types/money'
 
 function job(partial: Partial<Job> & Pick<Job, 'id' | 'client_id'>): Job {
   return {
@@ -51,7 +44,7 @@ describe('computeClientDetailMetrics', () => {
       pieces: [],
       pieceItems: [],
       inventoryRows: [],
-      expenses: [],
+      lots: [],
     })
     expect(m.paidLedger).toBe(50)
   })
@@ -79,7 +72,7 @@ describe('computeClientDetailMetrics', () => {
       pieces,
       pieceItems: [],
       inventoryRows: [],
-      expenses: [],
+      lots: [],
     })
     expect(m.outstandingJobs).toBe(10)
     expect(m.jobCount).toBe(3)
@@ -108,7 +101,7 @@ describe('computeClientDetailMetrics', () => {
       pieces,
       pieceItems: [],
       inventoryRows: [],
-      expenses: [],
+      lots: [],
     })
     expect(m.averageJobPrice).toBe(20)
   })
@@ -132,20 +125,23 @@ describe('computeClientDetailMetrics', () => {
     const inventoryRows: Inventory[] = [
       {
         id: 'INV1',
-        expense_id: 'E1',
         type: 'filament',
         name: 'PLA',
-        qty_initial: 1000,
         qty_current: 990,
+        warn_yellow: 0,
+        warn_orange: 0,
+        warn_red: 0,
         created_at: '2025-01-01',
       },
     ]
-    const expenses: Expense[] = [
+    const lots: Lot[] = [
       {
-        id: 'E1',
-        date: '2025-01-01',
-        category: 'filament',
+        id: 'L1',
+        inventory_id: 'INV1',
+        transaction_id: 'T1',
+        quantity: 1000,
         amount: 20,
+        created_at: '2025-01-01',
       },
     ]
     const m = computeClientDetailMetrics({
@@ -155,7 +151,7 @@ describe('computeClientDetailMetrics', () => {
       pieces,
       pieceItems,
       inventoryRows,
-      expenses,
+      lots,
     })
     expect(m.materialsEstimate).toBeCloseTo(10 * (20 / 1000), 6)
   })

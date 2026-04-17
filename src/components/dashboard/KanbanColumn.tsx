@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Job, JobStatus, Piece } from '@/types/money'
 import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
-import { jobPricingState } from '@/utils/jobPiecePricing'
 import {
   KANBAN_JOB_DRAG_MIME,
   beginKanbanJobDrag,
@@ -197,21 +196,14 @@ export function KanbanColumn({
                       <p className="mt-1 truncate text-xs text-gray-600">
                         {clientsById.get(job.client_id) ?? ''}
                       </p>
-                      {(() => {
-                        if (jobPricingState(job.id, pieces).kind === 'empty') {
-                          return null
-                        }
-                        return (
-                          <div className="mt-1">
-                            <JobPricingTotalDisplay
-                              jobId={job.id}
-                              pieces={pieces}
-                              t={t}
-                              size="compact"
-                            />
-                          </div>
-                        )
-                      })()}
+                      <div className="mt-1">
+                        <JobPricingTotalDisplay
+                          jobId={job.id}
+                          pieces={pieces}
+                          t={t}
+                          size="compact"
+                        />
+                      </div>
                     </div>
                   </div>
                   {idx === visibleJobs.length - 1 ? (

@@ -78,8 +78,8 @@ describe('updateJobStatus', () => {
           amount: '-1',
           category: 'x',
           concept: 'x',
-          ref_type: 'expense',
-          ref_id: 'E1',
+          ref_type: '',
+          ref_id: '',
           client_id: '',
           notes: '',
         },
@@ -209,5 +209,33 @@ describe('updateJobStatus', () => {
     await expect(
       updateJobStatus('spreadsheet-1', baseJob, 'delivered'),
     ).rejects.toThrow(/not found/)
+  })
+
+  it('merges new status into the current workbook row, not a stale job snapshot', async () => {
+    resetAndSeedWorkbook({
+      jobs: matrixWithRows('jobs', [
+        {
+          id: baseJob.id,
+          client_id: baseJob.client_id,
+          description: 'Fresh description',
+          status: 'draft',
+          price: '',
+          board_order: '',
+          created_at: baseJob.created_at,
+        },
+      ]),
+    })
+
+    const stale: Job = {
+      ...baseJob,
+      description: 'Stale from UI payload',
+      status: 'draft',
+    }
+
+    await updateJobStatus('spreadsheet-1', stale, 'in_progress')
+
+    const updated = matrixToJobs(useWorkbookStore.getState().tabs.jobs)[0]
+    expect(updated?.description).toBe('Fresh description')
+    expect(updated?.status).toBe('in_progress')
   })
 })

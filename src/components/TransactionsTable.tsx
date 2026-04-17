@@ -13,7 +13,8 @@ import { SortableColumnHeader } from '@/components/list-table/SortableColumnHead
 interface TransactionsTableProps {
   transactions: Transaction[]
   clients: Client[]
-  inventoryByExpenseId?: Map<string, string>
+  /** Expense transactions that have at least one lot link to inventory. */
+  expenseTxnIdsWithLots?: Set<string>
 }
 
 function getClientName(clients: Client[], clientId?: string): string {
@@ -47,7 +48,7 @@ function transactionComparable(
 
 function conceptCell(
   tx: Transaction,
-  inventoryByExpenseId: Map<string, string> | undefined
+  expenseTxnIdsWithLots: Set<string> | undefined
 ) {
   const text = tx.concept
   if (tx.ref_type === 'job' && tx.ref_id) {
@@ -61,11 +62,7 @@ function conceptCell(
       </Link>
     )
   }
-  if (
-    tx.ref_type === 'expense' &&
-    tx.ref_id &&
-    inventoryByExpenseId?.has(tx.ref_id)
-  ) {
+  if (tx.type === 'expense' && expenseTxnIdsWithLots?.has(tx.id)) {
     return (
       <Link
         to="/inventory"
@@ -82,7 +79,7 @@ function conceptCell(
 export function TransactionsTable({
   transactions,
   clients,
-  inventoryByExpenseId,
+  expenseTxnIdsWithLots,
 }: TransactionsTableProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
@@ -241,7 +238,7 @@ export function TransactionsTable({
                     {tx.category}
                   </td>
                   <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 lg:table-cell">
-                    {conceptCell(tx, inventoryByExpenseId)}
+                    {conceptCell(tx, expenseTxnIdsWithLots)}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 md:table-cell">
                     {tx.client_id ? (

@@ -18,8 +18,7 @@
   },
   "page": {
     "dashboard": "Panel",
-    "transactions": "Transacciones",
-    "expenses": "Gastos"
+    "transactions": "Transacciones"
   },
   "errors": {
     "routeTitle": "No se pudo mostrar esta página",
@@ -48,12 +47,11 @@
     "activeJobs": "Trabajos activos",
     "revenueThisMonth": "Ingresos del mes",
     "piecesThisWeek": "Piezas terminadas (7 días)",
-    "addExpense": "Añadir gasto",
     "addJob": "Añadir trabajo",
     "viewAll": "Ver todo",
     "recentEmpty": "Aún no hay entradas.",
     "recentTransactions": "Transacciones recientes",
-    "recentExpenses": "Gastos recientes",
+    "recentSpending": "Gastos recientes",
     "kanban": {
       "draft": "Borrador",
       "inProgress": "En curso",
@@ -77,7 +75,6 @@
     "jobs": "Trabajos",
     "pieces": "Piezas",
     "transactions": "Transacciones",
-    "expenses": "Gastos",
     "inventory": "Inventario",
     "toggleMenu": "Alternar menú"
   },
@@ -93,7 +90,6 @@
       "client_note": "Nota de cliente",
       "job_note": "Nota de trabajo",
       "transaction": "Transacción",
-      "expense": "Gasto",
       "inventory": "Inventario",
       "tag": "Etiqueta"
     }
@@ -183,46 +179,46 @@
     "tagsComboboxNoMatch": "Sin coincidencias — pulsa Añadir para crear",
     "tagsRemove": "Quitar etiqueta"
   },
-  "expenses": {
-    "title": "Añadir gasto",
+  "purchase": {
+    "title": "Registrar compra",
+    "recordButton": "Registrar compra",
     "date": "Fecha",
     "category": "Categoría",
     "amount": "Importe",
     "notes": "Notas",
-    "notesPlaceholder": "Notas opcionales",
-    "submit": "Crear gasto",
+    "notesPlaceholder": "Descripción o referencia",
+    "submit": "Guardar compra",
     "cancel": "Cancelar",
-    "validation.required": "Este campo es obligatorio",
-    "validation.amountPositive": "El importe debe ser mayor que cero",
-    "validation.inventoryNameRequired": "El nombre del inventario es obligatorio",
-    "validation.quantityPositive": "La cantidad debe ser mayor que cero",
     "addToInventory": "Añadir al inventario",
-    "inventoryTypeLabel": "Tipo de inventario",
+    "totalFromLines": "Total (líneas)",
+    "lineExisting": "Artículo existente",
+    "lineNew": "Artículo nuevo",
+    "inventoryItem": "Artículo de inventario",
+    "inventoryTypeLabel": "Tipo",
     "inventoryType": {
       "filament": "Filamento",
       "consumable": "Consumible",
       "equipment": "Equipo"
     },
-    "inventoryName": "Nombre en inventario",
-    "inventoryNamePlaceholder": "p. ej. PLA blanco 1kg",
+    "inventoryName": "Nombre",
     "quantity": "Cantidad",
     "quantityHintGrams": "(g)",
     "quantityHintUnits": "(unidades)",
+    "lineAmount": "Coste de línea",
+    "addLine": "+ Añadir otra línea",
     "category.filament": "Filamento",
     "category.consumable": "Consumible",
+    "category.equipment": "Equipo",
     "category.electric": "Electricidad",
-    "category.investment": "Inversión",
     "category.maintenance": "Mantenimiento",
     "category.other": "Otro",
-    "empty": "Aún no hay gastos.",
-    "addExpense": "Añadir gasto",
-    "editTitle": "Editar gasto",
-    "edit": "Editar",
-    "delete": "Eliminar",
-    "save": "Guardar",
-    "actions": "Acciones",
-    "deleteConfirmTitle": "Eliminar gasto",
-    "deleteConfirmMessage": "¿Eliminar el gasto {{id}} y su transacción vinculada? No se puede deshacer."
+    "validation": {
+      "required": "Este campo es obligatorio",
+      "amountPositive": "El importe debe ser mayor que cero",
+      "inventoryNameRequired": "El nombre del inventario es obligatorio",
+      "quantityPositive": "La cantidad debe ser mayor que cero",
+      "lineRequired": "Añade al menos una línea"
+    }
   },
   "inventory": {
     "title": "Inventario",
@@ -230,8 +226,9 @@
     "typeLabel": "Tipo",
     "qtyInitial": "Cant. (inicial)",
     "qtyCurrent": "Cant. (actual)",
+    "avgUnitCost": "Coste unitario medio",
     "createdAt": "Creado",
-    "empty": "Aún no hay artículos en inventario. Los añadidos desde gastos aparecerán aquí.",
+    "empty": "Aún no hay artículos. Registra una compra con «Añadir al inventario».",
     "linkLabel": "Inventario",
     "expenseColumn": "Inventario",
     "type": {
@@ -361,7 +358,7 @@
     "colStatus": "Estado",
     "colTotal": "Total",
     "totalIncomplete": "Precios incompletos",
-    "paidPricingIncomplete": "Indica un precio en cada pieza de este trabajo antes de marcarlo como pagado.",
+    "paidPricingIncomplete": "Indica un precio en cada pieza de este trabajo antes de moverlo a Pagado o Cancelado.",
     "colPrice": "Precio",
     "colCreated": "Creado",
     "statusFieldAria": "Estado del trabajo {{id}}",

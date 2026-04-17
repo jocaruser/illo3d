@@ -3,7 +3,7 @@ import { useWorkbookStore } from '@/stores/workbookStore'
 import {
   matrixToClients,
   matrixToCrmNotes,
-  matrixToExpenses,
+  matrixToLots,
   matrixToInventory,
   matrixToJobs,
   matrixToPieceItems,
@@ -24,7 +24,7 @@ export function useWorkbookEntities() {
       pieceItems: matrixToPieceItems(tabs.piece_items),
       crmNotes: matrixToCrmNotes(tabs.crm_notes),
       transactions: matrixToTransactions(tabs.transactions),
-      expenses: matrixToExpenses(tabs.expenses),
+      lots: matrixToLots(tabs.lots),
       inventory: matrixToInventory(tabs.inventory),
       tags: matrixToTags(tabs.tags),
       tagLinks: matrixToTagLinks(tabs.tag_links),
