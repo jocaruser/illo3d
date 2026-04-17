@@ -1,10 +1,8 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useShopStore } from '@/stores/shopStore'
-import { useWorkbookStore } from '@/stores/workbookStore'
-import { getSheetsRepository } from '@/services/sheets/repository'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
+import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { updateClient } from '@/services/client/updateClient'
 import { deleteClient } from '@/services/client/deleteClient'
 import type { UpdateClientPayload } from '@/services/client/updateClient'
@@ -25,11 +23,12 @@ export function ClientDetailPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { clientId = '' } = useParams<{ clientId: string }>()
-  const activeShop = useShopStore((s) => s.activeShop)
-  const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const workbookStatus = useWorkbookStore((s) => s.status)
-  const workbookError = useWorkbookStore((s) => s.error)
-  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
+  const {
+    spreadsheetId,
+    workbookStatus,
+    workbookError,
+    onRetry,
+  } = useWorkbookConnection()
 
   const {
     clients,
@@ -95,11 +94,6 @@ export function ClientDetailPage() {
   const [archiveTarget, setArchiveTarget] = useState<Client | null>(null)
   const [archiveError, setArchiveError] = useState<string | null>(null)
   const [jobPopupOpen, setJobPopupOpen] = useState(false)
-
-  const handleRetry = () => {
-    if (!spreadsheetId) return
-    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
-  }
 
   const handleMutationSuccess = async () => {}
 
@@ -187,7 +181,7 @@ export function ClientDetailPage() {
       <ConnectionStatus
         status={workbookStatus}
         errorMessage={workbookError}
-        onRetry={handleRetry}
+        onRetry={onRetry}
       />
 
       {workbookStatus === 'ready' && clientId && !client && (

@@ -1,10 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useShopStore } from '@/stores/shopStore'
-import { useWorkbookStore } from '@/stores/workbookStore'
-import { getSheetsRepository } from '@/services/sheets/repository'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
+import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
@@ -83,11 +81,12 @@ export function JobDetailPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { jobId = '' } = useParams<{ jobId: string }>()
-  const activeShop = useShopStore((s) => s.activeShop)
-  const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const workbookStatus = useWorkbookStore((s) => s.status)
-  const workbookError = useWorkbookStore((s) => s.error)
-  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
+  const {
+    spreadsheetId,
+    workbookStatus,
+    workbookError,
+    onRetry,
+  } = useWorkbookConnection()
 
   const {
     jobs,
@@ -160,11 +159,6 @@ export function JobDetailPage() {
     location.hash,
     pieces.length,
   ])
-
-  const handleRetry = () => {
-    if (!spreadsheetId) return
-    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
-  }
 
   const handleMutationSuccess = async () => {}
 
@@ -304,7 +298,7 @@ export function JobDetailPage() {
       <ConnectionStatus
         status={workbookStatus}
         errorMessage={workbookError}
-        onRetry={handleRetry}
+        onRetry={onRetry}
       />
 
       {workbookStatus === 'ready' && jobId && !job && (
