@@ -1,8 +1,6 @@
 import { useMemo } from 'react'
-import { useShopStore } from '@/stores/shopStore'
-import { useWorkbookStore } from '@/stores/workbookStore'
-import { getSheetsRepository } from '@/services/sheets/repository'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
+import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { InventoryTable } from '@/components/InventoryTable'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
@@ -15,11 +13,12 @@ function isActiveInventory(row: Inventory): boolean {
 
 export function InventoryPage() {
   const { t } = useTranslation()
-  const activeShop = useShopStore((s) => s.activeShop)
-  const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const workbookStatus = useWorkbookStore((s) => s.status)
-  const workbookError = useWorkbookStore((s) => s.error)
-  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
+  const {
+    spreadsheetId,
+    workbookStatus,
+    workbookError,
+    onRetry,
+  } = useWorkbookConnection()
 
   const { inventory: allInventory, lots: allLots } = useWorkbookEntities()
   const items = useMemo(
@@ -32,11 +31,6 @@ export function InventoryPage() {
     [allLots],
   )
 
-  const handleRetry = () => {
-    if (!spreadsheetId) return
-    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
-  }
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h2 className="mb-6 text-2xl font-bold text-gray-800">
@@ -47,7 +41,7 @@ export function InventoryPage() {
         <ConnectionStatus
           status={workbookStatus}
           errorMessage={workbookError}
-          onRetry={handleRetry}
+          onRetry={onRetry}
         />
       ) : null}
 

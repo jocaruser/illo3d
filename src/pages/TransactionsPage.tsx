@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useShopStore } from '@/stores/shopStore'
-import { useWorkbookStore } from '@/stores/workbookStore'
-import { getSheetsRepository } from '@/services/sheets/repository'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
+import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { TransactionsTable } from '@/components/TransactionsTable'
 import { BalanceDisplay } from '@/components/BalanceDisplay'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
@@ -21,11 +19,12 @@ export function TransactionsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [popupOpen, setPopupOpen] = useState(false)
-  const activeShop = useShopStore((s) => s.activeShop)
-  const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const workbookStatus = useWorkbookStore((s) => s.status)
-  const workbookError = useWorkbookStore((s) => s.error)
-  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
+  const {
+    spreadsheetId,
+    workbookStatus,
+    workbookError,
+    onRetry,
+  } = useWorkbookConnection()
 
   const { transactions: allTransactions, clients, lots } = useWorkbookEntities()
   const transactions = useMemo(
@@ -42,11 +41,6 @@ export function TransactionsPage() {
     return s
   }, [lots])
 
-  const handleRetry = () => {
-    if (!spreadsheetId) return
-    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
-  }
-
   const balance = calculateBalance(transactions.map((tx) => tx.amount))
 
   const handlePurchaseSuccess = () => {
@@ -61,7 +55,7 @@ export function TransactionsPage() {
         <ConnectionStatus
           status={workbookStatus}
           errorMessage={workbookError}
-          onRetry={handleRetry}
+          onRetry={onRetry}
         />
       ) : null}
 

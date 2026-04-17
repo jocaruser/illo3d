@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useShopStore } from '@/stores/shopStore'
-import { useWorkbookStore } from '@/stores/workbookStore'
-import { getSheetsRepository } from '@/services/sheets/repository'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
+import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
@@ -22,11 +20,12 @@ function isActiveJob(j: Job): boolean {
 
 export function JobsPage() {
   const { t } = useTranslation()
-  const activeShop = useShopStore((s) => s.activeShop)
-  const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const workbookStatus = useWorkbookStore((s) => s.status)
-  const workbookError = useWorkbookStore((s) => s.error)
-  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
+  const {
+    spreadsheetId,
+    workbookStatus,
+    workbookError,
+    onRetry,
+  } = useWorkbookConnection()
 
   const { jobs: allJobs, clients, tags, tagLinks, pieces } = useWorkbookEntities()
   const jobs = useMemo(
@@ -67,11 +66,6 @@ export function JobsPage() {
     statusDialogs,
   } = useJobStatusFlow(spreadsheetId)
 
-  const handleRetry = () => {
-    if (!spreadsheetId) return
-    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
-  }
-
   const jobPopupOpen = popupOpen || editingJob !== null
 
   const handleMutationSuccess = async () => {}
@@ -107,7 +101,7 @@ export function JobsPage() {
       <ConnectionStatus
         status={workbookStatus}
         errorMessage={workbookError}
-        onRetry={handleRetry}
+        onRetry={onRetry}
       />
 
       {statusError && (

@@ -1,9 +1,7 @@
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useShopStore } from '@/stores/shopStore'
-import { useWorkbookStore } from '@/stores/workbookStore'
-import { getSheetsRepository } from '@/services/sheets/repository'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
+import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreatePurchasePopup } from '@/components/CreatePurchasePopup'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
@@ -40,11 +38,12 @@ export function DashboardPage() {
   const { t } = useTranslation()
   const [purchasePopupOpen, setPurchasePopupOpen] = useState(false)
   const [jobPopupOpen, setJobPopupOpen] = useState(false)
-  const activeShop = useShopStore((s) => s.activeShop)
-  const spreadsheetId = activeShop?.spreadsheetId ?? null
-  const workbookStatus = useWorkbookStore((s) => s.status)
-  const workbookError = useWorkbookStore((s) => s.error)
-  const hydrateWorkbook = useWorkbookStore((s) => s.hydrate)
+  const {
+    spreadsheetId,
+    workbookStatus,
+    workbookError,
+    onRetry,
+  } = useWorkbookConnection()
   const pendingKanbanPlacementRef = useRef<PendingKanbanPlacement | null>(null)
   const {
     handleStatusSelect,
@@ -127,11 +126,6 @@ export function DashboardPage() {
     }))
   }, [transactions])
 
-  const handleRetry = () => {
-    if (!spreadsheetId) return
-    void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
-  }
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h2 className="mb-6 text-2xl font-bold text-gray-800">
@@ -142,7 +136,7 @@ export function DashboardPage() {
         <ConnectionStatus
           status={workbookStatus}
           errorMessage={workbookError}
-          onRetry={handleRetry}
+          onRetry={onRetry}
         />
       ) : null}
 
