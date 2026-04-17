@@ -65,12 +65,12 @@ test.describe('Global header search', () => {
     })
   })
 
-  test('inventory id opens inventory list', async ({ page }) => {
+  test('inventory id opens inventory detail', async ({ page }) => {
     const search = page.getByTestId('global-header-search')
     await search.fill('INV1')
     await search.press('Enter')
-    await expect(page).toHaveURL(/\/inventory/)
-    await expect(page.getByRole('heading', { name: 'Inventory' })).toBeVisible({
+    await expect(page).toHaveURL(/\/inventory\/INV1/)
+    await expect(page.getByRole('heading', { name: 'PLA White' })).toBeVisible({
       timeout: 10000,
     })
   })

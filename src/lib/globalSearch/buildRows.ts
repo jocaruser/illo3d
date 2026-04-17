@@ -211,7 +211,7 @@ export function buildGlobalSearchRows(
       hit: {
         kind: 'inventory',
         id: item.id,
-        navigateTo: '/inventory',
+        navigateTo: `/inventory/${item.id}`,
         primaryLine: item.name,
         secondaryLine: t(`inventory.type.${item.type}`),
       },

@@ -188,6 +188,28 @@ describe('Layout', () => {
     expect(jobsLinks[0]).toHaveAttribute('aria-current', 'page')
   })
 
+  it('marks Inventory nav active on inventory detail path', () => {
+    render(
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={['/inventory/INV1']}>
+          <Routes>
+            <Route
+              path="/inventory/:inventoryId"
+              element={
+                <Layout>
+                  <div>content</div>
+                </Layout>
+              }
+            />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    )
+
+    const invLinks = screen.getAllByRole('link', { name: 'nav.inventory' })
+    expect(invLinks[0]).toHaveAttribute('aria-current', 'page')
+  })
+
   it('shows global header search when authenticated with active shop', async () => {
     render(
       <QueryClientProvider client={qc}>

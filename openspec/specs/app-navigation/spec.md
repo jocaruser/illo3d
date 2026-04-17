@@ -8,7 +8,7 @@ Define how the authenticated app shell shows **current section** in the top navi
 
 ### Requirement: Top navigation shows active section
 
-The system SHALL render primary section links (Dashboard, Clients, Jobs, Transactions, Inventory) in the app header. When the user is authenticated and has an **active shop**, the system SHALL also render the **global entity search** control in the header (alongside—not instead of—section links). The link whose route matches the current location SHALL use visually distinct styling from inactive links so users can see which page they are on. The logo or home link behavior SHALL NOT cause every route to appear active. Focusing or typing in the global search SHALL NOT by itself change which section link is active; active styling SHALL depend only on the current route.
+The system SHALL render primary section links (Dashboard, Clients, Jobs, Transactions, Inventory) in the app header. When the user is authenticated and has an **active shop**, the system SHALL also render the **global entity search** control in the header (alongside—not instead of—section links). The link whose route matches the current location SHALL use visually distinct styling from inactive links so users can see which page they are on. The logo or home link behavior SHALL NOT cause every route to appear active. Focusing or typing in the global search SHALL NOT by itself change which section link is active; active styling SHALL depend only on the current route. The **Inventory** link SHALL use active styling when the path is **`/inventory`** or matches **`/inventory/:inventoryId`**.
 
 #### Scenario: Dashboard nav is active on dashboard page
 
@@ -43,6 +43,11 @@ The system SHALL render primary section links (Dashboard, Clients, Jobs, Transac
 - **WHEN** authenticated user is on `/inventory`
 - **THEN** the Inventory header link uses the active styling
 
+#### Scenario: Inventory nav is active on inventory detail
+
+- **WHEN** authenticated user is on `/inventory/INV1`
+- **THEN** the Inventory header link uses the active styling
+
 #### Scenario: Global search visible with active shop
 
 - **WHEN** authenticated user has an active shop
@@ -73,7 +78,7 @@ The system SHALL provide a reusable `Breadcrumbs` component that accepts an orde
 
 ### Requirement: Breadcrumbs on main layout pages
 
-The system SHALL show the `Breadcrumbs` component on every page that uses the main authenticated layout with the primary section navigation: Dashboard, Clients, Jobs, Transactions, and Inventory. Breadcrumb labels SHALL follow the same language as the rest of the UI (i18n). The system SHALL NOT require breadcrumbs on the login page.
+The system SHALL show the `Breadcrumbs` component on every page that uses the main authenticated layout with the primary section navigation: Dashboard, Clients, Jobs, Transactions, and Inventory **including inventory detail** (`/inventory/:inventoryId`). Breadcrumb labels SHALL follow the same language as the rest of the UI (i18n). The system SHALL NOT require breadcrumbs on the login page.
 
 #### Scenario: Dashboard page shows breadcrumbs
 
@@ -100,10 +105,30 @@ The system SHALL show the `Breadcrumbs` component on every page that uses the ma
 - **WHEN** authenticated user views the Inventory page
 - **THEN** breadcrumbs are visible above the main page content
 
+#### Scenario: Inventory detail shows breadcrumbs
+
+- **WHEN** authenticated user views `/inventory/INV1`
+- **THEN** breadcrumbs are visible above the main page content
+- **AND** the trail is Home → Inventory → item name or fallback id
+
 #### Scenario: Login page has no breadcrumbs
 
 - **WHEN** user views the login page
 - **THEN** breadcrumbs are not shown
+
+### Requirement: Breadcrumbs for inventory detail
+
+When the path matches `/inventory/:inventoryId`, breadcrumbs SHALL be **Home** → **Inventory** → **item name**, using the inventory **name** from loaded data or falling back to the id.
+
+#### Scenario: Last segment uses resolved name
+
+- **WHEN** user views `/inventory/INV1` and item INV1 has name "PLA Black"
+- **THEN** the last breadcrumb label is "PLA Black"
+
+#### Scenario: Last segment falls back to id
+
+- **WHEN** user views `/inventory/INV1` and the name is not yet available
+- **THEN** the last breadcrumb label is `INV1`
 
 ### Requirement: Refresh control in top navigation
 

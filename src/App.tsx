@@ -9,7 +9,11 @@ import {
   useLocation,
 } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { matrixToClients, matrixToJobs } from '@/lib/workbook/workbookEntities'
+import {
+  matrixToClients,
+  matrixToInventory,
+  matrixToJobs,
+} from '@/lib/workbook/workbookEntities'
 import { AuthStatus } from './components/AuthStatus'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { GlobalHeaderSearch } from './components/GlobalHeaderSearch'
@@ -20,6 +24,7 @@ import { getBreadcrumbItems } from './breadcrumbItems'
 import { LoginPage } from './pages/LoginPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { InventoryPage } from './pages/InventoryPage'
+import { InventoryDetailPage } from './pages/InventoryDetailPage'
 import { ClientsPage } from './pages/ClientsPage'
 import { JobsPage } from './pages/JobsPage'
 import { JobDetailPage } from './pages/JobDetailPage'
@@ -51,11 +56,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
     return clients.find((c) => c.id === clientId)?.name
   }
 
+  const resolveInventoryName = (inventoryId: string): string | undefined => {
+    const rows = matrixToInventory(useWorkbookStore.getState().tabs.inventory)
+    return rows.find((i) => i.id === inventoryId)?.name
+  }
+
   const breadcrumbItems = getBreadcrumbItems(
     location.pathname,
     t,
     resolveJobDescription,
     resolveClientName,
+    resolveInventoryName,
   )
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const activeShop = useShopStore((s) => s.activeShop)
@@ -164,7 +175,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <NavLink to="/transactions" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
         {t('nav.transactions')}
       </NavLink>
-      <NavLink to="/inventory" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
+      <NavLink to="/inventory" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
         {t('nav.inventory')}
       </NavLink>
     </>
@@ -416,6 +427,16 @@ export default function App() {
             <Layout>
               <ProtectedRoute>
                 <InventoryPage />
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/inventory/:inventoryId"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <InventoryDetailPage />
               </ProtectedRoute>
             </Layout>
           }

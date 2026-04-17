@@ -237,6 +237,27 @@
       "equipment": "Equipo"
     }
   },
+  "inventoryDetail": {
+    "backToList": "Volver al inventario",
+    "notFound": "No hay ningún artículo de inventario con este id.",
+    "sectionsEmpty": "Aún no hay lotes de compra ni consumo registrados para este material.",
+    "lotsTitle": "Lotes de compra",
+    "consumptionTitle": "Consumo",
+    "transaction": "Transacción",
+    "piece": "Pieza",
+    "job": "Trabajo",
+    "quantity": "Cant.",
+    "lotDate": "Fecha",
+    "lotQuantity": "Cantidad",
+    "lotAmount": "Importe",
+    "saveThresholds": "Guardar umbrales",
+    "saving": "Guardando…",
+    "saveError": "No se pudieron guardar los umbrales.",
+    "thresholdsHeading": "Umbrales de stock bajo",
+    "thresholdYellow": "Atención (amarillo)",
+    "thresholdOrange": "Bajo (naranja)",
+    "thresholdRed": "Crítico (rojo)"
+  },
   "transactions": {
     "date": "Fecha",
     "type": "Tipo",
