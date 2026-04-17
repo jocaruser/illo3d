@@ -159,7 +159,21 @@
     "tagsComboboxAdd": "Añadir",
     "tagsComboboxListAria": "Etiquetas existentes",
     "tagsComboboxNoMatch": "Sin coincidencias — pulsa Añadir para crear",
-    "tagsRemove": "Quitar etiqueta"
+    "tagsRemove": "Quitar etiqueta",
+    "activity": {
+      "title": "Actividad",
+      "empty": "Sin actividad aún.",
+      "jobLink": "Trabajo: {{description}}",
+      "statusLine": "Estado: {{status}}",
+      "incomeConceptFallback": "Ingreso",
+      "kind": {
+        "client_note": "Nota",
+        "job_note": "Nota del trabajo",
+        "job_created": "Trabajo creado",
+        "income": "Ingreso",
+        "tag": "Etiqueta"
+      }
+    }
   },
   "jobDetail": {
     "notesTitle": "Notas",

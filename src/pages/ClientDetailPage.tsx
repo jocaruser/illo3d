@@ -18,6 +18,8 @@ import { ClientJobsDiscoveryTable } from '@/components/ClientJobsDiscoveryTable'
 import type { Client, ClientNote } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
 import { computeClientDetailMetrics } from '@/utils/clientMetrics'
+import { buildClientActivityTimeline } from '@/utils/buildClientActivityTimeline'
+import { ClientActivityTimeline } from '@/components/ClientActivityTimeline'
 
 export function ClientDetailPage() {
   const { t } = useTranslation()
@@ -88,6 +90,19 @@ export function ClientDetailPage() {
       inventory,
       lots,
     ]
+  )
+
+  const activityEntries = useMemo(
+    () =>
+      buildClientActivityTimeline({
+        clientId,
+        crmNotes,
+        jobs,
+        transactions,
+        tags,
+        tagLinks,
+      }),
+    [clientId, crmNotes, jobs, transactions, tags, tagLinks]
   )
 
   const [editingClient, setEditingClient] = useState<Client | null>(null)
@@ -262,6 +277,13 @@ export function ClientDetailPage() {
               tags={tags}
               tagLinks={tagLinks}
               onChanged={handleMutationSuccess}
+            />
+
+            <ClientActivityTimeline
+              entries={activityEntries}
+              clients={clients}
+              jobs={jobs}
+              pieces={pieces}
             />
 
             <ClientNotesSection
