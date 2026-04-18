@@ -98,12 +98,33 @@ The system SHALL read a Google API key from `VITE_GOOGLE_API_KEY` for use with t
 
 ### Requirement: Login/logout status is visible
 
-The system SHALL display auth status in the main layout. When signed in: show user identity (e.g. name or email) and a sign-out action. When signed out: the header SHALL NOT display standalone sign-in controls — the wizard welcome screen is the entry point for signing in or choosing local files.
+The system SHALL display auth status in the main layout. When signed in: show user identity (e.g. name or email) and a sign-out action. When signed in with backend `google-drive` and an active shop with a `folderId`, the displayed user identity in the signed-in message SHALL be a hyperlink that opens that shop’s Google Drive folder in a new browsing context (e.g. `target="_blank"` with `rel="noopener noreferrer"`). When the backend is not `google-drive` or there is no active shop, the identity SHALL be plain text as before. When signed out: the header SHALL NOT display standalone sign-in controls — the wizard welcome screen is the entry point for signing in or choosing local files.
 
 #### Scenario: Signed-in status display
 
 - **WHEN** user is authenticated
 - **THEN** UI shows signed-in state (e.g. "Signed in as <name>" or email) and a sign-out control
+
+#### Scenario: Google Drive mode links identity to shop folder
+
+- **WHEN** user is authenticated
+- **AND** the active backend is `google-drive`
+- **AND** an active shop exists with a `folderId`
+- **THEN** the user identity rendered inside the signed-in message is an anchor whose `href` is the Google Drive folder URL for that `folderId`
+- **AND** activating the link opens the folder in a new tab without unloading the illo3d app in the current tab
+
+#### Scenario: Local CSV mode keeps plain identity text
+
+- **WHEN** user is authenticated
+- **AND** the active backend is `local-csv`
+- **THEN** the user identity in the signed-in message is not a Google Drive folder link
+
+#### Scenario: Google Drive without active shop keeps plain identity text
+
+- **WHEN** user is authenticated
+- **AND** the active backend is `google-drive`
+- **AND** there is no active shop
+- **THEN** the user identity in the signed-in message is not a Google Drive folder link
 
 #### Scenario: Signed-out status display
 

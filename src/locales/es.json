@@ -2,6 +2,8 @@
   "auth": {
     "signIn": "Iniciar sesión con Google",
     "signedInAs": "Conectado como {{name}}",
+    "signedInAsLead": "Conectado como ",
+    "signedInNameOpensDriveFolder": "Abrir la carpeta de la tienda en Google Drive",
     "signOut": "Cerrar sesión"
   },
   "common": {
