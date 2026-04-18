@@ -3,6 +3,7 @@ import { beforeEach } from 'vitest'
 import { clearTestPersistStorage } from '@/stores/persistStorage'
 import { useAuthStore } from '@/stores/authStore'
 import { useShopStore } from '@/stores/shopStore'
+import { useBackendStore } from '@/stores/backendStore'
 
 beforeEach(() => {
   clearTestPersistStorage()
@@ -12,4 +13,5 @@ beforeEach(() => {
     credentials: null,
     isAuthenticated: false,
   })
+  useBackendStore.getState().clearBackend()
 })

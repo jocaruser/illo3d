@@ -1,13 +1,13 @@
 import { test as setup } from '@playwright/test'
 import fs from 'node:fs'
 import path from 'node:path'
-import { copyGoldenFixtureToE2eRoot, devLoginAndOpenCsvShop } from './fixtures'
+import { copyGoldenFixtureToE2eRoot, mockAndOpenLocalShop } from './fixtures'
 
 const authFile = path.join(process.cwd(), 'tests/e2e/.auth/storage-state.json')
 
 setup('authenticate', async ({ page }) => {
   copyGoldenFixtureToE2eRoot('happy-path')
-  await devLoginAndOpenCsvShop(page)
+  await mockAndOpenLocalShop(page, 'happy-path')
   await page.waitForFunction(
     () => {
       const raw = globalThis.localStorage?.getItem('shop-storage')

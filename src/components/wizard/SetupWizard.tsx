@@ -1,119 +1,246 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
+import { useGoogleLogin } from '@react-oauth/google'
 import { useTranslation } from 'react-i18next'
-import { ChooseActionStep } from './ChooseActionStep'
+import { WelcomeStep } from './WelcomeStep'
+import { CreateConfirmModal } from './CreateConfirmModal'
+import { GoogleDriveStep } from './GoogleDriveStep'
 import { useCreateShop } from '@/hooks/useCreateShop'
 import { useOpenExistingShop } from '@/hooks/useOpenExistingShop'
-import { CreateShopStep } from './CreateShopStep'
-import { SuccessStep } from './SuccessStep'
-import { OpenExistingStep } from './OpenExistingStep'
+import { useLocalFolderDetection } from '@/hooks/useLocalFolderDetection'
+import { useAuthStore, type User } from '@/stores/authStore'
 import { useBackendStore } from '@/stores/backendStore'
-import type { Backend } from '@/stores/backendStore'
 
-export type WizardStep =
-  | 'choose'
-  | 'create'
-  | 'open-existing'
-  | 'success'
+const OAUTH_SCOPES = 'https://www.googleapis.com/auth/drive.file'
+
+interface GoogleUserInfo {
+  email: string
+  name: string
+  picture?: string
+}
+
+type WizardScreen = 'welcome' | 'local-confirm' | 'google-drive'
 
 interface SetupWizardProps {
   onCancel: () => void
-  onCreateComplete: (folderName: string) => void
-  onOpenComplete: () => void
 }
 
-export function SetupWizard({
-  onCancel,
-  onCreateComplete,
-  onOpenComplete,
-}: SetupWizardProps) {
+function mapValidationError(
+  code: string,
+  t: (key: string) => string
+): string {
+  if (code === 'not_shop') return t('wizard.errorNotShop')
+  if (code === 'version') return t('wizard.errorVersion')
+  if (code === 'permissions') return t('wizard.errorPermissions')
+  return t('wizard.errorGeneric')
+}
+
+export function SetupWizard({ onCancel }: SetupWizardProps) {
   const { t } = useTranslation()
-  const backendFromStore = useBackendStore((s) => s.backend)
+  const login = useAuthStore((s) => s.login)
+  const loginAsLocalUser = useAuthStore((s) => s.loginAsLocalUser)
+  const logout = useAuthStore((s) => s.logout)
+  const googleUser = useAuthStore((s) => s.user)
+  const { createShop, createShopInLocalFolder } = useCreateShop()
+  const { selectFolder, validateAndSetShop } = useOpenExistingShop()
+  const { pickFolder } = useLocalFolderDetection()
   const setBackend = useBackendStore((s) => s.setBackend)
-  const { createShop } = useCreateShop()
-  const { selectFolder, validateAndSetShop, selectLocalFolder } = useOpenExistingShop()
-  const [step, setStep] = useState<WizardStep>('choose')
-  const [selectedBackend, setSelectedBackend] = useState<Backend | null>(null)
-  const [createdFolderName, setCreatedFolderName] = useState('')
+  const setLocalDirectoryHandle = useBackendStore((s) => s.setLocalDirectoryHandle)
+  const clearBackend = useBackendStore((s) => s.clearBackend)
 
-  const handleSelectBackend = (backend: Backend) => {
-    setSelectedBackend(backend)
-    setBackend(backend)
-  }
+  const [screen, setScreen] = useState<WizardScreen>('welcome')
+  const [pendingLocalHandle, setPendingLocalHandle] =
+    useState<FileSystemDirectoryHandle | null>(null)
+  const [welcomeError, setWelcomeError] = useState<string | null>(null)
+  const [googleDriveError, setGoogleDriveError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
 
-  const effectiveBackend = selectedBackend ?? backendFromStore
+  const resetToWelcome = useCallback(() => {
+    setScreen('welcome')
+    setPendingLocalHandle(null)
+    setWelcomeError(null)
+    setGoogleDriveError(null)
+    setBusy(false)
+  }, [])
 
-  const handleChooseCreate = () => {
-    if (effectiveBackend) {
-      setBackend(effectiveBackend)
-      setStep('create')
+  const handleGoogleDriveOpen = useCallback(async () => {
+    setGoogleDriveError(null)
+    setBusy(true)
+    try {
+      const picked = await selectFolder()
+      if (!picked) {
+        setBusy(false)
+        return
+      }
+      const validation = await validateAndSetShop(picked.id)
+      if (!validation.ok) {
+        setGoogleDriveError(mapValidationError(validation.error, t))
+      }
+    } catch (err) {
+      setGoogleDriveError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
+    } finally {
+      setBusy(false)
     }
-  }
+  }, [selectFolder, validateAndSetShop, t])
 
-  const handleChooseOpen = () => {
-    if (effectiveBackend) {
-      setBackend(effectiveBackend)
-      setStep('open-existing')
+  const handleGoogleDriveCreate = useCallback(async () => {
+    setGoogleDriveError(null)
+    setBusy(true)
+    try {
+      await createShop('illo3d')
+    } catch (err) {
+      setGoogleDriveError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
+    } finally {
+      setBusy(false)
     }
-  }
+  }, [createShop, t])
 
-  const handleCreateSuccess = (folderName: string) => {
-    setCreatedFolderName(folderName)
-    setStep('success')
-  }
+  const handleGoogleDrivePasteId = useCallback(
+    async (folderId: string) => {
+      setGoogleDriveError(null)
+      setBusy(true)
+      try {
+        const validation = await validateAndSetShop(folderId)
+        if (!validation.ok) {
+          setGoogleDriveError(mapValidationError(validation.error, t))
+        }
+      } catch (err) {
+        setGoogleDriveError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
+      } finally {
+        setBusy(false)
+      }
+    },
+    [validateAndSetShop, t]
+  )
 
-  const handleSuccessDismiss = () => {
-    setStep('choose')
-    setSelectedBackend(null)
-    onCreateComplete(createdFolderName)
-  }
+  const googleLogin = useGoogleLogin({
+    scope: OAUTH_SCOPES,
+    onSuccess: async (tokenResponse) => {
+      setWelcomeError(null)
+      setBusy(true)
+      try {
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        })
+        const userInfo: GoogleUserInfo = await userInfoResponse.json()
+        const userData: User = {
+          email: userInfo.email,
+          name: userInfo.name,
+          picture: userInfo.picture,
+        }
+        login(userData, { accessToken: tokenResponse.access_token })
+        setBackend('google-drive')
+        setScreen('google-drive')
+      } catch {
+        setWelcomeError(t('wizard.oauthFailed'))
+      } finally {
+        setBusy(false)
+      }
+    },
+    onError: () => {
+      setWelcomeError(t('wizard.oauthFailed'))
+    },
+  })
 
-  const handleOpenSuccess = () => {
-    setStep('choose')
-    setSelectedBackend(null)
-    onOpenComplete()
-  }
-
-  const renderStep = () => {
-    switch (step) {
-      case 'choose':
-        return (
-          <ChooseActionStep
-            selectedBackend={effectiveBackend}
-            onSelectBackend={handleSelectBackend}
-            onCreateNew={handleChooseCreate}
-            onOpenExisting={handleChooseOpen}
-            onCancel={onCancel}
-          />
-        )
-      case 'create':
-        return (
-          <CreateShopStep
-            backend={effectiveBackend}
-            onBack={() => setStep('choose')}
-            onSuccess={handleCreateSuccess}
-            onCreateShop={createShop}
-          />
-        )
-      case 'open-existing':
-        return (
-          <OpenExistingStep
-            backend={effectiveBackend}
-            onBack={() => setStep('choose')}
-            onSuccess={handleOpenSuccess}
-            onSelectFolder={selectFolder}
-            onSelectLocalFolder={selectLocalFolder}
-            onValidateFolder={validateAndSetShop}
-          />
-        )
-      case 'success':
-        return (
-          <SuccessStep
-            folderName={createdFolderName}
-            onContinue={handleSuccessDismiss}
-            onClose={handleSuccessDismiss}
-          />
-        )
+  const handleSelectGoogleDrive = useCallback(() => {
+    setWelcomeError(null)
+    try {
+      googleLogin()
+    } catch {
+      setWelcomeError(t('wizard.oauthPopupBlocked'))
     }
+  }, [googleLogin, t])
+
+  const handleSelectLocal = useCallback(async () => {
+    setWelcomeError(null)
+    setBusy(true)
+    try {
+      loginAsLocalUser()
+      const picked = await pickFolder()
+      if (!picked) {
+        clearBackend()
+        logout()
+        setBusy(false)
+        return
+      }
+      const { handle, metadata } = picked
+      if (metadata) {
+        setBackend('local-csv')
+        setLocalDirectoryHandle(handle)
+        const validation = await validateAndSetShop(handle.name)
+        if (!validation.ok) {
+          setWelcomeError(mapValidationError(validation.error, t))
+          clearBackend()
+          logout()
+        }
+        setBusy(false)
+        return
+      }
+      setPendingLocalHandle(handle)
+      setScreen('local-confirm')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : t('wizard.errorGeneric')
+      if (msg.includes('Chrome') || msg.includes('Chromium')) {
+        setWelcomeError(t('wizard.chromeRequired'))
+      } else {
+        setWelcomeError(msg)
+      }
+      logout()
+      clearBackend()
+    } finally {
+      setBusy(false)
+    }
+  }, [
+    loginAsLocalUser,
+    pickFolder,
+    logout,
+    setBackend,
+    setLocalDirectoryHandle,
+    validateAndSetShop,
+    t,
+    clearBackend,
+  ])
+
+  const handleLocalCreateConfirm = useCallback(async () => {
+    if (!pendingLocalHandle) return
+    setWelcomeError(null)
+    setBusy(true)
+    try {
+      await createShopInLocalFolder(pendingLocalHandle)
+      setPendingLocalHandle(null)
+    } catch (err) {
+      setWelcomeError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
+    } finally {
+      setBusy(false)
+    }
+  }, [pendingLocalHandle, createShopInLocalFolder, t])
+
+  const handleLocalCreateCancel = useCallback(() => {
+    setPendingLocalHandle(null)
+    resetToWelcome()
+    clearBackend()
+    logout()
+  }, [resetToWelcome, clearBackend, logout])
+
+  const renderMain = () => {
+    if (screen === 'google-drive' && googleUser) {
+      return (
+        <GoogleDriveStep
+          user={googleUser}
+          loading={busy}
+          error={googleDriveError}
+          onCreateNew={() => void handleGoogleDriveCreate()}
+          onOpenExisting={() => void handleGoogleDriveOpen()}
+          onOpenByFolderId={(id) => void handleGoogleDrivePasteId(id)}
+          onCancel={onCancel}
+        />
+      )
+    }
+    return (
+      <WelcomeStep
+        onSelectLocal={() => void handleSelectLocal()}
+        onSelectGoogleDrive={handleSelectGoogleDrive}
+      />
+    )
   }
 
   return (
@@ -125,10 +252,21 @@ export function SetupWizard({
         aria-labelledby="wizard-title"
       >
         <h2 id="wizard-title" className="sr-only">
-          {t('wizard.title')}
+          {t('wizard.welcomeTitle')}
         </h2>
-        {renderStep()}
+        {welcomeError ? <p className="mb-4 text-sm text-red-600">{welcomeError}</p> : null}
+        {busy && screen === 'welcome' ? (
+          <p className="mb-4 text-sm text-gray-600">{t('wizard.pickingFolder')}</p>
+        ) : null}
+        {renderMain()}
       </div>
+      {screen === 'local-confirm' && pendingLocalHandle ? (
+        <CreateConfirmModal
+          folderDisplayName={pendingLocalHandle.name}
+          onConfirm={() => void handleLocalCreateConfirm()}
+          onCancel={handleLocalCreateCancel}
+        />
+      ) : null}
     </div>
   )
 }

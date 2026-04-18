@@ -4,11 +4,10 @@ test.describe('Jobs page', () => {
   test.describe('unauthenticated', () => {
     test.use({ storageState: { cookies: [], origins: [] } })
 
-    test('unauthenticated user is redirected from /jobs to /login', async ({
-      page,
-    }) => {
+    test('user without shop sees setup wizard on /jobs', async ({ page }) => {
       await page.goto('/jobs', { waitUntil: 'load' })
-      await expect(page).toHaveURL(/\/login/)
+      await expect(page).toHaveURL(/\/jobs/)
+      await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
     })
   })
 

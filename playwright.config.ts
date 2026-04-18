@@ -1,8 +1,10 @@
 /**
  * E2E policy (illo3d):
  * - Chromium only by default (no extra browser matrix).
- * - Setup project runs once per `playwright test`: seeds `.e2e-fixtures`, Dev Login + open Local CSV shop,
- *   saves `storageState` to `tests/e2e/.auth/storage-state.json`. Chromium project depends on setup and loads that file.
+ * - Setup project runs once per `playwright test`: seeds `.e2e-fixtures`, wizard + mocked
+ *   `showDirectoryPicker` (in-memory handle from `/fixtures/...`) to open the happy-path shop,
+ *   then saves `storageState` to `tests/e2e/.auth/storage-state.json`. Chromium project depends
+ *   on setup and loads that file.
  * - workers: 1 — single Vite server and one `.e2e-fixtures` tree; parallel workers would race CSV writes.
  *   Use test.describe.configure({ mode: 'serial' }) where tests in a file depend on order.
  * - fullyParallel: true lets independent files run in parallel when workers > 1 locally.

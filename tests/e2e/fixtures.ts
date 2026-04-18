@@ -1,13 +1,14 @@
 import { test as base, expect, type Page } from '@playwright/test'
 import fs from 'node:fs'
 import path from 'node:path'
+import { mockDirectoryPicker } from './helpers/mockDirectoryPicker'
+import { mockDriveApis } from './helpers/mockDriveApis'
+import { mockGoogleOAuth } from './helpers/mockGoogleOAuth'
+import { mockGooglePickerApi } from './helpers/mockGooglePicker'
 
-/** Must match `sanitizeFixtureFolderId` in src/config/csvBackend.ts */
-function e2eDestinationFolderName(): string {
-  const raw = process.env.VITE_LOCAL_CSV_FIXTURE_FOLDER?.trim()
-  if (raw && /^[a-zA-Z0-9_-]+$/.test(raw)) return raw
-  return 'happy-path'
-}
+export { mockDirectoryPicker }
+export { mockDriveApis, mockGoogleOAuth, mockGooglePickerApi }
+export type { DriveApisMockOptions } from './helpers/mockDriveApis'
 
 /** Copy `fixtures/<fixtureScenario>/` into `.e2e-fixtures` (used by setup + `prepareFixtureDir`). */
 export function copyGoldenFixtureToE2eRoot(fixtureScenario: string): void {
@@ -16,20 +17,11 @@ export function copyGoldenFixtureToE2eRoot(fixtureScenario: string): void {
     throw new Error(`Golden fixture scenario not found: ${fixtureScenario}`)
   }
   const destRoot = path.join(process.cwd(), '.e2e-fixtures')
-  const wizardFolder = e2eDestinationFolderName()
 
   fs.rmSync(destRoot, { recursive: true, force: true })
   fs.mkdirSync(destRoot, { recursive: true })
 
-  const copyInto = (relative: string) => {
-    const dest = path.join(destRoot, relative)
-    fs.cpSync(goldenDir, dest, { recursive: true })
-  }
-
-  copyInto(fixtureScenario)
-  if (fixtureScenario !== wizardFolder) {
-    copyInto(wizardFolder)
-  }
+  fs.cpSync(goldenDir, path.join(destRoot, fixtureScenario), { recursive: true })
 }
 
 export async function waitForShopDataReady(page: Page) {
@@ -45,26 +37,34 @@ export async function waitForShopDataReady(page: Page) {
   })
 }
 
-/** Dev Login + Local CSV “open existing shop” for the active `fixtureScenario`. */
-export async function devLoginAndOpenCsvShop(page: Page) {
-  await page.goto('/login', { waitUntil: 'load' })
+/** Wizard: mock directory picker + open local fixture shop for `fixtureScenario`. */
+export async function mockAndOpenLocalShop(page: Page, fixtureScenario = 'happy-path') {
+  await page.goto('/dashboard', { waitUntil: 'load' })
+  await mockDirectoryPicker(page, fixtureScenario, 'with-metadata')
+  const localBtn = page.getByTestId('wizard-local-folder')
+  await expect(localBtn).toBeVisible({ timeout: 15000 })
+  await localBtn.click()
+  await waitForShopDataReady(page)
+}
 
-  const devLoginButton = page.getByTestId('dev-login-button')
-  await expect(devLoginButton).toBeVisible({ timeout: 15000 })
-  await devLoginButton.click()
-
-  await expect(page).toHaveURL(/\/dashboard/)
-
-  const openExistingButton = page.getByRole('button', {
-    name: /open existing shop|abrir tienda existente/i,
-  })
-  await expect(openExistingButton.first()).toBeVisible({ timeout: 15000 })
-  await page.getByRole('button', { name: /local csv|csv local/i }).first().click()
-  await openExistingButton.first().click()
-  await page
-    .getByRole('button', { name: /open existing shop|abrir tienda existente/i })
-    .first()
-    .click()
+/**
+ * Wizard: mock GSI + userinfo + Drive/Sheets APIs, complete Google OAuth, then create a new Drive shop.
+ * `fixtureScenario` is reserved for future fixture-backed Drive scenarios.
+ */
+export async function mockAndOpenGoogleShop(
+  page: Page,
+  _fixtureScenario: string = 'happy-path',
+): Promise<void> {
+  void _fixtureScenario
+  await mockGoogleOAuth(page)
+  await mockDriveApis(page)
+  await page.goto('/dashboard', { waitUntil: 'load' })
+  const driveBtn = page.getByTestId('wizard-google-drive')
+  await expect(driveBtn).toBeVisible({ timeout: 15000 })
+  await driveBtn.click()
+  await expect(page.getByTestId('wizard-google-create')).toBeVisible({ timeout: 15000 })
+  await page.getByTestId('wizard-google-create').click()
+  await waitForShopDataReady(page)
 }
 
 export const test = base.extend<{

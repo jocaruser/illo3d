@@ -106,7 +106,7 @@ The system SHALL provide a `FolderRepository` interface with `readMetadata(folde
 
 ### Requirement: Repository selection is backend-driven
 
-The system SHALL select the FolderRepository implementation based on the user's backend choice (from backendStore), not on `import.meta.env.DEV`. When backend is `local-csv` with a FileSystemDirectoryHandle, use LocalFolderRepository. When backend is `local-csv` with fixture folder name (dev only), use CsvFolderRepository. When backend is `google-drive`, use GoogleFolderRepository.
+The system SHALL select the FolderRepository implementation based on the user's backend choice (from backendStore), not on `import.meta.env.DEV`. When backend is `local-csv` with a FileSystemDirectoryHandle, use LocalFolderRepository. When backend is `google-drive`, use GoogleFolderRepository. The `CsvFolderRepository` (fixture-based) SHALL only be used when wired up by E2E test mocking infrastructure, not by wizard UI.
 
 #### Scenario: Backend store selects LocalFolderRepository
 
@@ -114,29 +114,29 @@ The system SHALL select the FolderRepository implementation based on the user's 
 - **THEN** getFolderRepository returns LocalFolderRepository
 - **AND** readMetadata and getFolderName use the File System Access API
 
-#### Scenario: Backend store selects CsvFolderRepository (fixtures)
-
-- **WHEN** the backend store has `backend: 'local-csv'` and folderId is a fixture name (e.g. `happy-path`)
-- **THEN** getFolderRepository returns CsvFolderRepository
-- **AND** metadata is read from `/fixtures/<folderId>/illo3d.metadata.json`
-
 #### Scenario: Backend store selects GoogleFolderRepository
 
 - **WHEN** the backend store has `backend: 'google-drive'`
 - **THEN** getFolderRepository returns GoogleFolderRepository
 - **AND** readMetadata and getFolderName hit the Google Drive API
 
+#### Scenario: CsvFolderRepository used only via test infrastructure
+
+- **WHEN** an E2E test mocks the directory picker with fixture data
+- **THEN** the mock handle delegates to fixture files
+- **AND** CsvFolderRepository MAY be used internally by the mock but is not selected by wizard UI code
+
 ### Requirement: GoogleFolderRepository implements production backend
 
 The system SHALL provide a `GoogleFolderRepository` that uses the Google Drive API for `readMetadata` and `getFolderName`. This implementation SHALL be used when backend is `google-drive`.
 
-### Requirement: CsvFolderRepository implements dev backend
+### Requirement: CsvFolderRepository implements fixture-backed reads
 
-The system SHALL provide a `CsvFolderRepository` that fetches metadata from `/fixtures/<folderId>/illo3d.metadata.json` and returns the folderId as the folder name. This implementation SHALL be used when backend is `local-csv` and folderId is a fixture name (e.g. `happy-path`).
+The system SHALL provide a `CsvFolderRepository` that fetches metadata from `/fixtures/<folderId>/illo3d.metadata.json` and returns the folderId as the folder name. This implementation SHALL be available for E2E and test infrastructure that simulates a folder handle backed by fixtures; it SHALL NOT be selected by production wizard flows.
 
-#### Scenario: getFolderName in dev mode
+#### Scenario: getFolderName for fixture folder id
 
-- **WHEN** getFolderName is called with folderId "happy-path"
+- **WHEN** getFolderName is called with folderId "happy-path" via fixture-backed wiring
 - **THEN** CsvFolderRepository returns "happy-path" (or a display-friendly name)
 
 ### Requirement: LocalFolderRepository implements FolderRepository via File System Access API
@@ -165,23 +165,69 @@ The system SHALL refactor `validateShopFolder` to call `FolderRepository.readMet
 - **AND** calls folderRepository.getFolderName(folderId)
 - **AND** does not call driveFetch or readMetadata from drive/metadata directly
 
-### Requirement: Wizard "Open existing" supports dev mode
+### Requirement: Wizard uses production paths; E2E mocks boundaries
 
-The system SHALL update the wizard "Open existing" step so that when running in dev mode, the user selects a fixture folder by name via a text input instead of using the Google Picker or pasting a Drive folder ID. The same validateAndSetShop flow is used; folderId in dev mode is the fixture folder name.
+The system SHALL NOT include a dev-mode fixture folder text input in the wizard UI. In development mode, the wizard uses the same code as production (directory picker for local, Drive picker for Google). E2E tests mock `showDirectoryPicker` and Drive/Sheets APIs at the Playwright boundary level.
 
-#### Scenario: Dev mode shows fixture folder name input
+#### Scenario: Dev mode uses same wizard as production
 
-- **WHEN** the wizard "Open existing" step renders in dev mode
-- **THEN** the Google Picker and Drive folder ID input are hidden
-- **AND** a text input for fixture folder name is shown
-- **AND** user can enter a folder name (e.g. `happy-path`, `missingcolumn`)
+- **WHEN** the wizard renders in development mode
+- **THEN** it shows the same backend selection options as production
+- **AND** no fixture folder text input is rendered
 
-#### Scenario: validateAndSetShop works with folder name in dev mode
+#### Scenario: E2E tests mock directory picker
 
-- **WHEN** user submits the fixture folder name in dev mode
-- **THEN** validateAndSetShop(folderName) is called with the folder name as folderId
-- **AND** CsvFolderRepository reads metadata from that folder
-- **AND** shop store is populated on success
+- **WHEN** an E2E test needs to open a local shop
+- **THEN** the test injects a mock `showDirectoryPicker` via `page.evaluate()` that returns an in-memory `FileSystemDirectoryHandle` backed by fixture data
+- **AND** the wizard code executes the same path as production
+
+#### Scenario: E2E tests mock Google OAuth and Drive APIs
+
+- **WHEN** an E2E test needs to test the Google Drive path
+- **THEN** the test uses `page.route()` to mock Google userinfo, Drive folder creation, Sheets CRUD, and metadata endpoints
+- **AND** the wizard code executes the same path as production
+
+### Requirement: E2E test infrastructure provides boundary mocks
+
+The E2E test infrastructure SHALL provide reusable helpers for mocking external boundaries: `mockDirectoryPicker(page, fixtureScenario)` for the File System Access API, `mockGoogleOAuth(page, userProfile)` for Google OAuth, and `mockDriveApis(page, fixtureData)` for Drive/Sheets API calls. These helpers SHALL use Playwright's `page.route()` and `page.evaluate()` APIs.
+
+#### Scenario: mockDirectoryPicker returns fixture-backed handle
+
+- **WHEN** `mockDirectoryPicker(page, 'happy-path')` is called before a test
+- **THEN** `window.showDirectoryPicker` is replaced with a function that returns an in-memory handle
+- **AND** the handle reads fixture data from the `happy-path` scenario
+- **AND** the handle supports `getFileHandle`, `createWritable`, and iteration
+
+#### Scenario: mockGoogleOAuth intercepts auth endpoints
+
+- **WHEN** `mockGoogleOAuth(page, { name: 'Test User', email: 'test@example.com' })` is called
+- **THEN** Google OAuth token and userinfo endpoints are intercepted
+- **AND** the wizard receives a fake access token and user profile
+
+#### Scenario: mockDriveApis intercepts Drive and Sheets calls
+
+- **WHEN** `mockDriveApis(page, fixtureData)` is called
+- **THEN** Drive folder creation, file upload, Sheets CRUD, and metadata read endpoints are intercepted
+- **AND** responses contain fixture data matching the expected API shape
+
+### Requirement: E2E tests cover Google Drive create and open flows
+
+The E2E test suite SHALL include tests for the Google Drive wizard path: creating a new shop (OAuth → create → scaffold → dashboard) and opening an existing shop (OAuth → open → validate → dashboard). These flows SHALL use mocked Drive/Sheets APIs.
+
+#### Scenario: E2E test creates shop on Google Drive
+
+- **WHEN** an E2E test clicks "Google Drive" → mock OAuth succeeds → clicks "Create new shop"
+- **THEN** the test verifies Drive folder creation API was called
+- **AND** Sheets creation API was called
+- **AND** metadata upload API was called
+- **AND** the dashboard loads
+
+#### Scenario: E2E test opens existing shop on Google Drive
+
+- **WHEN** an E2E test clicks "Google Drive" → mock OAuth succeeds → clicks "Open existing" → selects folder
+- **THEN** the test verifies metadata read API was called
+- **AND** structure validation API was called
+- **AND** the dashboard loads
 
 ## Google Sheets connection and reads
 
@@ -380,9 +426,9 @@ The system SHALL select the SheetsRepository implementation based on the user's 
 - **THEN** getSheetsRepository returns GoogleSheetsRepository
 - **AND** all operations hit the Google Sheets API
 
-### Requirement: CsvSheetsRepository implements dev backend
+### Requirement: CsvSheetsRepository implements fixture-backed reads
 
-The system SHALL provide a `CsvSheetsRepository` implementation that reads from a fixtures folder of CSV files (one file per sheet). This implementation SHALL be used when backend is `local-csv` with fixture folder. The same implementation SHALL serve both dev mode and automated tests.
+The system SHALL provide a `CsvSheetsRepository` implementation that reads from a fixtures folder of CSV files (one file per sheet). This implementation SHALL be used when backend is `local-csv` with a fixture-backed folder (E2E mocks or equivalent test wiring). The same implementation SHALL serve automated tests and dev workflows that use the fixtures directory.
 
 #### Scenario: CSV files match sheet structure
 
@@ -391,10 +437,10 @@ The system SHALL provide a `CsvSheetsRepository` implementation that reads from 
 - **AND** parses headers from the first row and data from subsequent rows
 - **AND** returns objects keyed by header names
 
-#### Scenario: Fixture folder is selected via wizard
+#### Scenario: Fixture folder is wired from shop store or test harness
 
 - **WHEN** CsvSheetsRepository is used
-- **THEN** the folder name comes from the shop store (user entered it in the wizard "Open existing" step)
+- **THEN** the folder name comes from the shop store or test harness (not from a dev-only wizard text field)
 - **AND** reads from `/fixtures/<folder-name>/<sheetName>.csv`
 - **AND** multiple fixture folders may exist (e.g. `happy-path`, `missingcolumn`, `empty`)
 
@@ -477,10 +523,10 @@ The dev working copy SHALL live at `public/fixtures/` (gitignored). The app read
 - **THEN** only the working copy (`public/fixtures/` or the e2e temp dir) is modified
 - **AND** `fixtures/` at the repo root remains unchanged
 
-#### Scenario: Multiple fixture folders exist for wizard selection
+#### Scenario: Multiple fixture folders exist for E2E scenarios
 
-- **WHEN** the app runs with CSV backend
-- **THEN** the user selects which folder to load by typing its name in the wizard "Open existing" step
+- **WHEN** tests run with CSV backend via mocked directory picker
+- **THEN** the active folder id identifies the scenario (e.g. `happy-path`)
 - **AND** CsvSheetsRepository reads from `/fixtures/<folder-name>/` for that folder only
 - **AND** different scenarios (missingcolumn, happy-path, empty) are separate folders
 

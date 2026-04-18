@@ -2,42 +2,20 @@ import { test, expect } from './fixtures'
 
 test.use({ storageState: { cookies: [], origins: [] } })
 
-test.describe('Login flow', () => {
-  test('login page shows illo3d brand and sign-in options', async ({ page }) => {
+test.describe('Entry and setup wizard', () => {
+  test('/login redirects through / then dashboard and shows welcome wizard', async ({ page }) => {
     await page.goto('/login', { waitUntil: 'load' })
-
-    await expect(page.getByRole('heading', { name: 'illo3d' })).toBeVisible({
-      timeout: 15000,
-    })
-    await expect(page.getByRole('button', { name: 'Sign in with Google' })).toBeVisible()
-  })
-
-  test('dev login button is visible in development', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'load' })
-
-    const devLoginButton = page.getByTestId('dev-login-button')
-    await expect(devLoginButton).toBeVisible({ timeout: 15000 })
-  })
-
-  test('sign in with Google button is visible on login page load', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'load' })
-
-    await expect(page.getByRole('button', { name: 'Sign in with Google' })).toBeVisible({
-      timeout: 15000,
-    })
-  })
-
-  test('dev login navigates to dashboard page', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'load' })
-
-    const devLoginButton = page.getByTestId('dev-login-button')
-    await expect(devLoginButton).toBeVisible({ timeout: 15000 })
-
-    await devLoginButton.click()
 
     await expect(page).toHaveURL(/\/dashboard/)
+    await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('wizard-google-drive')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'illo3d', level: 3 })).toBeVisible()
+  })
 
-    await expect(page.getByRole('link', { name: 'illo3d' })).toBeVisible()
+  test('dashboard without saved shop shows welcome wizard', async ({ page }) => {
+    await page.goto('/dashboard', { waitUntil: 'load' })
+
+    await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('wizard-google-drive')).toBeVisible()
   })
 })
-

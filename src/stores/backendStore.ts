@@ -8,13 +8,20 @@ interface BackendState {
   setBackend: (backend: Backend | null) => void
   setLocalDirectoryHandle: (handle: FileSystemDirectoryHandle | null) => void
   clearBackend: () => void
+  /** Same as `clearBackend` (wizard cancel / reset naming in specs). */
+  reset: () => void
 }
+
+const clearBackendState = (): Pick<BackendState, 'backend' | 'localDirectoryHandle'> => ({
+  backend: null,
+  localDirectoryHandle: null,
+})
 
 export const useBackendStore = create<BackendState>((set) => ({
   backend: null,
   localDirectoryHandle: null,
   setBackend: (backend) => set({ backend }),
   setLocalDirectoryHandle: (localDirectoryHandle) => set({ localDirectoryHandle }),
-  clearBackend: () =>
-    set({ backend: null, localDirectoryHandle: null }),
+  clearBackend: () => set(clearBackendState()),
+  reset: () => set(clearBackendState()),
 }))

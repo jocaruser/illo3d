@@ -1,11 +1,14 @@
 import { test, expect } from './fixtures'
 
 test.describe('Navigation chrome', () => {
-  test('login page has no breadcrumb landmark', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'load' })
-    await expect(
-      page.getByRole('navigation', { name: /breadcrumb/i }),
-    ).toHaveCount(0)
+  test.describe('without saved shop', () => {
+    test.use({ storageState: { cookies: [], origins: [] } })
+
+    test('/login redirects to dashboard and shows setup wizard', async ({ page }) => {
+      await page.goto('/login', { waitUntil: 'load' })
+      await expect(page).toHaveURL(/\/dashboard/)
+      await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
+    })
   })
 
   test('active nav and breadcrumbs on main pages', async ({ page, openCsvShop }) => {
