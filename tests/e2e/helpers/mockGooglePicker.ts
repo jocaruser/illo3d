@@ -5,7 +5,8 @@ import type { Page } from '@playwright/test'
  * without loading the real Google Picker bundle.
  */
 export async function mockGooglePickerApi(page: Page): Promise<void> {
-  await page.route('https://apis.google.com/js/api.js', async (route) => {
+  // Match optional query string (some environments append cache-busters).
+  await page.route(/https:\/\/apis\.google\.com\/js\/api\.js(\?.*)?$/, async (route) => {
     const body = `
       window.gapi = window.gapi || {};
       window.gapi.load = function (api, cb) {

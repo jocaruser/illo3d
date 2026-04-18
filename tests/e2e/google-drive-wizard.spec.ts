@@ -3,6 +3,7 @@ import {
   mockDriveApis,
   mockGoogleOAuth,
   mockGooglePickerApi,
+  waitForShopDataReady,
   test,
   expect,
 } from './fixtures'
@@ -81,6 +82,6 @@ test.describe('Google Drive setup wizard', () => {
     await page.getByTestId('wizard-google-drive').click()
     await expect(page.getByTestId('wizard-google-open-picker')).toBeVisible({ timeout: 15000 })
     await page.getByTestId('wizard-google-open-picker').click()
-    await expect(page.getByTestId('global-header-search')).toBeVisible({ timeout: 20000 })
+    await waitForShopDataReady(page)
   })
 })
