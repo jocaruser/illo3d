@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react'
-import { useGoogleLogin } from '@react-oauth/google'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useGoogleLogin, useGoogleOneTapLogin } from '@react-oauth/google'
+import { jwtDecode } from 'jwt-decode'
 import { useTranslation } from 'react-i18next'
 import { WelcomeStep } from './WelcomeStep'
 import { CreateConfirmModal } from './CreateConfirmModal'
@@ -19,6 +20,8 @@ interface GoogleUserInfo {
 }
 
 type WizardScreen = 'welcome' | 'local-confirm' | 'google-drive'
+
+type GoogleDriveBusyKind = 'create' | 'work'
 
 interface SetupWizardProps {
   onCancel: () => void
@@ -53,22 +56,35 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
   const [welcomeError, setWelcomeError] = useState<string | null>(null)
   const [googleDriveError, setGoogleDriveError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [googleDriveBusyKind, setGoogleDriveBusyKind] = useState<GoogleDriveBusyKind | null>(
+    null
+  )
+  const [googleDriveIntent, setGoogleDriveIntent] = useState(false)
+  const googleEntryRef = useRef<'inactive' | 'google' | 'local'>('inactive')
+  const screenRef = useRef<WizardScreen>('welcome')
+
+  useEffect(() => {
+    screenRef.current = screen
+  }, [screen])
 
   const resetToWelcome = useCallback(() => {
+    googleEntryRef.current = 'inactive'
+    setGoogleDriveIntent(false)
     setScreen('welcome')
     setPendingLocalHandle(null)
     setWelcomeError(null)
     setGoogleDriveError(null)
     setBusy(false)
+    setGoogleDriveBusyKind(null)
   }, [])
 
   const handleGoogleDriveOpen = useCallback(async () => {
     setGoogleDriveError(null)
+    setGoogleDriveBusyKind('work')
     setBusy(true)
     try {
       const picked = await selectFolder()
       if (!picked) {
-        setBusy(false)
         return
       }
       const validation = await validateAndSetShop(picked.id)
@@ -79,11 +95,13 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
       setGoogleDriveError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
     } finally {
       setBusy(false)
+      setGoogleDriveBusyKind(null)
     }
   }, [selectFolder, validateAndSetShop, t])
 
   const handleGoogleDriveCreate = useCallback(async () => {
     setGoogleDriveError(null)
+    setGoogleDriveBusyKind('create')
     setBusy(true)
     try {
       await createShop('illo3d')
@@ -91,12 +109,14 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
       setGoogleDriveError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
     } finally {
       setBusy(false)
+      setGoogleDriveBusyKind(null)
     }
   }, [createShop, t])
 
   const handleGoogleDrivePasteId = useCallback(
     async (folderId: string) => {
       setGoogleDriveError(null)
+      setGoogleDriveBusyKind('work')
       setBusy(true)
       try {
         const validation = await validateAndSetShop(folderId)
@@ -107,6 +127,7 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
         setGoogleDriveError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
       } finally {
         setBusy(false)
+        setGoogleDriveBusyKind(null)
       }
     },
     [validateAndSetShop, t]
@@ -129,6 +150,8 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
         }
         login(userData, { accessToken: tokenResponse.access_token })
         setBackend('google-drive')
+        setGoogleDriveIntent(false)
+        googleEntryRef.current = 'inactive'
         setScreen('google-drive')
       } catch {
         setWelcomeError(t('wizard.oauthFailed'))
@@ -138,19 +161,63 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
     },
     onError: () => {
       setWelcomeError(t('wizard.oauthFailed'))
+      setBusy(false)
     },
+  })
+
+  const handleOneTapSuccess = useCallback(
+    (credentialResponse: { credential?: string }) => {
+      if (googleEntryRef.current !== 'google' || screenRef.current !== 'welcome') {
+        return
+      }
+      const cred = credentialResponse.credential
+      if (!cred) {
+        return
+      }
+      setWelcomeError(null)
+      let hint: string | undefined
+      try {
+        const payload = jwtDecode<{ email?: string }>(cred)
+        hint = payload.email
+      } catch {
+        hint = undefined
+      }
+      try {
+        if (hint) {
+          googleLogin({ hint })
+        } else {
+          googleLogin()
+        }
+      } catch {
+        setWelcomeError(t('wizard.oauthPopupBlocked'))
+      }
+    },
+    [googleLogin, t]
+  )
+
+  useGoogleOneTapLogin({
+    onSuccess: handleOneTapSuccess,
+    disabled: screen !== 'welcome' || !googleDriveIntent || busy,
+    cancel_on_tap_outside: true,
   })
 
   const handleSelectGoogleDrive = useCallback(() => {
     setWelcomeError(null)
+    if (!googleDriveIntent) {
+      googleEntryRef.current = 'google'
+      setGoogleDriveIntent(true)
+      return
+    }
     try {
       googleLogin()
     } catch {
       setWelcomeError(t('wizard.oauthPopupBlocked'))
     }
-  }, [googleLogin, t])
+  }, [googleDriveIntent, googleLogin, t])
 
   const handleSelectLocal = useCallback(async () => {
+    googleEntryRef.current = 'local'
+    setGoogleDriveIntent(false)
     setWelcomeError(null)
     setBusy(true)
     try {
@@ -227,6 +294,13 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
         <GoogleDriveStep
           user={googleUser}
           loading={busy}
+          statusMessage={
+            busy
+              ? googleDriveBusyKind === 'create'
+                ? t('wizard.creating')
+                : t('wizard.opening')
+              : null
+          }
           error={googleDriveError}
           onCreateNew={() => void handleGoogleDriveCreate()}
           onOpenExisting={() => void handleGoogleDriveOpen()}
@@ -239,6 +313,7 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
       <WelcomeStep
         onSelectLocal={() => void handleSelectLocal()}
         onSelectGoogleDrive={handleSelectGoogleDrive}
+        showGoogleDriveOAuthHint={googleDriveIntent}
       />
     )
   }

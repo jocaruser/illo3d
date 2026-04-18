@@ -30,7 +30,10 @@ export function useOpenExistingShop() {
       if (!apiKey) {
         throw new Error('VITE_GOOGLE_API_KEY is not configured')
       }
-      return openFolderPicker(accessToken, apiKey)
+      const appId = import.meta.env.VITE_GOOGLE_APP_ID
+      return openFolderPicker(accessToken, apiKey, {
+        appId: typeof appId === 'string' && appId.trim() ? appId.trim() : undefined,
+      })
     })().finally(() => {
       inFlightSelectFolder = null
     })

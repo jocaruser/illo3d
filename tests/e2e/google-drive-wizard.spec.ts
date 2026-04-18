@@ -1,4 +1,5 @@
 import {
+  completeWizardGoogleDriveWelcome,
   mockAndOpenGoogleShop,
   mockDriveApis,
   mockGoogleOAuth,
@@ -19,7 +20,7 @@ test.describe('Google Drive setup wizard', () => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page)
     await page.goto('/dashboard', { waitUntil: 'load' })
-    await page.getByTestId('wizard-google-drive').click()
+    await completeWizardGoogleDriveWelcome(page)
     await expect(page.getByTestId('wizard-google-open-by-id')).toBeVisible({ timeout: 15000 })
     await page.getByTestId('wizard-google-open-by-id').click()
     await expect(
@@ -31,7 +32,7 @@ test.describe('Google Drive setup wizard', () => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'ok' })
     await page.goto('/dashboard', { waitUntil: 'load' })
-    await page.getByTestId('wizard-google-drive').click()
+    await completeWizardGoogleDriveWelcome(page)
     await expect(page.getByTestId('wizard-google-open-by-id')).toBeVisible({ timeout: 15000 })
     await page.locator('#wizard-folder-id').fill('e2ePasteFolder1')
     await page.getByTestId('wizard-google-open-by-id').click()
@@ -42,7 +43,7 @@ test.describe('Google Drive setup wizard', () => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'not_shop' })
     await page.goto('/dashboard', { waitUntil: 'load' })
-    await page.getByTestId('wizard-google-drive').click()
+    await completeWizardGoogleDriveWelcome(page)
     await page.locator('#wizard-folder-id').fill('notAShopFolder')
     await page.getByTestId('wizard-google-open-by-id').click()
     await expect(
@@ -54,7 +55,7 @@ test.describe('Google Drive setup wizard', () => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'bad_version' })
     await page.goto('/dashboard', { waitUntil: 'load' })
-    await page.getByTestId('wizard-google-drive').click()
+    await completeWizardGoogleDriveWelcome(page)
     await page.locator('#wizard-folder-id').fill('oldVersionFolder')
     await page.getByTestId('wizard-google-open-by-id').click()
     await expect(
@@ -66,7 +67,7 @@ test.describe('Google Drive setup wizard', () => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'bad_headers' })
     await page.goto('/dashboard', { waitUntil: 'load' })
-    await page.getByTestId('wizard-google-drive').click()
+    await completeWizardGoogleDriveWelcome(page)
     await page.locator('#wizard-folder-id').fill('badHeadersFolder')
     await page.getByTestId('wizard-google-open-by-id').click()
     await expect(
@@ -79,7 +80,7 @@ test.describe('Google Drive setup wizard', () => {
     await mockDriveApis(page, { pasteFolderMode: 'ok' })
     await mockGooglePickerApi(page)
     await page.goto('/dashboard', { waitUntil: 'load' })
-    await page.getByTestId('wizard-google-drive').click()
+    await completeWizardGoogleDriveWelcome(page)
     await expect(page.getByTestId('wizard-google-open-picker')).toBeVisible({ timeout: 15000 })
     await page.getByTestId('wizard-google-open-picker').click()
     await waitForShopDataReady(page)

@@ -21,6 +21,7 @@ export async function mockGooglePickerApi(page: Page): Promise<void> {
         DocsView: function () {
           return {
             setIncludeFolders: function () { return this; },
+            setMimeTypes: function () { return this; },
             setSelectFolderEnabled: function () { return this; },
           };
         },

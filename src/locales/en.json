@@ -428,6 +428,7 @@
     "localFolderDesc": "Files stay on your computer. Works offline. Chrome required.",
     "googleDrive": "Google Drive",
     "googleDriveDesc": "Synced to your Google account. Access from any device.",
+    "googleDriveOAuthHint": "If sign-in did not continue automatically, click Google Drive again to open the Google sign-in window.",
     "googleDriveTitle": "Connect your shop",
     "createNewShop": "Create new shop",
     "openExistingShop": "Open existing shop",

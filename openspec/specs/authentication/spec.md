@@ -12,7 +12,7 @@ The system SHALL integrate Google Identity Services (GIS) to offer One Tap sign-
 
 #### Scenario: One Tap prompt appears for unauthenticated user
 
-- **WHEN** user loads the app and is not signed in
+- **WHEN** user is on the setup wizard welcome screen, has expressed intent to use Google Drive, and is not signed in
 - **THEN** Google One Tap prompt MAY appear (subject to browser/cookie support)
 
 #### Scenario: One Tap completes sign-in
@@ -33,6 +33,34 @@ The system SHALL display a "Sign in with Google" button when One Tap is unavaila
 
 - **WHEN** user clicks "Sign in with Google"
 - **THEN** Google OAuth flow opens and on success credentials are stored
+
+### Requirement: One Tap path yields Drive-capable OAuth access before Drive UI
+
+When the user completes Google One Tap on the path toward the Google Drive backend, the system SHALL obtain and store an OAuth 2.0 access token that satisfies the same Drive and Sheets authorization needs as the standard Google sign-in flow (including `https://www.googleapis.com/auth/drive.file` and spreadsheet scopes the app uses) in the auth store before the UI presents Google Drive folder open, create, or paste-id actions.
+
+#### Scenario: Token ready before folder actions
+
+- **WHEN** the user successfully completes One Tap while proceeding with Google Drive
+- **THEN** the auth store contains a valid access token for the app’s Drive and Sheets usage before folder selection or creation is offered
+
+#### Scenario: User declines scope grant after One Tap
+
+- **WHEN** the user completes One Tap but does not complete the OAuth scope grant required for Drive
+- **THEN** the system does not treat the Google Drive backend as fully authorized for folder operations until the user completes that grant or uses the fallback OAuth sign-in successfully
+
+### Requirement: One Tap is initialized from the wizard welcome path for Google Drive
+
+The system SHALL initialize Google One Tap only in contexts where an unauthenticated user is choosing or using the Google Drive backend entry on the setup wizard welcome flow, so that One Tap does not run on unrelated entry paths (e.g. local CSV selection).
+
+#### Scenario: Local CSV path does not trigger One Tap
+
+- **WHEN** the user chooses the local files option on the welcome screen
+- **THEN** the system does not show Google One Tap solely on account of that choice
+
+#### Scenario: Google Drive intent enables One Tap
+
+- **WHEN** the user is on the welcome screen and selects or is proceeding with Google Drive as the backend
+- **THEN** the system MAY initialize One Tap subject to browser and GIS support
 
 ### Requirement: OAuth scope requested at login
 

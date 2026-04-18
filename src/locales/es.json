@@ -428,6 +428,7 @@
     "localFolderDesc": "Los archivos quedan en tu equipo. Funciona sin conexión. Requiere Chrome.",
     "googleDrive": "Google Drive",
     "googleDriveDesc": "Sincronizado con tu cuenta de Google. Accede desde cualquier dispositivo.",
+    "googleDriveOAuthHint": "Si el inicio de sesión no continúa solo, vuelve a pulsar Google Drive para abrir la ventana de inicio de sesión de Google.",
     "googleDriveTitle": "Conecta tu tienda",
     "createNewShop": "Crear tienda nueva",
     "openExistingShop": "Abrir tienda existente",

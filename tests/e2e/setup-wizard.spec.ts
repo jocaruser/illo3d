@@ -1,6 +1,7 @@
 import {
   test,
   expect,
+  completeWizardGoogleDriveWelcome,
   mockAndOpenLocalShop,
   mockDirectoryPicker,
   mockDriveApis,
@@ -54,7 +55,7 @@ test.describe('Setup wizard', () => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page)
     await page.goto('/dashboard', { waitUntil: 'load' })
-    await page.getByTestId('wizard-google-drive').click()
+    await completeWizardGoogleDriveWelcome(page)
     await expect(page.getByTestId('wizard-google-cancel')).toBeVisible({ timeout: 15000 })
     await page.getByTestId('wizard-google-cancel').click()
     await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
