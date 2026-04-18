@@ -10,6 +10,28 @@ export interface OpenFolderPickerOptions {
   appId?: string
 }
 
+type PickerApi = NonNullable<NonNullable<typeof window.google>['picker']>
+
+function readPickerAction(data: unknown, pickerApi: PickerApi): string | undefined {
+  if (!data || typeof data !== 'object') return undefined
+  const rec = data as Record<string, unknown>
+  const actionKey = pickerApi.Response?.ACTION ?? 'action'
+  const v = rec[actionKey]
+  return typeof v === 'string' ? v : undefined
+}
+
+function readPickerDocuments(
+  data: unknown,
+  pickerApi: PickerApi,
+): Array<{ id?: string; name?: string }> {
+  if (!data || typeof data !== 'object') return []
+  const rec = data as Record<string, unknown>
+  const docsKey = pickerApi.Response?.DOCUMENTS ?? 'docs'
+  const v = rec[docsKey]
+  if (!Array.isArray(v)) return []
+  return v as Array<{ id?: string; name?: string }>
+}
+
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const existingScript = document.querySelector(`script[src="${src}"]`) as HTMLScriptElement | null
@@ -102,31 +124,34 @@ export function openFolderPicker(
       }
       const pickerInstance = chain
         .setCallback((data: PickerCallbackData) => {
-          const action = data.action
+          const action = readPickerAction(data, picker)
+          const docs = readPickerDocuments(data, picker)
           const picked = picker.Action?.PICKED ?? 'picked'
           const cancel = picker.Action?.CANCEL ?? 'cancel'
           const error = picker.Action?.ERROR ?? 'error'
+          const isPicked = action === picked || action === 'picked'
+          const isCancel = action === cancel || action === 'cancel'
+          const isError = action === error || action === 'error'
 
-          if (action === picked) {
-            const docs = data.docs
-            if (docs?.length) {
-              const doc = docs[0]
-              finish({ id: doc.id, name: doc.name || doc.id })
+          if (isPicked) {
+            const first = docs[0]
+            const id = first?.id
+            if (id) {
+              finish({ id, name: first?.name || id })
             } else {
               finish(null)
             }
             return
           }
-          if (action === cancel) {
+          if (isCancel) {
             finish(null)
             return
           }
-          if (action === error) {
+          if (isError) {
             console.error('Google Picker error response:', data)
             fail(new Error('Google Picker reported an error. Check the browser console for details.'))
             return
           }
-          finish(null)
         })
         .build()
       pickerInstance.setVisible(true)
