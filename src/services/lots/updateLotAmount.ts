@@ -7,7 +7,7 @@ export function parseLotPurchaseAmountInput(raw: string): number | null {
   const trimmed = raw.trim().replace(',', '.')
   if (trimmed === '') return null
   const n = parseFloat(trimmed)
-  if (!Number.isFinite(n) || n <= 0) return null
+  if (!Number.isFinite(n) || n < 0) return null
   return n
 }
 
@@ -33,8 +33,8 @@ export async function updateLotFields(
   if (!Number.isFinite(fields.quantity) || fields.quantity <= 0) {
     throw new Error('Lot quantity must be a positive number')
   }
-  if (!Number.isFinite(fields.amount) || fields.amount <= 0) {
-    throw new Error('Lot amount must be a positive number')
+  if (!Number.isFinite(fields.amount) || fields.amount < 0) {
+    throw new Error('Lot amount must be a non-negative number')
   }
 
   const row: Record<string, unknown> = {

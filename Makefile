@@ -66,10 +66,13 @@ add-dev:
 	$(APP) pnpm add -D $(PKG)
 
 # ============ QUALITY ============
-# Run all quality checks. Use this before finishing any code change.
-quality-gate: build lint test e2e-test
+# Local quality gate: build, lint, unit tests. Use before finishing any code change.
+# E2E runs on GitHub CI on pull requests; run `make e2e-test` locally for full-stack
+# Playwright checks (e.g. flows covered by e2e) or when reproducing a CI e2e failure.
+quality-gate: build lint test
 	@echo ""
-	@echo "✅ Quality gate passed"
+	@echo "✅ Quality gate passed (build, lint, unit tests)"
+	@echo "   E2E: runs in GitHub CI; optional locally via make e2e-test"
 
 lint:
 	$(APP) pnpm lint

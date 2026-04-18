@@ -263,7 +263,7 @@
     "amountInvalid": "Introduce un importe de gasto válido (número negativo, p. ej. -29,99).",
     "lotSumMismatch": "Los importes de los lotes suman {{sumLots}} € pero el total de este gasto es {{absTxn}} €. Ajusta los campos para que coincidan antes de guardar.",
     "lotSumMismatchSaveBlocked": "Los importes de los lotes suman {{sumLots}} € pero el total del gasto es {{absTxn}} €. Haz que los totales coincidan antes de guardar.",
-    "lotAmountInvalid": "Introduce un importe positivo para este lote (p. ej. 29,99).",
+    "lotAmountInvalid": "Introduce un importe no negativo para este lote (p. ej. 0 o 29,99).",
     "lotQuantityInvalid": "Introduce una cantidad positiva para este lote (p. ej. 1000)."
   },
   "inventoryDetail": {
@@ -285,7 +285,19 @@
     "thresholdsHeading": "Umbrales de stock bajo",
     "thresholdYellow": "Atención (amarillo)",
     "thresholdOrange": "Bajo (naranja)",
-    "thresholdRed": "Crítico (rojo)"
+    "thresholdRed": "Crítico (rojo)",
+    "qtyHeading": "Cantidad en almacén",
+    "saveQty": "Guardar cantidad",
+    "qtyInvalid": "Introduce un número entero no negativo para la cantidad actual.",
+    "qtySaveError": "No se pudo guardar la cantidad.",
+    "lotActions": "Acciones",
+    "saveLot": "Guardar lote",
+    "lotQuantityInvalid": "Introduce una cantidad positiva para este lote.",
+    "lotAmountInvalid": "Introduce un importe no negativo para este lote (0 permitido).",
+    "lotSaveError": "No se pudo guardar el lote.",
+    "archiveConfirmTitle": "¿Archivar inventario?",
+    "archiveConfirmMessage": "¿Archivar «{{name}}» y todos sus lotes de compra? Puedes desarchivar desde la hoja si hace falta.",
+    "archiveError": "No se pudo archivar este artículo."
   },
   "transactions": {
     "date": "Fecha",

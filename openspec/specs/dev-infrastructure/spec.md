@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), GitHub Actions CI on pull requests to `main` (Docker `app` image, install, `make build`, `make lint`, `make test`; Playwright image build and `make e2e-test`), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory quality gates locally and for agents (build, lint, unit tests, e2e), Playwright coverage mapped to feature specs, shared e2e auth/shop setup (setup project and `storageState`), multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers, setup project).
+Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), GitHub Actions CI on pull requests to `main` (Docker `app` image, install, `make build`, `make lint`, `make test`; Playwright image build and `make e2e-test`), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory local/agent `make quality-gate` (build, lint, unit tests only) plus pull-request CI that additionally runs `make e2e-test`, emphasis on thorough Vitest coverage to reduce preventable CI e2e failures, Playwright coverage mapped to feature specs, shared e2e auth/shop setup (setup project and `storageState`), multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers, setup project).
 
 ## Repository documentation
 
 ### Requirement: Root README documents developer onboarding
 
-The repository SHALL include a `README.md` file at the project root. The README SHALL provide a concise overview of illo3d (3D print shop management), list prerequisites (Docker and `make`), document first-time setup using `make init` and day-to-day development with `make dev`, summarize the tech stack (React, TypeScript, Vite, Tailwind, testing tools as used in the repo), group available Makefile targets by purpose (e.g. setup, Docker, development, quality, utilities), and explain how to run automated checks: `make test`, `make e2e-test`, and the full `make quality-gate` sequence.
+The repository SHALL include a `README.md` file at the project root. The README SHALL provide a concise overview of illo3d (3D print shop management), list prerequisites (Docker and `make`), document first-time setup using `make init` and day-to-day development with `make dev`, summarize the tech stack (React, TypeScript, Vite, Tailwind, testing tools as used in the repo), group available Makefile targets by purpose (e.g. setup, Docker, development, quality, utilities), and explain how to run automated checks: `make test`, `make e2e-test`, and `make quality-gate` (build, lint, unit tests; `make quality-gate` does not run `make e2e-test`), and that CI runs `make e2e-test` on pull requests.
 
 #### Scenario: New developer follows README setup
 
@@ -18,7 +18,7 @@ The repository SHALL include a `README.md` file at the project root. The README 
 #### Scenario: README lists quality commands
 
 - **WHEN** a developer reads the quality or testing section of `README.md`
-- **THEN** the document describes `make test`, `make e2e-test`, and `make quality-gate` and what each is for
+- **THEN** the document describes `make test`, `make e2e-test`, and `make quality-gate` and what each is for, including that `make quality-gate` is build, lint, and unit tests only while e2e is separate and runs in CI
 
 ## Docker development environment
 
@@ -236,7 +236,7 @@ ESLint SHALL report zero errors and zero warnings when running `make lint`. All 
 
 ### Requirement: All tests pass
 
-The full test suite SHALL pass when running `make test`. Stale tests MUST be updated to match current component behavior.
+The full test suite SHALL pass when running `make test`. Stale tests MUST be updated to match current component behavior. For changes touching business logic, services, hooks, or testable UI behavior, developers and agents SHOULD add or extend Vitest coverage on affected paths so defects surface in unit tests rather than only in CI e2e.
 
 #### Scenario: Full test suite passes
 
@@ -252,20 +252,21 @@ The full Playwright e2e test suite SHALL pass when running `make e2e-test`. All 
 - **WHEN** developer runs `make e2e-test`
 - **THEN** Playwright reports all e2e spec files passed with 0 failures
 
-#### Scenario: E2E is required before merge via CI and local or agent quality gate
+#### Scenario: E2E is required before merge via CI
 
-- **WHEN** a change is considered ready to merge
-- **THEN** the pull request workflow has completed `make e2e-test` successfully on `main`
-- **AND** project rules and review practice MAY additionally require local or agent `make quality-gate` before merge
+- **WHEN** a change is considered ready to merge to `main`
+- **THEN** the pull request workflow has completed `make e2e-test` successfully
+- **AND** project rules and review practice MAY additionally require local or agent `make quality-gate` before merge (which does not run e2e)
+- **AND** developers or agents MAY run `make e2e-test` locally when changing Playwright-covered flows or when reproducing a CI e2e failure
 
 ### Requirement: Cursor rule enforces quality gates
 
-A Cursor rule SHALL exist that instructs AI agents to validate build, lint, test, and e2e-test results before considering implementation complete. The rule SHALL also enforce that all pnpm and docker commands are executed through Makefile targets.
+A Cursor rule SHALL exist that instructs AI agents to run `make quality-gate` (build, lint, unit tests) before considering implementation complete, emphasizes thorough unit tests as the primary guardrail before CI e2e, and instructs that `make e2e-test` is not part of `make quality-gate` but SHOULD be run locally when appropriate for Playwright-covered changes or CI e2e failures. The rule SHALL also enforce that all pnpm and docker commands are executed through Makefile targets.
 
 #### Scenario: AI agent validates quality after changes
 
 - **WHEN** AI agent completes a code change
-- **THEN** the agent runs `make build`, `make lint`, `make test`, and `make e2e-test` to verify zero errors before finishing
+- **THEN** the agent runs `make quality-gate` so that `make build`, `make lint`, and `make test` all complete with zero errors before finishing
 
 #### Scenario: AI agent uses Makefile commands
 
@@ -510,9 +511,9 @@ The system SHALL have Playwright coverage that verifies the Expenses list view s
 - **AND** the app navigates to the expenses view
 - **THEN** the expenses UI shows content that reflects those values within a bounded timeout
 
-### Requirement: E2E tests run via Makefile and pass before merge
+### Requirement: E2E tests run via Makefile and pass in CI before merge
 
-The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL start a dedicated Vite server with ephemeral fixtures, run Playwright against it, and clean up afterward. The target SHALL NOT modify `public/fixtures/`. All e2e tests SHALL pass with zero failures before considering implementation complete (locally, via `make quality-gate`, or as required by project automation rules). GitHub Actions CI SHALL execute `make e2e-test` as part of the pull request workflow.
+The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL start a dedicated Vite server with ephemeral fixtures, run Playwright against it, and clean up afterward. The target SHALL NOT modify `public/fixtures/`. The local `make quality-gate` target SHALL NOT run `make e2e-test`. Before a change merges to `main`, GitHub Actions CI SHALL execute `make e2e-test` as part of the pull request workflow and that step SHALL exit with code 0. Developers and agents MAY run `make e2e-test` locally when validating Playwright-covered behavior.
 
 #### Scenario: E2E tests run via Makefile
 

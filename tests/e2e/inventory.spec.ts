@@ -98,4 +98,53 @@ test.describe('Inventory page', () => {
     await expect(page).toHaveURL(/\/inventory\/INV2/)
     await expect(page.getByTestId('inventory-detail-warn-yellow')).toHaveValue('10')
   })
+
+  test('saves qty_current on inventory detail', async ({ page, openCsvShop }) => {
+    void openCsvShop
+    await page.goto('/inventory/INV1')
+    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('heading', { name: 'PLA White' })).toBeVisible({
+      timeout: 10000,
+    })
+
+    const qty = page.getByTestId('inventory-detail-qty-current')
+    await qty.fill('900')
+    await page.getByTestId('inventory-detail-save-qty').click()
+    await expect(qty).toHaveValue('900')
+
+    await page.getByRole('link', { name: 'Inventory', exact: true }).first().click()
+    await expect(page).toHaveURL(/\/inventory$/)
+    await page.getByTestId('inventory-table-link-INV1').click()
+    await expect(page.getByTestId('inventory-detail-qty-current')).toHaveValue('900')
+  })
+
+  test('saves lot quantity on inventory detail', async ({ page, openCsvShop }) => {
+    void openCsvShop
+    await page.goto('/inventory/INV1')
+    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
+
+    const qtyInput = page.getByTestId('inventory-detail-lot-qty-L1')
+    await expect(qtyInput).toBeVisible({ timeout: 10000 })
+    await qtyInput.fill('1200')
+    await page.getByTestId('inventory-detail-save-lot-L1').click()
+    await expect(qtyInput).toHaveValue('1200')
+  })
+
+  test('archive inventory removes from list and shows not-found', async ({
+    page,
+    openCsvShop,
+  }) => {
+    void openCsvShop
+    await page.goto('/inventory/INV2')
+    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('heading', { name: /Ender 3/i })).toBeVisible({
+      timeout: 10000,
+    })
+
+    await page.getByTestId('entity-detail-delete').click()
+    await page.getByRole('dialog').getByRole('button', { name: /^archive$/i }).click()
+
+    await expect(page).toHaveURL(/\/inventory$/)
+    await expect(page.getByTestId('inventory-table-link-INV2')).not.toBeVisible()
+  })
 })

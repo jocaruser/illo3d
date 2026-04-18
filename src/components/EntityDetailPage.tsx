@@ -19,6 +19,8 @@ interface EntityDetailPageProps {
   belowFields?: ReactNode
   /** When true, the Edit / Delete buttons are not shown. */
   hidePrimaryActions?: boolean
+  /** When true with `hidePrimaryActions` false, only the delete (e.g. archive) button is shown. */
+  hideEditButton?: boolean
   children?: ReactNode
 }
 
@@ -33,6 +35,7 @@ export function EntityDetailPage({
   onDelete,
   belowFields,
   hidePrimaryActions = false,
+  hideEditButton = false,
   children,
 }: EntityDetailPageProps) {
   return (
@@ -60,14 +63,16 @@ export function EntityDetailPage({
           </div>
           {hidePrimaryActions ? null : (
             <div className="flex shrink-0 gap-2">
-              <button
-                type="button"
-                data-testid="entity-detail-edit"
-                onClick={onEdit}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                {editLabel}
-              </button>
+              {hideEditButton ? null : (
+                <button
+                  type="button"
+                  data-testid="entity-detail-edit"
+                  onClick={onEdit}
+                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                >
+                  {editLabel}
+                </button>
+              )}
               <button
                 type="button"
                 data-testid="entity-detail-delete"

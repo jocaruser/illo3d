@@ -69,8 +69,8 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 | `make lint` | ESLint |
 | `make format` | Prettier (write) |
 | `make test` | Vitest unit tests |
-| `make e2e-test` | Playwright e2e (dedicated Vite on port 5174, ephemeral fixtures) |
-| `make quality-gate` | **`build` → `lint` → `test` → `e2e-test`** — run before merging or when finishing a change |
+| `make e2e-test` | Playwright e2e (dedicated Vite on port 5174, ephemeral fixtures); also runs in GitHub CI on PRs |
+| `make quality-gate` | **`build` → `lint` → `test`** — local/agent check before finishing a change (fast; no e2e) |
 
 ### Data / fixtures
 
@@ -89,9 +89,9 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 
 ## Tests
 
-- **Unit tests:** `make test` (Vitest).
-- **E2E tests:** `make e2e-test` (Playwright; uses Dev Login and isolated fixture root — does not modify `public/fixtures/`).
-- **Full gate:** `make quality-gate` — required for CI-style verification (build, lint, unit, e2e).
+- **Unit tests:** `make test` (Vitest). Prefer strong coverage on changed code so logic bugs surface before CI.
+- **E2E tests:** `make e2e-test` (Playwright; uses Dev Login and isolated fixture root — does not modify `public/fixtures/`). Every PR runs this in GitHub Actions; run it locally when changing flows Playwright covers or when reproducing a CI e2e failure.
+- **Local quality gate:** `make quality-gate` — **build**, **lint**, and **unit tests** only (fast feedback). CI still runs **e2e** after unit tests.
 
 ## Tech stack summary
 

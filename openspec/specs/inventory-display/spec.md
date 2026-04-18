@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Inventory **list** on `/inventory`: table backed by the workbook store after hydration, header navigation, average unit cost from lots, configurable low-stock thresholds, localized UI strings (English and Spanish), and no edit controls in the list UI. Inventory **detail** on `/inventory/:inventoryId`: item header, editable low-stock thresholds, purchase lots linked to transactions, and consumption derived from piece items; localized UI strings.
+Inventory **list** on `/inventory`: table backed by the workbook store after hydration, header navigation, average unit cost from lots, configurable low-stock thresholds, localized UI strings (English and Spanish), and no edit controls in the list UI. Inventory **detail** on `/inventory/:inventoryId`: item header, editable on-hand `qty_current`, editable low-stock thresholds, archive (soft) with cascade to lots, editable purchase lot quantity and amount in the lots table, purchase lots linked to transactions, and consumption derived from piece items; localized UI strings.
 
 ## Requirements
 
@@ -120,7 +120,7 @@ The system SHALL parse inventory data from the workbook store via `matrixToInven
 
 ### Requirement: Inventory UI strings support i18n
 
-All user-facing strings on the **inventory list** page and the **inventory detail** page (page titles, table headers, empty states, type labels, cost column header, section titles for lots and consumption, not-found copy, threshold labels, and save/validation feedback for threshold edits) SHALL use i18next for translation support in both English and Spanish.
+All user-facing strings on the **inventory list** page and the **inventory detail** page (page titles, table headers, empty states, type labels, cost column header, section titles for lots and consumption, not-found copy, threshold labels, **qty_current** edit labels and save/validation feedback, **lot quantity and amount** edit labels and save/validation feedback, **archive** confirmation and result messaging, and save/validation feedback for threshold edits) SHALL use i18next for translation support in both English and Spanish.
 
 #### Scenario: Table headers are translatable
 
@@ -135,7 +135,7 @@ All user-facing strings on the **inventory list** page and the **inventory detai
 #### Scenario: Detail page strings are translatable
 
 - **WHEN** user views inventory detail for a valid item
-- **THEN** all new user-visible labels and messages on that page come from i18n keys
+- **THEN** all user-visible labels and messages on that page come from i18n keys
 
 ### Requirement: Inventory detail route and access control
 
@@ -166,12 +166,12 @@ The system SHALL provide navigation from each inventory list row to `/inventory/
 
 ### Requirement: Inventory detail header and threshold editing
 
-The inventory detail page SHALL display the item **name**, **type** (localized), **`qty_current`**, and **average unit cost** using the same weighted average rule as the inventory list for active lots. The page SHALL allow the user to edit **`warn_yellow`**, **`warn_orange`**, and **`warn_red`** and persist changes to the inventory sheet. The list page SHALL remain read-only for these fields.
+The inventory detail page SHALL display the item **name**, **type** (localized), and **average unit cost** using the same weighted average rule as the inventory list for active lots. The page SHALL allow the user to edit **`qty_current`** as a non-negative integer (or whole-number quantity consistent with existing inventory parsing) and persist changes to the inventory sheet independently of lot rows. The page SHALL allow the user to edit **`warn_yellow`**, **`warn_orange`**, and **`warn_red`** and persist changes to the inventory sheet. The page SHALL provide an **archive** control that marks the inventory row with the same soft-archive lifecycle pattern (`archived`) used for other primary entities. The list page SHALL remain read-only for name, type, qty_current, thresholds, archive, and lot fields.
 
 #### Scenario: Header shows identity and cost
 
 - **WHEN** user views inventory detail for an item with known lots
-- **THEN** name, localized type, qty_current, and avg unit cost are visible
+- **THEN** name, localized type, and avg unit cost are visible
 - **AND** avg unit cost matches the list formula for active lots
 
 #### Scenario: User updates thresholds
@@ -180,9 +180,23 @@ The inventory detail page SHALL display the item **name**, **type** (localized),
 - **THEN** the workbook stores updated warn_yellow, warn_orange, and warn_red for that inventory id
 - **AND** subsequent list and detail views reflect the new values
 
+#### Scenario: User updates qty_current
+
+- **WHEN** user changes qty_current on inventory detail and commits
+- **THEN** the workbook stores the updated qty_current for that inventory id
+- **AND** subsequent list and detail views reflect the new value
+- **AND** lot rows are unchanged by this operation
+
+#### Scenario: User archives inventory
+
+- **WHEN** user invokes archive from inventory detail and confirms
+- **THEN** the inventory row is marked archived per workbook lifecycle rules
+- **AND** the item no longer appears as an active row on `/inventory`
+- **AND** navigating to `/inventory/:inventoryId` for that id treats the item as absent for active-detail purposes (same not-found behavior as other archived primary entities)
+
 ### Requirement: Inventory detail lots section
 
-The inventory detail page SHALL show a table (or equivalent) of **active** lots for that `inventory_id`, including **created date**, **quantity**, **amount** (cost), and a **link** to the related **expense transaction detail**. Lots excluded from average unit cost (archived/deleted) SHALL be excluded from this table. Lots SHALL be ordered by `created_at` descending. The link SHALL navigate to **`/transactions/:transactionId`** using the lot’s **`transaction_id`**. The visible link text MAY be the resolved transaction **concept**, the **transaction id**, or equivalent concise labeling.
+The inventory detail page SHALL show a table (or equivalent) of **active** lots for that `inventory_id`, including **created date**, **quantity**, **amount** (cost), and a **link** to the related **transaction** using the lot’s **`transaction_id`**. The table SHALL allow the user to edit each lot’s **quantity** and **amount** in place and persist changes to the lots sheet only. The system SHALL NOT automatically update **`qty_current`** on the inventory row when a lot’s quantity or amount changes from this page. The system SHALL NOT require updating the linked transaction’s **`amount`** when a lot is edited from this page. Lot field validation SHALL reject non-finite or non-positive **quantity** values and non-finite or negative **amount** values (amount **zero** SHALL be allowed), consistent with existing lot update validation. Lots excluded from average unit cost (archived/deleted) SHALL be excluded from this table. Lots SHALL be ordered by `created_at` descending. The link SHALL navigate to **`/transactions/:transactionId`** using the lot’s **`transaction_id`**. The visible link text MAY be the resolved transaction **concept**, the **transaction id**, or equivalent concise labeling.
 
 #### Scenario: Lots render with transaction link
 
@@ -193,6 +207,29 @@ The inventory detail page SHALL show a table (or equivalent) of **active** lots 
 
 - **WHEN** an item has no active lots
 - **THEN** the lots section does not imply purchases exist (simple empty presentation consistent with the single empty pattern requirement)
+
+#### Scenario: User edits lot quantity and amount
+
+- **WHEN** user changes a lot’s quantity and/or amount in the lots table and commits
+- **THEN** the workbook stores the updated quantity and amount on that lot id
+- **AND** the inventory row’s qty_current is unchanged unless the user separately edits it
+- **AND** subsequent views of average unit cost reflect the updated lot values when the lot remains active
+
+### Requirement: Inventory archive cascades active lots
+
+When an inventory item is archived from inventory detail, the system SHALL mark every **active** lot whose `inventory_id` equals that inventory id as **archived** using the same lifecycle field conventions as other archived lot rows. The system SHALL NOT remove inventory or lot rows from the sheet as part of this flow.
+
+#### Scenario: Lots archived with inventory
+
+- **WHEN** user confirms archive for an inventory item that has two active lots
+- **THEN** both lots are marked archived
+- **AND** neither lot appears in the active lots table on inventory detail for that id (detail is not shown for archived inventory per active-detail rules)
+
+#### Scenario: Inventory with no lots still archives
+
+- **WHEN** user confirms archive for an inventory item that has zero active lots
+- **THEN** the inventory row is marked archived
+- **AND** no error is raised for missing lots
 
 ### Requirement: Inventory detail consumption section
 

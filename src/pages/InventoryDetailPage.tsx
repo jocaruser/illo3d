@@ -1,16 +1,24 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { ConnectionStatus } from '@/components/ConnectionStatus'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { deleteInventory } from '@/services/inventory/deleteInventory'
+import { updateInventoryQtyCurrent } from '@/services/inventory/updateInventoryQtyCurrent'
+import { updateInventoryThresholds } from '@/services/inventory/updateInventoryThresholds'
+import {
+  parseLotPurchaseAmountInput,
+  parseLotQuantityInput,
+  updateLotFields,
+} from '@/services/lots/updateLotAmount'
 import { computeAvgUnitCost } from '@/utils/avgUnitCost'
 import { formatCurrency } from '@/utils/money'
 import { formatInventoryCreatedDate } from '@/services/sheets/inventory'
-import { updateInventoryThresholds } from '@/services/inventory/updateInventoryThresholds'
 import { buildInventoryConsumptionRows } from '@/lib/inventoryDetail/consumptionRows'
 import type { Inventory, Lot, Transaction } from '@/types/money'
 
@@ -22,8 +30,17 @@ function isActiveLot(l: Lot): boolean {
   return l.archived !== 'true' && l.deleted !== 'true'
 }
 
+function parseQtyCurrentInput(raw: string): number | null {
+  const trimmed = raw.trim()
+  if (trimmed === '') return null
+  const n = parseInt(trimmed, 10)
+  if (!Number.isFinite(n) || n < 0) return null
+  return n
+}
+
 export function InventoryDetailPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { inventoryId = '' } = useParams<{ inventoryId: string }>()
   const {
     spreadsheetId,
@@ -55,28 +72,55 @@ export function InventoryDetailPage() {
 
   const consumptionRows = useMemo(
     () => buildInventoryConsumptionRows(inventoryId, pieceItems, pieces, jobs),
-    [inventoryId, pieceItems, pieces, jobs]
+    [inventoryId, pieceItems, pieces, jobs],
   )
 
   const avgCost = useMemo(() => {
     if (!item) return null
     return computeAvgUnitCost(
-      allLots.filter((l) => l.inventory_id === item.id && isActiveLot(l))
+      allLots.filter((l) => l.inventory_id === item.id && isActiveLot(l)),
     )
   }, [item, allLots])
+
+  const [qtyInput, setQtyInput] = useState('')
+  const [qtySaveError, setQtySaveError] = useState<string | null>(null)
+  const [qtySaveBusy, setQtySaveBusy] = useState(false)
 
   const [warnYellow, setWarnYellow] = useState('0')
   const [warnOrange, setWarnOrange] = useState('0')
   const [warnRed, setWarnRed] = useState('0')
-  const [saveError, setSaveError] = useState<string | null>(null)
-  const [saveBusy, setSaveBusy] = useState(false)
+  const [thresholdSaveError, setThresholdSaveError] = useState<string | null>(null)
+  const [thresholdSaveBusy, setThresholdSaveBusy] = useState(false)
+
+  const [lotQuantityInputs, setLotQuantityInputs] = useState<Record<string, string>>({})
+  const [lotAmountInputs, setLotAmountInputs] = useState<Record<string, string>>({})
+  const [lotSaveBusyId, setLotSaveBusyId] = useState<string | null>(null)
+  const [lotSaveError, setLotSaveError] = useState<string | null>(null)
+
+  const [archiveTarget, setArchiveTarget] = useState<Inventory | null>(null)
+  const [archiveError, setArchiveError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!item) return
     setWarnYellow(String(item.warn_yellow))
     setWarnOrange(String(item.warn_orange))
     setWarnRed(String(item.warn_red))
+    setQtyInput(String(Math.floor(item.qty_current)))
   }, [item])
+
+  const lotsSignature = useMemo(
+    () => lotsForItem.map((l) => `${l.id}\0${l.amount}\0${l.quantity}`).join('\n'),
+    [lotsForItem],
+  )
+
+  useEffect(() => {
+    setLotQuantityInputs(
+      Object.fromEntries(lotsForItem.map((l) => [l.id, String(l.quantity)])),
+    )
+    setLotAmountInputs(Object.fromEntries(lotsForItem.map((l) => [l.id, String(l.amount)])))
+    setLotSaveError(null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset when server-backed lot data changes
+  }, [lotsSignature])
 
   const detailFields =
     item != null
@@ -85,10 +129,6 @@ export function InventoryDetailPage() {
           {
             label: t('inventory.typeLabel'),
             value: t(`inventory.type.${item.type}`),
-          },
-          {
-            label: t('inventory.qtyCurrent'),
-            value: String(item.qty_current),
           },
           {
             label: t('inventory.avgUnitCost'),
@@ -108,8 +148,8 @@ export function InventoryDetailPage() {
 
   const onSaveThresholds = async () => {
     if (!spreadsheetId || !item) return
-    setSaveError(null)
-    setSaveBusy(true)
+    setThresholdSaveError(null)
+    setThresholdSaveBusy(true)
     try {
       await updateInventoryThresholds(spreadsheetId, item.id, {
         warn_yellow: parseThresholdInput(warnYellow),
@@ -117,17 +157,108 @@ export function InventoryDetailPage() {
         warn_red: parseThresholdInput(warnRed),
       })
     } catch (e) {
-      setSaveError(
-        e instanceof Error ? e.message : t('inventoryDetail.saveError')
+      setThresholdSaveError(
+        e instanceof Error ? e.message : t('inventoryDetail.saveError'),
       )
     } finally {
-      setSaveBusy(false)
+      setThresholdSaveBusy(false)
+    }
+  }
+
+  const onSaveQtyCurrent = async () => {
+    if (!spreadsheetId || !item) return
+    setQtySaveError(null)
+    const parsed = parseQtyCurrentInput(qtyInput)
+    if (parsed == null) {
+      setQtySaveError(t('inventoryDetail.qtyInvalid'))
+      return
+    }
+    setQtySaveBusy(true)
+    try {
+      await updateInventoryQtyCurrent(spreadsheetId, item.id, parsed)
+    } catch (e) {
+      setQtySaveError(
+        e instanceof Error ? e.message : t('inventoryDetail.qtySaveError'),
+      )
+    } finally {
+      setQtySaveBusy(false)
+    }
+  }
+
+  const onSaveLot = async (lot: Lot) => {
+    if (!spreadsheetId) return
+    setLotSaveError(null)
+    const qty = parseLotQuantityInput(lotQuantityInputs[lot.id] ?? '')
+    const amt = parseLotPurchaseAmountInput(lotAmountInputs[lot.id] ?? '')
+    if (qty == null) {
+      setLotSaveError(t('inventoryDetail.lotQuantityInvalid'))
+      return
+    }
+    if (amt == null) {
+      setLotSaveError(t('inventoryDetail.lotAmountInvalid'))
+      return
+    }
+    setLotSaveBusyId(lot.id)
+    try {
+      await updateLotFields(spreadsheetId, lot.id, { quantity: qty, amount: amt })
+    } catch (e) {
+      setLotSaveError(
+        e instanceof Error ? e.message : t('inventoryDetail.lotSaveError'),
+      )
+    } finally {
+      setLotSaveBusyId(null)
+    }
+  }
+
+  const confirmArchiveInventory = async () => {
+    if (!spreadsheetId || !archiveTarget) return
+    setArchiveError(null)
+    try {
+      await deleteInventory(spreadsheetId, archiveTarget.id)
+      setArchiveTarget(null)
+      navigate('/inventory')
+    } catch (e) {
+      setArchiveError(
+        e instanceof Error ? e.message : t('inventoryDetail.archiveError'),
+      )
     }
   }
 
   const thresholdEditor =
     item != null ? (
       <div className="space-y-3 border-t border-gray-100 pt-4">
+        <p className="text-sm font-medium text-gray-700">
+          {t('inventoryDetail.qtyHeading')}
+        </p>
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="block text-sm text-gray-600">
+            <span className="mb-1 block">{t('inventory.qtyCurrent')}</span>
+            <input
+              type="number"
+              min={0}
+              step={1}
+              data-testid="inventory-detail-qty-current"
+              className="w-40 rounded border border-gray-300 px-2 py-1.5 text-sm"
+              value={qtyInput}
+              onChange={(e) => setQtyInput(e.target.value)}
+            />
+          </label>
+          <button
+            type="button"
+            data-testid="inventory-detail-save-qty"
+            disabled={qtySaveBusy}
+            onClick={() => void onSaveQtyCurrent()}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          >
+            {qtySaveBusy ? t('inventoryDetail.saving') : t('inventoryDetail.saveQty')}
+          </button>
+        </div>
+        {qtySaveError ? (
+          <p className="text-sm text-red-600" role="alert">
+            {qtySaveError}
+          </p>
+        ) : null}
+
         <p className="text-sm font-medium text-gray-700">
           {t('inventoryDetail.thresholdsHeading')}
         </p>
@@ -169,19 +300,21 @@ export function InventoryDetailPage() {
             />
           </label>
         </div>
-        {saveError ? (
+        {thresholdSaveError ? (
           <p className="text-sm text-red-600" role="alert">
-            {saveError}
+            {thresholdSaveError}
           </p>
         ) : null}
         <button
           type="button"
           data-testid="inventory-detail-save-thresholds"
-          disabled={saveBusy}
+          disabled={thresholdSaveBusy}
           onClick={() => void onSaveThresholds()}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {saveBusy ? t('inventoryDetail.saving') : t('inventoryDetail.saveThresholds')}
+          {thresholdSaveBusy
+            ? t('inventoryDetail.saving')
+            : t('inventoryDetail.saveThresholds')}
         </button>
       </div>
     ) : null
@@ -234,12 +367,20 @@ export function InventoryDetailPage() {
             title={item.name}
             fields={detailFields}
             editLabel=""
-            deleteLabel=""
+            deleteLabel={t('lifecycle.archive')}
             onEdit={() => {}}
-            onDelete={() => {}}
-            hidePrimaryActions
+            onDelete={() => {
+              setArchiveError(null)
+              setArchiveTarget(item)
+            }}
+            hideEditButton
             belowFields={thresholdEditor}
           >
+            {lotSaveError ? (
+              <p className="mb-4 text-sm text-red-600" role="alert">
+                {lotSaveError}
+              </p>
+            ) : null}
             {showCombinedEmpty ? (
               <EmptyState messageKey="inventoryDetail.sectionsEmpty" />
             ) : (
@@ -265,6 +406,9 @@ export function InventoryDetailPage() {
                             <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
                               {t('inventoryDetail.transaction')}
                             </th>
+                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">
+                              {t('inventoryDetail.lotActions')}
+                            </th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200 bg-white">
@@ -275,11 +419,35 @@ export function InventoryDetailPage() {
                                 <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                                   {formatInventoryCreatedDate(lot.created_at)}
                                 </td>
-                                <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">
-                                  {lot.quantity}
+                                <td className="whitespace-nowrap px-4 py-3 text-right align-top">
+                                  <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    data-testid={`inventory-detail-lot-qty-${lot.id}`}
+                                    className="w-24 rounded border border-gray-300 px-2 py-1 text-right text-sm"
+                                    value={lotQuantityInputs[lot.id] ?? ''}
+                                    onChange={(e) =>
+                                      setLotQuantityInputs((prev) => ({
+                                        ...prev,
+                                        [lot.id]: e.target.value,
+                                      }))
+                                    }
+                                  />
                                 </td>
-                                <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">
-                                  {formatCurrency(lot.amount)}
+                                <td className="whitespace-nowrap px-4 py-3 text-right align-top">
+                                  <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    data-testid={`inventory-detail-lot-amt-${lot.id}`}
+                                    className="w-28 rounded border border-gray-300 px-2 py-1 text-right text-sm"
+                                    value={lotAmountInputs[lot.id] ?? ''}
+                                    onChange={(e) =>
+                                      setLotAmountInputs((prev) => ({
+                                        ...prev,
+                                        [lot.id]: e.target.value,
+                                      }))
+                                    }
+                                  />
                                 </td>
                                 <td className="px-4 py-3 text-sm">
                                   {tx ? (
@@ -298,6 +466,19 @@ export function InventoryDetailPage() {
                                       {lot.transaction_id}
                                     </Link>
                                   )}
+                                </td>
+                                <td className="whitespace-nowrap px-4 py-3 text-right">
+                                  <button
+                                    type="button"
+                                    data-testid={`inventory-detail-save-lot-${lot.id}`}
+                                    disabled={lotSaveBusyId !== null}
+                                    onClick={() => void onSaveLot(lot)}
+                                    className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                  >
+                                    {lotSaveBusyId === lot.id
+                                      ? t('inventoryDetail.saving')
+                                      : t('inventoryDetail.saveLot')}
+                                  </button>
                                 </td>
                               </tr>
                             )
@@ -362,6 +543,25 @@ export function InventoryDetailPage() {
               </div>
             )}
           </EntityDetailPage>
+
+          <ConfirmDialog
+            isOpen={archiveTarget !== null}
+            title={t('inventoryDetail.archiveConfirmTitle')}
+            message={t('inventoryDetail.archiveConfirmMessage', {
+              name: archiveTarget?.name ?? '',
+            })}
+            confirmLabel={t('lifecycle.archive')}
+            cancelLabel={t('clients.cancel')}
+            onConfirm={() => void confirmArchiveInventory()}
+            onCancel={() => {
+              setArchiveTarget(null)
+              setArchiveError(null)
+            }}
+          >
+            {archiveError ? (
+              <p className="text-sm text-red-600">{archiveError}</p>
+            ) : null}
+          </ConfirmDialog>
         </>
       )}
     </div>

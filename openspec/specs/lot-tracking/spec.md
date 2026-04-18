@@ -8,7 +8,7 @@ Lots as first-class inventory cost layers: sheet schema, parsing, workbook expos
 
 ### Requirement: Lot data model is defined
 
-The system SHALL support a lots data model with fields: id (string), inventory_id (string, FK to inventory), transaction_id (string, FK to transactions), quantity (number), amount (number, positive — cost of this lot), created_at (date).
+The system SHALL support a lots data model with fields: id (string), inventory_id (string, FK to inventory), transaction_id (string, FK to transactions), quantity (number), amount (number, non-negative — cost of this lot), created_at (date).
 
 #### Scenario: Lot references inventory and transaction
 
@@ -18,7 +18,7 @@ The system SHALL support a lots data model with fields: id (string), inventory_i
 #### Scenario: Lot preserves purchase cost
 
 - **WHEN** a lot is created with quantity 1000 and amount 29.99
-- **THEN** the lot row stores quantity=1000 and amount=29.99 (positive)
+- **THEN** the lot row stores quantity=1000 and amount=29.99 (strictly positive in this scenario)
 
 ### Requirement: Lots sheet is a first-class tab
 

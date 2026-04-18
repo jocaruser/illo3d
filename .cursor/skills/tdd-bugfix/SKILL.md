@@ -25,7 +25,7 @@ Use this when fixing a **confirmed bug** or **regression** and the user wants te
    - Keep scope tight: only what the failing test (and real bug) require.
 
 3. **Verify**  
-   - Run `make quality-gate` (build, lint, unit tests, e2e). All must pass per project rules.
+   - Run `make quality-gate` (build, lint, unit tests). All must pass per project rules.
 
 4. **Document in OpenSpec (when applicable)**  
    - If work sits under `openspec/changes/<name>/`, mention the new/updated test in the relevant task or design note when it helps future readers — without expanding scope beyond what the user asked.
