@@ -14,6 +14,7 @@ declare global {
         PickerBuilder: new () => unknown
         DocsView: new (viewId?: string) => GooglePickerDocsView
         Action: { PICKED: string; CANCEL: string; ERROR: string }
+        Response?: { ACTION: string; DOCUMENTS: string }
       }
     }
     gapi?: { load: (api: string, callback: () => void) => void }
