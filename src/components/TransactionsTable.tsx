@@ -16,8 +16,6 @@ interface TransactionsTableProps {
   clients: Client[]
   /** Expense transactions that have at least one lot link to inventory. */
   expenseTxnIdsWithLots?: Set<string>
-  /** First inventory id per expense transaction (from lots). */
-  inventoryIdByExpenseTxnId?: Map<string, string>
 }
 
 function getClientName(clients: Client[], clientId?: string): string {
@@ -52,14 +50,9 @@ function transactionComparable(
 function conceptCell(
   tx: Transaction,
   expenseTxnIdsWithLots: Set<string> | undefined,
-  inventoryIdByExpenseTxnId: Map<string, string> | undefined
 ) {
   const text = tx.concept
-  const link = getTransactionConceptLink(
-    tx,
-    expenseTxnIdsWithLots,
-    inventoryIdByExpenseTxnId
-  )
+  const link = getTransactionConceptLink(tx, expenseTxnIdsWithLots)
   if (!link) return text
   return (
     <Link
@@ -76,7 +69,6 @@ export function TransactionsTable({
   transactions,
   clients,
   expenseTxnIdsWithLots,
-  inventoryIdByExpenseTxnId,
 }: TransactionsTableProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
@@ -144,6 +136,9 @@ export function TransactionsTable({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
+                {t('jobs.colId')}
+              </th>
               <SortableColumnHeader
                 columnKey="date"
                 sortKey={sortKey}
@@ -208,7 +203,7 @@ export function TransactionsTable({
           <tbody className="divide-y divide-gray-200 bg-white">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-600">
+                <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-600">
                   {transactions.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -218,6 +213,19 @@ export function TransactionsTable({
                   key={tx.id}
                   className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
                 >
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                    {tx.type === 'expense' ? (
+                      <Link
+                        to={`/transactions/${tx.id}`}
+                        data-testid={`transaction-expense-detail-link-${tx.id}`}
+                        className="font-medium text-blue-600 hover:text-blue-800"
+                      >
+                        {tx.id}
+                      </Link>
+                    ) : (
+                      tx.id
+                    )}
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                     {tx.date}
                   </td>
@@ -235,7 +243,7 @@ export function TransactionsTable({
                     {tx.category}
                   </td>
                   <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 lg:table-cell">
-                    {conceptCell(tx, expenseTxnIdsWithLots, inventoryIdByExpenseTxnId)}
+                    {conceptCell(tx, expenseTxnIdsWithLots)}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 md:table-cell">
                     {tx.client_id ? (

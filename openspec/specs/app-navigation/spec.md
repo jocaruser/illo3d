@@ -8,7 +8,7 @@ Define how the authenticated app shell shows **current section** in the top navi
 
 ### Requirement: Top navigation shows active section
 
-The system SHALL render primary section links (Dashboard, Clients, Jobs, Transactions, Inventory) in the app header. When the user is authenticated and has an **active shop**, the system SHALL also render the **global entity search** control in the header (alongside—not instead of—section links). The link whose route matches the current location SHALL use visually distinct styling from inactive links so users can see which page they are on. The logo or home link behavior SHALL NOT cause every route to appear active. Focusing or typing in the global search SHALL NOT by itself change which section link is active; active styling SHALL depend only on the current route. The **Inventory** link SHALL use active styling when the path is **`/inventory`** or matches **`/inventory/:inventoryId`**.
+The system SHALL render primary section links (Dashboard, Clients, Jobs, Transactions, Inventory) in the app header. When the user is authenticated and has an **active shop**, the system SHALL also render the **global entity search** control in the header (alongside—not instead of—section links). The link whose route matches the current location SHALL use visually distinct styling from inactive links so users can see which page they are on. The logo or home link behavior SHALL NOT cause every route to appear active. Focusing or typing in the global search SHALL NOT by itself change which section link is active; active styling SHALL depend only on the current route. The **Transactions** link SHALL use active styling when the path is **`/transactions`** or matches **`/transactions/:transactionId`**. The **Inventory** link SHALL use active styling when the path is **`/inventory`** or matches **`/inventory/:inventoryId`**.
 
 #### Scenario: Dashboard nav is active on dashboard page
 
@@ -99,6 +99,17 @@ The system SHALL show the `Breadcrumbs` component on every page that uses the ma
 
 - **WHEN** authenticated user views the Transactions page
 - **THEN** breadcrumbs are visible above the main page content
+
+#### Scenario: Expense transaction detail shows breadcrumbs
+
+- **WHEN** authenticated user views `/transactions/T1` and T1’s concept is non-empty
+- **THEN** breadcrumbs are visible above the main page content
+- **AND** the trail is Home → Transactions → concept text
+
+#### Scenario: Expense transaction detail breadcrumb falls back to id
+
+- **WHEN** authenticated user views `/transactions/T1` and the concept is empty
+- **THEN** the last breadcrumb label is `T1`
 
 #### Scenario: Inventory page shows breadcrumbs
 

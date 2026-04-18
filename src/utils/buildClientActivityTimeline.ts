@@ -196,7 +196,7 @@ export function buildClientActivityTimeline(
   for (const tx of transactions) {
     if (tx.type !== 'income' || tx.client_id !== clientId) continue
     const sortMs = transactionDateToSortMs(tx.date)
-    const link = getTransactionConceptLink(tx, undefined, undefined)
+    const link = getTransactionConceptLink(tx, undefined)
     entries.push({
       kind: 'income',
       id: `income-${tx.id}`,

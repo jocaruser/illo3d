@@ -182,12 +182,12 @@ The inventory detail page SHALL display the item **name**, **type** (localized),
 
 ### Requirement: Inventory detail lots section
 
-The inventory detail page SHALL show a table (or equivalent) of **active** lots for that `inventory_id`, including **created date**, **quantity**, **amount** (cost), and a **link or navigation** to the related **transaction**. Lots excluded from average unit cost (archived/deleted) SHALL be excluded from this table. Lots SHALL be ordered by `created_at` descending.
+The inventory detail page SHALL show a table (or equivalent) of **active** lots for that `inventory_id`, including **created date**, **quantity**, **amount** (cost), and a **link** to the related **expense transaction detail**. Lots excluded from average unit cost (archived/deleted) SHALL be excluded from this table. Lots SHALL be ordered by `created_at` descending. The link SHALL navigate to **`/transactions/:transactionId`** using the lot’s **`transaction_id`**. The visible link text MAY be the resolved transaction **concept**, the **transaction id**, or equivalent concise labeling.
 
 #### Scenario: Lots render with transaction link
 
 - **WHEN** an item has at least one active lot with a valid `transaction_id`
-- **THEN** the lots section lists that lot with date, quantity, amount, and an affordance to open the linked transaction context
+- **THEN** the lots section lists that lot with date, quantity, amount, and a link to `/transactions/:transactionId` for that `transaction_id`
 
 #### Scenario: No lots
 

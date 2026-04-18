@@ -88,7 +88,7 @@ export function DashboardPage() {
     [allTransactions],
   )
 
-  const { expenseTxnIdsWithLots, inventoryIdByExpenseTxnId } = useMemo(
+  const { expenseTxnIdsWithLots } = useMemo(
     () => buildExpenseLotLinkMaps(lots),
     [lots],
   )
@@ -117,11 +117,7 @@ export function DashboardPage() {
   const recentTransactionRows: RecentListItem[] = useMemo(
     () =>
       transactions.map((tx) => {
-        const link = getTransactionConceptLink(
-          tx,
-          expenseTxnIdsWithLots,
-          inventoryIdByExpenseTxnId,
-        )
+        const link = getTransactionConceptLink(tx, expenseTxnIdsWithLots)
         return {
           id: tx.id,
           date: tx.date,
@@ -130,7 +126,7 @@ export function DashboardPage() {
           labelLink: link ?? undefined,
         }
       }),
-    [transactions, expenseTxnIdsWithLots, inventoryIdByExpenseTxnId],
+    [transactions, expenseTxnIdsWithLots],
   )
 
   return (

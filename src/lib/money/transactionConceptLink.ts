@@ -24,7 +24,6 @@ export function buildExpenseLotLinkMaps(lots: Lot[]): {
 export function getTransactionConceptLink(
   tx: Transaction,
   expenseTxnIdsWithLots: Set<string> | undefined,
-  inventoryIdByExpenseTxnId: Map<string, string> | undefined,
 ): TransactionConceptLink | null {
   if (tx.ref_type === 'job' && tx.ref_id) {
     return {
@@ -33,11 +32,9 @@ export function getTransactionConceptLink(
     }
   }
   if (tx.type === 'expense' && expenseTxnIdsWithLots?.has(tx.id)) {
-    const invId = inventoryIdByExpenseTxnId?.get(tx.id)
-    const to = invId ? `/inventory/${invId}` : '/inventory'
     return {
-      to,
-      testId: `transaction-concept-inventory-link-${tx.id}`,
+      to: `/transactions/${tx.id}`,
+      testId: `transaction-concept-expense-detail-link-${tx.id}`,
     }
   }
   return null

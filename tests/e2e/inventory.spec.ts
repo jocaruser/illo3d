@@ -52,7 +52,7 @@ test.describe('Inventory page', () => {
     await expect(page.getByRole('link', { name: /back to inventory|volver al inventario/i })).toBeVisible()
   })
 
-  test('lot-backed expense transaction links concept to inventory', async ({
+  test('lot-backed expense transaction links concept to expense detail', async ({
     page,
     openCsvShop,
   }) => {
@@ -65,14 +65,17 @@ test.describe('Inventory page', () => {
     })
 
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({ timeout: 15000 })
-    const link = page.getByTestId('transaction-concept-inventory-link-T11')
+    const link = page.getByTestId('transaction-concept-expense-detail-link-T11')
     await expect(link).toBeVisible({ timeout: 15000 })
     await expect(link).toHaveText(/PLA White/i)
     await link.click()
-    await expect(page).toHaveURL(/\/inventory\/INV1/)
+    await expect(page).toHaveURL(/\/transactions\/T11/)
     await expect(page.getByRole('heading', { name: /PLA White/i })).toBeVisible({
       timeout: 10000,
     })
+    await expect(
+      page.getByRole('heading', { name: /linked lots|lotes vinculados/i }),
+    ).toBeVisible()
   })
 
   test('saving thresholds on inventory detail', async ({ page, openCsvShop }) => {
