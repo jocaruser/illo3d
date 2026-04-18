@@ -52,6 +52,31 @@ describe('TransactionsTable', () => {
     expect(screen.getByText('Juan Pérez')).toBeInTheDocument()
   })
 
+  it('links expense id to expense transaction detail', () => {
+    render(
+      <MemoryRouter>
+        <TransactionsTable
+          transactions={[expenseTransaction]}
+          clients={mockClients}
+        />
+      </MemoryRouter>
+    )
+    const link = screen.getByTestId('transaction-expense-detail-link-t002')
+    expect(link).toHaveAttribute('href', '/transactions/t002')
+  })
+
+  it('does not link income id to expense detail', () => {
+    render(
+      <MemoryRouter>
+        <TransactionsTable transactions={[jobTransaction]} clients={mockClients} />
+      </MemoryRouter>
+    )
+    expect(
+      screen.queryByTestId('transaction-expense-detail-link-t001'),
+    ).not.toBeInTheDocument()
+    expect(screen.getByText('t001')).toBeInTheDocument()
+  })
+
   it('links job-backed concept to job detail', () => {
     render(
       <MemoryRouter>
@@ -66,25 +91,23 @@ describe('TransactionsTable', () => {
     expect(link).toHaveTextContent('Figura dragón')
   })
 
-  it('links expense concept to inventory when expense has inventory', () => {
+  it('links expense concept to expense detail when expense has linked lots', () => {
     const withLots = new Set<string>(['t002'])
-    const inventoryIdByExpenseTxnId = new Map([['t002', 'INV9']])
     render(
       <MemoryRouter>
         <TransactionsTable
           transactions={[expenseTransaction]}
           clients={mockClients}
           expenseTxnIdsWithLots={withLots}
-          inventoryIdByExpenseTxnId={inventoryIdByExpenseTxnId}
         />
       </MemoryRouter>
     )
-    const link = screen.getByTestId('transaction-concept-inventory-link-t002')
-    expect(link).toHaveAttribute('href', '/inventory/INV9')
+    const link = screen.getByTestId('transaction-concept-expense-detail-link-t002')
+    expect(link).toHaveAttribute('href', '/transactions/t002')
     expect(link).toHaveTextContent('PLA Negro')
   })
 
-  it('renders plain expense concept when no linked inventory', () => {
+  it('renders plain expense concept when no linked lots', () => {
     render(
       <MemoryRouter>
         <TransactionsTable
@@ -94,7 +117,7 @@ describe('TransactionsTable', () => {
       </MemoryRouter>
     )
     expect(
-      screen.queryByTestId('transaction-concept-inventory-link-t002')
+      screen.queryByTestId('transaction-concept-expense-detail-link-t002')
     ).not.toBeInTheDocument()
     const text = screen.getByText('PLA Negro')
     expect(text.tagName.toLowerCase()).not.toBe('a')

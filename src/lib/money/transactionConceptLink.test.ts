@@ -88,41 +88,30 @@ describe('getTransactionConceptLink', () => {
       ref_id: 'J9',
       concept: 'Paid work',
     })
-    const link = getTransactionConceptLink(tx, undefined, undefined)
+    const link = getTransactionConceptLink(tx, undefined)
     expect(link).toEqual({
       to: '/jobs/J9',
       testId: 'transaction-concept-job-link-inc1',
     })
   })
 
-  it('returns inventory link with id when expense has lots map', () => {
+  it('returns expense detail link when expense has linked lots', () => {
     const tx = baseTx({ id: 'e1', concept: 'Filament' })
     const expenseIds = new Set(['e1'])
-    const invByTxn = new Map([['e1', 'INV7']])
-    const link = getTransactionConceptLink(tx, expenseIds, invByTxn)
+    const link = getTransactionConceptLink(tx, expenseIds)
     expect(link).toEqual({
-      to: '/inventory/INV7',
-      testId: 'transaction-concept-inventory-link-e1',
-    })
-  })
-
-  it('returns /inventory when expense has lots but no resolved inventory id', () => {
-    const tx = baseTx({ id: 'e2' })
-    const expenseIds = new Set(['e2'])
-    const link = getTransactionConceptLink(tx, expenseIds, new Map())
-    expect(link).toEqual({
-      to: '/inventory',
-      testId: 'transaction-concept-inventory-link-e2',
+      to: '/transactions/e1',
+      testId: 'transaction-concept-expense-detail-link-e1',
     })
   })
 
   it('returns null for expense not in lot set', () => {
     const tx = baseTx({ id: 'e3' })
-    expect(getTransactionConceptLink(tx, new Set(), new Map())).toBeNull()
+    expect(getTransactionConceptLink(tx, new Set())).toBeNull()
   })
 
   it('returns null for income without job ref', () => {
     const tx = baseTx({ id: 'i1', type: 'income', concept: 'Misc' })
-    expect(getTransactionConceptLink(tx, undefined, undefined)).toBeNull()
+    expect(getTransactionConceptLink(tx, undefined)).toBeNull()
   })
 })

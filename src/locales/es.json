@@ -247,6 +247,25 @@
       "equipment": "Equipo"
     }
   },
+  "expenseTransactionDetail": {
+    "backToList": "Volver a transacciones",
+    "notFound": "No se encontró esta transacción o no es un gasto.",
+    "lotsTitle": "Lotes vinculados",
+    "lotsEmpty": "No hay lotes de compra vinculados a este gasto.",
+    "lotDescription": "Material",
+    "lotQuantity": "Cantidad",
+    "lotAmount": "Importe",
+    "amountHeading": "Total del gasto",
+    "amountLabel": "Importe (negativo para gastos)",
+    "saveChanges": "Guardar cambios",
+    "saving": "Guardando…",
+    "saveError": "No se pudieron guardar los cambios.",
+    "amountInvalid": "Introduce un importe de gasto válido (número negativo, p. ej. -29,99).",
+    "lotSumMismatch": "Los importes de los lotes suman {{sumLots}} € pero el total de este gasto es {{absTxn}} €. Ajusta los campos para que coincidan antes de guardar.",
+    "lotSumMismatchSaveBlocked": "Los importes de los lotes suman {{sumLots}} € pero el total del gasto es {{absTxn}} €. Haz que los totales coincidan antes de guardar.",
+    "lotAmountInvalid": "Introduce un importe positivo para este lote (p. ej. 29,99).",
+    "lotQuantityInvalid": "Introduce una cantidad positiva para este lote (p. ej. 1000)."
+  },
   "inventoryDetail": {
     "backToList": "Volver al inventario",
     "notFound": "No hay ningún artículo de inventario con este id.",

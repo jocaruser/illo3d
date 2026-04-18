@@ -284,7 +284,7 @@ export function InventoryDetailPage() {
                                 <td className="px-4 py-3 text-sm">
                                   {tx ? (
                                     <Link
-                                      to="/transactions"
+                                      to={`/transactions/${lot.transaction_id}`}
                                       data-testid={`inventory-lot-tx-${lot.id}`}
                                       className="text-blue-600 hover:text-blue-800"
                                     >
@@ -292,7 +292,7 @@ export function InventoryDetailPage() {
                                     </Link>
                                   ) : (
                                     <Link
-                                      to="/transactions"
+                                      to={`/transactions/${lot.transaction_id}`}
                                       className="text-blue-600 hover:text-blue-800"
                                     >
                                       {lot.transaction_id}

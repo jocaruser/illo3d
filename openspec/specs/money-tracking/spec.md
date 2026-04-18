@@ -8,7 +8,7 @@ Financial tracking for illo3d: transactions presentation, clients page (list, cr
 
 ### Requirement: Transactions table is displayed
 
-The system SHALL display a table of all transactions from the transactions sheet. The table SHALL show: date, type (income/expense), amount, category, concept, client name (if applicable). When a transaction row has a `client_id` that resolves to a client name, the client name cell SHALL be the visible text of a link to `/clients/:clientId` for that id. When a transaction has `ref_type` `job` and a non-empty `ref_id`, the concept cell SHALL display the concept string as the visible text of a link to `/jobs/:ref_id`. When a transaction is of type `expense` and has linked lots (matched via `lots.transaction_id`), the concept cell SHALL display the concept string as the visible text of a link to `/inventory`. When none of these link rules apply, the concept cell SHALL show plain text only (no link).
+The system SHALL display a table of all transactions from the transactions sheet. The table SHALL show: date, type (income/expense), amount, category, concept, client name (if applicable). When a transaction row has a `client_id` that resolves to a client name, the client name cell SHALL be the visible text of a link to `/clients/:clientId` for that id. When a transaction has `ref_type` `job` and a non-empty `ref_id`, the concept cell SHALL display the concept string as the visible text of a link to `/jobs/:ref_id`. When a transaction is of type `expense` and has linked lots (matched via `lots.transaction_id`), the concept cell SHALL display the concept string as the visible text of a link to `/transactions/:transactionId` for that transaction’s `id`. When none of these link rules apply, the concept cell SHALL show plain text only (no link).
 
 #### Scenario: Transactions table renders with data
 
@@ -36,15 +36,79 @@ The system SHALL display a table of all transactions from the transactions sheet
 - **WHEN** a transaction has `ref_type` `job` and `ref_id` "J1"
 - **THEN** the concept column shows a link to `/jobs/J1` whose visible text is the concept string
 
-#### Scenario: Expense transaction with lots links concept to inventory
+#### Scenario: Expense transaction with lots links concept to expense transaction detail
 
-- **WHEN** a transaction is type `expense` and has at least one lot row with matching `transaction_id`
-- **THEN** the concept column shows a link to `/inventory` whose visible text is the concept string
+- **WHEN** a transaction is type `expense` with id `T1` and has at least one lot row with matching `transaction_id`
+- **THEN** the concept column shows a link to `/transactions/T1` whose visible text is the concept string
 
 #### Scenario: Expense transaction without lots shows plain concept
 
 - **WHEN** a transaction is type `expense` and has no lot rows with matching `transaction_id`
 - **THEN** the concept column shows plain text only (no link)
+
+### Requirement: Expense transaction detail route
+
+The system SHALL provide a protected route **`/transactions/:transactionId`**. When the workbook is **connected** and a transaction row exists for `transactionId` with **`type`** `expense` (among rows shown in the transactions list per existing active-row rules), the system SHALL render an **expense transaction detail** page. When no such row exists, or the row’s **`type`** is not `expense`, the system SHALL show a **not-found** presentation consistent with other detail routes, including a way to navigate back to **`/transactions`**. Unauthenticated users SHALL be redirected to **`/login`**.
+
+#### Scenario: Detail renders for valid expense id
+
+- **WHEN** an authenticated user navigates to `/transactions/T1`
+- **AND** T1 exists as an active expense transaction
+- **THEN** the expense transaction detail page renders
+
+#### Scenario: Unknown id shows not-found
+
+- **WHEN** an authenticated user navigates to `/transactions/UNKNOWN`
+- **AND** the workbook is connected
+- **AND** no active expense transaction has id UNKNOWN
+- **THEN** the user sees a not-found message
+- **AND** a control or link is available to navigate to `/transactions`
+
+#### Scenario: Income id shows not-found
+
+- **WHEN** an authenticated user navigates to `/transactions/T9`
+- **AND** T9 exists as an active transaction with type `income`
+- **THEN** the user sees the same class of not-found handling as for unknown ids (not the expense detail layout)
+
+### Requirement: Expense transaction detail header
+
+On the expense transaction detail page, the system SHALL show at least **date**, **type** (as expense), **category**, **concept**, and **client** when `client_id` resolves to a client name (otherwise empty/placeholder consistent with the list). The **concept** field SHALL follow the same linking rules as the transactions table (including links to **`/jobs/:ref_id`** or **`/transactions/:transactionId`** for lot-backed expenses when those rules apply).
+
+#### Scenario: Header mirrors list semantics
+
+- **WHEN** user views expense detail for a transaction that has category, concept, and resolved client
+- **THEN** those fields are visible with formatting consistent with the transactions table
+- **AND** concept links behave per the existing transactions table requirement
+
+### Requirement: Expense transaction detail totals and linked lots editing
+
+The expense transaction detail page SHALL provide an editable **expense total** (negative expense convention) and, when lots exist, a bordered **linked lots** table whose columns are, in order: **material** (inventory display name as the visible text of a link to **`/inventory/:inventoryId`**), **quantity** (editable), **amount** (editable). The table SHALL NOT include a **purchase date** column. When there are no matching active lots, the section SHALL use a minimal empty presentation. The page SHALL provide **one** primary **Save changes** control that persists the expense **transaction amount** and **every linked lot’s quantity and amount** to the workbook using the same persistence model as other authenticated edits. The system SHALL show **live validation** while editing: invalid expense total, invalid lot quantity, or invalid lot amount (i18n). When at least one lot exists and all **lot amount** fields and the **expense total** parse as valid numbers, the system SHALL show a **visible warning** if the sum of lot amounts differs from **`|expense total|`** by more than **0.01**; in that case the **Save changes** control SHALL be **disabled** until totals align. When there are no lots, only the expense total is validated and persisted.
+
+#### Scenario: Multi-lot purchase shows material links and saves
+
+- **WHEN** an expense has multiple active lots across different inventory items
+- **THEN** each row shows material link, editable quantity, and editable amount
+- **AND** the user can save a consistent set of totals in one action
+
+#### Scenario: No lots
+
+- **WHEN** the expense has no active lots with matching `transaction_id`
+- **THEN** the linked lots section shows a single clear empty state
+- **AND** the user may still save the expense total alone
+
+### Requirement: Transactions list opens expense detail
+
+The **`/transactions`** view SHALL provide, for every **expense** row in the transactions table, at least one **keyboard-accessible** affordance (e.g. link on transaction id) that navigates to **`/transactions/:transactionId`** for that row’s id. **Income** rows SHALL NOT be required to expose this affordance. The transactions table SHALL remain without in-row edit/add/delete for other fields (read-only table requirement unchanged).
+
+#### Scenario: Expense row has link to detail
+
+- **WHEN** the transactions table shows an expense with id `T5`
+- **THEN** the user can activate an affordance that navigates to `/transactions/T5`
+
+#### Scenario: Income row has no expense-detail affordance
+
+- **WHEN** the transactions table shows an income row
+- **THEN** no navigation targeting `/transactions/:id` is required for that row as part of this requirement
 
 ### Requirement: Transactions table is read-only
 

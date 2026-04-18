@@ -33,7 +33,7 @@ export function TransactionsPage() {
     [allTransactions],
   )
 
-  const { expenseTxnIdsWithLots, inventoryIdByExpenseTxnId } = useMemo(
+  const { expenseTxnIdsWithLots } = useMemo(
     () => buildExpenseLotLinkMaps(lots),
     [lots],
   )
@@ -77,7 +77,6 @@ export function TransactionsPage() {
               transactions={transactions}
               clients={clients}
               expenseTxnIdsWithLots={expenseTxnIdsWithLots}
-              inventoryIdByExpenseTxnId={inventoryIdByExpenseTxnId}
             />
           )}
         </>

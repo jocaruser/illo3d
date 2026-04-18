@@ -13,6 +13,7 @@ import {
   matrixToClients,
   matrixToInventory,
   matrixToJobs,
+  matrixToTransactions,
 } from '@/lib/workbook/workbookEntities'
 import { AuthStatus } from './components/AuthStatus'
 import { ConfirmDialog } from './components/ConfirmDialog'
@@ -22,6 +23,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { SetupWizard } from './components/wizard/SetupWizard'
 import { getBreadcrumbItems } from './breadcrumbItems'
 import { TransactionsPage } from './pages/TransactionsPage'
+import { ExpenseTransactionDetailPage } from './pages/ExpenseTransactionDetailPage'
 import { InventoryPage } from './pages/InventoryPage'
 import { InventoryDetailPage } from './pages/InventoryDetailPage'
 import { ClientsPage } from './pages/ClientsPage'
@@ -61,12 +63,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
     return rows.find((i) => i.id === inventoryId)?.name
   }
 
+  const resolveTransactionConcept = (id: string): string | undefined => {
+    const txs = matrixToTransactions(useWorkbookStore.getState().tabs.transactions)
+    return txs.find((x) => x.id === id)?.concept
+  }
+
   const breadcrumbItems = getBreadcrumbItems(
     location.pathname,
     t,
     resolveJobDescription,
     resolveClientName,
     resolveInventoryName,
+    resolveTransactionConcept,
   )
   const activeShop = useShopStore((s) => s.activeShop)
   const logout = useAuthStore((s) => s.logout)
@@ -184,7 +192,17 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <NavLink to="/jobs" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
         {t('nav.jobs')}
       </NavLink>
-      <NavLink to="/transactions" className={navLinkClassName} end onClick={() => setMenuOpen(false)}>
+      <NavLink
+        to="/transactions"
+        className={({ isActive }) =>
+          navLinkClassName({
+            isActive:
+              isActive || location.pathname.startsWith('/transactions/'),
+          })
+        }
+        end
+        onClick={() => setMenuOpen(false)}
+      >
         {t('nav.transactions')}
       </NavLink>
       <NavLink to="/inventory" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
@@ -416,6 +434,16 @@ export default function App() {
             <Layout>
               <ProtectedRoute>
                 <TransactionsPage />
+              </ProtectedRoute>
+            </Layout>
+          }
+        />
+        <Route
+          path="/transactions/:transactionId"
+          element={
+            <Layout>
+              <ProtectedRoute>
+                <ExpenseTransactionDetailPage />
               </ProtectedRoute>
             </Layout>
           }
