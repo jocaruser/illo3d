@@ -5,23 +5,6 @@ import { useAuthStore } from '../stores/authStore'
 import { useShopStore } from '../stores/shopStore'
 import { useBackendStore } from '../stores/backendStore'
 
-vi.mock('@react-oauth/google', () => ({
-  useGoogleOneTapLogin: vi.fn(),
-  GoogleLogin: ({ onSuccess }: { onSuccess: (r: { credential: string }) => void }) => (
-    <button onClick={() => onSuccess({ credential: 'mock-token' })}>
-      Sign in with Google
-    </button>
-  ),
-}))
-
-vi.mock('jwt-decode', () => ({
-  jwtDecode: () => ({
-    email: 'test@example.com',
-    name: 'Test User',
-    picture: 'https://example.com/pic.jpg',
-  }),
-}))
-
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, params?: { name?: string }) => {

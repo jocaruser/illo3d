@@ -5,6 +5,7 @@ import App from './App'
 
 vi.mock('@react-oauth/google', () => ({
   useGoogleLogin: () => vi.fn(),
+  useGoogleOneTapLogin: vi.fn(),
 }))
 
 vi.mock('react-i18next', () => ({

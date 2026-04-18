@@ -3,9 +3,14 @@ import { useTranslation } from 'react-i18next'
 interface WelcomeStepProps {
   onSelectLocal: () => void
   onSelectGoogleDrive: () => void
+  showGoogleDriveOAuthHint?: boolean
 }
 
-export function WelcomeStep({ onSelectLocal, onSelectGoogleDrive }: WelcomeStepProps) {
+export function WelcomeStep({
+  onSelectLocal,
+  onSelectGoogleDrive,
+  showGoogleDriveOAuthHint = false,
+}: WelcomeStepProps) {
   const { t } = useTranslation()
 
   return (
@@ -39,6 +44,11 @@ export function WelcomeStep({ onSelectLocal, onSelectGoogleDrive }: WelcomeStepP
           </span>
         </button>
       </div>
+      {showGoogleDriveOAuthHint ? (
+        <p className="text-sm text-gray-600" data-testid="wizard-google-oauth-hint">
+          {t('wizard.googleDriveOAuthHint')}
+        </p>
+      ) : null}
     </div>
   )
 }

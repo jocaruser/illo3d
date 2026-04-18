@@ -1,12 +1,19 @@
 import { useAuthStore } from '@/stores/authStore'
 
+/** Minimal typings for the Google Picker script loaded at runtime. */
+interface GooglePickerDocsView {
+  setIncludeFolders: (include: boolean) => GooglePickerDocsView
+  setMimeTypes: (mimeTypes: string) => GooglePickerDocsView
+  setSelectFolderEnabled: (enabled: boolean) => GooglePickerDocsView
+}
+
 declare global {
   interface Window {
     google?: {
       picker?: {
         PickerBuilder: new () => unknown
-        DocsView: new (viewId?: string) => { setIncludeFolders: (v: boolean) => unknown; setSelectFolderEnabled: (v: boolean) => unknown }
-        Action: { PICKED: string }
+        DocsView: new (viewId?: string) => GooglePickerDocsView
+        Action: { PICKED: string; CANCEL: string; ERROR: string }
       }
     }
     gapi?: { load: (api: string, callback: () => void) => void }

@@ -23,4 +23,18 @@ describe('WelcomeStep', () => {
     fireEvent.click(screen.getByTestId('wizard-google-drive'))
     expect(onGoogle).toHaveBeenCalledTimes(1)
   })
+
+  it('shows OAuth hint when showGoogleDriveOAuthHint is set', () => {
+    render(
+      <WelcomeStep
+        onSelectLocal={vi.fn()}
+        onSelectGoogleDrive={vi.fn()}
+        showGoogleDriveOAuthHint
+      />,
+    )
+
+    expect(screen.getByTestId('wizard-google-oauth-hint')).toHaveTextContent(
+      'wizard.googleDriveOAuthHint',
+    )
+  })
 })

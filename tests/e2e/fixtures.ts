@@ -37,6 +37,16 @@ export async function waitForShopDataReady(page: Page) {
   })
 }
 
+/**
+ * Wizard welcome: first Google Drive click expresses Drive intent (One Tap may run);
+ * second click runs the OAuth token client (mocked in e2e).
+ */
+export async function completeWizardGoogleDriveWelcome(page: Page): Promise<void> {
+  const driveBtn = page.getByTestId('wizard-google-drive')
+  await driveBtn.click()
+  await driveBtn.click()
+}
+
 /** Wizard: mock directory picker + open local fixture shop for `fixtureScenario`. */
 export async function mockAndOpenLocalShop(page: Page, fixtureScenario = 'happy-path') {
   await page.goto('/dashboard', { waitUntil: 'load' })
@@ -61,7 +71,7 @@ export async function mockAndOpenGoogleShop(
   await page.goto('/dashboard', { waitUntil: 'load' })
   const driveBtn = page.getByTestId('wizard-google-drive')
   await expect(driveBtn).toBeVisible({ timeout: 15000 })
-  await driveBtn.click()
+  await completeWizardGoogleDriveWelcome(page)
   await expect(page.getByTestId('wizard-google-create')).toBeVisible({ timeout: 15000 })
   await page.getByTestId('wizard-google-create').click()
   await waitForShopDataReady(page)

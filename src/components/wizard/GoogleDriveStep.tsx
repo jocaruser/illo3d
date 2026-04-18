@@ -5,6 +5,8 @@ import type { User } from '@/stores/authStore'
 interface GoogleDriveStepProps {
   user: User
   loading: boolean
+  /** Shown while `loading` is true (e.g. creating shop, opening picker, validating folder). */
+  statusMessage?: string | null
   error: string | null
   onCreateNew: () => void
   onOpenExisting: () => void
@@ -15,6 +17,7 @@ interface GoogleDriveStepProps {
 export function GoogleDriveStep({
   user,
   loading,
+  statusMessage,
   error,
   onCreateNew,
   onOpenExisting,
@@ -58,6 +61,12 @@ export function GoogleDriveStep({
       <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
         {t('wizard.driveFileWarning')}
       </p>
+
+      {loading && statusMessage ? (
+        <p className="text-sm text-gray-600" role="status" aria-live="polite">
+          {statusMessage}
+        </p>
+      ) : null}
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       {idError ? <p className="text-sm text-red-600">{idError}</p> : null}
