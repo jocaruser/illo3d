@@ -7,11 +7,18 @@ export function AuthStatus() {
   const { t } = useTranslation()
   const { user, isAuthenticated, logout } = useAuthStore()
   const clearActiveShop = useShopStore((s) => s.clearActiveShop)
+  const activeShop = useShopStore((s) => s.activeShop)
+  const backend = useBackendStore((s) => s.backend)
   const resetBackend = useBackendStore((s) => s.reset)
 
   if (!isAuthenticated || !user) {
     return null
   }
+
+  const driveFolderHref =
+    backend === 'google-drive' && activeShop?.folderId
+      ? `https://drive.google.com/drive/folders/${activeShop.folderId}`
+      : null
 
   return (
     <div className="flex items-center gap-3">
@@ -23,7 +30,22 @@ export function AuthStatus() {
         />
       )}
       <span className="text-sm text-gray-700">
-        {t('auth.signedInAs', { name: user.name })}
+        {driveFolderHref ? (
+          <>
+            {t('auth.signedInAsLead')}
+            <a
+              href={driveFolderHref}
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={t('auth.signedInNameOpensDriveFolder')}
+            >
+              {user.name}
+            </a>
+          </>
+        ) : (
+          t('auth.signedInAs', { name: user.name })
+        )}
       </span>
       <button
         onClick={() => {
