@@ -1,10 +1,11 @@
-import { test, expect } from './fixtures'
+import { copyGoldenFixtureToE2eRoot, mockAndOpenLocalShop, test, expect } from './fixtures'
 
 test.describe('Empty CSV fixture scenario', () => {
-  test.use({ fixtureScenario: 'empty' })
+  test.use({ storageState: { cookies: [], origins: [] } })
 
-  test('transactions shows empty state', async ({ page, openCsvShop }) => {
-    void openCsvShop
+  test('transactions shows empty state', async ({ page }) => {
+    copyGoldenFixtureToE2eRoot('empty')
+    await mockAndOpenLocalShop(page, 'empty')
 
     await page.goto('/transactions', { waitUntil: 'load' })
 

@@ -18,6 +18,22 @@ export function useCreateShop() {
   const setBackend = useBackendStore((s) => s.setBackend)
   const setLocalDirectoryHandle = useBackendStore((s) => s.setLocalDirectoryHandle)
 
+  const createShopInLocalFolder = useCallback(
+    async (handle: FileSystemDirectoryHandle): Promise<void> => {
+      setBackend('local-csv')
+      setLocalDirectoryHandle(handle)
+      const spreadsheetId = await getSheetsRepository().createSpreadsheet()
+      const folderNameFromHandle = handle.name
+      setActiveShop({
+        folderId: folderNameFromHandle,
+        folderName: folderNameFromHandle,
+        spreadsheetId,
+        metadataVersion: APP_VERSION,
+      })
+    },
+    [setActiveShop, setBackend, setLocalDirectoryHandle]
+  )
+
   const createShop = useCallback(
     async (folderName: string): Promise<void> => {
       const backend = useBackendStore.getState().backend
@@ -27,16 +43,7 @@ export function useCreateShop() {
         }
         const handle = await showDirectoryPicker()
         if (!handle) return
-        setBackend('local-csv')
-        setLocalDirectoryHandle(handle)
-        const spreadsheetId = await getSheetsRepository().createSpreadsheet()
-        const folderNameFromHandle = handle.name
-        setActiveShop({
-          folderId: folderNameFromHandle,
-          folderName: folderNameFromHandle,
-          spreadsheetId,
-          metadataVersion: APP_VERSION,
-        })
+        await createShopInLocalFolder(handle)
         return
       }
       const { id: folderId, name } = await createFolder(folderName)
@@ -56,8 +63,8 @@ export function useCreateShop() {
         metadataVersion: APP_VERSION,
       })
     },
-    [user?.email, setActiveShop, setBackend, setLocalDirectoryHandle]
+    [user?.email, setActiveShop, createShopInLocalFolder]
   )
 
-  return { createShop }
+  return { createShop, createShopInLocalFolder }
 }

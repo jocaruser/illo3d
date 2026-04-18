@@ -21,7 +21,6 @@ import { Breadcrumbs } from './components/Breadcrumbs'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { SetupWizard } from './components/wizard/SetupWizard'
 import { getBreadcrumbItems } from './breadcrumbItems'
-import { LoginPage } from './pages/LoginPage'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { InventoryPage } from './pages/InventoryPage'
 import { InventoryDetailPage } from './pages/InventoryDetailPage'
@@ -32,6 +31,7 @@ import { ClientDetailPage } from './pages/ClientDetailPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
+import { useBackendStore } from './stores/backendStore'
 import { useWorkbookStore } from './stores/workbookStore'
 import { getSheetsRepository } from '@/services/sheets/repository'
 
@@ -68,7 +68,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     resolveClientName,
     resolveInventoryName,
   )
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const activeShop = useShopStore((s) => s.activeShop)
   const logout = useAuthStore((s) => s.logout)
   const clearActiveShop = useShopStore((s) => s.clearActiveShop)
@@ -85,6 +84,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [saveFeedback, setSaveFeedback] = useState<
     null | { kind: 'success' } | { kind: 'error'; message: string }
   >(null)
+
+  useEffect(() => {
+    const spreadsheetId = activeShop?.spreadsheetId
+    if (!spreadsheetId?.startsWith('csv-fixture-')) return
+    const { localDirectoryHandle, backend } = useBackendStore.getState()
+    if (localDirectoryHandle != null) return
+    if (backend !== 'local-csv') {
+      useBackendStore.setState({ backend: 'local-csv', localDirectoryHandle: null })
+    }
+  }, [activeShop?.spreadsheetId])
 
   useEffect(() => {
     const spreadsheetId = activeShop?.spreadsheetId
@@ -144,7 +153,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const workbookActionsVisible = Boolean(isAuthenticated && activeShop)
+  const workbookActionsVisible = Boolean(activeShop)
   const refreshDisabled =
     workbookStatus === 'loading' ||
     saveBusy ||
@@ -156,8 +165,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
     !workbookDirty ||
     !activeShop?.spreadsheetId
 
+  const resetBackend = useBackendStore((s) => s.reset)
+
   const handleWizardCancel = () => {
     clearActiveShop()
+    resetBackend()
     logout()
   }
 
@@ -238,7 +250,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </button>
             </div>
           </div>
-          {isAuthenticated && activeShop ? (
+          {activeShop ? (
             <div className="mt-3 w-full md:max-w-xl space-y-2">
               {workbookActionsVisible ? (
                 <div className="flex flex-wrap items-center gap-2 sm:hidden">
@@ -314,12 +326,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         />
       ) : null}
       <main>{children}</main>
-      {isAuthenticated && !activeShop && (
-        <SetupWizard
-          onCancel={handleWizardCancel}
-          onCreateComplete={() => {}}
-          onOpenComplete={() => {}}
-        />
+      {!activeShop && (
+        <SetupWizard onCancel={handleWizardCancel} />
       )}
 
       <ConfirmDialog
@@ -336,14 +344,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 function RootRedirect() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
-  const activeShop = useShopStore((s) => s.activeShop)
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />
-  }
-  if (!activeShop) {
-    return <Navigate to="/dashboard" replace />
-  }
   return <Navigate to="/dashboard" replace />
 }
 
@@ -351,7 +351,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={<Navigate to="/" replace />} />
         <Route
           path="/"
           element={

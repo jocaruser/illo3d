@@ -21,6 +21,18 @@ describe('authStore', () => {
     expect(state.credentials).toEqual(credentials)
   })
 
+  it('loginAsLocalUser sets synthetic identity without credentials', () => {
+    useAuthStore.getState().loginAsLocalUser()
+    const state = useAuthStore.getState()
+    expect(state.isAuthenticated).toBe(true)
+    expect(state.user).toEqual({
+      name: 'Local user',
+      email: '',
+      picture: undefined,
+    })
+    expect(state.credentials).toBeNull()
+  })
+
   it('should logout and clear state', () => {
     const user = { email: 'test@example.com', name: 'Test User' }
     const credentials = { accessToken: 'test-token' }

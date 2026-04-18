@@ -17,6 +17,7 @@ interface AuthState {
   credentials: Credentials | null
   isAuthenticated: boolean
   login: (user: User, credentials: Credentials) => void
+  loginAsLocalUser: () => void
   logout: () => void
 }
 
@@ -30,6 +31,12 @@ export const useAuthStore = create<AuthState>()(
         set({
           user,
           credentials,
+          isAuthenticated: true,
+        }),
+      loginAsLocalUser: () =>
+        set({
+          user: { name: 'Local user', email: '', picture: undefined },
+          credentials: null,
           isAuthenticated: true,
         }),
       logout: () =>

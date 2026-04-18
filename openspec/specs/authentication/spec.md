@@ -2,7 +2,7 @@
 
 ## Purpose
 
-End-to-end authentication for illo3d: Google Identity Services (One Tap and OAuth), credentials and session storage, the public login experience, development-only fixture login for tests and local work, and route protection with return-path preservation.
+End-to-end authentication for illo3d: Google Identity Services (One Tap and OAuth where applicable), credentials and session storage, the setup wizard as the primary entry point (including synthetic identity for local files), and route protection with return-path preservation. Automated tests mock OAuth and directory APIs at the Playwright boundary; there is no dev-only login UI.
 
 ## Google OAuth and API configuration
 
@@ -34,14 +34,14 @@ The system SHALL display a "Sign in with Google" button when One Tap is unavaila
 - **WHEN** user clicks "Sign in with Google"
 - **THEN** Google OAuth flow opens and on success credentials are stored
 
-### Requirement: All OAuth scopes requested at login
+### Requirement: OAuth scope requested at login
 
-The system SHALL request all required OAuth scopes (`spreadsheets` and `drive.file`) during the initial login flow. The user SHALL see a single consent screen at login time. No additional consent prompts SHALL appear when using API features later.
+The system SHALL request the OAuth scope `https://www.googleapis.com/auth/drive.file` during the initial Google sign-in used for the Drive backend. That scope SHALL be sufficient for Google Drive and Google Sheets API usage on files the user connects through the app. The user SHALL see a single consent screen at login time. No additional consent prompts SHALL appear when using API features later.
 
-#### Scenario: Login requests all scopes upfront
+#### Scenario: Login requests drive.file scope upfront
 
-- **WHEN** the user clicks "Sign in with Google" on the login page
-- **THEN** the OAuth consent includes both `spreadsheets` and `drive.file` scopes in a single request
+- **WHEN** the user starts Google sign-in for the Drive backend (e.g. by choosing "Google Drive" on the setup wizard welcome screen)
+- **THEN** the OAuth consent includes `https://www.googleapis.com/auth/drive.file` and the scopes required for Sheets access used by the app (e.g. spreadsheets) in the same flow where the product requires them
 
 #### Scenario: No additional consent prompts for API features
 
@@ -98,7 +98,7 @@ The system SHALL read a Google API key from `VITE_GOOGLE_API_KEY` for use with t
 
 ### Requirement: Login/logout status is visible
 
-The system SHALL display auth status in the main layout. When signed in: show user identity (e.g. name or email) and a sign-out action. When signed out: the header SHALL NOT display any sign-in UI — sign-in is handled exclusively by the login page.
+The system SHALL display auth status in the main layout. When signed in: show user identity (e.g. name or email) and a sign-out action. When signed out: the header SHALL NOT display standalone sign-in controls — the wizard welcome screen is the entry point for signing in or choosing local files.
 
 #### Scenario: Signed-in status display
 
@@ -108,12 +108,12 @@ The system SHALL display auth status in the main layout. When signed in: show us
 #### Scenario: Signed-out status display
 
 - **WHEN** user is not authenticated
-- **THEN** the header does not render sign-in options (user is redirected to login page by route guard)
+- **THEN** the header does not render sign-in options (the wizard overlay handles onboarding)
 
 #### Scenario: Sign-out clears session
 
 - **WHEN** user triggers sign-out
-- **THEN** credentials are cleared, active shop is cleared, auth state updates to signed out, and the route guard redirects to `/login`
+- **THEN** credentials are cleared, active shop is cleared, backend state is cleared where applicable, auth state updates to signed out, and the user sees the wizard welcome screen (e.g. on `/`) when no active shop remains
 
 ### Requirement: Auth UI strings support i18n
 
@@ -124,173 +124,156 @@ All user-facing auth strings (sign-in button, signed-in message, sign-out) SHALL
 - **WHEN** app renders auth UI
 - **THEN** text comes from i18n keys (e.g. `auth.signIn`, `auth.signedInAs`, `auth.signOut`)
 
-## Login page
+## Wizard entry and onboarding
 
-### Requirement: Login page is publicly accessible
+### Requirement: Local-files users get a synthetic identity
 
-The system SHALL render the login page at `/login` without requiring authentication. This SHALL be the only public route in the application.
+When the user selects the Local Files backend, the system SHALL set `authStore` to a synthetic user with `name: 'Local user'`, `email: ''`, and `picture: undefined`. `isAuthenticated` SHALL be `true`. No real authentication SHALL occur.
 
-#### Scenario: Unauthenticated user can view the login page
+#### Scenario: Local files selection sets synthetic identity
 
-- **WHEN** an unauthenticated user navigates to `/login`
-- **THEN** the login page renders with branding and sign-in options
+- **WHEN** the user clicks "Local folder" on the wizard welcome screen
+- **THEN** `authStore` is populated with `{ name: 'Local user', email: '', picture: undefined }`
+- **AND** `isAuthenticated` is `true`
 
-### Requirement: Login page displays illo3d branding
+#### Scenario: Header shows "Local user" with no avatar
 
-The system SHALL display the illo3d brand name and a brief tagline on the login page. The layout SHALL be centered on the viewport with a clean, professional appearance using Tailwind CSS.
+- **WHEN** a local-files user is in the app
+- **THEN** the header shows "Local user" as the identity
+- **AND** no avatar image is rendered
 
-#### Scenario: Login page shows branding
+### Requirement: Google OAuth triggers from wizard backend selection
 
-- **WHEN** the login page renders
+The system SHALL trigger the Google OAuth flow when the user clicks "Google Drive" on the wizard welcome screen. The OAuth consent SHALL request all required scopes (profile, `drive.file`, sheets) in a single popup. On success, `authStore` is populated with the Google user profile and access token.
+
+#### Scenario: Clicking Google Drive triggers OAuth
+
+- **WHEN** the user clicks "Google Drive" on the welcome screen
+- **THEN** a Google OAuth popup opens requesting profile, `drive.file`, and sheets scopes
+
+#### Scenario: OAuth success populates auth store
+
+- **WHEN** the OAuth popup completes successfully
+- **THEN** `authStore` contains the Google user's name, email, picture, and access token
+- **AND** `isAuthenticated` is `true`
+- **AND** the wizard advances to the Google Drive screen
+
+#### Scenario: OAuth cancellation returns to welcome
+
+- **WHEN** the user closes the OAuth popup without completing
+- **THEN** the wizard stays on the welcome screen
+- **AND** `isAuthenticated` remains `false`
+
+#### Scenario: OAuth error shows feedback
+
+- **WHEN** the OAuth flow fails (popup blocked, network error, consent denied)
+- **THEN** the wizard shows an error message on the welcome screen
+- **AND** the user can try again
+
+### Requirement: No standalone `/login` route as the primary entry
+
+The system SHALL NOT use `/login` as the primary entry for the app. The wizard welcome screen serves as the entry point for users without an active shop. Navigating to `/login` SHALL redirect to `/`.
+
+#### Scenario: No /login route as primary entry
+
+- **WHEN** a user navigates to `/login`
+- **THEN** the system redirects to `/` which shows the wizard if no active shop, or app content if a shop is active
+
+#### Scenario: Unauthenticated user sees wizard when no shop
+
+- **WHEN** an unauthenticated user navigates to any route without an active shop
+- **THEN** the wizard welcome screen appears as an overlay
+
+### Requirement: Wizard welcome displays illo3d branding
+
+The wizard welcome screen SHALL display the illo3d brand name and a brief tagline. The layout SHALL be centered on the viewport with a clean, professional appearance using Tailwind CSS.
+
+#### Scenario: Welcome screen shows branding
+
+- **WHEN** the wizard welcome screen renders
 - **THEN** the user sees the "illo3d" brand name and a descriptive tagline
 
-### Requirement: Login page presents Google sign-in alongside OAuth behavior
+### Requirement: Google Drive backend option triggers OAuth (no standalone login-page button)
 
-The system SHALL surface Google sign-in on the login page per the Google OAuth requirements. The "Sign in with Google" button SHALL render as soon as the GIS script finishes loading, without artificial delay. One Tap SHALL operate as a parallel enhancement alongside the visible button.
+The wizard welcome screen SHALL surface the "Google Drive" backend option which triggers OAuth. There is no standalone "Sign in with Google" button on a separate login page; OAuth is initiated as a side effect of backend selection (GIS One Tap MAY still apply elsewhere per browser support).
 
-#### Scenario: Google Sign-In button appears promptly
+#### Scenario: Google Drive option triggers OAuth
 
-- **WHEN** the login page loads
-- **THEN** the "Sign in with Google" button SHALL be visible as soon as the GIS script finishes loading, without any artificial delay
+- **WHEN** the wizard welcome screen renders
+- **THEN** the "Google Drive" button is visible
+- **AND** clicking it initiates the Google OAuth flow with all required scopes
 
-#### Scenario: Google One Tap appears alongside the button
+### Requirement: Legacy `/login` URL redirects to home
 
-- **WHEN** the login page loads and One Tap is available
-- **THEN** the Google One Tap prompt appears as an overlay while the sign-in button remains visible
+The system SHALL redirect users who navigate to `/login` to `/`. If an active shop exists, the wizard does not appear. If no active shop exists, the wizard overlay appears.
 
-#### Scenario: Successful sign-in from login page
+#### Scenario: User navigates to /login with active shop
 
-- **WHEN** the user completes Google sign-in (via One Tap or button)
-- **THEN** auth state updates and the user is redirected to the app
+- **WHEN** a user with an active shop navigates to `/login`
+- **THEN** the system redirects to `/` and the dashboard loads
 
-### Requirement: Authenticated users are redirected away from login
+#### Scenario: User navigates to /login without active shop
 
-The system SHALL redirect authenticated users who navigate to `/login` to the default authenticated route. If an active shop exists, redirect to `/transactions`. If no active shop exists, the user will see the wizard overlay on the main layout. If a return path was preserved from a prior redirect, the system SHALL redirect to that path instead.
-
-#### Scenario: Authenticated user visits login page
-
-- **WHEN** an authenticated user navigates to `/login`
-- **THEN** the system redirects them to `/` (which shows wizard if no shop, or app content if shop is active)
+- **WHEN** a user without an active shop navigates to `/login`
+- **THEN** the system redirects to `/` and the wizard overlay appears
 
 #### Scenario: Authenticated user with preserved return path
 
 - **WHEN** an authenticated user arrives at `/login` with a preserved return path
-- **THEN** the system redirects them to that return path
+- **THEN** the system redirects them to that return path after normalization rules apply
 
-### Requirement: Login page text supports i18n
+### Requirement: Wizard welcome text supports i18n
 
-All user-facing text on the login page (tagline, instructions) SHALL use i18next translation keys so they can be localized.
+All user-facing text on the wizard welcome screen (tagline, instructions, backend labels) SHALL use i18next translation keys so they can be localized.
 
-#### Scenario: Login page text is translatable
+#### Scenario: Welcome screen text is translatable
 
-- **WHEN** the login page renders
-- **THEN** all visible text is sourced from i18n keys (e.g., `login.tagline`, `login.title`)
-
-## Dev login (development only)
-
-### Requirement: Dev login button is visible only in development mode
-
-The system SHALL display a "Dev Login" button on the login page only when `import.meta.env.DEV` is `true`. The button SHALL NOT be rendered in production builds.
-
-#### Scenario: Dev login button visible in development
-
-- **WHEN** the login page renders in development mode (`import.meta.env.DEV === true`)
-- **THEN** a "Dev Login" button is visible below the Google sign-in options, visually separated (e.g., with a divider)
-
-#### Scenario: Dev login button hidden in production
-
-- **WHEN** the login page renders in production mode (`import.meta.env.DEV === false`)
-- **THEN** no "Dev Login" button is rendered in the DOM
-
-### Requirement: Dev login injects fixture auth and shop state
-
-The system SHALL inject a hardcoded fake access token, a fixture dev user, and a fixture active shop directly into `authStore` and `shopStore` when the user clicks "Dev Login". No external API calls SHALL be made. The operation SHALL be synchronous.
-
-#### Scenario: Auth and shop stores populated after dev login
-
-- **WHEN** the user clicks "Dev Login"
-- **THEN** `authStore` contains a fixture dev user and fake access token, and `shopStore` contains a fixture active shop with hardcoded folderId, folderName, spreadsheetId, and metadataVersion
-
-#### Scenario: Navigation after dev login skips wizard
-
-- **WHEN** the dev login completes
-- **THEN** the user is redirected directly to the return path (or `/`), never seeing the setup wizard
-
-#### Scenario: No network calls during dev login
-
-- **WHEN** the user clicks "Dev Login"
-- **THEN** no HTTP requests are made to any external service
-
-#### Scenario: Dev Login click is instant
-
-- **WHEN** the user clicks "Dev Login" in development mode
-- **THEN** the button does not show a loading state and the user is immediately redirected to the app with fixture data loaded
-
-### Requirement: Dev login UI strings support i18n
-
-All user-facing text related to dev login (button label) SHALL use i18next translation keys.
-
-#### Scenario: Dev login text is translatable
-
-- **WHEN** the dev login button renders
+- **WHEN** the wizard welcome screen renders
 - **THEN** all visible text is sourced from i18n keys
 
 ## Route protection
 
-### Requirement: Unauthenticated users are redirected to login
+### Requirement: Users without an active shop see the wizard
 
-The system SHALL redirect unauthenticated users to `/login` when they attempt to access any protected route. The redirect SHALL preserve the originally requested path so the user can be sent there after signing in.
+The system SHALL show the setup wizard overlay when no active shop is set, regardless of whether the user has completed Google sign-in. The underlying route MAY render but the wizard blocks interaction until a shop exists or the user cancels to an explicit welcome state.
 
-#### Scenario: Unauthenticated user visits a protected route
+#### Scenario: User without shop sees wizard on protected route
 
-- **WHEN** an unauthenticated user navigates to `/transactions`
-- **THEN** the system redirects them to `/login`
-
-#### Scenario: Unauthenticated user visits any new protected route
-
-- **WHEN** an unauthenticated user navigates to any route other than `/login`
-- **THEN** the system redirects them to `/login`
-
-### Requirement: Authenticated users can access all protected routes
-
-The system SHALL allow authenticated users (where `isAuthenticated` is `true` in the auth store) to access any protected route without redirection.
-
-#### Scenario: Authenticated user navigates to a protected route
-
-- **WHEN** an authenticated user navigates to `/transactions`
-- **THEN** the page renders normally without redirection
-
-### Requirement: Wizard overlay appears for authenticated users without active shop
-
-The system SHALL show the setup wizard modal overlay when a user is authenticated but has no active shop. This applies to all protected routes — the underlying page may render but the wizard overlay blocks interaction until a shop is selected.
-
-#### Scenario: Authenticated user without shop sees wizard overlay
-
-- **WHEN** an authenticated user navigates to any protected route
+- **WHEN** a user navigates to a protected route (e.g. `/transactions`)
 - **AND** no active shop is set in the shop store
 - **THEN** the wizard modal overlay appears on top of the page content
 
-#### Scenario: Authenticated user with shop accesses routes normally
+#### Scenario: User with shop accesses routes normally
 
-- **WHEN** an authenticated user navigates to any protected route
+- **WHEN** a user navigates to any protected route
 - **AND** an active shop is set in the shop store
-- **THEN** the page renders normally without the wizard overlay
+- **THEN** the page renders normally without the wizard overlay (subject to other auth rules)
 
-### Requirement: Route guard reads auth state reactively
+### Requirement: Authenticated users can access protected routes when a shop exists
 
-The system SHALL use the Zustand auth store's `isAuthenticated` state to determine access. If the user signs out while on a protected route, the system SHALL redirect them to `/login`.
+The system SHALL allow users with `isAuthenticated` true and an active shop to use protected routes without auth-related redirection.
+
+#### Scenario: Authenticated user with shop navigates
+
+- **WHEN** `isAuthenticated` is true and an active shop exists
+- **THEN** protected routes render without auth-related redirection
+
+### Requirement: Route guard reads auth and shop state reactively
+
+The system SHALL use the auth store and shop store reactively. If the user signs out while on a protected route, the system SHALL clear session state and show the wizard welcome flow (not a standalone `/login` page).
 
 #### Scenario: User signs out on a protected page
 
 - **WHEN** an authenticated user triggers sign-out while on `/transactions`
-- **THEN** the system redirects them to `/login`
+- **THEN** credentials and shop state are cleared as defined elsewhere
+- **AND** the user sees the wizard welcome screen when appropriate
 
-### Requirement: Originally requested path is preserved on redirect
+### Requirement: Originally requested path may be preserved for post-shop navigation
 
-The system SHALL pass the originally requested URL as state or query parameter when redirecting to `/login`, so that after successful authentication the user can be redirected back.
+The system MAY preserve the originally requested URL so that after the user completes wizard onboarding (shop created or opened), the app can navigate to that path.
 
-#### Scenario: Redirect after login returns to original path
+#### Scenario: Return path after shop is ready
 
-- **WHEN** an unauthenticated user is redirected from `/transactions` to `/login`
-- **AND** the user successfully authenticates
-- **THEN** the system redirects them to `/transactions`
+- **WHEN** a return path was preserved before onboarding completed
+- **AND** the user completes the wizard with an active shop
+- **THEN** the system MAY redirect them to the preserved path
