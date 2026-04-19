@@ -8,7 +8,7 @@ Jobs table page with domain services for creating and managing print jobs: `/job
 
 ### Requirement: Jobs page displays job table
 
-The system SHALL provide a `/jobs` route protected by the same authentication guard as other data pages. The route SHALL display a table of **active** jobs from the workbook store (`archived` and `deleted` not `"true"`). The table SHALL show: description (as the primary link to job detail), client name (resolved from client_id), status, **total**, and created_at. **Total** SHALL use **non-deleted** pieces for that job (**including** `archived: "true"`). If **every** such piece has a **set** `price`, **total** SHALL be the sum (formatted as €), including zeros. If **any** such piece has **unset** `price`, the **total** cell SHALL **not** show a single misleading currency-only value (e.g. show an incomplete placeholder or label per i18n). The incomplete-pricing label SHALL use **visually distinct** styling (e.g. highlighted badge: colored background and border) so it is not mistaken for a monetary amount. The system SHALL NOT show a separate id-only column. Until the user changes sort via column-header (or equivalent) controls, the table SHALL order rows by `created_at` descending with stable secondary ordering by job `id` when timestamps tie. The table SHALL provide the shared list discovery controls (search, fuzzy matching, sortable data columns, responsive column visibility) defined in the `list-table-discovery` capability. The **client name** cell SHALL be the visible text of a link to `/clients/:clientId` for that job’s `client_id`.
+The system SHALL provide a `/jobs` route protected by the same authentication guard as other data pages. The route SHALL display a table of **active** jobs from the workbook store (`archived` and `deleted` not `"true"`). The table SHALL show: description (as the primary link to job detail), client name (resolved from client_id), status, **total**, and created_at. **Total** SHALL use **non-deleted** pieces for that job (**including** `archived: "true"`). If **every** such piece has a **set** `price` **and a set positive integer `units`**, **total** SHALL be the sum of **`units × price`** per piece (formatted as €), including zeros. If **any** such piece has **unset** `price` **or unset `units`**, the **total** cell SHALL **not** show a single misleading currency-only value (e.g. show an incomplete placeholder or label per i18n). The incomplete-pricing label SHALL use **visually distinct** styling (e.g. highlighted badge: colored background and border) so it is not mistaken for a monetary amount. The system SHALL NOT show a separate id-only column. Until the user changes sort via column-header (or equivalent) controls, the table SHALL order rows by `created_at` descending with stable secondary ordering by job `id` when timestamps tie. The table SHALL provide the shared list discovery controls (search, fuzzy matching, sortable data columns, responsive column visibility) defined in the `list-table-discovery` capability. The **client name** cell SHALL be the visible text of a link to `/clients/:clientId` for that job’s `client_id`.
 
 #### Scenario: Jobs table renders with data
 
@@ -139,11 +139,11 @@ The system SHALL provide a `StatusDropdown` component that renders a `<select>` 
 
 ### Requirement: Confirmation dialog for paid transition
 
-The system SHALL **not** allow a job's status to change to "paid" while **any** **non-deleted** piece for that job (**including** archived pieces) has an **unset** `price` (empty / null). **Explicit numeric 0** counts as set. When all such pieces have a set price, let **derived total** be the sum of their `price` values (zeros included). When the user changes status to "paid" and gating passes, the system SHALL display a confirmation dialog showing **derived total** (including €0.00) and ask for confirmation. The dialog SHALL **not** include a separate payment-amount field to override or split across pieces. The dialog SHALL have confirm and cancel actions.
+The system SHALL **not** allow a job's status to change to "paid" while **any** **non-deleted** piece for that job (**including** archived pieces) has an **unset** `price` (empty / null) **or unset `units`**. **Explicit numeric 0** counts as set for `price`. **`units` MUST be a positive finite integer when set.** When all such pieces have set `price` and set `units`, let **derived total** be the sum of **`units × price`** (zeros included). When the user changes status to "paid" and gating passes, the system SHALL display a confirmation dialog showing **derived total** (including €0.00) and ask for confirmation. The dialog SHALL **not** include a separate payment-amount field to override or split across pieces. The dialog SHALL have confirm and cancel actions.
 
 #### Scenario: Paid confirmation with positive derived total
 
-- **WHEN** user changes status to "paid" on a job whose counting pieces all have set prices summing to €45
+- **WHEN** user changes status to "paid" on a job whose counting pieces all have set per-unit prices and `units` such that the sum of `units × price` is €45
 - **THEN** a confirmation dialog appears showing "Mark as paid for €45.00?" (or equivalent i18n)
 - **AND** user can confirm or cancel
 
@@ -153,9 +153,15 @@ The system SHALL **not** allow a job's status to change to "paid" while **any** 
 - **THEN** the status does **not** change to paid
 - **AND** the user sees an error explaining that all piece prices must be set (i18n)
 
+#### Scenario: Paid blocked when any piece units unset
+
+- **WHEN** user changes status to "paid" on a job that has at least one non-deleted piece with unset `units`
+- **THEN** the status does **not** change to paid
+- **AND** the user sees an error explaining that all piece units must be set (i18n)
+
 #### Scenario: Paid confirmation with all prices zero
 
-- **WHEN** user changes status to "paid" on a job whose counting pieces all have price **0** (set)
+- **WHEN** user changes status to "paid" on a job whose counting pieces all have price **0** (set) and valid `units`
 - **THEN** a confirmation dialog appears showing €0.00 (or equivalent)
 - **AND** user can confirm or cancel
 
@@ -373,7 +379,7 @@ The `createJob` service SHALL generate an auto-incrementing ID from the in-memor
 
 ### Requirement: updateJobStatus service updates status and optional income transaction
 
-The system SHALL provide an `updateJobStatus` service that updates a job's status in the workbook store. The service SHALL find the job's row in the in-memory jobs matrix and match by ID. If the new status is "paid", the service SHALL append an income transaction to the workbook store **unless** the caller passes an option to skip transaction creation (e.g. `createIncomeTransaction: false`). Omitting that option SHALL preserve default behavior (append income transaction). The **income amount** SHALL equal **derived total** (sum of set piece prices for non-deleted pieces, including archived). The caller SHALL supply this amount (e.g. `paidPrice`) when transitioning to paid. The service SHALL **not** rely on persisting that amount on the `jobs` row for correctness. The service SHALL **not** modify piece `price` rows as part of marking paid to force a different total.
+The system SHALL provide an `updateJobStatus` service that updates a job's status in the workbook store. The service SHALL find the job's row in the in-memory jobs matrix and match by ID. If the new status is "paid", the service SHALL append an income transaction to the workbook store **unless** the caller passes an option to skip transaction creation (e.g. `createIncomeTransaction: false`). Omitting that option SHALL preserve default behavior (append income transaction). The **income amount** SHALL equal **derived total** (sum over non-deleted counting pieces including archived of **`units × price`** when both fields are set per piece). The caller SHALL supply this amount (e.g. `paidPrice`) when transitioning to paid. The service SHALL **not** rely on persisting that amount on the `jobs` row for correctness. The service SHALL **not** modify piece `price` or `units` rows as part of marking paid to force a different total.
 
 #### Scenario: Status updated in workbook store
 
@@ -464,7 +470,7 @@ The system SHALL provide a generic `EntityDetailPage` component that renders: a 
 
 #### Scenario: EntityDetailPage renders header with fields
 
-- **WHEN** `EntityDetailPage` is rendered with title "Phone case" and fields [id: "J1", client: "Alice", **total**: derived sum of **set** piece prices on **non-deleted** pieces (**including** archived), or incomplete label with highlight when any counting piece price is unset]
+- **WHEN** `EntityDetailPage` is rendered with title "Phone case" and fields [id: "J1", client: "Alice", **total**: derived sum of **`units × price`** on **non-deleted** counting pieces (**including** archived) when every counting piece has set `price` and set `units`, or incomplete label with highlight when any counting piece lacks `price` or `units`]
 - **THEN** the header card displays the title and all field label-value pairs
 
 #### Scenario: Back link navigates to list
@@ -494,17 +500,17 @@ The system SHALL derive `Job` objects for UI from the jobs tab matrix held in th
 
 ### Requirement: Marking paid does not rewrite piece prices
 
-When the user confirms marking a job paid, the system SHALL **not** add or change piece `price` values solely to match a payment total; **derived total** is always read from existing piece rows.
+When the user confirms marking a job paid, the system SHALL **not** add or change piece `price` or `units` values solely to match a payment total; **derived total** is always read from existing piece rows.
 
 #### Scenario: Confirm paid leaves piece prices unchanged
 
-- **WHEN** counting pieces have set prices summing to €45
+- **WHEN** counting pieces have set `price` and `units` such that `units × price` sums to €45
 - **AND** the user confirms paid
-- **THEN** each piece's stored `price` is unchanged from before the transition
+- **THEN** each piece's stored `price` and `units` are unchanged from before the transition
 
 ### Requirement: Incomplete piece pricing is visibly highlighted
 
-When the UI shows the **incomplete pricing** state for a job (at least one non-deleted counting piece exists and any such piece has unset `price`), the i18n incomplete label SHALL use **visually distinct** styling (e.g. colored background and border) wherever that label appears, including: jobs list **Total** column, client detail embedded jobs **Total** column, job detail header **Total** field, and dashboard kanban job cards that show totals when counting pieces exist.
+When the UI shows the **incomplete pricing** state for a job (at least one non-deleted counting piece exists and any such piece has **unset** `price` **or unset `units`**), the i18n incomplete label SHALL use **visually distinct** styling (e.g. colored background and border) wherever that label appears, including: jobs list **Total** column, client detail embedded jobs **Total** column, job detail header **Total** field, and dashboard kanban job cards that show totals when counting pieces exist.
 
 #### Scenario: Incomplete total uses highlight styling
 

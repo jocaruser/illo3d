@@ -66,7 +66,9 @@
       "alerts": "Stock alerts",
       "healthy": "All stock levels look healthy.",
       "viewAll": "View inventory"
-    }
+    },
+    "expectedBenefit": "Expected benefit (active jobs)",
+    "expectedBenefitEmpty": "Add units, per-unit prices, and material lines with lot costs on draft or in-progress jobs to see expected benefit."
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -337,10 +339,16 @@
     "colId": "ID",
     "colJob": "Job",
     "colName": "Name",
+    "colUnits": "Units",
     "colPrice": "Price",
+    "colPricePerUnit": "Price / unit",
+    "colLineTotal": "Line total",
+    "colBenefit": "Est. benefit",
+    "colRunMargin": "Run stock",
     "colStatus": "Status",
     "colCreated": "Created",
     "suggestedApply": "Use {{price}}",
+    "suggestedApplyPerUnit": "Use {{price}} / unit",
     "status": {
       "pending": "Pending",
       "done": "Done",
@@ -374,6 +382,7 @@
     "decrementInventoryLabel": "Decrement from inventory",
     "restoreInventoryLabel": "Restore inventory quantities",
     "statusNeedsLines": "Add at least one material line before marking this piece done or failed.",
+    "statusNeedsUnits": "Set a positive units count on this piece before marking it done or failed.",
     "statusInsufficientStockDetail": "Could not decrement: {{detail}}. Uncheck “Decrement from inventory” or cancel.",
     "shortfallLine": "{{id}}: need {{need}}, have {{have}}",
     "inventoryLot": "Inventory lot",
@@ -385,7 +394,8 @@
       "jobRequired": "Select a job",
       "nameRequired": "Name is required",
       "inventoryRequired": "Select an inventory lot",
-      "quantityPositive": "Quantity must be greater than zero"
+      "quantityPositive": "Quantity must be greater than zero",
+      "duplicateInventory": "This piece already has a material line for that inventory item."
     }
   },
   "jobs": {
@@ -424,6 +434,7 @@
     "colTotal": "Total",
     "totalIncomplete": "Incomplete pricing",
     "paidPricingIncomplete": "Set a price on every piece for this job before moving it to Paid or Cancelled.",
+    "paidPiecesIncomplete": "Set a per-unit price and a units count on every piece for this job before moving it to Paid or Cancelled.",
     "colPrice": "Price",
     "colCreated": "Created",
     "statusFieldAria": "Status for job {{id}}",

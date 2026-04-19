@@ -10,6 +10,7 @@ const basePiece: Piece = {
   job_id: 'J1',
   name: 'Shell',
   status: 'pending',
+  units: 1,
   created_at: '2025-01-01T00:00:00.000Z',
 }
 
@@ -41,6 +42,7 @@ function seedPieceFixture(opts: {
         name: piece.name,
         status: piece.status,
         price: piece.price ?? '',
+        units: piece.units ?? '',
         created_at: piece.created_at,
       },
     ]),
@@ -225,6 +227,51 @@ describe('updatePieceStatus', () => {
     await expect(
       updatePieceStatus('s1', basePiece, 'done', { decrementInventory: true }),
     ).rejects.toThrow('no material lines')
+  })
+
+  it('throws when decrement requested but units unset', async () => {
+    const noUnits: Piece = { ...basePiece, units: undefined }
+    seedPieceFixture({
+      piece: noUnits,
+      lines: [
+        {
+          id: 'PI1',
+          piece_id: 'P1',
+          inventory_id: 'INV1',
+          quantity: 1,
+        },
+      ],
+    })
+
+    await expect(
+      updatePieceStatus('s1', noUnits, 'done', { decrementInventory: true }),
+    ).rejects.toThrow('PIECE_UNITS_REQUIRED_FOR_CONSUMPTION')
+  })
+
+  it('multiplies decrement by piece units', async () => {
+    const piece: Piece = { ...basePiece, units: 10 }
+    seedPieceFixture({
+      piece,
+      lines: [
+        {
+          id: 'PI1',
+          piece_id: 'P1',
+          inventory_id: 'INV1',
+          quantity: 5,
+        },
+      ],
+      inventory: [{ ...inv1, qty_current: 100 }],
+    })
+
+    const result = await updatePieceStatus('s1', piece, 'done', {
+      decrementInventory: true,
+    })
+
+    expect(result).toEqual({ ok: true })
+    expect(
+      matrixToInventory(useWorkbookStore.getState().tabs.inventory)[0]
+        ?.qty_current,
+    ).toBe(50)
   })
 
   it('reclassifies failed to done without touching inventory', async () => {

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { createPieceItem } from '@/services/piece/createPieceItem'
-import type { Inventory } from '@/types/money'
+import {
+  createPieceItem,
+  DUPLICATE_PIECE_ITEM_INVENTORY,
+} from '@/services/piece/createPieceItem'
+import type { Inventory, PieceItem } from '@/types/money'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
 
@@ -12,6 +15,7 @@ interface CreatePieceItemPopupProps {
   spreadsheetId: string | null
   pieceId: string | null
   inventory: Inventory[]
+  pieceItems: PieceItem[]
 }
 
 export function CreatePieceItemPopup({
@@ -21,6 +25,7 @@ export function CreatePieceItemPopup({
   spreadsheetId,
   pieceId,
   inventory,
+  pieceItems,
 }: CreatePieceItemPopupProps) {
   const { t } = useTranslation()
   const [inventoryId, setInventoryId] = useState('')
@@ -49,6 +54,19 @@ export function CreatePieceItemPopup({
     if (!quantity.trim()) errs.quantity = t('pieces.validation.required')
     else if (Number.isNaN(q) || q <= 0)
       errs.quantity = t('pieces.validation.quantityPositive')
+    if (
+      pieceId &&
+      inventoryId &&
+      pieceItems.some(
+        (r) =>
+          r.piece_id === pieceId &&
+          r.inventory_id === inventoryId &&
+          r.archived !== 'true' &&
+          r.deleted !== 'true',
+      )
+    ) {
+      errs.inventory = t('pieces.validation.duplicateInventory')
+    }
     setFieldErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -67,7 +85,14 @@ export function CreatePieceItemPopup({
       onSuccess()
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
+      if (
+        err instanceof Error &&
+        err.message === DUPLICATE_PIECE_ITEM_INVENTORY
+      ) {
+        setError(t('pieces.validation.duplicateInventory'))
+      } else {
+        setError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
+      }
     } finally {
       setLoading(false)
     }

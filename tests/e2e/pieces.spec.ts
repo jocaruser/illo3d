@@ -34,6 +34,7 @@ test.describe('Job pieces (job detail)', () => {
     ).toBeVisible()
     await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
     await expect(page.getByText('Phone case top shell')).toBeVisible()
+    await expect(page.getByTestId('piece-units-P1')).toBeVisible()
 
     await page.getByTestId('expand-piece-P1').click()
     await expect(

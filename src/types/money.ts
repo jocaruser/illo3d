@@ -116,7 +116,10 @@ export interface Piece {
   job_id: string
   name: string
   status: PieceStatus
+  /** Currency per single manufactured unit (not line total). */
   price?: number
+  /** Count of identical units in this line; unset until the user sets it. */
+  units?: number
   created_at: string
   archived?: string
   deleted?: string

@@ -8,7 +8,7 @@ Job detail on `/jobs/:jobId`: job summary, pieces table (status, pricing, lot-ba
 
 ### Requirement: Job detail page lists pieces for that job
 
-The system SHALL provide a job detail route `/jobs/:jobId` protected by the same authentication guard as `/jobs`. The system SHALL NOT provide a top-level Pieces tab or `/pieces` route. When the sheet connection is connected, the job detail page SHALL show a summary of the job (description, id, client, status, derived total from piece prices, created_at) and a **Pieces** section. The Pieces section SHALL list only pieces whose `job_id` matches `:jobId`, with columns: id, name, status (as a dropdown with `pending`, `done`, `failed` options and i18n labels), price (editable), per-piece suggested price (from BOM via lot-based avg cost), and `created_at` (job reference column omitted on this page). Rows SHALL be sorted by `created_at` descending. When no pieces exist for the job, the Pieces section SHALL show an empty state message using i18n.
+The system SHALL provide a job detail route `/jobs/:jobId` protected by the same authentication guard as `/jobs`. The system SHALL NOT provide a top-level Pieces tab or `/pieces` route. When the sheet connection is connected, the job detail page SHALL show a summary of the job (description, id, client, status, **derived total from pieces using `units × price` per counting piece when both are set**, incomplete styling when any counting piece lacks `price` or `units`, created_at) and a **Pieces** section. The Pieces section SHALL list only pieces whose `job_id` matches `:jobId`, with columns: id, name, **`units`**, status (as a dropdown with `pending`, `done`, `failed` options and i18n labels), **per-unit** price (editable), **computed line total** (units × price when both set, otherwise em dash or incomplete treatment consistent with `job-management`), per-piece suggested **per-unit** price (from BOM via lot-based avg cost), **per-piece expected benefit** when revenue and material are computable (otherwise placeholder), and `created_at` (job reference column omitted on this page). Rows SHALL be sorted by `created_at` descending. When no pieces exist for the job, the Pieces section SHALL show an empty state message using i18n. **Rows where `units` is unset SHALL use visually distinct highlighting** (e.g. row background or border) so the user can complete data entry.
 
 #### Scenario: Authenticated user opens job detail with pieces
 
@@ -23,15 +23,21 @@ The system SHALL provide a job detail route `/jobs/:jobId` protected by the same
 - **WHEN** an unauthenticated user navigates to `/jobs/J1`
 - **THEN** the system redirects to `/login`
 
+#### Scenario: Unset units row is highlighted
+
+- **WHEN** a counting piece has unset `units`
+- **THEN** that row is visually highlighted in the Pieces section
+
 ### Requirement: Piece status change triggers inventory consumption using inventory items
 
-When a piece status changes to `done` or `failed` and the user confirms with "Decrement from inventory" checked, the system SHALL decrement `inventory.qty_current` by `piece_item.quantity` for each piece_item of that piece, where `piece_item.inventory_id` references the inventory item (material identity). When the piece status reverts to `pending` with "Restore inventory quantities" checked, the system SHALL increment `inventory.qty_current` by `piece_item.quantity`.
+When a piece status changes to `done` or `failed` and the user confirms with "Decrement from inventory" checked, the system SHALL decrement `inventory.qty_current` by **`piece_item.quantity × piece.units`** for each piece_item of that piece (with `units` required to be set per money-tracking), where `piece_item.inventory_id` references the inventory item (material identity). When the piece status reverts to `pending` with "Restore inventory quantities" checked, the system SHALL increment `inventory.qty_current` by the same **effective** amounts.
 
 #### Scenario: Piece completion decrements inventory qty_current
 
 - **WHEN** piece status changes to "done" or "failed"
 - **AND** the user confirms with "Decrement from inventory" checked
-- **THEN** inventory.qty_current is decremented by piece_item.quantity for each piece_item
+- **AND** the piece has set `units`
+- **THEN** inventory.qty_current is decremented by **effective consumption** for each piece_item
 
 #### Scenario: Piece completion without inventory decrement
 
@@ -43,7 +49,7 @@ When a piece status changes to `done` or `failed` and the user confirms with "De
 
 - **WHEN** piece status changes from "done" or "failed" back to "pending"
 - **AND** the user confirms with "Restore inventory quantities" checked
-- **THEN** inventory.qty_current is incremented by piece_item.quantity for each piece_item
+- **THEN** inventory.qty_current is incremented by the same effective amounts that were decremented
 
 #### Scenario: Piece reverts without inventory restoration
 

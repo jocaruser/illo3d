@@ -10,6 +10,8 @@ export interface CreatePieceItemPayload {
   quantity: number
 }
 
+export const DUPLICATE_PIECE_ITEM_INVENTORY = 'DUPLICATE_PIECE_ITEM_INVENTORY'
+
 export async function createPieceItem(
   spreadsheetId: string,
   payload: CreatePieceItemPayload
@@ -18,6 +20,16 @@ export async function createPieceItem(
   const existing = matrixToPieceItems(
     useWorkbookStore.getState().tabs.piece_items,
   )
+  const duplicate = existing.some(
+    (r) =>
+      r.piece_id === payload.piece_id &&
+      r.inventory_id === payload.inventory_id &&
+      r.archived !== 'true' &&
+      r.deleted !== 'true',
+  )
+  if (duplicate) {
+    throw new Error(DUPLICATE_PIECE_ITEM_INVENTORY)
+  }
   const lineId = nextNumericId(
     'PI',
     existing.map((r) => r.id).filter((id): id is string => id != null),

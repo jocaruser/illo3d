@@ -1,8 +1,8 @@
-id,job_id,name,status,price,created_at,archived,deleted
-P1,J1,Phone case top shell,pending,,2025-02-05T09:00:00.000Z,,
-P2,J1,Phone case bottom shell,pending,,2025-02-05T09:30:00.000Z,,
-P3,J2,Drive gear,done,42,2025-02-06T10:00:00.000Z,,
-P4,J1,Camera mount arm,pending,,2025-02-07T08:00:00.000Z,,
-P5,J1,LED diffuser ring,pending,,2025-02-07T08:15:00.000Z,,
-P6,J3,Pen holder,pending,35.5,2025-02-08T09:00:00.000Z,,
-P7,J4,Logo keychain batch piece,pending,12,2025-02-04T13:00:00.000Z,,
+id,job_id,name,status,price,units,created_at,archived,deleted
+P1,J1,Phone case top shell,pending,,,2025-02-05T09:00:00.000Z,,
+P2,J1,Phone case bottom shell,pending,,,2025-02-05T09:30:00.000Z,,
+P3,J2,Drive gear,done,42,1,2025-02-06T10:00:00.000Z,,
+P4,J1,Camera mount arm,pending,,,2025-02-07T08:00:00.000Z,,
+P5,J1,LED diffuser ring,pending,,,2025-02-07T08:15:00.000Z,,
+P6,J3,Pen holder,pending,35.5,1,2025-02-08T09:00:00.000Z,,
+P7,J4,Logo keychain batch piece,pending,12,150,2025-02-04T13:00:00.000Z,,

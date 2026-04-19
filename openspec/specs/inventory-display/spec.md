@@ -166,7 +166,7 @@ The system SHALL provide navigation from each inventory list row to `/inventory/
 
 ### Requirement: Inventory detail header and threshold editing
 
-The inventory detail page SHALL display the item **name**, **type** (localized), and **average unit cost** using the same weighted average rule as the inventory list for active lots. The page SHALL allow the user to edit **`qty_current`** as a non-negative integer (or whole-number quantity consistent with existing inventory parsing) and persist changes to the inventory sheet independently of lot rows. The page SHALL allow the user to edit **`warn_yellow`**, **`warn_orange`**, and **`warn_red`** and persist changes to the inventory sheet. The page SHALL provide an **archive** control that marks the inventory row with the same soft-archive lifecycle pattern (`archived`) used for other primary entities. The list page SHALL remain read-only for name, type, qty_current, thresholds, archive, and lot fields.
+The inventory detail page SHALL display the item **name**, **type** (localized), and **average unit cost** using the same weighted average rule as the inventory list for active lots. The page SHALL allow the user to edit **`qty_current`** as a **non-negative decimal quantity rounded to at most two decimal places** on persist (input MAY accept reasonable decimal strings; invalid input SHALL surface inline validation per existing patterns) and persist changes to the inventory sheet independently of lot rows. The page SHALL allow the user to edit **`warn_yellow`**, **`warn_orange`**, and **`warn_red`** as **non-negative integers** and persist changes to the inventory sheet. The page SHALL provide an **archive** control that marks the inventory row with the same soft-archive lifecycle pattern (`archived`) used for other primary entities. The list page SHALL remain read-only for name, type, qty_current, thresholds, archive, and lot fields.
 
 #### Scenario: Header shows identity and cost
 
@@ -180,10 +180,10 @@ The inventory detail page SHALL display the item **name**, **type** (localized),
 - **THEN** the workbook stores updated warn_yellow, warn_orange, and warn_red for that inventory id
 - **AND** subsequent list and detail views reflect the new values
 
-#### Scenario: User updates qty_current
+#### Scenario: User updates qty_current with decimals
 
-- **WHEN** user changes qty_current on inventory detail and commits
-- **THEN** the workbook stores the updated qty_current for that inventory id
+- **WHEN** user enters `qty_current` **12.55** on inventory detail and commits
+- **THEN** the workbook stores **12.55** (or **12.55** after normalization to two decimal places) for that inventory id
 - **AND** subsequent list and detail views reflect the new value
 - **AND** lot rows are unchanged by this operation
 

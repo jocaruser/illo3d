@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { createPieceItem } from './createPieceItem'
+import {
+  createPieceItem,
+  DUPLICATE_PIECE_ITEM_INVENTORY,
+} from './createPieceItem'
 import { matrixToPieceItems } from '@/lib/workbook/workbookEntities'
 import { useWorkbookStore } from '@/stores/workbookStore'
 import { matrixWithRows, resetAndSeedWorkbook } from '@/test/workbookHarness'
@@ -57,5 +60,26 @@ describe('createPieceItem', () => {
       inventory_id: 'INV2',
       quantity: 1,
     })
+  })
+
+  it('rejects duplicate inventory line for the same piece', async () => {
+    resetAndSeedWorkbook({
+      piece_items: matrixWithRows('piece_items', [
+        {
+          id: 'PI1',
+          piece_id: 'P1',
+          inventory_id: 'INV1',
+          quantity: '1',
+        },
+      ]),
+    })
+
+    await expect(
+      createPieceItem('spreadsheet-1', {
+        piece_id: 'P1',
+        inventory_id: 'INV1',
+        quantity: 2,
+      }),
+    ).rejects.toThrow(DUPLICATE_PIECE_ITEM_INVENTORY)
   })
 })

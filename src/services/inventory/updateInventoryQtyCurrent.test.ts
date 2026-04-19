@@ -37,7 +37,7 @@ describe('updateInventoryQtyCurrent', () => {
     })
   })
 
-  it('floors fractional input and rejects negatives via clamp', async () => {
+  it('rounds to two decimal places and rejects negatives via clamp', async () => {
     resetAndSeedWorkbook({
       inventory: matrixWithRows('inventory', [
         {
@@ -53,9 +53,9 @@ describe('updateInventoryQtyCurrent', () => {
       ]),
     })
 
-    await updateInventoryQtyCurrent('s1', 'INV1', 12.9)
+    await updateInventoryQtyCurrent('s1', 'INV1', 12.906)
     let rows = matrixToInventory(useWorkbookStore.getState().tabs.inventory)
-    expect(rows[0].qty_current).toBe(12)
+    expect(rows[0].qty_current).toBeCloseTo(12.91, 5)
 
     await updateInventoryQtyCurrent('s1', 'INV1', -5)
     rows = matrixToInventory(useWorkbookStore.getState().tabs.inventory)

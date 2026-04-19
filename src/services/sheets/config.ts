@@ -66,6 +66,7 @@ export const SHEET_HEADERS: Record<SheetName, readonly string[]> = {
     'name',
     'status',
     'price',
+    'units',
     'created_at',
     ...LIFECYCLE_COLUMNS,
   ],

@@ -34,6 +34,7 @@ export async function createPiece(
       name: payload.name.trim(),
       status: 'pending',
       price: priceCell,
+      units: '',
       created_at: createdAt,
       archived: '',
       deleted: '',

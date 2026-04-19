@@ -1,8 +1,13 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Inventory, Job, Lot, Piece, PieceItem } from '@/types/money'
+import { piecePriceIsSet } from '@/utils/jobPiecePricing'
 import { computePieceSuggestedPrice } from '@/utils/jobSuggestedPrice'
 import { materialCostForPieceItemLine } from '@/utils/pieceItemMaterialCost'
+import {
+  pieceUnitsAreSet,
+  pieceUnitsResolved,
+} from '@/utils/pieceEffectiveInventory'
 import { formatCurrency } from '@/utils/money'
 import { PieceStatusDropdown } from '@/components/PieceStatusDropdown'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
@@ -62,7 +67,13 @@ function redoDisplay(
 function pieceComparable(
   piece: Piece,
   key: string,
-  ctx: { jobLabel: string; statusLabel: string }
+  ctx: {
+    jobLabel: string
+    statusLabel: string
+    pieceItems: PieceItem[]
+    inventory: Inventory[]
+    lots: Lot[]
+  },
 ): string | number {
   switch (key) {
     case 'id':
@@ -80,6 +91,33 @@ function pieceComparable(
       if (typeof p !== 'number' || Number.isNaN(p)) return Number.POSITIVE_INFINITY
       return p
     }
+    case 'units': {
+      const u = piece.units
+      if (typeof u !== 'number' || Number.isNaN(u)) return Number.POSITIVE_INFINITY
+      return u
+    }
+    case 'line_total': {
+      const u = pieceUnitsResolved(piece)
+      const p = piece.price
+      if (u == null || typeof p !== 'number' || !Number.isFinite(p)) {
+        return Number.POSITIVE_INFINITY
+      }
+      return u * p
+    }
+    case 'benefit': {
+      const u = pieceUnitsResolved(piece)
+      if (u == null || !piecePriceIsSet(piece)) return Number.POSITIVE_INFINITY
+      const sug = computePieceSuggestedPrice(
+        piece.id,
+        ctx.pieceItems,
+        ctx.inventory,
+        ctx.lots,
+      )
+      if (sug.kind !== 'ok') return Number.POSITIVE_INFINITY
+      return u * (piece.price as number) - sug.materialSubtotal * u
+    }
+    case 'run_margin':
+      return 0
     default:
       return ''
   }
@@ -97,6 +135,7 @@ interface PiecesTableProps {
   onOpenAddLine: (pieceId: string) => void
   onStatusChange: (piece: Piece, nextStatus: Piece['status']) => void
   onPiecePriceCommit: (pieceId: string, raw: string) => Promise<void>
+  onPieceUnitsCommit: (pieceId: string, raw: string) => Promise<void>
   statusUpdatingId?: string | null
   hideJobColumn?: boolean
 }
@@ -113,11 +152,12 @@ export function PiecesTable({
   onOpenAddLine,
   onStatusChange,
   onPiecePriceCommit,
+  onPieceUnitsCommit,
   statusUpdatingId = null,
   hideJobColumn = false,
 }: PiecesTableProps) {
   const { t } = useTranslation()
-  const colCount = hideJobColumn ? 6 : 7
+  const colCount = hideJobColumn ? 10 : 11
 
   const [query, setQuery] = useState('')
   const [sortKey, setSortKey] = useState<string | null>(null)
@@ -160,9 +200,12 @@ export function PiecesTable({
         pieceComparable(piece, key, {
           jobLabel: jobLabel(jobs, piece.job_id),
           statusLabel: t(`pieces.status.${piece.status}`),
+          pieceItems,
+          inventory,
+          lots,
         })
     )
-  }, [filtered, sortKey, sortDir, jobs, t])
+  }, [filtered, sortKey, sortDir, jobs, t, pieceItems, inventory, lots])
 
   useEffect(() => {
     if (!expandedPieceId) return
@@ -240,15 +283,57 @@ export function PiecesTable({
                 {t('pieces.colName')}
               </SortableColumnHeader>
               <SortableColumnHeader
+                columnKey="units"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                thClassName="hidden sm:table-cell"
+                ariaLabel={sortAria(t('pieces.colUnits'), 'units')}
+              >
+                {t('pieces.colUnits')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
                 columnKey="price"
                 sortKey={sortKey}
                 sortDir={sortDir}
                 onSortChange={onSortChange}
                 alignEnd
                 thClassName="hidden md:table-cell"
-                ariaLabel={sortAria(t('pieces.colPrice'), 'price')}
+                ariaLabel={sortAria(t('pieces.colPricePerUnit'), 'price')}
               >
-                {t('pieces.colPrice')}
+                {t('pieces.colPricePerUnit')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
+                columnKey="line_total"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                alignEnd
+                thClassName="hidden md:table-cell"
+                ariaLabel={sortAria(t('pieces.colLineTotal'), 'line_total')}
+              >
+                {t('pieces.colLineTotal')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
+                columnKey="benefit"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                alignEnd
+                thClassName="hidden lg:table-cell"
+                ariaLabel={sortAria(t('pieces.colBenefit'), 'benefit')}
+              >
+                {t('pieces.colBenefit')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
+                columnKey="run_margin"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                thClassName="hidden lg:table-cell"
+                ariaLabel={sortAria(t('pieces.colRunMargin'), 'run_margin')}
+              >
+                {t('pieces.colRunMargin')}
               </SortableColumnHeader>
               <SortableColumnHeader
                 columnKey="status"
@@ -289,7 +374,11 @@ export function PiecesTable({
                   <Fragment key={piece.id}>
                     <tr
                       id={`piece-${piece.id}`}
-                      className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
+                      className={`odd:bg-white even:bg-gray-50 hover:bg-gray-100 ${
+                        pieceUnitsAreSet(piece)
+                          ? ''
+                          : 'bg-amber-50/70 ring-1 ring-inset ring-amber-200'
+                      }`}
                     >
                       <td className="whitespace-nowrap px-2 py-3">
                         <button
@@ -314,6 +403,26 @@ export function PiecesTable({
                       <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 sm:table-cell">
                         {piece.name}
                       </td>
+                      <td className="hidden px-2 py-3 text-sm sm:table-cell">
+                        <input
+                          type="number"
+                          min={1}
+                          step={1}
+                          data-testid={`piece-units-${piece.id}`}
+                          key={`${piece.id}-u-${piece.units ?? 'x'}`}
+                          defaultValue={
+                            piece.units === undefined
+                              ? ''
+                              : String(piece.units)
+                          }
+                          disabled={!spreadsheetId}
+                          onBlur={(e) => {
+                            void onPieceUnitsCommit(piece.id, e.target.value)
+                          }}
+                          className="w-16 rounded border border-gray-300 px-2 py-1 text-right text-gray-800 disabled:bg-gray-100"
+                          aria-label={t('pieces.colUnits')}
+                        />
+                      </td>
                       <td className="hidden px-2 py-3 text-sm md:table-cell">
                         <div className="flex flex-col items-end gap-1">
                           <input
@@ -332,7 +441,7 @@ export function PiecesTable({
                               void onPiecePriceCommit(piece.id, e.target.value)
                             }}
                             className="w-24 rounded border border-gray-300 px-2 py-1 text-right text-gray-800 disabled:bg-gray-100"
-                            aria-label={t('pieces.colPrice')}
+                            aria-label={t('pieces.colPricePerUnit')}
                           />
                           {(() => {
                             const sug = computePieceSuggestedPrice(
@@ -357,13 +466,72 @@ export function PiecesTable({
                                   )
                                 }}
                               >
-                                {t('pieces.suggestedApply', {
+                                {t('pieces.suggestedApplyPerUnit', {
                                   price: formatCurrency(sug.suggestedPrice),
                                 })}
                               </button>
                             )
                           })()}
                         </div>
+                      </td>
+                      <td className="hidden px-2 py-3 text-right text-sm text-gray-800 md:table-cell">
+                        {(() => {
+                          const u = pieceUnitsResolved(piece)
+                          const p = piece.price
+                          if (
+                            u == null ||
+                            typeof p !== 'number' ||
+                            !Number.isFinite(p)
+                          ) {
+                            return '—'
+                          }
+                          return formatCurrency(u * p)
+                        })()}
+                      </td>
+                      <td className="hidden px-2 py-3 text-right text-sm text-gray-800 lg:table-cell">
+                        {(() => {
+                          const u = pieceUnitsResolved(piece)
+                          if (u == null || !piecePriceIsSet(piece)) return '—'
+                          const sug = computePieceSuggestedPrice(
+                            piece.id,
+                            pieceItems,
+                            inventory,
+                            lots,
+                          )
+                          if (sug.kind !== 'ok') return '—'
+                          const revenue = u * (piece.price as number)
+                          const material = sug.materialSubtotal * u
+                          return formatCurrency(revenue - material)
+                        })()}
+                      </td>
+                      <td className="hidden max-w-xs px-2 py-3 text-xs text-gray-700 lg:table-cell">
+                        {(() => {
+                          const u = pieceUnitsResolved(piece)
+                          if (u == null || lines.length === 0) return '—'
+                          return (
+                            <div className="flex flex-col gap-1">
+                              {lines.map((line) => {
+                                const inv = inventory.find(
+                                  (x) => x.id === line.inventory_id,
+                                )
+                                const { remaining, band, bandClass } =
+                                  redoDisplay(t, inv, line.quantity * u)
+                                return (
+                                  <div key={line.id}>
+                                    <span className="font-medium text-gray-600">
+                                      {inv?.name ?? line.inventory_id}:
+                                    </span>{' '}
+                                    {band ? (
+                                      <span className={bandClass}>{band}</span>
+                                    ) : (
+                                      <span>{remaining}</span>
+                                    )}
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )
+                        })()}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
                         <PieceStatusDropdown

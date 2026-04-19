@@ -29,7 +29,7 @@ describe('applyPiecePricingMigrations', () => {
       ],
       pieces: [
         SHEET_HEADERS.pieces.map(String),
-        ['P1', 'J1', 'Part', 'pending', '', '2025-01-01', '', ''],
+        ['P1', 'J1', 'Part', 'pending', '', '', '2025-01-01', '', ''],
       ],
     })
     const { tabs: next, modified } = applyPiecePricingMigrations(tabs)
@@ -46,7 +46,7 @@ describe('applyPiecePricingMigrations', () => {
       ],
       pieces: [
         SHEET_HEADERS.pieces.map(String),
-        ['P1', 'J1', 'Part', 'pending', '12', '2025-01-01', '', ''],
+        ['P1', 'J1', 'Part', 'pending', '12', '', '2025-01-01', '', ''],
       ],
     })
     const { tabs: next, modified } = applyPiecePricingMigrations(tabs)

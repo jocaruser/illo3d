@@ -67,7 +67,7 @@ export function useJobStatusFlow(
     if (next === job.status) return 'committed'
     if (next === 'paid') {
       if (!canMarkJobPaid(job.id, pieces)) {
-        setStatusError(t('jobs.paidPricingIncomplete'))
+        setStatusError(t('jobs.paidPiecesIncomplete'))
         return 'blocked'
       }
       setPaidCreateTransaction(true)
@@ -80,7 +80,7 @@ export function useJobStatusFlow(
     }
     if (next === 'cancelled') {
       if (!canMarkJobPaid(job.id, pieces)) {
-        setStatusError(t('jobs.paidPricingIncomplete'))
+        setStatusError(t('jobs.paidPiecesIncomplete'))
         return 'blocked'
       }
       setCancelDialogJob(job)
