@@ -1,7 +1,11 @@
 import { useCallback } from 'react'
+import { useAuthStore } from '@/stores/authStore'
 import { useShopStore } from '@/stores/shopStore'
 import { loadPickerApi, openFolderPicker } from '@/services/drive/picker'
-import { validateShopFolder } from '@/services/drive/validation'
+import {
+  validateShopFolder,
+  type ValidationResult,
+} from '@/services/drive/validation'
 import { getAccessToken } from '@/services/sheets/client'
 import {
   showDirectoryPicker,
@@ -55,14 +59,12 @@ export function useOpenExistingShop() {
   }, [setBackend, setLocalDirectoryHandle])
 
   const validateAndSetShop = useCallback(
-    async (
-      folderId: string
-    ): Promise<
-      | { ok: true; spreadsheetId: string; folderName: string; metadataVersion: string }
-      | { ok: false; error: string }
-    > => {
+    async (folderId: string): Promise<ValidationResult> => {
       const result = await validateShopFolder(folderId)
       if (result.ok) {
+        if (useAuthStore.getState().credentials?.accessToken) {
+          setBackend('google-drive')
+        }
         setActiveShop({
           folderId,
           folderName: result.folderName,
@@ -72,7 +74,7 @@ export function useOpenExistingShop() {
       }
       return result
     },
-    [setActiveShop]
+    [setActiveShop, setBackend]
   )
 
   return { selectFolder, selectLocalFolder, validateAndSetShop }

@@ -1,11 +1,12 @@
 import { APP_VERSION } from '@/config/version'
 import { ensureLocalPiecesCsvCanonical } from '@/services/local/ensureLocalPiecesCsvCanonical'
 import { getFolderRepository } from './folderRepository'
+import { ensurePiecesSheetCanonicalRemote } from '@/services/sheets/ensurePiecesSheetCanonicalRemote'
 import { validateStructure } from '@/services/sheets/validateStructure'
 
 export type ValidationResult =
   | { ok: true; spreadsheetId: string; folderName: string; metadataVersion: string }
-  | { ok: false; error: string }
+  | { ok: false; error: string; /** First `validateStructure` issue when `error` is `structure`. */ detail?: string }
 
 function parseMajor(version: string): number {
   const match = version.match(/^(\d+)/)
@@ -28,12 +29,15 @@ export async function validateShopFolder(
   }
 
   await ensureLocalPiecesCsvCanonical(metadata.spreadsheetId)
+  await ensurePiecesSheetCanonicalRemote(metadata.spreadsheetId)
 
   const validationErrors = await validateStructure(
     metadata.spreadsheetId
   )
   if (validationErrors.length > 0) {
-    return { ok: false, error: 'permissions' }
+    const first = validationErrors[0]
+    const detail = first.sheet ? `${first.sheet}: ${first.message}` : first.message
+    return { ok: false, error: 'structure', detail }
   }
 
   const folderName = await folderRepository.getFolderName(folderId)

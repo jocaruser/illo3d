@@ -19,6 +19,9 @@ vi.mock('./folderRepository', () => ({
 vi.mock('@/services/sheets/validateStructure', () => ({
   validateStructure: vi.fn(),
 }))
+vi.mock('@/services/sheets/ensurePiecesSheetCanonicalRemote', () => ({
+  ensurePiecesSheetCanonicalRemote: vi.fn().mockResolvedValue(undefined),
+}))
 
 import { validateStructure } from '@/services/sheets/validateStructure'
 
@@ -54,7 +57,7 @@ describe('validateShopFolder', () => {
     if (!result.ok) expect(result.error).toBe('version')
   })
 
-  it('returns permissions error when structure validation fails', async () => {
+  it('returns structure error when sheet layout validation fails', async () => {
     mockReadMetadata.mockResolvedValue({
       app: 'illo3d',
       version: APP_VERSION,
@@ -69,6 +72,9 @@ describe('validateShopFolder', () => {
     const result = await validateShopFolder('folder-1')
 
     expect(result.ok).toBe(false)
-    if (!result.ok) expect(result.error).toBe('permissions')
+    if (!result.ok) {
+      expect(result.error).toBe('structure')
+      expect(result.detail).toBe('Missing sheet')
+    }
   })
 })

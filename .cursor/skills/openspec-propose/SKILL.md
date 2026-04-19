@@ -18,6 +18,8 @@ I'll create a change with artifacts:
 
 When ready to implement, run /opsx:apply
 
+**Workbook / shop note:** Proposals that change the Google Sheets layout or shop metadata should call out bumping **`src/config/version.ts`** (patch for traceability; **major** only when shops must not open until migrated—see `validateShopFolder`).
+
 ---
 
 **Input**: The user's request should include a change name (kebab-case) OR a description of what they want to build.

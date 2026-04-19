@@ -498,7 +498,8 @@
     "chromeRequired": "El almacenamiento en carpeta local necesita un navegador basado en Chromium (por ejemplo Chrome o Edge).",
     "errorNotShop": "Esta carpeta no es una tienda illo3d.",
     "errorVersion": "Esta tienda fue creada con otra versión de la app y no puede abrirse.",
-    "errorPermissions": "No tienes permiso para acceder a los datos de esta tienda.",
+    "errorShopStructure": "A la hoja de Google de esta tienda le falta una pestaña o columna que esta versión de illo3d necesita. Actualiza la hoja al último modelo o crea una tienda nueva.",
+    "errorShopStructureWithDetail": "La hoja de Google de esta tienda no coincide con el formato que espera la app: {{detail}}",
     "errorGeneric": "Algo ha ido mal. Por favor, inténtalo de nuevo."
   },
   "workbook": {
