@@ -1,6 +1,8 @@
 import { useGoogleLogin } from '@react-oauth/google'
 import { useTranslation } from 'react-i18next'
+import { isGoogleDriveStyleShop } from '@/lib/googleDriveShop'
 import { useAuthStore } from '@/stores/authStore'
+import { useShopStore } from '@/stores/shopStore'
 import { useBackendStore } from '@/stores/backendStore'
 import { GOOGLE_DRIVE_OAUTH_SCOPE } from '@/services/google/oauthScopes'
 
@@ -12,9 +14,12 @@ export function GoogleSessionBanner() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const credentials = useAuthStore((s) => s.credentials)
   const backend = useBackendStore((s) => s.backend)
+  const activeShop = useShopStore((s) => s.activeShop)
 
+  // @ts-expect-error use_fedcm_for_prompt is valid in GSI but missing from @react-oauth/google 0.13 types.
   const googleLogin = useGoogleLogin({
     scope: GOOGLE_DRIVE_OAUTH_SCOPE,
+    use_fedcm_for_prompt: false,
     onSuccess: (tokenResponse) => {
       const expiresIn = tokenResponse.expires_in
       const accessTokenExpiresAtMs =
@@ -29,9 +34,12 @@ export function GoogleSessionBanner() {
     },
   })
 
+  const isDriveWorkbook =
+    backend === 'google-drive' || isGoogleDriveStyleShop(backend, activeShop)
+
   if (
     !googleSessionNeedsReauth ||
-    backend !== 'google-drive' ||
+    !isDriveWorkbook ||
     !isAuthenticated ||
     !credentials?.accessToken
   ) {
