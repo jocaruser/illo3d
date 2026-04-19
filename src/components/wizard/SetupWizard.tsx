@@ -28,11 +28,14 @@ interface SetupWizardProps {
 
 function mapValidationError(
   code: string,
-  t: (key: string) => string
+  t: (key: string, opts?: Record<string, string>) => string,
+  detail?: string
 ): string {
   if (code === 'not_shop') return t('wizard.errorNotShop')
   if (code === 'version') return t('wizard.errorVersion')
-  if (code === 'permissions') return t('wizard.errorPermissions')
+  if (code === 'structure') {
+    return detail ? t('wizard.errorShopStructureWithDetail', { detail }) : t('wizard.errorShopStructure')
+  }
   return t('wizard.errorGeneric')
 }
 
@@ -88,7 +91,9 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
       }
       const validation = await validateAndSetShop(picked.id)
       if (!validation.ok) {
-        setGoogleDriveError(mapValidationError(validation.error, t))
+        setGoogleDriveError(
+          mapValidationError(validation.error, t, validation.detail),
+        )
       }
     } catch (err) {
       setGoogleDriveError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
@@ -120,7 +125,9 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
       try {
         const validation = await validateAndSetShop(folderId)
         if (!validation.ok) {
-          setGoogleDriveError(mapValidationError(validation.error, t))
+          setGoogleDriveError(
+            mapValidationError(validation.error, t, validation.detail),
+          )
         }
       } catch (err) {
         setGoogleDriveError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
@@ -132,8 +139,10 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
     [validateAndSetShop, t]
   )
 
+  // @ts-expect-error useGoogleLogin forwards to initTokenClient; use_fedcm_for_prompt is valid in GSI but missing from @react-oauth/google 0.13 types.
   const googleLogin = useGoogleLogin({
     scope: GOOGLE_DRIVE_OAUTH_SCOPE,
+    use_fedcm_for_prompt: false,
     onSuccess: async (tokenResponse) => {
       setWelcomeError(null)
       setBusy(true)
@@ -242,7 +251,9 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
         setLocalDirectoryHandle(handle)
         const validation = await validateAndSetShop(handle.name)
         if (!validation.ok) {
-          setWelcomeError(mapValidationError(validation.error, t))
+          setWelcomeError(
+            mapValidationError(validation.error, t, validation.detail),
+          )
           clearBackend()
           logout()
         }

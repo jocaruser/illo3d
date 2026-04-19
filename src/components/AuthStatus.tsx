@@ -1,24 +1,27 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { isGoogleDriveStyleShop } from '@/lib/googleDriveShop'
 import { useAuthStore } from '../stores/authStore'
 import { useShopStore } from '../stores/shopStore'
 import { useBackendStore } from '../stores/backendStore'
 
 export function AuthStatus() {
   const { t } = useTranslation()
-  const { user, isAuthenticated, logout } = useAuthStore()
+  const { user, isAuthenticated, logout, credentials } = useAuthStore()
   const clearActiveShop = useShopStore((s) => s.clearActiveShop)
   const activeShop = useShopStore((s) => s.activeShop)
   const backend = useBackendStore((s) => s.backend)
   const resetBackend = useBackendStore((s) => s.reset)
 
+  const driveFolderHref = useMemo(() => {
+    if (!credentials?.accessToken || !activeShop) return null
+    if (!isGoogleDriveStyleShop(backend, activeShop)) return null
+    return `https://drive.google.com/drive/folders/${activeShop.folderId}`
+  }, [credentials?.accessToken, activeShop, backend])
+
   if (!isAuthenticated || !user) {
     return null
   }
-
-  const driveFolderHref =
-    backend === 'google-drive' && activeShop?.folderId
-      ? `https://drive.google.com/drive/folders/${activeShop.folderId}`
-      : null
 
   return (
     <div className="flex items-center gap-3">
