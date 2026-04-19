@@ -26,6 +26,7 @@ describe('AuthStatus', () => {
       user: null,
       credentials: null,
       isAuthenticated: false,
+      googleSessionNeedsReauth: false,
     })
   })
 

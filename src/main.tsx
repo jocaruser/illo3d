@@ -5,9 +5,11 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import App from './App'
 import './i18n'
 import './index.css'
+import { registerGoogleOAuthClientId } from '@/services/google/accessToken'
 
 const queryClient = new QueryClient()
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
+registerGoogleOAuthClientId(googleClientId)
 
 const appTree = (
   <GoogleOAuthProvider clientId={googleClientId}>

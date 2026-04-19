@@ -16,6 +16,8 @@ import {
   matrixToTransactions,
 } from '@/lib/workbook/workbookEntities'
 import { AuthStatus } from './components/AuthStatus'
+import { GoogleSessionBanner } from './components/GoogleSessionBanner'
+import { GoogleSessionError } from '@/services/google/authorizedFetch'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { GlobalHeaderSearch } from './components/GlobalHeaderSearch'
 import { Breadcrumbs } from './components/Breadcrumbs'
@@ -154,7 +156,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       await saveWorkbook(getSheetsRepository())
       setSaveFeedback({ kind: 'success' })
     } catch (e) {
-      const message = e instanceof Error ? e.message : String(e)
+      const message =
+        e instanceof GoogleSessionError
+          ? t('errors.googleSession')
+          : `${t('workbook.saveError')}: ${e instanceof Error ? e.message : String(e)}`
       setSaveFeedback({ kind: 'error', message })
     } finally {
       setSaveBusy(false)
@@ -213,6 +218,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      <GoogleSessionBanner />
       <header className="bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-3">
           <div className="flex items-center justify-between gap-4">
@@ -299,8 +305,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               ) : null}
               {saveFeedback?.kind === 'error' ? (
                 <p className="text-sm text-red-700" role="alert">
-                  {t('workbook.saveError')}
-                  {saveFeedback.message ? `: ${saveFeedback.message}` : ''}
+                  {saveFeedback.message}
                 </p>
               ) : null}
               {workbookStatus === 'loading' ? (
@@ -310,7 +315,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
               ) : null}
               {workbookStatus === 'error' && workbookError ? (
                 <div className="flex flex-wrap items-center gap-2 text-sm text-red-700">
-                  <span>{t('workbook.loadFailed')}</span>
+                  <span>
+                    {workbookError === 'GOOGLE_SESSION_EXPIRED'
+                      ? t('errors.googleSession')
+                      : `${t('workbook.loadFailed')} ${workbookError}`}
+                  </span>
                   <button
                     type="button"
                     className="rounded border border-red-300 px-2 py-0.5 font-medium hover:bg-red-50"

@@ -64,7 +64,7 @@ The system SHALL initialize Google One Tap only in contexts where an unauthentic
 
 ### Requirement: OAuth scope requested at login
 
-The system SHALL request the OAuth scope `https://www.googleapis.com/auth/drive.file` during the initial Google sign-in used for the Drive backend. That scope SHALL be sufficient for Google Drive and Google Sheets API usage on files the user connects through the app. The user SHALL see a single consent screen at login time. No additional consent prompts SHALL appear when using API features later.
+The system SHALL request the OAuth scope `https://www.googleapis.com/auth/drive.file` during the initial Google sign-in used for the Drive backend. That scope SHALL be sufficient for Google Drive and Google Sheets API usage on files the user connects through the app. The user SHALL see a single consent screen at login time. No additional consent prompts SHALL appear when using API features later, including automatic silent access-token renewal for the same granted scopes when Google permits it without a new consent UI.
 
 #### Scenario: Login requests drive.file scope upfront
 
@@ -74,11 +74,11 @@ The system SHALL request the OAuth scope `https://www.googleapis.com/auth/drive.
 #### Scenario: No additional consent prompts for API features
 
 - **WHEN** the user uses Drive or Sheets features after login
-- **THEN** the system uses the stored access token without showing additional consent prompts
+- **THEN** the system uses a valid access token without showing additional consent prompts, including after silent renewal when applicable
 
 ### Requirement: Access token stored alongside user credentials
 
-The system SHALL store the OAuth access token in the auth store (persisted to sessionStorage) after successful login. The token SHALL be available for all API calls without re-requesting authorization.
+The system SHALL store the OAuth access token in the auth store (persisted to sessionStorage) after successful login. The system SHALL store access token expiry metadata when provided by the token response. The token SHALL be available for all API calls: callers SHALL obtain the current token through the access layer that performs renewal when required, so that a valid token is used without the user repeating consent for the same scopes during normal operation.
 
 #### Scenario: Access token available after login
 
@@ -88,7 +88,61 @@ The system SHALL store the OAuth access token in the auth store (persisted to se
 #### Scenario: Stored access token used for API calls
 
 - **WHEN** an API call requires authorization
-- **THEN** the system uses the access token from the auth store
+- **THEN** the system uses a valid access token for Google APIs (renewing first when required per design)
+
+### Requirement: Google access token expiry is recorded at sign-in
+
+When Google sign-in completes for the Drive backend, the system SHALL persist an absolute expiry time for the access token alongside the token (e.g. derived from `expires_in` seconds). If the token response does not include expiry information, the system SHALL record that expiry is unknown and rely on reactive renewal paths only.
+
+#### Scenario: Successful OAuth includes expiry metadata
+
+- **WHEN** the user completes Google sign-in and the token response includes `expires_in`
+- **THEN** the auth store contains the access token and a stored absolute expiry instant consistent with that duration
+
+#### Scenario: Token response without expires_in
+
+- **WHEN** the user completes Google sign-in and no `expires_in` is available
+- **THEN** the auth store contains the access token and does not assert a false expiry time
+- **AND** reactive renewal on 401 remains available
+
+### Requirement: Google access token is renewed without extra consent when possible
+
+For the `google-drive` backend, the system SHALL renew the access token using Google Identity Services (silent token request with empty prompt) when the current token is near expiry or after a Google API returns 401, without showing a new OAuth consent screen when Google allows silent issuance for the same scopes.
+
+#### Scenario: Proactive renewal updates the auth store
+
+- **WHEN** the stored access token is near expiry and silent renewal succeeds
+- **THEN** the auth store is updated with the new access token and updated expiry metadata if provided
+
+#### Scenario: Silent renewal does not add a consent step during normal work
+
+- **WHEN** silent renewal succeeds during Save or Refresh
+- **THEN** the user is not shown an OAuth consent screen for that renewal
+
+### Requirement: Google access token renewal is single-flight
+
+The system SHALL ensure at most one in-flight Google access token renewal operation at a time; concurrent callers SHALL await the same renewal outcome.
+
+#### Scenario: Parallel Save and Refresh share one renewal
+
+- **WHEN** two Google API operations detect expiry concurrently
+- **THEN** only one silent renewal request runs to completion
+- **AND** both operations observe the same post-renewal token
+
+### Requirement: Google session renewal failure is surfaced for recovery
+
+When silent renewal fails or the user must re-authenticate, the system SHALL expose a user-visible state or message (i18n) that distinguishes session/auth failure from generic network errors and SHALL preserve in-memory workbook edits until the user discards them or successfully re-authenticates.
+
+#### Scenario: Renewal failure shows session message
+
+- **WHEN** silent renewal fails after a 401 or near-expiry attempt
+- **THEN** the user sees messaging that indicates the Google session must be restored (or i18n equivalent)
+- **AND** the dirty state of the workbook is not cleared solely by that failure
+
+#### Scenario: Session strings are translatable
+
+- **WHEN** session renewal failure UI renders
+- **THEN** user-visible text uses i18next keys under a dedicated namespace or `auth.*` keys
 
 ### Requirement: Credentials are stored for API use
 

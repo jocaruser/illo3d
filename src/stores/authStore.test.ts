@@ -45,4 +45,17 @@ describe('authStore', () => {
     expect(state.user).toBeNull()
     expect(state.credentials).toBeNull()
   })
+
+  it('patchGoogleCredentials updates token and expiry', () => {
+    const user = { email: 'test@example.com', name: 'Test User' }
+    useAuthStore.getState().login(user, { accessToken: 'a' })
+    useAuthStore.getState().patchGoogleCredentials({
+      accessToken: 'b',
+      accessTokenExpiresAtMs: 12345,
+    })
+    expect(useAuthStore.getState().credentials).toEqual({
+      accessToken: 'b',
+      accessTokenExpiresAtMs: 12345,
+    })
+  })
 })

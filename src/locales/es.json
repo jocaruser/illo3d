@@ -4,7 +4,9 @@
     "signedInAs": "Conectado como {{name}}",
     "signedInAsLead": "Conectado como ",
     "signedInNameOpensDriveFolder": "Abrir la carpeta de la tienda en Google Drive",
-    "signOut": "Cerrar sesión"
+    "signOut": "Cerrar sesión",
+    "sessionRenewalFailed": "Tu sesión de Google ha caducado. Guardar y sincronizar puede fallar hasta que vuelvas a iniciar sesión.",
+    "reauthenticateGoogle": "Volver a iniciar sesión con Google"
   },
   "common": {
     "loading": "Cargando...",
@@ -23,6 +25,7 @@
     "transactions": "Transacciones"
   },
   "errors": {
+    "googleSession": "Tu sesión de Google ha caducado. Vuelve a iniciar sesión con Google e inténtalo de nuevo.",
     "routeTitle": "No se pudo mostrar esta página",
     "routeDescription": "Ha ocurrido algo inesperado. Puedes intentarlo de nuevo.",
     "retry": "Reintentar",

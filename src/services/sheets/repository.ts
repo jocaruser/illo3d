@@ -5,7 +5,6 @@ import {
 } from '@/config/csvBackend'
 import { useBackendStore } from '@/stores/backendStore'
 import { LocalSheetsRepository } from '@/services/local/LocalSheetsRepository'
-import { getAccessToken } from './client'
 import { sheetsFetch } from './client'
 import {
   SPREADSHEET_NAME,
@@ -92,10 +91,8 @@ export class GoogleSheetsRepository implements SheetsRepository {
     spreadsheetId: string,
     sheetTitle: string
   ): Promise<number> {
-    const accessToken = await getAccessToken()
     const response = await sheetsFetch(
       `/spreadsheets/${spreadsheetId}?fields=sheets.properties`,
-      accessToken
     )
     if (!response.ok) {
       throw new Error(`Failed to fetch spreadsheet: ${response.status}`)
@@ -115,13 +112,11 @@ export class GoogleSheetsRepository implements SheetsRepository {
     spreadsheetId: string,
     sheetName: SheetName
   ): Promise<T[]> {
-    const accessToken = await getAccessToken()
     const headers = SHEET_HEADERS[sheetName]
     const range = `'${sheetName}'!A:Z`
 
     const response = await sheetsFetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}`,
-      accessToken
     )
 
     if (!response.ok) {
@@ -149,10 +144,8 @@ export class GoogleSheetsRepository implements SheetsRepository {
   }
 
   async getSheetNames(spreadsheetId: string): Promise<string[]> {
-    const accessToken = await getAccessToken()
     const metaResponse = await sheetsFetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}?fields=sheets.properties.title`,
-      accessToken
     )
 
     if (!metaResponse.ok) {
@@ -171,11 +164,9 @@ export class GoogleSheetsRepository implements SheetsRepository {
     spreadsheetId: string,
     sheetName: string
   ): Promise<string[]> {
-    const accessToken = await getAccessToken()
     const range = `'${sheetName}'!1:1`
     const valuesResponse = await sheetsFetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}`,
-      accessToken
     )
 
     if (!valuesResponse.ok) {
@@ -195,13 +186,11 @@ export class GoogleSheetsRepository implements SheetsRepository {
     rows: Record<string, unknown>[]
   ): Promise<void> {
     if (rows.length === 0) return
-    const accessToken = await getAccessToken()
     const headers = SHEET_HEADERS[sheetName]
     const values = rows.map((obj) => objectToRow(headers, obj))
     const range = `'${sheetName}'!A:Z`
     const response = await sheetsFetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}:append?valueInputOption=USER_ENTERED`,
-      accessToken,
       {
         method: 'POST',
         body: JSON.stringify({ values }),
@@ -221,14 +210,12 @@ export class GoogleSheetsRepository implements SheetsRepository {
     if (rowIndex < 1) {
       throw new Error(`Invalid rowIndex: ${rowIndex}`)
     }
-    const accessToken = await getAccessToken()
     const headers = SHEET_HEADERS[sheetName]
     const values = [objectToRow(headers, row)]
     const sheetRow = rowIndex + 1
     const range = `'${sheetName}'!A${sheetRow}:Z${sheetRow}`
     const response = await sheetsFetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`,
-      accessToken,
       {
         method: 'PUT',
         body: JSON.stringify({ values }),
@@ -247,12 +234,10 @@ export class GoogleSheetsRepository implements SheetsRepository {
     if (rowIndex < 1) {
       throw new Error(`Invalid rowIndex: ${rowIndex}`)
     }
-    const accessToken = await getAccessToken()
     const sheetId = await this.getSheetNumericId(spreadsheetId, sheetName)
     const startIndex = rowIndex
     const response = await sheetsFetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}:batchUpdate`,
-      accessToken,
       {
         method: 'POST',
         body: JSON.stringify({
@@ -280,11 +265,9 @@ export class GoogleSheetsRepository implements SheetsRepository {
     spreadsheetId: string,
     sheetName: SheetName
   ): Promise<string[][]> {
-    const accessToken = await getAccessToken()
     const range = `'${sheetName}'!A:ZZ`
     const response = await sheetsFetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${encodeURIComponent(range)}`,
-      accessToken
     )
     if (!response.ok) {
       throw new Error(`Failed to read matrix ${sheetName}: ${response.status}`)
@@ -301,11 +284,9 @@ export class GoogleSheetsRepository implements SheetsRepository {
     if (matrix.length === 0) {
       throw new Error(`replaceSheetMatrix: empty matrix for ${sheetName}`)
     }
-    const accessToken = await getAccessToken()
     const clearRange = encodeURIComponent(`'${sheetName}'!A:ZZ`)
     const clearResponse = await sheetsFetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${clearRange}:clear`,
-      accessToken,
       { method: 'POST', body: '{}' }
     )
     if (!clearResponse.ok) {
@@ -316,7 +297,6 @@ export class GoogleSheetsRepository implements SheetsRepository {
     const putRange = encodeURIComponent(`'${sheetName}'!A1`)
     const putResponse = await sheetsFetch(
       `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${putRange}?valueInputOption=USER_ENTERED`,
-      accessToken,
       {
         method: 'PUT',
         body: JSON.stringify({ values: matrix }),
@@ -330,10 +310,8 @@ export class GoogleSheetsRepository implements SheetsRepository {
   async getSheetIdMap(
     spreadsheetId: string
   ): Promise<Partial<Record<SheetName, number>>> {
-    const accessToken = await getAccessToken()
     const response = await sheetsFetch(
       `/spreadsheets/${spreadsheetId}?fields=sheets.properties(sheetId,title)`,
-      accessToken
     )
     if (!response.ok) {
       throw new Error(`Failed to fetch sheet ids: ${response.status}`)
@@ -357,10 +335,8 @@ export class GoogleSheetsRepository implements SheetsRepository {
   }
 
   async createSpreadsheet(): Promise<string> {
-    const accessToken = await getAccessToken()
     const createResponse = await sheetsFetch(
       'https://sheets.googleapis.com/v4/spreadsheets',
-      accessToken,
       {
         method: 'POST',
         body: JSON.stringify({
