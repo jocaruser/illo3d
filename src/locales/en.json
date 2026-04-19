@@ -263,7 +263,7 @@
     "amountInvalid": "Enter a valid expense amount (a negative number, e.g. -29.99).",
     "lotSumMismatch": "Lot line amounts sum to €{{sumLots}} but this expense total is €{{absTxn}}. Adjust the fields so they match before saving.",
     "lotSumMismatchSaveBlocked": "Lot amounts sum to €{{sumLots}} but the expense total is €{{absTxn}}. Make the totals match before saving.",
-    "lotAmountInvalid": "Enter a positive amount for this lot (e.g. 29.99).",
+    "lotAmountInvalid": "Enter a non-negative amount for this lot (e.g. 0 or 29.99).",
     "lotQuantityInvalid": "Enter a positive quantity for this lot (e.g. 1000)."
   },
   "inventoryDetail": {
@@ -285,7 +285,19 @@
     "thresholdsHeading": "Low-stock thresholds",
     "thresholdYellow": "Caution (yellow)",
     "thresholdOrange": "Low (orange)",
-    "thresholdRed": "Critical (red)"
+    "thresholdRed": "Critical (red)",
+    "qtyHeading": "On-hand quantity",
+    "saveQty": "Save quantity",
+    "qtyInvalid": "Enter a non-negative whole number for current quantity.",
+    "qtySaveError": "Could not save quantity.",
+    "lotActions": "Actions",
+    "saveLot": "Save lot",
+    "lotQuantityInvalid": "Enter a positive quantity for this lot.",
+    "lotAmountInvalid": "Enter a non-negative amount for this lot (0 is allowed).",
+    "lotSaveError": "Could not save lot.",
+    "archiveConfirmTitle": "Archive inventory?",
+    "archiveConfirmMessage": "Archive “{{name}}” and all its purchase lots? You can unarchive from the sheet if needed.",
+    "archiveError": "Could not archive this item."
   },
   "transactions": {
     "date": "Date",

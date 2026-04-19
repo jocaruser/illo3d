@@ -1,5 +1,5 @@
 ---
-description: Quality gate - build, lint, unit tests, e2e tests must pass; use Makefile commands only
+description: Quality gate - build, lint, unit tests must pass; use Makefile commands only
 alwaysApply: true
 ---
 
@@ -7,11 +7,11 @@ alwaysApply: true
 
 - **Clean Code (Uncle Bob)**: Write code following principles from *Clean Code* by Robert C. Martin: meaningful names, small functions, single responsibility, minimal comments (code explains itself), no duplication, clear abstractions, low coupling, and tests that are clean too.
 - **Use Makefile commands only**: Never run `pnpm`, `docker compose exec`, or similar directly. Use `make dev`, `make build`, `make lint`, `make test`, `make add PKG=...`, `make add-dev PKG=...`, etc.
-- **Validate before finishing**: After any code change, run `make quality-gate`. This runs build, lint, test, and e2e-test in sequence. All must exit with code 0 and report zero errors.
+- **Validate before finishing**: After any code change, run `make quality-gate`. This runs **build**, **lint**, and **unit tests** (`make test`) in sequence. All must exit with code 0 and report zero errors.
 - **TDD on bug fixes (when requested or clearly a regression)**: Prefer the workflow in `.cursor/skills/tdd-bugfix/SKILL.md`: add or adjust a **failing test** that encodes the correct behavior (optionally after temporarily reverting an existing fix to get a red run), apply the **minimal fix**, then run **`make quality-gate`**. Link new tests to OpenSpec tasks only when that change lives under an active OpenSpec change and it helps traceability.
 - **Linter must be flawless**: ESLint must report 0 problems. Fix any errors or warnings before considering work complete.
-- **Tests must pass**: The full unit test suite must pass with zero failures.
-- **E2E tests must pass**: The full e2e test suite must pass with zero failures.
+- **Unit tests are the main safety net**: Prefer thorough Vitest coverage on **changed code paths**—edge cases, regressions, services, hooks, and UI behavior you can assert without a browser—so preventable bugs surface in unit tests instead of first failing in CI Playwright runs.
+- **When to run E2E locally**: GitHub CI runs **`make e2e-test`** on pull requests. Run **`make e2e-test`** locally when you touch routing, auth, or other flows covered by Playwright, or when debugging a CI e2e failure—not as part of every small edit.
 - **Build must succeed**: TypeScript compilation and Vite build must complete with no errors or warnings.
 - **OpenSpec changes stay out of git**: The directory `openspec/changes/` is listed in `.gitignore`. Do not `git add` OpenSpec change folders unless the user explicitly asks to track them (e.g. `git add -f`). Agents must not instruct committing those paths by default.
 - **Check for unarchived changes before committing**: Before creating a git commit, run `openspec list --json`. If there are active (non-archived) changes, warn the user and ask for confirmation before proceeding with the commit.

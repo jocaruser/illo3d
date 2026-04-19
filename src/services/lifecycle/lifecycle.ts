@@ -179,6 +179,30 @@ export function archiveClient(clientId: string): void {
   }
 }
 
+/** Archive an inventory row and all active lots for that inventory id. */
+export function archiveInventory(inventoryId: string): void {
+  patchWorkbookTab('inventory', (m) => {
+    const i = findDataRowIndexById(m, 'inventory', inventoryId)
+    if (i === -1) throw new Error(`Inventory ${inventoryId} not found`)
+    return setLifecycleField(m, i, 'inventory', 'archived', 'true')
+  })
+
+  const tabs = useWorkbookStore.getState().tabs
+  let lotsM = ensureMatrix(tabs, 'lots')
+  const invCol = headerIndex('lots', 'inventory_id')
+  const archCol = headerIndex('lots', 'archived')
+  const delCol = headerIndex('lots', 'deleted')
+  lotsM = cloneMatrix(lotsM)
+  for (let i = 1; i < lotsM.length; i++) {
+    if ((lotsM[i][invCol] ?? '').trim() !== inventoryId.trim()) continue
+    const arch = (lotsM[i][archCol] ?? '').trim() === 'true'
+    const del = (lotsM[i][delCol] ?? '').trim() === 'true'
+    if (arch || del) continue
+    lotsM = setLifecycleField(lotsM, i, 'lots', 'archived', 'true')
+  }
+  useWorkbookStore.getState().mutateTab('lots', lotsM)
+}
+
 export function softDeleteClient(clientId: string): void {
   patchWorkbookTab('clients', (m) => {
     const i = findDataRowIndexById(m, 'clients', clientId)
