@@ -1,4 +1,14 @@
+import type { Page } from '@playwright/test'
 import { test, expect } from './fixtures'
+
+async function commitPieceUnits(page: Page, pieceId: string, units: string) {
+  const input = page.getByTestId(`piece-units-${pieceId}`)
+  await input.fill(units)
+  await input.blur()
+  await expect(page.getByTestId(`piece-units-${pieceId}`)).toHaveValue(units, {
+    timeout: 15000,
+  })
+}
 
 test.describe('Job pieces (job detail)', () => {
   test.describe('unauthenticated', () => {
@@ -117,6 +127,7 @@ test.describe('Job pieces (job detail)', () => {
     await page.getByTestId('job-detail-link-J1').click()
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
+    await commitPieceUnits(page, 'P2', '1')
     await page.getByTestId('piece-status-P2').selectOption('done')
     await expect(
       page.getByRole('heading', { name: /complete piece|completar pieza/i })
@@ -146,6 +157,7 @@ test.describe('Job pieces (job detail)', () => {
     await page.getByTestId('job-detail-link-J1').click()
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
+    await commitPieceUnits(page, 'P2', '1')
     await page.getByTestId('piece-status-P2').selectOption('done')
     await page.getByRole('button', { name: /confirm|confirmar/i }).click()
     await expect(page.getByTestId('piece-status-P2')).toHaveValue('done', {
@@ -181,6 +193,7 @@ test.describe('Job pieces (job detail)', () => {
     await page.getByTestId('job-detail-link-J1').click()
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
+    await commitPieceUnits(page, 'P1', '1')
     await page.getByTestId('piece-status-P1').selectOption('done')
     await page
       .getByRole('checkbox', { name: /decrement|descontar/i })

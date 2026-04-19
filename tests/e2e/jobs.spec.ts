@@ -168,7 +168,7 @@ test.describe('Jobs page', () => {
     await expect(j1PaidFlow).toHaveValue('draft')
 
     await expect(page.getByRole('alert')).toContainText(
-      /set a price on every piece|indica un precio en cada pieza/i,
+      /per-unit price and a units count|precio por unidad y la cantidad de unidades/i,
     )
 
     await expect(
