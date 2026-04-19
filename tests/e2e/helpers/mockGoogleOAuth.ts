@@ -32,7 +32,10 @@ export async function mockGoogleOAuth(
           return {
             requestAccessToken: function () {
               if (config && typeof config.callback === 'function') {
-                config.callback({ access_token: 'e2e-mock-google-access-token' });
+                config.callback({
+                  access_token: 'e2e-mock-google-access-token',
+                  expires_in: 3600,
+                });
               }
             },
           };

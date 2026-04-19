@@ -1,4 +1,6 @@
 import { useAuthStore } from '@/stores/authStore'
+import { ensureGoogleAccessToken } from '@/services/google/accessToken'
+import { googleFetchWithAuthRetry } from '@/services/google/authorizedFetch'
 
 /** Minimal typings for the Google Picker script loaded at runtime. */
 interface GooglePickerDocsView {
@@ -21,28 +23,23 @@ declare global {
   }
 }
 
-export function getAccessToken(): Promise<string> {
+export async function getAccessToken(): Promise<string> {
   const accessToken = useAuthStore.getState().credentials?.accessToken
   if (!accessToken) {
     return Promise.reject(new Error('No access token available. Please sign in.'))
   }
-  return Promise.resolve(accessToken)
+  return ensureGoogleAccessToken()
 }
 
 export async function sheetsFetch(
   path: string,
-  accessToken: string,
   options: RequestInit = {}
 ): Promise<Response> {
   const baseUrl = 'https://sheets.googleapis.com/v4'
   const url = path.startsWith('http') ? path : `${baseUrl}${path}`
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-  })
-  return response
+  const headers = new Headers(options.headers)
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
+  return googleFetchWithAuthRetry(url, { ...options, headers })
 }

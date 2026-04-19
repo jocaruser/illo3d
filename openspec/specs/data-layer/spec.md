@@ -70,12 +70,44 @@ The system SHALL integrate the Google Picker API to allow users to select a fold
 
 ### Requirement: Drive API uses existing OAuth credentials
 
-The system SHALL reuse the Google OAuth credentials from `authStore` for all Drive API calls. No additional login or consent SHALL be required beyond the initial OAuth flow.
+The system SHALL reuse the Google OAuth credentials from `authStore` for all Drive API calls. The system SHALL obtain a valid access token through the renewal-aware access layer before requests. No additional login or consent SHALL be required beyond the initial OAuth flow for routine operations, except when silent renewal is impossible and the user is directed to sign in again.
 
 #### Scenario: Drive API calls are authenticated
 
 - **WHEN** the system makes a Drive API request
-- **THEN** it uses the access token from the auth store
+- **THEN** it uses a valid access token sourced from the auth store via the renewal-aware access path
+
+### Requirement: Google Drive and Sheets HTTP calls tolerate expired access tokens
+
+When the active backend is `google-drive`, the system SHALL ensure Google Drive API and Google Sheets API HTTP requests use a valid access token. If a request receives HTTP status 401 from Google, the system SHALL attempt access token renewal (per authentication capability). If renewal succeeds, the system SHALL retry the failed request once with the new token. If renewal fails, the system SHALL fail the operation without an infinite retry loop.
+
+#### Scenario: 401 then successful renewal and retry
+
+- **WHEN** a Google Drive or Google Sheets API request returns 401
+- **AND** access token renewal succeeds
+- **THEN** the system retries that same logical request once with the updated token
+- **AND** the outcome reflects the retried response
+
+#### Scenario: 401 and renewal failure
+
+- **WHEN** a Google Drive or Google Sheets API request returns 401
+- **AND** access token renewal does not succeed
+- **THEN** the operation fails
+- **AND** the system does not retry more than once after renewal failure
+
+#### Scenario: Local CSV backend skips Google renewal
+
+- **WHEN** the active backend is `local-csv`
+- **THEN** Google access token renewal and 401 retry logic for Google tokens do not apply to LocalSheetsRepository or LocalFolderRepository operations
+
+### Requirement: Raw Google uploads use the same authorized access path
+
+Any code path that sends authorized Google HTTP requests for Drive or Sheets (including multipart metadata upload) SHALL obtain the access token through the same renewal-aware access layer used by `driveFetch` and `sheetsFetch`, so that expiry is handled consistently.
+
+#### Scenario: Metadata upload benefits from renewal
+
+- **WHEN** `uploadMetadata` or equivalent performs an authorized Google upload
+- **THEN** the request uses the renewal-aware token access behavior
 
 ### Requirement: Picker API key is configurable via environment
 
@@ -279,13 +311,13 @@ The system SHALL validate that the connected spreadsheet has the expected sheets
 
 ### Requirement: OAuth credentials are reused from auth
 
-The system SHALL use the Google OAuth credentials from the existing auth system (authStore) to authenticate with Google Sheets API when using the Google Drive backend. No additional login SHALL be required.
+The system SHALL use the Google OAuth credentials from the existing auth system (authStore) to authenticate with Google Sheets API when using the Google Drive backend. The system SHALL obtain a valid access token through the renewal-aware access layer before requests. No additional login SHALL be required for routine Sheets access, except when silent renewal is impossible and the user is directed to sign in again.
 
 #### Scenario: Sheets API uses existing credentials
 
 - **WHEN** user is authenticated via Google OAuth
 - **AND** user accesses Sheets functionality on Google Drive backend
-- **THEN** system uses the stored credential token for Sheets API calls
+- **THEN** the system uses a valid credential token for Sheets API calls via the renewal-aware access path
 
 #### Scenario: Unauthenticated user cannot access Sheets
 

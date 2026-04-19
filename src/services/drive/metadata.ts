@@ -1,5 +1,5 @@
 import type { ShopMetadata } from '@/types/shop'
-import { getAccessToken } from '@/services/sheets/client'
+import { googleFetchWithAuthRetry } from '@/services/google/authorizedFetch'
 import { driveFetch } from './client'
 
 const METADATA_FILENAME = 'illo3d.metadata.json'
@@ -27,13 +27,11 @@ export async function uploadMetadata(
     mediaPart +
     closeDelimiter
 
-  const accessToken = await getAccessToken()
-  const response = await fetch(
+  const response = await googleFetchWithAuthRetry(
     'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
     {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${accessToken}`,
         'Content-Type': `multipart/related; boundary=${boundary}`,
       },
       body,

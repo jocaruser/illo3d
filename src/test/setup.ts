@@ -12,6 +12,7 @@ beforeEach(() => {
     user: null,
     credentials: null,
     isAuthenticated: false,
+    googleSessionNeedsReauth: false,
   })
   useBackendStore.getState().clearBackend()
 })

@@ -11,6 +11,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Layout } from './App'
 import { useAuthStore } from './stores/authStore'
+
+vi.mock('@/components/GoogleSessionBanner', () => ({
+  GoogleSessionBanner: () => null,
+}))
 import { useShopStore } from './stores/shopStore'
 import { useWorkbookStore } from './stores/workbookStore'
 import type { SheetName } from './services/sheets/config'

@@ -10,8 +10,7 @@ import { useOpenExistingShop } from '@/hooks/useOpenExistingShop'
 import { useLocalFolderDetection } from '@/hooks/useLocalFolderDetection'
 import { useAuthStore, type User } from '@/stores/authStore'
 import { useBackendStore } from '@/stores/backendStore'
-
-const OAUTH_SCOPES = 'https://www.googleapis.com/auth/drive.file'
+import { GOOGLE_DRIVE_OAUTH_SCOPE } from '@/services/google/oauthScopes'
 
 interface GoogleUserInfo {
   email: string
@@ -134,7 +133,7 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
   )
 
   const googleLogin = useGoogleLogin({
-    scope: OAUTH_SCOPES,
+    scope: GOOGLE_DRIVE_OAUTH_SCOPE,
     onSuccess: async (tokenResponse) => {
       setWelcomeError(null)
       setBusy(true)
@@ -148,7 +147,15 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
           name: userInfo.name,
           picture: userInfo.picture,
         }
-        login(userData, { accessToken: tokenResponse.access_token })
+        const expiresIn = tokenResponse.expires_in
+        const accessTokenExpiresAtMs =
+          typeof expiresIn === 'number' && expiresIn > 0
+            ? Date.now() + expiresIn * 1000
+            : undefined
+        login(userData, {
+          accessToken: tokenResponse.access_token,
+          accessTokenExpiresAtMs,
+        })
         setBackend('google-drive')
         setGoogleDriveIntent(false)
         googleEntryRef.current = 'inactive'

@@ -4,7 +4,9 @@
     "signedInAs": "Signed in as {{name}}",
     "signedInAsLead": "Signed in as ",
     "signedInNameOpensDriveFolder": "Open shop folder in Google Drive",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "sessionRenewalFailed": "Your Google sign-in expired. Save and sync may fail until you sign in again.",
+    "reauthenticateGoogle": "Sign in with Google again"
   },
   "common": {
     "loading": "Loading...",
@@ -23,6 +25,7 @@
     "transactions": "Transactions"
   },
   "errors": {
+    "googleSession": "Your Google session expired. Try signing in with Google again, then retry.",
     "routeTitle": "This page couldn’t be displayed",
     "routeDescription": "Something unexpected happened. You can try again.",
     "retry": "Try again",
