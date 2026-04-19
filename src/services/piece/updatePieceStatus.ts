@@ -7,6 +7,7 @@ import {
 } from '@/lib/workbook/workbookEntities'
 import { useWorkbookStore } from '@/stores/workbookStore'
 import type { Inventory, Piece, PieceItem, PieceStatus } from '@/types/money'
+import { effectiveNeedByInventory } from '@/utils/pieceEffectiveInventory'
 
 export interface UpdatePieceStatusOptions {
   decrementInventory?: boolean
@@ -34,10 +35,16 @@ function sheetRowFromPiece(piece: Piece): Record<string, unknown> {
     name: piece.name,
     status: piece.status,
     price: piece.price ?? '',
+    units: piece.units === undefined ? '' : piece.units,
     created_at: piece.created_at,
     archived: piece.archived ?? '',
     deleted: piece.deleted ?? '',
   }
+}
+
+function roundInventoryQty(n: number): number {
+  if (!Number.isFinite(n) || n < 0) return 0
+  return Math.round(n * 100) / 100
 }
 
 function sheetRowFromInventory(inv: Inventory): Record<string, unknown> {
@@ -45,7 +52,7 @@ function sheetRowFromInventory(inv: Inventory): Record<string, unknown> {
     id: inv.id,
     type: inv.type,
     name: inv.name,
-    qty_current: inv.qty_current,
+    qty_current: roundInventoryQty(inv.qty_current),
     warn_yellow: inv.warn_yellow,
     warn_orange: inv.warn_orange,
     warn_red: inv.warn_red,
@@ -68,13 +75,6 @@ function normalizePieceItems(lines: PieceItem[]): PieceItem[] {
   }))
 }
 
-function aggregateNeedByInventory(lines: PieceItem[]): Map<string, number> {
-  const m = new Map<string, number>()
-  for (const line of lines) {
-    m.set(line.inventory_id, (m.get(line.inventory_id) ?? 0) + line.quantity)
-  }
-  return m
-}
 
 export async function updatePieceStatus(
   spreadsheetId: string,
@@ -114,7 +114,10 @@ export async function updatePieceStatus(
   }
 
   if (shouldDecrement) {
-    const needByLot = aggregateNeedByInventory(lines)
+    const needByLot = effectiveNeedByInventory(piece, lines)
+    if (lines.length > 0 && needByLot.size === 0) {
+      throw new Error('PIECE_UNITS_REQUIRED_FOR_CONSUMPTION')
+    }
     const insufficient: InsufficientStockLot[] = []
     for (const [inventoryId, need] of needByLot) {
       const inv = inventoryList.find((i) => i.id === inventoryId)
@@ -143,7 +146,7 @@ export async function updatePieceStatus(
   }
 
   if (shouldRestore) {
-    const needByLot = aggregateNeedByInventory(lines)
+    const needByLot = effectiveNeedByInventory(piece, lines)
     const working = new Map(inventoryList.map((i) => [i.id, { ...i }]))
     for (const [inventoryId, add] of needByLot) {
       const inv = working.get(inventoryId)

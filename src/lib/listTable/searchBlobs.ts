@@ -99,6 +99,7 @@ export function buildPieceSearchBlob(
     piece.name,
     piece.status,
     ctx.statusLabel,
+    piece.units != null ? String(piece.units) : '',
     piece.created_at,
   ])
 }

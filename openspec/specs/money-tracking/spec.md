@@ -200,7 +200,7 @@ The system SHALL support a jobs data model with fields: id (string), client_id (
 
 ### Requirement: Piece data model is defined
 
-The system SHALL support a pieces data model with fields: id (string), job_id (string, FK to jobs), name (string), status (enum: pending, done, failed), **price (number, optional)**, created_at (date).
+The system SHALL support a pieces data model with fields: id (string), job_id (string, FK to jobs), name (string), status (enum: pending, done, failed), **units (optional positive integer; empty / unset when not yet specified)**, **price (number, optional, interpreted as currency per single unit when set)**, created_at (date).
 
 #### Scenario: Piece linked to job
 
@@ -216,9 +216,40 @@ The system SHALL support a piece_items data model with fields: id (string), piec
 - **WHEN** a piece_item record exists
 - **THEN** it connects a piece to an inventory item with a quantity consumed
 
+### Requirement: piece_item inventory_id uniqueness per piece
+
+The system SHALL reject creating a new `piece_item` when an **active** piece_item already exists for the same `piece_id` and `inventory_id` (archived and soft-deleted lines SHALL NOT count as blocking). The user SHALL see an i18n validation error and no row SHALL be appended.
+
+#### Scenario: Second BOM line for same inventory is rejected
+
+- **WHEN** piece `P1` already has an active piece_item with `inventory_id` `INV1`
+- **AND** the user submits `CreatePieceItemPopup` for `P1` choosing `INV1` again
+- **THEN** validation fails with an i18n message
+- **AND** no new piece_item row is appended
+
+### Requirement: Piece row shows units and full-run stock margin
+
+The main piece row in `PiecesTable` (job detail and any other surface using the same table) SHALL expose an editable or commit-on-blur control for **`units`** (positive integer when set). When `units` is unset (empty), the row SHALL participate in **incomplete** highlighting defined for job detail. When `units` is set and the piece has exactly one piece_item for a given inventory line used in margin (per uniqueness rule), the row SHALL show a **full-run** stock margin indicator for that material using `need_run = piece_item.quantity × units` compared to `qty_current` on the inventory item, using the same safe / tight / risky band thresholds as piece_item redo margin (`floor((qty_current - need_run) / need_run)` with the same numeric thresholds for labels). When multiple inventory lines exist on one piece, the system SHALL show one indicator per distinct `inventory_id` or a compact summary defined in implementation as long as each line’s full-run risk is visible without contradicting uniqueness.
+
+#### Scenario: Full-run margin reflects units multiplier
+
+- **WHEN** a piece has `units` 150 and a piece_item requiring 2g from inventory with `qty_current` 500g
+- **THEN** the piece-row full-run margin uses `need_run` = 300g in the margin calculation
+
+### Requirement: Piece consuming status requires units
+
+The system SHALL NOT apply inventory decrement for a transition to `done` or `failed` when the piece’s **`units`** field is unset or not a positive finite integer; the user SHALL see an i18n error and the status SHALL NOT change.
+
+#### Scenario: Done blocked without units
+
+- **WHEN** the user attempts to set a piece to `done` with at least one piece_item
+- **AND** `units` is empty
+- **THEN** the operation is blocked with an i18n error
+- **AND** inventory is not modified
+
 ### Requirement: fetchPieces and usePieces read pieces sheet
 
-The system SHALL provide `fetchPieces(spreadsheetId)` that reads all rows from the `pieces` sheet via `SheetsRepository`, filters out rows without `id`, parses `status` as a piece status, **parses optional `price` as a number or undefined if empty**, and returns `Piece` objects sorted by `created_at` descending. The system SHALL provide `usePieces(spreadsheetId)` using TanStack Query with query key `['pieces', spreadsheetId]`, following the same enabled/null pattern as `useJobs`.
+The system SHALL provide `fetchPieces(spreadsheetId)` that reads all rows from the `pieces` sheet via `SheetsRepository`, filters out rows without `id`, parses `status` as a piece status, **parses optional `units` as a positive integer or undefined if empty**, **parses optional `price` as a number or undefined if empty (per-unit quote)**, and returns `Piece` objects sorted by `created_at` descending. The system SHALL provide `usePieces(spreadsheetId)` using TanStack Query with query key `['pieces', spreadsheetId]`, following the same enabled/null pattern as `useJobs`.
 
 #### Scenario: Hooks load when spreadsheet is available
 
@@ -236,7 +267,7 @@ The system SHALL provide `fetchPieceItems(spreadsheetId)` that reads all rows fr
 
 ### Requirement: Piece rows expand to show piece_items
 
-The system SHALL allow the user to expand a piece row to view a nested list of that piece's `piece_items`. The nested list SHALL show: piece_item id, inventory item name (resolved from the inventory sheet), quantity, **material cost** (quantity × avg unit cost from active lots for that `inventory_id` when computable; otherwise a placeholder such as em dash), remaining quantity (`qty_current` on the inventory item), and redo margin. The redo margin SHALL be calculated as `floor((qty_current - quantity) / quantity)` and displayed with a label: "safe" (2+ redos, green), "tight" (1 redo, yellow), or "risky" (0 redos, red). The nested section SHALL include a control to add a new piece_item to that piece. Collapsing a row SHALL hide its nested list.
+The system SHALL allow the user to expand a piece row to view a nested list of that piece's `piece_items`. The nested list SHALL show: piece_item id, inventory item name (resolved from the inventory sheet), quantity, **material cost** (quantity × avg unit cost from active lots for that `inventory_id` when computable; otherwise a placeholder such as em dash), remaining quantity (`qty_current` on the inventory item), and redo margin. The redo margin for each **nested** piece_item SHALL be calculated **for a single manufactured unit only** using that line’s `quantity` as: `floor((qty_current - quantity) / quantity)` and displayed with a label: "safe" (2+ redos, green), "tight" (1 redo, yellow), or "risky" (0 redos, red). The nested section SHALL include a control to add a new piece_item to that piece. Collapsing a row SHALL hide its nested list.
 
 #### Scenario: User expands a piece with lines
 
@@ -250,17 +281,17 @@ The system SHALL allow the user to expand a piece row to view a nested list of t
 
 #### Scenario: Piece_item shows risky redo margin
 
-- **WHEN** a piece_item requires 450g and the lot has 500g remaining
+- **WHEN** a piece_item requires 450g **per unit** and the lot has 500g remaining
 - **THEN** the redo margin shows "tight (1 redo)" in yellow
 
 #### Scenario: Piece_item shows safe redo margin
 
-- **WHEN** a piece_item requires 42g and the lot has 916g remaining
+- **WHEN** a piece_item requires 42g **per unit** and the lot has 916g remaining
 - **THEN** the redo margin shows "safe (21 redos)" in green
 
 ### Requirement: CreatePiecePopup creates a piece for a selected job
 
-The system SHALL provide `CreatePiecePopup` that collects a required piece name **and optional piece price (number, 0 allowed)**. When opened from a context without a fixed job, the popup SHALL also collect a required job via a searchable list from cached jobs data (same interaction pattern as `CreateJobPopup` client picker). When opened from a job detail page, the job SHALL be fixed to that job and the job picker SHALL NOT be shown. On successful submit, the system SHALL call `createPiece` to append a row with generated `P`-prefixed id, `status` `pending`, **optional price**, and current ISO timestamp for `created_at`. The popup SHALL be closable without saving. All user-visible strings SHALL use i18n (English and Spanish).
+The system SHALL provide `CreatePiecePopup` that collects a required piece name **and optional per-unit piece price (number, 0 allowed)**. **`units` SHALL default to unset (empty) on create** and MAY be edited later from the pieces table. When opened from a context without a fixed job, the popup SHALL also collect a required job via a searchable list from cached jobs data (same interaction pattern as `CreateJobPopup` client picker). When opened from a job detail page, the job SHALL be fixed to that job and the job picker SHALL NOT be shown. On successful submit, the system SHALL call `createPiece` to append a row with generated `P`-prefixed id, `status` `pending`, **optional per-unit price**, **empty `units`**, and current ISO timestamp for `created_at`. The popup SHALL be closable without saving. All user-visible strings SHALL use i18n (English and Spanish).
 
 #### Scenario: Valid create appends piece row with job picker
 
@@ -281,7 +312,7 @@ The system SHALL provide `CreatePiecePopup` that collects a required piece name 
 
 ### Requirement: createPiece service appends pieces
 
-The system SHALL provide `createPiece(spreadsheetId, { job_id, name, price? })` that generates the next `P`-prefixed id from existing piece ids, and appends one row to the `pieces` sheet with `status` `pending`, **`price` if provided**, and `created_at` set to the current time in ISO-8601 format.
+The system SHALL provide `createPiece(spreadsheetId, { job_id, name, price? })` that generates the next `P`-prefixed id from existing piece ids, and appends one row to the `pieces` sheet with `status` `pending`, **`price` if provided (per-unit)**, **`units` left empty for the user to set later from the pieces table**, and `created_at` set to the current time in ISO-8601 format.
 
 #### Scenario: Id increments after existing pieces
 
@@ -312,13 +343,20 @@ The system SHALL provide `CreatePieceItemPopup` that collects a required invento
 
 ### Requirement: createPieceItem service appends piece_items
 
-The system SHALL provide `createPieceItem(spreadsheetId, { piece_id, inventory_id, quantity })` that generates the next `PI`-prefixed id from existing piece_item ids and appends one row linking the piece, inventory item, and quantity.
+The system SHALL provide `createPieceItem(spreadsheetId, { piece_id, inventory_id, quantity })` that generates the next `PI`-prefixed id from existing piece_item ids and appends one row linking the piece, inventory item, and quantity **only when no active piece_item exists for the same `piece_id` and `inventory_id`**; otherwise it SHALL return a validation error without appending.
 
 #### Scenario: Id increments after existing piece_items
 
 - **WHEN** piece_items `PI1` and `PI2` already exist
 - **AND** `createPieceItem` is invoked
 - **THEN** the appended row has id `PI3`
+
+#### Scenario: Duplicate inventory_id for same piece is rejected
+
+- **WHEN** an active piece_item already exists for `piece_id` `P1` and `inventory_id` `INV1`
+- **AND** `createPieceItem` is invoked again for `P1` and `INV1`
+- **THEN** the function returns a validation error
+- **AND** no new row is appended
 
 ### Requirement: Piece status is changeable via dropdown
 
@@ -336,19 +374,19 @@ The system SHALL display a `PieceStatusDropdown` component in `PiecesTable` for 
 
 ### Requirement: Confirmation dialog shown before consuming status transition
 
-The system SHALL show a `ConfirmDialog` when piece status changes to `done` or `failed`. The dialog SHALL contain a pre-checked checkbox labeled "Decrement from inventory" (i18n). If all referenced inventory items have sufficient `qty_current` (>= piece_item quantity), the dialog SHALL show a standard confirmation message. If any inventory item has insufficient stock, the dialog SHALL show a warning message identifying the insufficient items but SHALL NOT block confirmation — the user MAY uncheck the decrement checkbox and proceed, or cancel.
+The system SHALL show a `ConfirmDialog` when piece status changes to `done` or `failed`. The dialog SHALL contain a pre-checked checkbox labeled "Decrement from inventory" (i18n). Stock sufficiency SHALL be evaluated using **effective consumption per inventory id**: the sum of **`piece_item.quantity × piece.units`** for all piece_items of that piece referencing that inventory id (with `piece.units` required to be set and positive per "Piece consuming status requires units"). If all referenced inventory items have sufficient `qty_current` for those effective amounts, the dialog SHALL show a standard confirmation message. If any inventory item has insufficient stock, the dialog SHALL show a warning message identifying the insufficient items but SHALL NOT block confirmation — the user MAY uncheck the decrement checkbox and proceed, or cancel.
 
 #### Scenario: Sufficient stock shows standard confirmation
 
-- **WHEN** user selects "done" for a piece with piece_items
-- **AND** all referenced inventory items have sufficient qty_current
+- **WHEN** user selects "done" for a piece with piece_items and set `units`
+- **AND** all referenced inventory items have sufficient qty_current for effective consumption
 - **THEN** dialog shows with pre-checked "Decrement from inventory" checkbox
 - **AND** confirm button is enabled
 
 #### Scenario: Insufficient stock shows warning but allows proceed
 
-- **WHEN** user selects "done" for a piece with piece_items
-- **AND** at least one referenced inventory item has insufficient qty_current
+- **WHEN** user selects "done" for a piece with piece_items and set `units`
+- **AND** at least one referenced inventory item has insufficient qty_current for effective consumption
 - **THEN** dialog shows a warning identifying the insufficient item(s)
 - **AND** "Decrement from inventory" checkbox is shown (user can uncheck to skip)
 - **AND** confirm button is enabled
@@ -371,7 +409,7 @@ The system SHALL show a `ConfirmDialog` when piece status changes from `done` or
 #### Scenario: User confirms revert with restore
 
 - **WHEN** user confirms revert with "Restore inventory quantities" checked
-- **THEN** each piece_item's quantity is added back to the inventory item's qty_current
+- **THEN** each inventory item's `qty_current` is incremented by the **effective consumption** (`piece_item.quantity × units`) that was subtracted when the piece entered `done` or `failed`
 - **AND** piece status is updated to "pending"
 
 ### Requirement: updatePieceStatus service orchestrates status and inventory
@@ -380,8 +418,8 @@ The system SHALL provide `updatePieceStatus(spreadsheetId, piece, newStatus, opt
 1. Reads the pieces sheet to find the piece's row index.
 2. Reads piece_items filtered by piece_id.
 3. Reads inventory sheet.
-4. If `decrementInventory` is true and new status is `done` or `failed`: validates all inventory items have sufficient qty_current, then decrements each inventory item's `qty_current` by the corresponding piece_item quantity via `updateRow`.
-5. If `restoreInventory` is true and old status was `done` or `failed` and new status is `pending`: increments each inventory item's `qty_current` by the corresponding piece_item quantity via `updateRow`.
+4. If `decrementInventory` is true and new status is `done` or `failed`: validates the piece has **set positive integer `units`**, validates all inventory items have sufficient `qty_current` for **effective need** (sum of **`piece_item.quantity × units`** per `inventory_id`), then decrements each inventory item's `qty_current` by that effective amount via `updateRow`.
+5. If `restoreInventory` is true and old status was `done` or `failed` and new status is `pending`: increments each inventory item's `qty_current` by the same **effective need** computed from the piece’s piece_items and `units` at transition time via `updateRow`.
 6. Updates the piece row status via `updateRow`.
 
 The function SHALL return an error result (not throw) when validation fails, including details of which inventory items are insufficient.
@@ -389,21 +427,21 @@ The function SHALL return an error result (not throw) when validation fails, inc
 #### Scenario: Successful decrement updates inventory and piece
 
 - **WHEN** `updatePieceStatus` is called with `decrementInventory: true` for status "done"
-- **AND** all inventory items have sufficient stock
-- **THEN** each referenced inventory item's `qty_current` is decremented
+- **AND** the piece has `units` 10 and piece_items that imply effective needs all covered by stock
+- **THEN** each referenced inventory item's `qty_current` is decremented by the effective amounts
 - **AND** the piece row status is updated to "done"
 
 #### Scenario: Validation failure returns error details
 
 - **WHEN** `updatePieceStatus` is called with `decrementInventory: true`
-- **AND** lot INV1 has `qty_current` 30 but piece_item requires 42
+- **AND** effective need for INV1 exceeds its `qty_current`
 - **THEN** the function returns an error result identifying INV1 as insufficient
 - **AND** no sheet rows are modified
 
 #### Scenario: Restore increments inventory
 
 - **WHEN** `updatePieceStatus` is called with `restoreInventory: true` moving from "done" to "pending"
-- **THEN** each referenced inventory item's `qty_current` is incremented by the piece_item quantity
+- **THEN** each referenced inventory item's `qty_current` is incremented by the same effective amounts that were subtracted when the piece entered a consuming status
 - **AND** the piece row status is updated to "pending"
 
 #### Scenario: Skip decrement updates only piece
@@ -428,11 +466,11 @@ The system SHALL support an inventory data model with fields: id (string), type 
 
 ### Requirement: Fixture data reflects inventory consumption
 
-The happy-path fixture data SHALL include pieces with realistic statuses and inventory quantities that reflect consumption. At least one piece SHALL have status `done` with piece_items, and the referenced inventory item's `qty_current` SHALL be decremented by the sum of those piece_items' quantities.
+The happy-path fixture data SHALL include pieces with realistic statuses and inventory quantities that reflect consumption. At least one piece SHALL have status `done` with piece_items, **set positive `units`**, and the referenced inventory item's `qty_current` SHALL be decremented by the **sum of (piece_item.quantity × units)** for those piece_items.
 
 #### Scenario: Fixture inventory reflects completed piece
 
-- **WHEN** fixture piece P3 has status "done" with piece_item PI3 consuming 15g from INV1
+- **WHEN** fixture piece P3 has status "done" with piece_item PI3 consuming 15g per unit from INV1 and `units` 1
 - **THEN** fixture INV1 `qty_current` SHALL reflect consumption of 15 units by that completed piece (per golden fixture values)
 
 ### Requirement: Piece status change UI strings support i18n
@@ -478,7 +516,7 @@ The job detail page SHALL fetch lot and inventory rows for the active spreadshee
 
 ### Requirement: Per-piece price is suggested based on materials
 
-The system SHALL surface a **suggested** price per piece derived from BOM material cost. For a given piece, the material subtotal SHALL be the sum of every `piece_item` on that piece: `piece_item.quantity × avg_unit_cost`, where `avg_unit_cost` for the referenced inventory item is `Σ(lot.amount) / Σ(lot.quantity)` across all active lots for that inventory_id. All `InventoryType` values (`filament`, `consumable`, `equipment`) SHALL use the same rule. The suggested price SHALL be the material subtotal multiplied by **3** (hardcoded).
+The system SHALL surface a **suggested** **per-unit** price for a piece derived from BOM material cost **for one manufactured unit**. For a given piece, the material subtotal SHALL be the sum of every `piece_item` on that piece: `piece_item.quantity × avg_unit_cost`, where `avg_unit_cost` for the referenced inventory item is `Σ(lot.amount) / Σ(lot.quantity)` across all active lots for that inventory_id. All `InventoryType` values (`filament`, `consumable`, `equipment`) SHALL use the same rule. The suggested **per-unit** price SHALL be the material subtotal multiplied by **3** (hardcoded). Applying the suggestion SHALL write the piece’s **`price`** field as that **per-unit** value (not multiplied by `units`).
 
 When a piece has **no** `piece_items`, the system SHALL **not** render the suggestion for that piece.
 
@@ -489,7 +527,7 @@ The displayed suggestion SHALL **recompute** when inputs change (including after
 #### Scenario: Per-piece BOM suggestion shown
 
 - **WHEN** a piece has piece_items referencing inventory items with lots
-- **THEN** the suggestion shows material subtotal and suggested price (subtotal × 3) for that piece
+- **THEN** the suggestion shows material subtotal and suggested **per-unit** price (subtotal × 3) for that piece
 
 #### Scenario: Hidden when piece has no piece_items
 
@@ -522,7 +560,7 @@ The system SHALL provide a `materialCostForPieceItemLine` utility that computes 
 
 ### Requirement: Paying a job creates income transaction
 
-The system SHALL create an income transaction when a job status changes to "paid" **by default**, via the `updateJobStatus` service when income creation is not disabled. The transaction SHALL have type "income", amount equal to **derived total** (sum of **set** piece prices on **non-deleted** pieces **including archived**), and reference the job. **Derived total** MAY be 0 when pieces are explicitly priced at zero. When a transaction is created, `updateJobStatus` SHALL update the job row and append the transaction in a single logical operation. The transition to paid SHALL be **rejected** if any counting piece has **unset** `price` (see job-management paid gating). The user MAY opt out via the jobs UI (e.g. unchecked "create income transaction" on the paid confirmation dialog); when opted out, the job row SHALL still update to "paid" but **no** new transaction row SHALL be appended. Leaving "paid" and entering "paid" again later without opt-out MAY append another income transaction; the UI SHALL confirm before leaving "paid" to reduce duplicate risk.
+The system SHALL create an income transaction when a job status changes to "paid" **by default**, via the `updateJobStatus` service when income creation is not disabled. The transaction SHALL have type "income", amount equal to **derived total** (per `job-management`: sum over counting pieces of **`units × price`** when both are set for each piece, with the same inclusion rules for archived/deleted pieces as that capability), and reference the job. **Derived total** MAY be 0 when all line revenues are zero. When a transaction is created, `updateJobStatus` SHALL update the job row and append the transaction in a single logical operation. The transition to paid SHALL be **rejected** if any counting piece has **unset** `price` **or unset `units`** (see `job-management` paid gating). The user MAY opt out via the jobs UI (e.g. unchecked "create income transaction" on the paid confirmation dialog); when opted out, the job row SHALL still update to "paid" but **no** new transaction row SHALL be appended. Leaving "paid" and entering "paid" again later without opt-out MAY append another income transaction; the UI SHALL confirm before leaving "paid" to reduce duplicate risk.
 
 #### Scenario: Job payment creates transaction by default
 
@@ -550,11 +588,11 @@ The system SHALL create an income transaction when a job status changes to "paid
 
 ### Requirement: updatePiecePrice updates piece quote
 
-The system SHALL provide a way to persist an optional `price` on an existing piece (e.g. `updatePiece` or dedicated `updatePiecePrice`) in the workbook store, validating numeric input and preserving other piece fields.
+The system SHALL provide a way to persist an optional **`price`** on an existing piece representing **currency per single unit** (e.g. `updatePiece` or dedicated `updatePiecePrice`) in the workbook store, validating numeric input and preserving other piece fields including **`units`**.
 
 #### Scenario: Price update writes pieces sheet
 
-- **WHEN** the user saves a new price for piece "P1"
+- **WHEN** the user saves a new per-unit price for piece "P1"
 - **THEN** the pieces matrix row for P1 reflects the updated `price` after save
 
 ### Requirement: UI strings support i18n

@@ -18,6 +18,7 @@ import { JobNotesSection } from '@/components/JobNotesSection'
 import { JobTagsSection } from '@/components/JobTagsSection'
 import { updatePieceStatus } from '@/services/piece/updatePieceStatus'
 import { updatePiecePrice } from '@/services/piece/updatePiecePrice'
+import { updatePieceUnits } from '@/services/piece/updatePieceUnits'
 import type {
   Inventory,
   Job,
@@ -27,6 +28,10 @@ import type {
   PieceStatus,
 } from '@/types/money'
 import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
+import {
+  effectiveNeedByInventory,
+  pieceUnitsAreSet,
+} from '@/utils/pieceEffectiveInventory'
 
 function clientName(
   clients: { id: string; name: string }[],
@@ -44,21 +49,12 @@ function linesForPieceId(pieceItems: PieceItem[], pieceId: string): PieceItem[] 
   return pieceItems.filter((pi) => pi.piece_id === pieceId)
 }
 
-function aggregateNeedByInventory(lines: PieceItem[]): Map<string, number> {
-  const m = new Map<string, number>()
-  for (const l of lines) {
-    const q =
-      typeof l.quantity === 'number' ? l.quantity : Number(l.quantity)
-    m.set(l.inventory_id, (m.get(l.inventory_id) ?? 0) + q)
-  }
-  return m
-}
-
 function stockShortfall(
+  piece: Piece,
   lines: PieceItem[],
-  inventoryRows: Inventory[]
+  inventoryRows: Inventory[],
 ): { id: string; need: number; have: number }[] {
-  const needByLot = aggregateNeedByInventory(lines)
+  const needByLot = effectiveNeedByInventory(piece, lines)
   const out: { id: string; need: number; have: number }[] = []
   for (const [id, need] of needByLot) {
     const row = inventoryRows.find((i) => i.id === id)
@@ -208,9 +204,14 @@ export function JobDetailPage() {
       }
       setPieceStatusFlow(null)
     } catch (e) {
-      setPieceStatusError(
-        e instanceof Error ? e.message : t('wizard.errorGeneric')
-      )
+      const msg = e instanceof Error ? e.message : ''
+      if (msg === 'PIECE_UNITS_REQUIRED_FOR_CONSUMPTION') {
+        setPieceStatusError(t('pieces.statusNeedsUnits'))
+      } else {
+        setPieceStatusError(
+          e instanceof Error ? e.message : t('wizard.errorGeneric'),
+        )
+      }
     } finally {
       setPieceStatusUpdatingId(null)
     }
@@ -227,6 +228,10 @@ export function JobDetailPage() {
         const lines = linesForPieceId(pieceItems, piece.id)
         if (lines.length === 0) {
           setLineRequirementMessage(t('pieces.statusNeedsLines'))
+          return
+        }
+        if (!pieceUnitsAreSet(piece)) {
+          setLineRequirementMessage(t('pieces.statusNeedsUnits'))
           return
         }
         setDecrementInventory(true)
@@ -263,8 +268,9 @@ export function JobDetailPage() {
   const consumeShortfall =
     pieceStatusFlow?.mode === 'consume'
       ? stockShortfall(
+          pieceStatusFlow.piece,
           linesForPieceId(pieceItems, pieceStatusFlow.piece.id),
-          inventory
+          inventory,
         )
       : []
 
@@ -405,6 +411,25 @@ export function JobDetailPage() {
                 if (same) return
                 await updatePiecePrice(spreadsheetId, pieceId, v)
               }}
+              onPieceUnitsCommit={async (pieceId, raw) => {
+                if (!spreadsheetId) return
+                const trim = raw.trim()
+                let v: number | undefined
+                if (trim === '') v = undefined
+                else {
+                  const n = parseInt(trim, 10)
+                  if (Number.isNaN(n) || n < 1) return
+                  v = n
+                }
+                const cur = pieces.find((p) => p.id === pieceId)?.units
+                const same =
+                  (v === undefined && cur === undefined) ||
+                  (v !== undefined &&
+                    cur !== undefined &&
+                    cur === v)
+                if (same) return
+                await updatePieceUnits(spreadsheetId, pieceId, v)
+              }}
               statusUpdatingId={pieceStatusUpdatingId}
               hideJobColumn
             />
@@ -459,6 +484,7 @@ export function JobDetailPage() {
         spreadsheetId={spreadsheetId}
         pieceId={linePieceId}
         inventory={inventory}
+        pieceItems={pieceItems}
       />
 
       <ConfirmDialog

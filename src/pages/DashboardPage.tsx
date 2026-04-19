@@ -10,6 +10,7 @@ import { StatCard } from '@/components/dashboard/StatCard'
 import { KanbanBoard } from '@/components/dashboard/KanbanBoard'
 import { InventoryAlerts } from '@/components/dashboard/InventoryAlerts'
 import { RecentList, type RecentListItem } from '@/components/dashboard/RecentList'
+import { ExpectedBenefitCard } from '@/components/dashboard/ExpectedBenefitCard'
 import { calculateBalance, formatCurrency } from '@/utils/money'
 import {
   countActiveJobs,
@@ -80,6 +81,7 @@ export function DashboardPage() {
     transactions: allTransactions,
     inventory,
     pieces,
+    pieceItems,
     lots,
   } = useWorkbookEntities()
 
@@ -187,6 +189,16 @@ export function DashboardPage() {
             <StatCard
               label={t('dashboard.piecesThisWeek')}
               value={String(piecesWeek)}
+            />
+          </div>
+
+          <div className="mb-6">
+            <ExpectedBenefitCard
+              jobs={jobs}
+              pieces={pieces}
+              pieceItems={pieceItems}
+              inventory={inventory}
+              lots={lots}
             />
           </div>
 

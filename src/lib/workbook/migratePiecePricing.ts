@@ -7,7 +7,8 @@ import {
 import { emptySheetMatrix, padSheetRow } from '@/services/sheets/sheetMatrix'
 import { SHEET_HEADERS, SHEET_NAMES, type SheetName } from '@/services/sheets/config'
 
-function normalizePiecesSheetMatrix(matrix: string[][] | undefined): string[][] {
+/** Exported for local CSV shop open: rewrite on-disk `pieces.csv` when headers lag the app schema. */
+export function normalizePiecesSheetMatrix(matrix: string[][] | undefined): string[][] {
   if (!matrix?.length) return emptySheetMatrix('pieces')
   const canon = SHEET_HEADERS.pieces.map(String)
   const fileHeaders = matrix[0].map((c) => String(c ?? '').trim())

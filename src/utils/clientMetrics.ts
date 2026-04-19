@@ -1,6 +1,7 @@
 import type { Inventory, Job, Lot, Piece, PieceItem, Transaction } from '@/types/money'
 import { computeAvgUnitCost } from '@/utils/avgUnitCost'
 import { jobPricingState } from '@/utils/jobPiecePricing'
+import { pieceUnitsResolved } from '@/utils/pieceEffectiveInventory'
 
 export interface ClientDetailMetricsInput {
   clientId: string
@@ -69,6 +70,8 @@ export function computeClientDetailMetrics(
   const pieceIds = new Set(relevantPieces.map((p) => p.id))
   for (const line of pieceItems) {
     if (!pieceIds.has(line.piece_id)) continue
+    const piece = pieces.find((p) => p.id === line.piece_id)
+    const units = piece ? pieceUnitsResolved(piece) ?? 1 : 1
     const inv = invById.get(line.inventory_id)
     if (!inv) continue
     const uc = computeAvgUnitCost(lots.filter((l) => l.inventory_id === inv.id))
@@ -76,7 +79,7 @@ export function computeClientDetailMetrics(
     const qty =
       typeof line.quantity === 'number' ? line.quantity : Number(line.quantity)
     if (!Number.isFinite(qty)) continue
-    materialsEstimate += qty * uc
+    materialsEstimate += qty * units * uc
   }
 
   return {

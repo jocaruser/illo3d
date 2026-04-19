@@ -66,7 +66,9 @@
       "alerts": "Alertas de stock",
       "healthy": "Los niveles de stock están bien.",
       "viewAll": "Ver inventario"
-    }
+    },
+    "expectedBenefit": "Beneficio esperado (trabajos activos)",
+    "expectedBenefitEmpty": "Añade unidades, precios por unidad y líneas de material con coste por lote en trabajos en borrador o en curso para ver el beneficio esperado."
   },
   "nav": {
     "dashboard": "Panel",
@@ -337,10 +339,16 @@
     "colId": "ID",
     "colJob": "Trabajo",
     "colName": "Nombre",
+    "colUnits": "Unidades",
     "colPrice": "Precio",
+    "colPricePerUnit": "Precio / ud.",
+    "colLineTotal": "Total línea",
+    "colBenefit": "Benef. est.",
+    "colRunMargin": "Stock (serie)",
     "colStatus": "Estado",
     "colCreated": "Creado",
     "suggestedApply": "Usar {{price}}",
+    "suggestedApplyPerUnit": "Usar {{price}} / ud.",
     "status": {
       "pending": "Pendiente",
       "done": "Hecha",
@@ -374,6 +382,7 @@
     "decrementInventoryLabel": "Descontar del inventario",
     "restoreInventoryLabel": "Restaurar cantidades de inventario",
     "statusNeedsLines": "Añade al menos una línea de material antes de marcar la pieza como hecha o fallida.",
+    "statusNeedsUnits": "Indica un número de unidades en esta pieza antes de marcarla como hecha o fallida.",
     "statusInsufficientStockDetail": "No se pudo descontar: {{detail}}. Desmarca «Descontar del inventario» o cancela.",
     "shortfallLine": "{{id}}: hace falta {{need}}, hay {{have}}",
     "inventoryLot": "Lote de inventario",
@@ -385,7 +394,8 @@
       "jobRequired": "Selecciona un trabajo",
       "nameRequired": "El nombre es obligatorio",
       "inventoryRequired": "Selecciona un lote de inventario",
-      "quantityPositive": "La cantidad debe ser mayor que cero"
+      "quantityPositive": "La cantidad debe ser mayor que cero",
+      "duplicateInventory": "Esta pieza ya tiene una línea de material para ese inventario."
     }
   },
   "jobs": {
@@ -424,6 +434,7 @@
     "colTotal": "Total",
     "totalIncomplete": "Precios incompletos",
     "paidPricingIncomplete": "Indica un precio en cada pieza de este trabajo antes de moverlo a Pagado o Cancelado.",
+    "paidPiecesIncomplete": "Indica un precio por unidad y la cantidad de unidades en cada pieza de este trabajo antes de moverlo a Pagado o Cancelado.",
     "colPrice": "Precio",
     "colCreated": "Creado",
     "statusFieldAria": "Estado del trabajo {{id}}",

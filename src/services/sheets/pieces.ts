@@ -11,6 +11,14 @@ function parsePieceStatus(value: unknown): PieceStatus {
   return 'pending'
 }
 
+function parsePieceUnits(raw: unknown): number | undefined {
+  if (raw === undefined || raw === null || raw === '') return undefined
+  const n =
+    typeof raw === 'string' ? parseInt(raw, 10) : Math.trunc(Number(raw))
+  if (!Number.isFinite(n) || n < 1) return undefined
+  return n
+}
+
 export function parsePieceRow(r: Piece): Piece {
   const rawPrice = r.price as unknown
   let price: number | undefined
@@ -19,10 +27,12 @@ export function parsePieceRow(r: Piece): Piece {
       typeof rawPrice === 'string' ? parseFloat(rawPrice) : Number(rawPrice)
     price = Number.isNaN(n) ? undefined : n
   }
+  const units = parsePieceUnits((r as unknown as Record<string, unknown>).units)
   return {
     ...r,
     status: parsePieceStatus(r.status),
     price,
+    units,
   }
 }
 

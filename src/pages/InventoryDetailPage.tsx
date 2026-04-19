@@ -31,11 +31,11 @@ function isActiveLot(l: Lot): boolean {
 }
 
 function parseQtyCurrentInput(raw: string): number | null {
-  const trimmed = raw.trim()
+  const trimmed = raw.trim().replace(',', '.')
   if (trimmed === '') return null
-  const n = parseInt(trimmed, 10)
+  const n = parseFloat(trimmed)
   if (!Number.isFinite(n) || n < 0) return null
-  return n
+  return Math.round(n * 100) / 100
 }
 
 export function InventoryDetailPage() {
@@ -105,7 +105,11 @@ export function InventoryDetailPage() {
     setWarnYellow(String(item.warn_yellow))
     setWarnOrange(String(item.warn_orange))
     setWarnRed(String(item.warn_red))
-    setQtyInput(String(Math.floor(item.qty_current)))
+    setQtyInput(
+      Number.isInteger(item.qty_current)
+        ? String(item.qty_current)
+        : String(Math.round(item.qty_current * 100) / 100),
+    )
   }, [item])
 
   const lotsSignature = useMemo(
@@ -236,7 +240,7 @@ export function InventoryDetailPage() {
             <input
               type="number"
               min={0}
-              step={1}
+              step="0.01"
               data-testid="inventory-detail-qty-current"
               className="w-40 rounded border border-gray-300 px-2 py-1.5 text-sm"
               value={qtyInput}

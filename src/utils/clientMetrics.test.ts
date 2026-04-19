@@ -62,6 +62,7 @@ describe('computeClientDetailMetrics', () => {
         name: 'a',
         status: 'pending' as const,
         price: 10,
+        units: 1,
         created_at: '2025-01-01',
       },
     ]
@@ -91,6 +92,7 @@ describe('computeClientDetailMetrics', () => {
         name: 'a',
         status: 'pending' as const,
         price: 20,
+        units: 1,
         created_at: '2025-01-01',
       },
     ]
@@ -116,6 +118,7 @@ describe('computeClientDetailMetrics', () => {
         job_id: 'J1',
         name: 'x',
         status: 'done',
+        units: 1,
         created_at: '2025-01-01',
       },
     ]

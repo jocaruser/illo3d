@@ -103,6 +103,41 @@ describe('InventoryDetailPage', () => {
     })
   })
 
+  it('saves decimal qty_current rounded to two places', async () => {
+    resetAndSeedWorkbook({
+      inventory: matrixWithRows('inventory', [
+        {
+          id: 'INV1',
+          type: 'filament',
+          name: 'PLA',
+          qty_current: 10.25,
+          warn_yellow: 0,
+          warn_orange: 0,
+          warn_red: 0,
+          created_at: '2025-01-01',
+          archived: '',
+          deleted: '',
+        },
+      ]),
+    })
+
+    const user = userEvent.setup()
+    renderDetail()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('inventory-detail-qty-current')).toBeInTheDocument()
+    })
+
+    await user.clear(screen.getByTestId('inventory-detail-qty-current'))
+    await user.type(screen.getByTestId('inventory-detail-qty-current'), '3.456')
+    await user.click(screen.getByTestId('inventory-detail-save-qty'))
+
+    await waitFor(() => {
+      const inv = matrixToInventory(useWorkbookStore.getState().tabs.inventory)
+      expect(inv.find((i) => i.id === 'INV1')?.qty_current).toBeCloseTo(3.46, 5)
+    })
+  })
+
   it('archives inventory and lots then navigates to list', async () => {
     resetAndSeedWorkbook({
       inventory: matrixWithRows('inventory', [

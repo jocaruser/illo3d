@@ -50,7 +50,7 @@ describe('useJobStatusFlow handleStatusSelect', () => {
     })
 
     expect(selectResult).toBe('blocked')
-    expect(result.current.statusError).toBe('jobs.paidPricingIncomplete')
+    expect(result.current.statusError).toBe('jobs.paidPiecesIncomplete')
   })
 
   it('returns blocked when moving to cancelled with incomplete piece pricing', async () => {
@@ -64,11 +64,25 @@ describe('useJobStatusFlow handleStatusSelect', () => {
     })
 
     expect(selectResult).toBe('blocked')
-    expect(result.current.statusError).toBe('jobs.paidPricingIncomplete')
+    expect(result.current.statusError).toBe('jobs.paidPiecesIncomplete')
+  })
+
+  it('returns blocked when price set but units unset', async () => {
+    piecesState.list = [piece({ id: 'P1', job_id: 'J1', price: 10 })]
+
+    const { result } = renderHook(() => useJobStatusFlow('sheet-1'))
+
+    let selectResult: string | undefined
+    await act(async () => {
+      selectResult = await result.current.handleStatusSelect(baseJob, 'paid')
+    })
+
+    expect(selectResult).toBe('blocked')
+    expect(result.current.statusError).toBe('jobs.paidPiecesIncomplete')
   })
 
   it('returns dialog-opened when moving to cancelled with complete pricing', async () => {
-    piecesState.list = [piece({ id: 'P1', job_id: 'J1', price: 10 })]
+    piecesState.list = [piece({ id: 'P1', job_id: 'J1', price: 10, units: 2 })]
 
     const { result } = renderHook(() => useJobStatusFlow('sheet-1'))
 

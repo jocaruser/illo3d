@@ -5,7 +5,7 @@ import { useWorkbookStore } from '@/stores/workbookStore'
 
 function clampQtyCurrent(n: number): number {
   if (!Number.isFinite(n) || n < 0) return 0
-  return Math.floor(n)
+  return Math.round(n * 100) / 100
 }
 
 export async function updateInventoryQtyCurrent(

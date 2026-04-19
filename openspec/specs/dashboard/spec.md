@@ -79,6 +79,23 @@ The system SHALL display three summary stat cards: current balance (sum of all a
 
 ---
 
+### Requirement: Dashboard expected benefit widget
+
+The dashboard SHALL display a widget titled per i18n that shows **expected benefit** for in-scope work: **sum of (line revenue − material cost at avg lot cost)** across **active jobs** (`draft` or `in_progress`) and their **counting pieces** where **`units` and `price` are set**, piece has at least one piece_item, and every referenced inventory line has computable avg unit cost. **Line revenue** SHALL be `units × price`. **Material cost for the piece** SHALL be `units ×` (sum of `piece_item.quantity × avg_unit_cost` per line). When no qualifying pieces exist, the widget SHALL show a neutral empty state (i18n). When some pieces qualify and others lack data, the widget SHALL sum only qualifying pieces **or** show an incomplete state per implementation choice documented in tasks, but SHALL NOT show a false exact total without disclosure.
+
+#### Scenario: Widget shows positive benefit
+
+- **WHEN** at least one in-progress job has a piece with `units` 10, `price` 5, and BOM costs implying material 20 for the full run
+- **AND** all needed avg unit costs are defined
+- **THEN** the widget includes that piece’s contribution (10×5 − 20 = 30) in the displayed total
+
+#### Scenario: No qualifying data
+
+- **WHEN** no active job has a fully computable piece
+- **THEN** the widget shows the empty state without a numeric benefit
+
+---
+
 ### Requirement: Inventory alert widget on dashboard
 
 The system SHALL display an inventory alert widget showing items below stock thresholds using the same tier logic as `InventoryTable`: items with `qty_current / qty_initial ≤ 0.3` (and `qty_initial > 1`). Items with ratio ≤ 0.1 SHALL be shown as critical (red), items with ratio > 0.1 and ≤ 0.3 as low stock (orange/yellow). The widget SHALL link each item to `/inventory`. Archived and deleted inventory rows SHALL be excluded.

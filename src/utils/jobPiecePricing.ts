@@ -1,4 +1,5 @@
 import type { Piece } from '@/types/money'
+import { pieceUnitsResolved } from '@/utils/pieceEffectiveInventory'
 
 /** Non-deleted pieces for a job (archived still count). */
 export function countingPiecesForJob(
@@ -25,7 +26,9 @@ export function jobPricingState(jobId: string, pieces: Piece[]): JobPricingState
   let total = 0
   for (const p of list) {
     if (!piecePriceIsSet(p)) return { kind: 'incomplete' }
-    total += p.price as number
+    const units = pieceUnitsResolved(p)
+    if (units == null) return { kind: 'incomplete' }
+    total += (p.price as number) * units
   }
   return { kind: 'complete', total }
 }
