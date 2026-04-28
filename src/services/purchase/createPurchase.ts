@@ -37,7 +37,7 @@ export interface CreatePurchasePayload {
 export async function createPurchase(
   _spreadsheetId: string,
   payload: CreatePurchasePayload
-): Promise<void> {
+): Promise<string> {
   void _spreadsheetId
   const tabs = useWorkbookStore.getState().tabs
   const transactions = matrixToTransactions(tabs.transactions)
@@ -85,7 +85,7 @@ export async function createPurchase(
     }),
   )
 
-  if (!payload.addToInventory) return
+  if (!payload.addToInventory) return transactionId
 
   const lines = payload.lines!
   const now = new Date().toISOString()
@@ -166,4 +166,5 @@ export async function createPurchase(
       }),
     )
   }
+  return transactionId
 }

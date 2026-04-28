@@ -10,7 +10,7 @@ import { RequiredIndicator } from './RequiredIndicator'
 interface CreateClientPopupProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: () => void
+  onSuccess: (newClientId?: string) => void
   spreadsheetId: string | null
   initialClient?: Client | null
   onUpdateClient?: (
@@ -90,10 +90,11 @@ export function CreateClientPopup({
         } else {
           await updateClient(spreadsheetId, initialClient.id, payload)
         }
+        onSuccess()
       } else {
-        await createClient(spreadsheetId, payload)
+        const newClientId = await createClient(spreadsheetId, payload)
+        onSuccess(newClientId)
       }
-      onSuccess()
       onClose()
       if (!initialClient) {
         setName('')

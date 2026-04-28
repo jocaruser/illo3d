@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
@@ -20,6 +21,7 @@ function isActiveJob(j: Job): boolean {
 
 export function JobsPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const {
     spreadsheetId,
     workbookStatus,
@@ -68,7 +70,11 @@ export function JobsPage() {
 
   const jobPopupOpen = popupOpen || editingJob !== null
 
-  const handleMutationSuccess = async () => {}
+  const handleMutationSuccess = async (newJobId?: string) => {
+    if (newJobId) {
+      navigate(`/jobs/${newJobId}`)
+    }
+  }
 
   const closeJobPopup = () => {
     setPopupOpen(false)

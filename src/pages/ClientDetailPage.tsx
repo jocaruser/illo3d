@@ -110,7 +110,11 @@ export function ClientDetailPage() {
   const [archiveError, setArchiveError] = useState<string | null>(null)
   const [jobPopupOpen, setJobPopupOpen] = useState(false)
 
-  const handleMutationSuccess = async () => {}
+  const handleMutationSuccess = async (newJobId?: string) => {
+    if (newJobId) {
+      navigate(`/jobs/${newJobId}`)
+    }
+  }
 
   const handleUpdateClient = async (
     cid: string,
