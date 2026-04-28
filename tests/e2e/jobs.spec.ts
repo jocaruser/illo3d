@@ -58,9 +58,12 @@ test.describe('Jobs page', () => {
     await page.getByRole('button', { name: 'Beta LLC' }).click()
     await page.getByPlaceholder(/what are you printing|qué vas a imprimir/i).fill('e2e job marker')
 
-    await page.getByRole('button', { name: /create job|crear trabajo/i }).click()
+    // Wait for navigation to complete after creating
+    await Promise.all([
+      page.waitForURL(/\/jobs\/J\d+/, { timeout: 20000 }),
+      page.getByRole('button', { name: /create job|crear trabajo/i }).click(),
+    ])
 
-    await expect(page).toHaveURL(/\/jobs\/J\d+/, { timeout: 20000 })
     await expect(page.getByRole('heading', { name: 'e2e job marker' })).toBeVisible({ timeout: 20000 })
   })
 

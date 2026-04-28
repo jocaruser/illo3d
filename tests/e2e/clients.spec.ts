@@ -83,9 +83,13 @@ test.describe('Clients page', () => {
 
     const uniqueName = `E2E Client ${Date.now()}`
     await page.locator('#client-name').fill(uniqueName)
-    await page.getByRole('button', { name: /create client|crear cliente/i }).click()
-
-    await expect(page).toHaveURL(/\/clients\/CL\d+/, { timeout: 20000 })
+    
+    // Wait for navigation to complete after creating
+    await Promise.all([
+      page.waitForURL(/\/clients\/CL\d+/, { timeout: 20000 }),
+      page.getByRole('button', { name: /create client|crear cliente/i }).click(),
+    ])
+    
     await expect(page.getByRole('heading', { name: uniqueName })).toBeVisible({
       timeout: 20000,
     })
