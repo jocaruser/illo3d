@@ -60,7 +60,8 @@ test.describe('Jobs page', () => {
 
     await page.getByRole('button', { name: /create job|crear trabajo/i }).click()
 
-    await expect(page.getByText('e2e job marker')).toBeVisible({ timeout: 20000 })
+    // After creation, page navigates to job detail - look for the heading
+    await expect(page.getByRole('heading', { name: 'e2e job marker' })).toBeVisible({ timeout: 20000 })
   })
 
   test('draft to in_progress updates status in workbook', async ({ page, openCsvShop }) => {
