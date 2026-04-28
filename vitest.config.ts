@@ -13,7 +13,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
     globals: true,
-    exclude: ['tests/e2e/**', 'node_modules', 'dist'],
+    exclude: ['tests/e2e/**', 'node_modules', 'dist', '.opencode/**'],
     ...(isCi ? { maxWorkers: 2 } : {}),
   },
 })
