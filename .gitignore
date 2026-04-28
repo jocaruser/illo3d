@@ -32,9 +32,15 @@ openspec/changes/
 illo3d-366398a927d2.json
 test-results/.last-run.json
 .cursor/mcp.json
+.github-token
 tsconfig.app.tsbuildinfo
 tsconfig.node.tsbuildinfo
 test-results/
 /public/fixtures/
 .e2e-fixtures/
 tests/e2e/.auth/
+fixtures/realdata
+.gitignore
+.opencode/
+docs/
+opencode.json
