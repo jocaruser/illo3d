@@ -178,6 +178,9 @@ jobs:
       - name: Start services
         run: docker compose up -d
 
+      - name: Install dependencies
+        run: make install
+
       - name: E2E tests
         run: make e2e-test
 
