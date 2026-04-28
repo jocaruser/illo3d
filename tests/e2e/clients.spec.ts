@@ -85,7 +85,7 @@ test.describe('Clients page', () => {
     await page.locator('#client-name').fill(uniqueName)
     await page.getByRole('button', { name: /create client|crear cliente/i }).click()
 
-    await expect(page.getByRole('cell', { name: uniqueName })).toBeVisible({
+    await expect(page.getByText(uniqueName)).toBeVisible({
       timeout: 20000,
     })
   })

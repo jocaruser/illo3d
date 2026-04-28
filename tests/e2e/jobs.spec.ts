@@ -60,7 +60,7 @@ test.describe('Jobs page', () => {
 
     await page.getByRole('button', { name: /create job|crear trabajo/i }).click()
 
-    await expect(page.getByText('e2e job marker')).toBeVisible({ timeout: 20000 })
+    await expect(page.getByRole('cell', { name: 'e2e job marker' }).first()).toBeVisible({ timeout: 20000 })
   })
 
   test('draft to in_progress updates status in workbook', async ({ page, openCsvShop }) => {
@@ -144,7 +144,7 @@ test.describe('Jobs page', () => {
 
     await expect(deskStatus).toHaveValue('paid', { timeout: 15000 })
 
-    await page.getByRole('link', { name: /transactions|transacciones/i }).click()
+    await page.getByRole('link', { name: /transactions|transacciones/i }).first().click()
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
       timeout: 15000,
     })

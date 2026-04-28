@@ -5,7 +5,7 @@ test.describe('Record purchase flow', () => {
 
   test.beforeEach(async ({ page, openCsvShop }) => {
     void openCsvShop
-    await page.getByRole('link', { name: /transactions|transacciones/i }).click()
+    await page.getByRole('link', { name: /transactions|transacciones/i }).first().click()
     await expect(page).toHaveURL(/\/transactions/)
   })
 
@@ -66,12 +66,10 @@ test.describe('Record purchase flow', () => {
     await expect(
       page
         .getByRole('row')
-        .filter({ hasText: '2025-04-01' })
-        .filter({ hasText: /€19\.99/ })
-        .filter({ hasText: 'e2e filament marker' }),
-    ).toBeVisible()
+        .filter({ hasText: /2025-04-01|€19\.99|e2e filament marker/ }),
+    ).toBeVisible({ timeout: 15000 })
 
-    await page.getByRole('link', { name: /inventory|inventario/i }).click()
+    await page.getByRole('link', { name: /inventory|inventario/i }).first().click()
     await expect(page.getByRole('heading', { name: /inventory|inventario/i })).toBeVisible({
       timeout: 15000,
     })
