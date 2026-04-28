@@ -60,7 +60,7 @@ test.describe('Jobs page', () => {
 
     await page.getByRole('button', { name: /create job|crear trabajo/i }).click()
 
-    // After creation, page navigates to job detail - look for the heading
+    await expect(page).toHaveURL(/\/jobs\/J\d+/, { timeout: 20000 })
     await expect(page.getByRole('heading', { name: 'e2e job marker' })).toBeVisible({ timeout: 20000 })
   })
 

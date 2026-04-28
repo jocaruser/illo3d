@@ -85,7 +85,7 @@ test.describe('Clients page', () => {
     await page.locator('#client-name').fill(uniqueName)
     await page.getByRole('button', { name: /create client|crear cliente/i }).click()
 
-    // After creation, we're on the client detail page - look for the heading
+    await expect(page).toHaveURL(/\/clients\/CL\d+/, { timeout: 20000 })
     await expect(page.getByRole('heading', { name: uniqueName })).toBeVisible({
       timeout: 20000,
     })
