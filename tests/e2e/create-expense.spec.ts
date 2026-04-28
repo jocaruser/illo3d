@@ -76,7 +76,8 @@ test.describe('Record purchase flow', () => {
     await expect(page.getByText('e2e filament marker')).toBeVisible({ timeout: 15000 })
   })
 
-  test('overhead purchase does not append inventory sheet', async ({ page }) => {
+  test('overhead purchase does not append inventory sheet', async ({ page, openCsvShop }) => {
+    void openCsvShop
     const appendPayloads: { sheetName?: string }[] = []
     page.on('request', (req) => {
       if (req.method() !== 'POST' || !req.url().includes('/api/sheets/append')) {
@@ -126,7 +127,8 @@ test.describe('Record purchase flow', () => {
     expect(appendPayloads.filter((p) => p.sheetName === 'inventory')).toHaveLength(0)
   })
 
-  test('successful purchase keeps user on transactions page', async ({ page }) => {
+  test('successful purchase keeps user on transactions page', async ({ page, openCsvShop }) => {
+    void openCsvShop
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
     })
