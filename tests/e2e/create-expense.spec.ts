@@ -68,7 +68,7 @@ test.describe('Record purchase flow', () => {
       page.getByRole('button', { name: /save purchase|guardar compra/i }).click(),
     ])
 
-    await expect(page.getByText('e2e filament marker')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('heading', { name: 'e2e filament marker' })).toBeVisible({ timeout: 15000 })
 
     await page.getByRole('link', { name: /transactions|transacciones/i }).click()
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
@@ -123,7 +123,7 @@ test.describe('Record purchase flow', () => {
       page.getByRole('button', { name: /save purchase|guardar compra/i }).click(),
     ])
 
-    await expect(page.getByText('e2e no inventory')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('heading', { name: 'e2e no inventory' })).toBeVisible({ timeout: 15000 })
 
     await page.getByRole('link', { name: /transactions|transacciones/i }).click()
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
@@ -164,7 +164,7 @@ test.describe('Record purchase flow', () => {
       page.getByRole('button', { name: /save purchase|guardar compra/i }).click(),
     ])
 
-    await expect(page.getByText('e2e redirect row')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('heading', { name: 'e2e redirect row' })).toBeVisible({ timeout: 15000 })
 
     await page.getByRole('link', { name: /transactions|transacciones/i }).click()
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
