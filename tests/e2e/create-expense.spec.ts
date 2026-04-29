@@ -62,16 +62,16 @@ test.describe('Record purchase flow', () => {
     await page.getByTestId('purchase-line-0-qty').fill('500')
     await page.getByTestId('purchase-line-0-amount').fill('19.99')
 
-    await page
-      .getByRole('button', { name: /save purchase|guardar compra/i })
-      .click()
+    // Wait for navigation to complete after creating
+    await Promise.all([
+      page.waitForURL(/\/transactions\/T\d+/, { timeout: 20000 }),
+      page.getByRole('button', { name: /save purchase|guardar compra/i }).click(),
+    ])
 
-    // Wait for dialog to close (indicates successful save)
-    await expect(page.getByTestId('purchase-dialog')).not.toBeVisible({ timeout: 15000 })
-    await expect(page).toHaveURL(/\/transactions/)
-    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
-      timeout: 15000,
-    })
+    await expect(page.getByRole('heading', { name: 'e2e filament marker' })).toBeVisible({ timeout: 15000 })
+
+    await page.getByTestId('entity-detail-back').click()
+    await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
     await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
     await expect(
       page
@@ -117,24 +117,32 @@ test.describe('Record purchase flow', () => {
     await page.locator('#purchase-amount').fill('12.00')
     await page.locator('#purchase-notes').fill('e2e no inventory')
 
-    await page
-      .getByRole('button', { name: /save purchase|guardar compra/i })
-      .click()
+    // Wait for navigation to complete after creating
+    await Promise.all([
+      page.waitForURL(/\/transactions\/T\d+/, { timeout: 20000 }),
+      page.getByRole('button', { name: /save purchase|guardar compra/i }).click(),
+    ])
 
-    // Wait for dialog to close (indicates successful save)
-    await expect(page.getByTestId('purchase-dialog')).not.toBeVisible({ timeout: 15000 })
-    await expect(page).toHaveURL(/\/transactions/)
-    // Wait for any loading/connecting states to clear and data to save
+    await expect(page.getByRole('heading', { name: 'e2e no inventory' })).toBeVisible({ timeout: 15000 })
+
+    await page.getByTestId('entity-detail-back').click()
+    await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
       timeout: 15000,
     })
-    // The main assertion: inventory sheet should not have been appended
+    await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
+    await expect(
+      page
+        .getByRole('row')
+        .filter({ hasText: '2025-04-02' })
+        .filter({ hasText: /€12\.00/ })
+        .filter({ hasText: 'e2e no inventory' }),
+    ).toBeVisible()
+
     expect(appendPayloads.filter((p) => p.sheetName === 'inventory')).toHaveLength(0)
   })
 
-  // TODO: Fix this flaky test - dialog not closing after save in CI
-  test.skip('successful purchase keeps user on transactions page', async ({ page, openCsvShop }) => {
-    void openCsvShop
+  test('successful purchase navigates to transaction detail', async ({ page }) => {
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 15000,
     })
@@ -150,12 +158,15 @@ test.describe('Record purchase flow', () => {
     await page.locator('#purchase-amount').fill('25.50')
     await page.locator('#purchase-notes').fill('e2e redirect row')
 
-    await page
-      .getByRole('button', { name: /save purchase|guardar compra/i })
-      .click()
+    // Wait for navigation to complete after creating
+    await Promise.all([
+      page.waitForURL(/\/transactions\/T\d+/, { timeout: 20000 }),
+      page.getByRole('button', { name: /save purchase|guardar compra/i }).click(),
+    ])
 
-    // Wait for dialog to close first (indicates successful save)
-    await expect(page.getByTestId('purchase-dialog')).not.toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('heading', { name: 'e2e redirect row' })).toBeVisible({ timeout: 15000 })
+
+    await page.getByTestId('entity-detail-back').click()
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 15000,

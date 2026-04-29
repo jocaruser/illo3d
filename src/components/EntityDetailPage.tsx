@@ -43,6 +43,7 @@ export function EntityDetailPage({
       <div className="mb-4">
         <Link
           to={backTo}
+          data-testid="entity-detail-back"
           className="text-sm font-medium text-blue-600 hover:text-blue-800"
         >
           ← {backLabel}
