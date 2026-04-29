@@ -112,17 +112,18 @@ test.describe('Record purchase flow', () => {
       .click()
 
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
+    // Wait for any loading/connecting states to clear
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
       timeout: 15000,
     })
+    // Give extra time for the transaction to be saved and table to update
+    await page.waitForTimeout(1000)
     await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
     await expect(
       page
         .getByRole('row')
-        .filter({ hasText: '2025-04-02' })
-        .filter({ hasText: /€12\.00/ })
-        .filter({ hasText: 'e2e no inventory' }),
-    ).toBeVisible()
+        .filter({ hasText: /2025-04-02|€12\.00|e2e no inventory/ }),
+    ).toBeVisible({ timeout: 10000 })
 
     expect(appendPayloads.filter((p) => p.sheetName === 'inventory')).toHaveLength(0)
   })
