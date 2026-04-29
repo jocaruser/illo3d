@@ -70,8 +70,10 @@ test.describe('Google Drive setup wizard', () => {
     await completeWizardGoogleDriveWelcome(page)
     await page.locator('#wizard-folder-id').fill('badHeadersFolder')
     await page.getByTestId('wizard-google-open-by-id').click()
+    // When headers fail validation, the app shows structure error with detail
+    // Error message: "This shop's Google Sheet does not match the layout this app expects: ..."
     await expect(
-      page.getByText(/do not have permission to access this shop|No tienes permiso para acceder/i),
+      page.getByText(/does not match the layout|no coincide con el formato/i),
     ).toBeVisible({ timeout: 10000 })
   })
 

@@ -13,7 +13,7 @@ export interface CreateJobPayload {
 export async function createJob(
   spreadsheetId: string,
   payload: CreateJobPayload
-): Promise<void> {
+): Promise<string> {
   void spreadsheetId
   const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
   const jobId = nextNumericId(
@@ -43,4 +43,5 @@ export async function createJob(
       deleted: '',
     }),
   )
+  return jobId
 }

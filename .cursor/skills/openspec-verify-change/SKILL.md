@@ -60,6 +60,8 @@ Verify that an implementation matches the change artifacts (specs, tasks, design
      - Add CRITICAL issue for each incomplete task
      - Recommendation: "Complete task: <description>" or "Mark as done if already implemented"
 
+   **Shop / workbook (illo3d):** If the change touched Google Sheet tabs, `SHEET_HEADERS`, `validateStructure`, or `illo3d.metadata.json`, verify **`src/config/version.ts`** was bumped appropriately (patch for traceability; **major** when old shops must be blocked until migration).
+
    **Spec Coverage**:
    - If delta specs exist in `openspec/changes/<name>/specs/`:
      - Extract all requirements (marked with "### Requirement:")

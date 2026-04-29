@@ -56,6 +56,7 @@ export function useCreateShop() {
         createdAt: new Date().toISOString(),
         createdBy: user?.email ?? '',
       })
+      setBackend('google-drive')
       setActiveShop({
         folderId,
         folderName: name,
@@ -63,7 +64,7 @@ export function useCreateShop() {
         metadataVersion: APP_VERSION,
       })
     },
-    [user?.email, setActiveShop, createShopInLocalFolder]
+    [user?.email, setActiveShop, setBackend, createShopInLocalFolder]
   )
 
   return { createShop, createShopInLocalFolder }

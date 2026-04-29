@@ -498,7 +498,8 @@
     "chromeRequired": "Local folder storage needs a Chromium-based browser (for example Chrome or Edge).",
     "errorNotShop": "This folder is not an illo3d shop.",
     "errorVersion": "This shop was created with a different app version and cannot be opened.",
-    "errorPermissions": "You do not have permission to access this shop's data.",
+    "errorShopStructure": "This shop's Google Sheet is missing a tab or column this version of illo3d needs. Update the sheet to match the latest template, or create a new shop.",
+    "errorShopStructureWithDetail": "This shop's Google Sheet does not match the layout this app expects: {{detail}}",
     "errorGeneric": "Something went wrong. Please try again."
   },
   "workbook": {

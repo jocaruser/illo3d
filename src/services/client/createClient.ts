@@ -21,7 +21,7 @@ function todayIsoDate(): string {
 export async function createClient(
   spreadsheetId: string,
   payload: CreateClientPayload
-): Promise<void> {
+): Promise<string> {
   void spreadsheetId
   const clients = matrixToClients(useWorkbookStore.getState().tabs.clients)
   const clientId = nextNumericId(
@@ -44,4 +44,5 @@ export async function createClient(
   }
 
   patchWorkbookTab('clients', (m) => appendDataRow('clients', m, row))
+  return clientId
 }

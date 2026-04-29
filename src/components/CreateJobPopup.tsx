@@ -10,7 +10,7 @@ import { RequiredIndicator } from './RequiredIndicator'
 interface CreateJobPopupProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: () => void
+  onSuccess: (newJobId?: string) => void
   spreadsheetId: string | null
   clients: Client[]
   initialJob?: Job | null
@@ -93,13 +93,14 @@ export function CreateJobPopup({
         } else {
           await updateJob(spreadsheetId, initialJob.id, payload)
         }
+        onSuccess()
       } else {
-        await createJob(spreadsheetId, {
+        const newJobId = await createJob(spreadsheetId, {
           client_id: clientId,
           description: description.trim(),
         })
+        onSuccess(newJobId)
       }
-      onSuccess()
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : t('wizard.errorGeneric'))

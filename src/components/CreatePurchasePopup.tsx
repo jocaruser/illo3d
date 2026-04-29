@@ -68,7 +68,7 @@ function defaultLine(activeIds: string[]): LineForm {
 interface CreatePurchasePopupProps {
   isOpen: boolean
   onClose: () => void
-  onSuccess: () => void
+  onSuccess: (newTransactionId?: string) => void
   spreadsheetId: string | null
 }
 
@@ -196,7 +196,7 @@ export function CreatePurchasePopup({
     setLoading(true)
     try {
       const total = addToInventory ? linesTotal : parseFloat(amount)
-      await createPurchase(spreadsheetId, {
+      const newTransactionId = await createPurchase(spreadsheetId, {
         date,
         category,
         notes: notes.trim(),
@@ -204,7 +204,7 @@ export function CreatePurchasePopup({
         amount: total,
         lines: addToInventory ? buildLinesPayload() : undefined,
       })
-      onSuccess()
+      onSuccess(newTransactionId)
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))

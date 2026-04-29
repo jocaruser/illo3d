@@ -79,6 +79,8 @@ Implement tasks from an OpenSpec change.
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
+   **Shop / workbook schema (illo3d):** If the change adds or renames Google Sheet tabs or columns (`SHEET_HEADERS`, `validateStructure`, migrations, or `illo3d.metadata.json` fields), bump **`src/config/version.ts`** at least on the **patch** level for traceability. Remember that `validateShopFolder` compares the **major** version number only to the shop metadata: a deliberate breaking change must bump **major** so existing shops are blocked until migrated (or document how shops upgrade).
+
 7. **On completion or pause, show status**
 
    Display:

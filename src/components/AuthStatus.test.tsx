@@ -67,6 +67,31 @@ describe('AuthStatus', () => {
     expect(state.user).toBeNull()
   })
 
+  it('links user name to Drive folder when backend is null but session is a Google Drive shop', () => {
+    useAuthStore.setState({
+      user: { email: 'user@example.com', name: 'John Doe', picture: 'https://example.com/pic.jpg' },
+      credentials: { accessToken: 'token' },
+      isAuthenticated: true,
+    })
+    useBackendStore.setState({ backend: null })
+    useShopStore.setState({
+      activeShop: {
+        folderId: 'folder-restored',
+        folderName: 'Shop',
+        spreadsheetId: '1AbC_dEfGhIjKlMnOpQrStUvWxYz',
+        metadataVersion: '1.0.0',
+      },
+    })
+
+    render(<AuthStatus />)
+
+    const link = screen.getByRole('link', { name: 'Open shop folder in Google Drive' })
+    expect(link).toHaveAttribute(
+      'href',
+      'https://drive.google.com/drive/folders/folder-restored',
+    )
+  })
+
   it('links user name to Drive folder when backend is google-drive and shop has folderId', () => {
     useAuthStore.setState({
       user: { email: 'user@example.com', name: 'John Doe', picture: 'https://example.com/pic.jpg' },

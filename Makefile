@@ -1,4 +1,4 @@
-.PHONY: init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate bash-exec shell clean sa-drive-empty sync-main restore-fixtures
+.PHONY: init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
 
 APP = docker compose exec app
 
@@ -88,6 +88,10 @@ restore-fixtures:
 	rm -rf public/fixtures/*
 	mkdir -p public/fixtures
 	cp -r fixtures/* public/fixtures/
+
+# Regenerate fixtures/imports from docs/sources/*_db_import and docs/sources/inventory_current
+imports-fixture:
+	node scripts/build-imports-fixture.mjs
 
 # Vite runs in app (Alpine + musl node_modules); Playwright runs in playwright image (glibc browsers).
 # Start e2e Vite with nohup so it survives the exec shell exiting (plain `vite &` can be SIGHUP'd).

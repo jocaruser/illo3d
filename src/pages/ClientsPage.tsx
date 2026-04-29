@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
@@ -19,6 +20,7 @@ function isActiveEntity(c: Client): boolean {
 
 export function ClientsPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const {
     spreadsheetId,
     workbookStatus,
@@ -62,7 +64,11 @@ export function ClientsPage() {
 
   const clientPopupOpen = createOpen || editingClient !== null
 
-  const handleMutationSuccess = () => {}
+  const handleMutationSuccess = (newClientId?: string) => {
+    if (newClientId) {
+      navigate(`/clients/${newClientId}`)
+    }
+  }
 
   const handleUpdateClient = async (
     clientId: string,

@@ -40,8 +40,10 @@ export function TransactionsPage() {
 
   const balance = calculateBalance(transactions.map((tx) => tx.amount))
 
-  const handlePurchaseSuccess = () => {
-    navigate('/transactions')
+  const handlePurchaseSuccess = (newTransactionId?: string) => {
+    if (newTransactionId) {
+      navigate(`/transactions/${newTransactionId}`)
+    }
   }
 
   return (
