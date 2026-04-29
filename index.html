@@ -6,6 +6,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://accounts.google.com" crossorigin />
     <title>illo3d</title>
+    <script>
+      // Apply saved theme before React loads to prevent flash
+      (function() {
+        try {
+          const stored = localStorage.getItem('user-preferences-storage')
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            if (parsed.state?.theme === 'dark') {
+              document.documentElement.classList.add('dark')
+            }
+          }
+        } catch (e) {
+          // Ignore errors (localStorage unavailable, invalid data, etc.)
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
