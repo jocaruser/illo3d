@@ -33,7 +33,7 @@ test.describe('Record purchase flow', () => {
       dialog.getByRole('heading', { name: /record purchase|registrar compra/i }),
     ).toBeVisible()
     // Close dialog to clean up for next test
-    await page.getByRole('button', { name: /close|cerrar/i }).click()
+    await page.getByRole('button', { name: /cancel|Cancel/i }).click()
     await expect(dialog).not.toBeVisible()
   })
 
