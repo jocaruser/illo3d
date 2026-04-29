@@ -70,7 +70,7 @@ test.describe('Record purchase flow', () => {
 
     await expect(page.getByRole('heading', { name: 'e2e filament marker' })).toBeVisible({ timeout: 15000 })
 
-    await page.getByRole('link', { name: /transactions|transacciones/i }).click()
+    await page.getByTestId('entity-detail-back').click()
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
     await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
     await expect(
@@ -125,7 +125,7 @@ test.describe('Record purchase flow', () => {
 
     await expect(page.getByRole('heading', { name: 'e2e no inventory' })).toBeVisible({ timeout: 15000 })
 
-    await page.getByRole('link', { name: /transactions|transacciones/i }).click()
+    await page.getByTestId('entity-detail-back').click()
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
       timeout: 15000,
@@ -166,7 +166,7 @@ test.describe('Record purchase flow', () => {
 
     await expect(page.getByRole('heading', { name: 'e2e redirect row' })).toBeVisible({ timeout: 15000 })
 
-    await page.getByRole('link', { name: /transactions|transacciones/i }).click()
+    await page.getByTestId('entity-detail-back').click()
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 15000,
