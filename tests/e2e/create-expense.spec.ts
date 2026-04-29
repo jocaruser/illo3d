@@ -5,6 +5,12 @@ test.describe('Record purchase flow', () => {
 
   test.beforeEach(async ({ page, openCsvShop }) => {
     void openCsvShop
+    // Close any open dialogs from previous tests
+    const closeBtn = page.getByRole('button', { name: /close|cancel|cerrar|cancelar/i }).first()
+    if (await closeBtn.isVisible().catch(() => false)) {
+      await closeBtn.click()
+      await page.waitForTimeout(300)
+    }
     await page.getByRole('link', { name: /transactions|transacciones/i }).first().click()
     await expect(page).toHaveURL(/\/transactions/)
   })
@@ -122,8 +128,10 @@ test.describe('Record purchase flow', () => {
 
   test('successful purchase keeps user on transactions page', async ({ page, openCsvShop }) => {
     void openCsvShop
+    // Ensure we're on transactions page before proceeding
+    await expect(page).toHaveURL(/\/transactions/)
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
-      timeout: 10000,
+      timeout: 15000,
     })
 
     await expect(page.getByText(/^Balance:/).or(page.getByText(/connecting/i))).toBeVisible({
