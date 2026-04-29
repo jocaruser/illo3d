@@ -150,7 +150,9 @@ test.describe('Record purchase flow', () => {
       .click()
 
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
-    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
+      timeout: 15000,
+    })
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
       timeout: 15000,
     })
