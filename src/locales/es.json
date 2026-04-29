@@ -8,6 +8,13 @@
     "sessionRenewalFailed": "Tu sesión de Google ha caducado. Guardar y sincronizar puede fallar hasta que vuelvas a iniciar sesión.",
     "reauthenticateGoogle": "Volver a iniciar sesión con Google"
   },
+  "profileMenu": {
+    "toggleMenu": "Alternar menú de perfil",
+    "language": "Idioma",
+    "theme": "Tema",
+    "lightMode": "Modo claro",
+    "darkMode": "Modo oscuro"
+  },
   "common": {
     "loading": "Cargando...",
     "submitting": "Enviando..."

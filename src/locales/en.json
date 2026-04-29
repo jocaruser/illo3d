@@ -8,6 +8,13 @@
     "sessionRenewalFailed": "Your Google sign-in expired. Save and sync may fail until you sign in again.",
     "reauthenticateGoogle": "Sign in with Google again"
   },
+  "profileMenu": {
+    "toggleMenu": "Toggle profile menu",
+    "language": "Language",
+    "theme": "Theme",
+    "lightMode": "Light mode",
+    "darkMode": "Dark mode"
+  },
   "common": {
     "loading": "Loading...",
     "submitting": "Submitting..."

@@ -15,7 +15,7 @@ import {
   matrixToJobs,
   matrixToTransactions,
 } from '@/lib/workbook/workbookEntities'
-import { AuthStatus } from './components/AuthStatus'
+import { ProfileMenu } from './components/ProfileMenu'
 import { GoogleSessionBanner } from './components/GoogleSessionBanner'
 import { GoogleSessionError } from '@/services/google/authorizedFetch'
 import { ConfirmDialog } from './components/ConfirmDialog'
@@ -251,7 +251,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </button>
                 </div>
               ) : null}
-              <AuthStatus />
+              <ProfileMenu />
               <button
                 type="button"
                 aria-label={t('nav.toggleMenu')}
