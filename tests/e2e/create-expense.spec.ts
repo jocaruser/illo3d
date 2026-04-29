@@ -5,14 +5,13 @@ test.describe('Record purchase flow', () => {
 
   test.beforeEach(async ({ page, openCsvShop }) => {
     void openCsvShop
-    // Close any open dialogs from previous tests
-    const closeBtn = page.getByRole('button', { name: /close|cancel|cerrar|cancelar/i }).first()
-    if (await closeBtn.isVisible().catch(() => false)) {
-      await closeBtn.click()
-      await page.waitForTimeout(300)
-    }
+    // Ensure clean state - reload page to clear any stuck dialogs/state
+    await page.goto('/dashboard')
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({ timeout: 15000 })
+    // Navigate to transactions
     await page.getByRole('link', { name: /transactions|transacciones/i }).first().click()
     await expect(page).toHaveURL(/\/transactions/)
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({ timeout: 15000 })
   })
 
   test('Record purchase button opens popup from transactions page', async ({ page }) => {
@@ -33,6 +32,9 @@ test.describe('Record purchase flow', () => {
     await expect(
       dialog.getByRole('heading', { name: /record purchase|registrar compra/i }),
     ).toBeVisible()
+    // Close dialog to clean up for next test
+    await page.getByRole('button', { name: /close|cerrar/i }).click()
+    await expect(dialog).not.toBeVisible()
   })
 
   test('purchase with inventory adds inventory row', async ({ page }) => {
@@ -64,7 +66,9 @@ test.describe('Record purchase flow', () => {
       .getByRole('button', { name: /save purchase|guardar compra/i })
       .click()
 
-    await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
+    // Wait for dialog to close (indicates successful save)
+    await expect(page.getByTestId('purchase-dialog')).not.toBeVisible({ timeout: 15000 })
+    await expect(page).toHaveURL(/\/transactions/)
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
       timeout: 15000,
     })
@@ -117,9 +121,9 @@ test.describe('Record purchase flow', () => {
       .getByRole('button', { name: /save purchase|guardar compra/i })
       .click()
 
-    await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
-    // Wait for dialog to close
-    await expect(page.getByTestId('purchase-dialog')).not.toBeVisible({ timeout: 10000 })
+    // Wait for dialog to close (indicates successful save)
+    await expect(page.getByTestId('purchase-dialog')).not.toBeVisible({ timeout: 15000 })
+    await expect(page).toHaveURL(/\/transactions/)
     // Wait for any loading/connecting states to clear and data to save
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
       timeout: 15000,
@@ -128,11 +132,8 @@ test.describe('Record purchase flow', () => {
     expect(appendPayloads.filter((p) => p.sheetName === 'inventory')).toHaveLength(0)
   })
 
-  // TODO: Fix this flaky test - dialog not closing after save in CI
-  test.skip('successful purchase keeps user on transactions page', async ({ page, openCsvShop }) => {
+  test('successful purchase keeps user on transactions page', async ({ page, openCsvShop }) => {
     void openCsvShop
-    // Ensure we're on transactions page before proceeding
-    await expect(page).toHaveURL(/\/transactions/)
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 15000,
     })
@@ -152,9 +153,9 @@ test.describe('Record purchase flow', () => {
       .getByRole('button', { name: /save purchase|guardar compra/i })
       .click()
 
+    // Wait for dialog to close first (indicates successful save)
+    await expect(page.getByTestId('purchase-dialog')).not.toBeVisible({ timeout: 15000 })
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
-    // Wait for dialog to close first
-    await expect(page.getByTestId('purchase-dialog')).not.toBeVisible({ timeout: 10000 })
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 15000,
     })
