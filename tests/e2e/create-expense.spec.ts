@@ -118,6 +118,8 @@ test.describe('Record purchase flow', () => {
       .click()
 
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
+    // Wait for dialog to close
+    await expect(page.getByTestId('purchase-dialog')).not.toBeVisible({ timeout: 10000 })
     // Wait for any loading/connecting states to clear and data to save
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
       timeout: 15000,
@@ -150,6 +152,8 @@ test.describe('Record purchase flow', () => {
       .click()
 
     await expect(page).toHaveURL(/\/transactions/, { timeout: 20000 })
+    // Wait for dialog to close first
+    await expect(page.getByTestId('purchase-dialog')).not.toBeVisible({ timeout: 10000 })
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 15000,
     })
