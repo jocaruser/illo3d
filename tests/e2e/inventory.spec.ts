@@ -46,7 +46,7 @@ test.describe('Inventory page', () => {
 
   test('unknown inventory id shows not found', async ({ page, openCsvShop }) => {
     void openCsvShop
-    await page.goto('/inventory/NOT-A-REAL-ID')
+    await page.goto('/#/inventory/NOT-A-REAL-ID')
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByText(/no inventory item/i)).toBeVisible()
     await expect(page.getByRole('link', { name: /back to inventory|volver al inventario/i })).toBeVisible()
@@ -80,7 +80,7 @@ test.describe('Inventory page', () => {
 
   test('saving thresholds on inventory detail', async ({ page, openCsvShop }) => {
     void openCsvShop
-    await page.goto('/inventory/INV2')
+    await page.goto('/#/inventory/INV2')
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('heading', { name: /Ender 3/i })).toBeVisible({
       timeout: 10000,
@@ -101,7 +101,7 @@ test.describe('Inventory page', () => {
 
   test('saves qty_current on inventory detail', async ({ page, openCsvShop }) => {
     void openCsvShop
-    await page.goto('/inventory/INV1')
+    await page.goto('/#/inventory/INV1')
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('heading', { name: 'PLA White' })).toBeVisible({
       timeout: 10000,
@@ -120,7 +120,7 @@ test.describe('Inventory page', () => {
 
   test('saves lot quantity on inventory detail', async ({ page, openCsvShop }) => {
     void openCsvShop
-    await page.goto('/inventory/INV1')
+    await page.goto('/#/inventory/INV1')
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
     const qtyInput = page.getByTestId('inventory-detail-lot-qty-L1')
@@ -135,7 +135,7 @@ test.describe('Inventory page', () => {
     openCsvShop,
   }) => {
     void openCsvShop
-    await page.goto('/inventory/INV2')
+    await page.goto('/#/inventory/INV2')
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('heading', { name: /Ender 3/i })).toBeVisible({
       timeout: 10000,

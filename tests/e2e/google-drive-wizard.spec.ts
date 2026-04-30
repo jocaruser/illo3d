@@ -3,7 +3,6 @@ import {
   mockAndOpenGoogleShop,
   mockDriveApis,
   mockGoogleOAuth,
-  mockGooglePickerApi,
   waitForShopDataReady,
   test,
   expect,
@@ -19,7 +18,7 @@ test.describe('Google Drive setup wizard', () => {
   test('folder ID submit with empty input shows validation', async ({ page }) => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page)
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
     await completeWizardGoogleDriveWelcome(page)
     await expect(page.getByTestId('wizard-google-open-by-id')).toBeVisible({ timeout: 15000 })
     await page.getByTestId('wizard-google-open-by-id').click()
@@ -31,7 +30,7 @@ test.describe('Google Drive setup wizard', () => {
   test('paste folder ID opens shop when Drive metadata validates', async ({ page }) => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'ok' })
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
     await completeWizardGoogleDriveWelcome(page)
     await expect(page.getByTestId('wizard-google-open-by-id')).toBeVisible({ timeout: 15000 })
     await page.locator('#wizard-folder-id').fill('e2ePasteFolder1')
@@ -42,7 +41,7 @@ test.describe('Google Drive setup wizard', () => {
   test('paste folder ID shows error when folder is not a shop', async ({ page }) => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'not_shop' })
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
     await completeWizardGoogleDriveWelcome(page)
     await page.locator('#wizard-folder-id').fill('notAShopFolder')
     await page.getByTestId('wizard-google-open-by-id').click()
@@ -54,7 +53,7 @@ test.describe('Google Drive setup wizard', () => {
   test('paste folder ID shows error on metadata version mismatch', async ({ page }) => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'bad_version' })
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
     await completeWizardGoogleDriveWelcome(page)
     await page.locator('#wizard-folder-id').fill('oldVersionFolder')
     await page.getByTestId('wizard-google-open-by-id').click()
@@ -66,7 +65,7 @@ test.describe('Google Drive setup wizard', () => {
   test('paste folder ID shows error when sheet headers fail validation', async ({ page }) => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'bad_headers' })
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
     await completeWizardGoogleDriveWelcome(page)
     await page.locator('#wizard-folder-id').fill('badHeadersFolder')
     await page.getByTestId('wizard-google-open-by-id').click()
@@ -77,14 +76,16 @@ test.describe('Google Drive setup wizard', () => {
     ).toBeVisible({ timeout: 10000 })
   })
 
-  test('open existing via picker uses mocked folder selection', async ({ page }) => {
+  test('open existing via picker is disabled, paste-id still works', async ({ page }) => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'ok' })
-    await mockGooglePickerApi(page)
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
     await completeWizardGoogleDriveWelcome(page)
     await expect(page.getByTestId('wizard-google-open-picker')).toBeVisible({ timeout: 15000 })
-    await page.getByTestId('wizard-google-open-picker').click()
+    await expect(page.getByTestId('wizard-google-open-picker')).toBeDisabled()
+    // Paste-ID flow still works
+    await page.locator('#wizard-folder-id').fill('e2ePasteFolder1')
+    await page.getByTestId('wizard-google-open-by-id').click()
     await waitForShopDataReady(page)
   })
 })

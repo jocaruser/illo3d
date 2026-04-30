@@ -484,6 +484,7 @@
     "googleDriveTitle": "Conecta tu tienda",
     "createNewShop": "Crear tienda nueva",
     "openExistingShop": "Abrir tienda existente",
+    "openExistingComingSoon": "La exploración de carpetas llegará pronto. Usa el campo de ID de carpeta de abajo por ahora.",
     "driveFileWarning": "Esta app solo ve archivos y carpetas de Google Drive que abras aquí. Para usar esta tienda en otro dispositivo, guarda el ID de carpeta de la URL.",
     "folderIdLabel": "O pega el ID de carpeta",
     "folderIdPlaceholder": "ID de carpeta desde la URL de Drive",

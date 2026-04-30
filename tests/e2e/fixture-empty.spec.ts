@@ -7,7 +7,7 @@ test.describe('Empty CSV fixture scenario', () => {
     copyGoldenFixtureToE2eRoot('empty')
     await mockAndOpenLocalShop(page, 'empty')
 
-    await page.goto('/transactions', { waitUntil: 'load' })
+    await page.goto('/#/transactions', { waitUntil: 'load' })
 
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,

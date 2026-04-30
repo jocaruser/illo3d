@@ -3,7 +3,7 @@ import { test, expect } from './fixtures'
 test.describe('Transactions page', () => {
   test.beforeEach(async ({ page, openCsvShop }) => {
     void openCsvShop
-    await page.goto('/transactions', { waitUntil: 'load' })
+    await page.goto('/#/transactions', { waitUntil: 'load' })
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 30000,
     })

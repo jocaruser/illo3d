@@ -5,7 +5,7 @@ test.describe('Navigation chrome', () => {
     test.use({ storageState: { cookies: [], origins: [] } })
 
     test('/login redirects to dashboard and shows setup wizard', async ({ page }) => {
-      await page.goto('/login', { waitUntil: 'load' })
+      await page.goto('/#/login', { waitUntil: 'load' })
       await expect(page).toHaveURL(/\/dashboard/)
       await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
     })

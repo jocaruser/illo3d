@@ -46,7 +46,7 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
   const logout = useAuthStore((s) => s.logout)
   const googleUser = useAuthStore((s) => s.user)
   const { createShop, createShopInLocalFolder } = useCreateShop()
-  const { selectFolder, validateAndSetShop } = useOpenExistingShop()
+  const { validateAndSetShop } = useOpenExistingShop()
   const { pickFolder } = useLocalFolderDetection()
   const setBackend = useBackendStore((s) => s.setBackend)
   const setLocalDirectoryHandle = useBackendStore((s) => s.setLocalDirectoryHandle)
@@ -81,27 +81,9 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
   }, [])
 
   const handleGoogleDriveOpen = useCallback(async () => {
-    setGoogleDriveError(null)
-    setGoogleDriveBusyKind('work')
-    setBusy(true)
-    try {
-      const picked = await selectFolder()
-      if (!picked) {
-        return
-      }
-      const validation = await validateAndSetShop(picked.id)
-      if (!validation.ok) {
-        setGoogleDriveError(
-          mapValidationError(validation.error, t, validation.detail),
-        )
-      }
-    } catch (err) {
-      setGoogleDriveError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
-    } finally {
-      setBusy(false)
-      setGoogleDriveBusyKind(null)
-    }
-  }, [selectFolder, validateAndSetShop, t])
+    // Folder picker is temporarily disabled; users can paste a folder ID instead.
+    return
+  }, [])
 
   const handleGoogleDriveCreate = useCallback(async () => {
     setGoogleDriveError(null)

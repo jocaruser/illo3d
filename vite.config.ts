@@ -4,7 +4,8 @@ import react from '@vitejs/plugin-react'
 import { fixturesRootPlugin } from './vite-plugins/fixtures-root'
 import { sheetsAppendPlugin } from './vite-plugins/sheets-append'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
+  base: mode === 'production' ? '/illo3d/' : '/',
   plugins: [fixturesRootPlugin(), react(), sheetsAppendPlugin()],
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
@@ -23,4 +24,4 @@ export default defineConfig({
       'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
     },
   },
-})
+}))

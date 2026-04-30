@@ -484,6 +484,7 @@
     "googleDriveTitle": "Connect your shop",
     "createNewShop": "Create new shop",
     "openExistingShop": "Open existing shop",
+    "openExistingComingSoon": "Folder browsing is coming soon. Use the folder ID field below for now.",
     "driveFileWarning": "This app only sees Google Drive files and folders you open here. To use this shop on another device, save the folder ID from the URL.",
     "folderIdLabel": "Or paste folder ID",
     "folderIdPlaceholder": "Folder ID from Drive URL",

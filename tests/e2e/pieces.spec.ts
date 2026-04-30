@@ -15,7 +15,7 @@ test.describe('Job pieces (job detail)', () => {
     test.use({ storageState: { cookies: [], origins: [] } })
 
     test('user without shop sees setup wizard on job detail', async ({ page }) => {
-      await page.goto('/jobs/J1', { waitUntil: 'load' })
+      await page.goto('/#/jobs/J1', { waitUntil: 'load' })
       await expect(page).toHaveURL(/\/jobs\/J1/)
       await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
     })

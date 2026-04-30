@@ -34,20 +34,6 @@ The system SHALL display a "Sign in with Google" button when One Tap is unavaila
 - **WHEN** user clicks "Sign in with Google"
 - **THEN** Google OAuth flow opens and on success credentials are stored
 
-### Requirement: One Tap path yields Drive-capable OAuth access before Drive UI
-
-When the user completes Google One Tap on the path toward the Google Drive backend, the system SHALL obtain and store an OAuth 2.0 access token that satisfies the same Drive and Sheets authorization needs as the standard Google sign-in flow (including `https://www.googleapis.com/auth/drive.file` and spreadsheet scopes the app uses) in the auth store before the UI presents Google Drive folder open, create, or paste-id actions.
-
-#### Scenario: Token ready before folder actions
-
-- **WHEN** the user successfully completes One Tap while proceeding with Google Drive
-- **THEN** the auth store contains a valid access token for the app’s Drive and Sheets usage before folder selection or creation is offered
-
-#### Scenario: User declines scope grant after One Tap
-
-- **WHEN** the user completes One Tap but does not complete the OAuth scope grant required for Drive
-- **THEN** the system does not treat the Google Drive backend as fully authorized for folder operations until the user completes that grant or uses the fallback OAuth sign-in successfully
-
 ### Requirement: One Tap is initialized from the wizard welcome path for Google Drive
 
 The system SHALL initialize Google One Tap only in contexts where an unauthenticated user is choosing or using the Google Drive backend entry on the setup wizard welcome flow, so that One Tap does not run on unrelated entry paths (e.g. local CSV selection).
@@ -160,21 +146,13 @@ The system SHALL store the ID token and/or access token from Google in memory (Z
 
 ### Requirement: OAuth client ID is configurable via environment
 
-The system SHALL read the Google OAuth client ID from `VITE_GOOGLE_CLIENT_ID`. The app SHALL not hardcode client IDs or secrets.
+The system SHALL read the Google OAuth client ID from `VITE_GOOGLE_CLIENT_ID`. The app SHALL not hardcode client IDs or secrets. The system SHALL no longer require or read `VITE_GOOGLE_API_KEY`.
 
 #### Scenario: Client ID from env
 
 - **WHEN** app initializes Google OAuth
 - **THEN** it uses `import.meta.env.VITE_GOOGLE_CLIENT_ID`
-
-### Requirement: Google API key is configurable via environment
-
-The system SHALL read a Google API key from `VITE_GOOGLE_API_KEY` for use with the Google Picker API. The app SHALL NOT hardcode API keys.
-
-#### Scenario: API key available from environment
-
-- **WHEN** the app needs the Google API key (e.g., for Picker)
-- **THEN** it reads from `import.meta.env.VITE_GOOGLE_API_KEY`
+- **AND** it does not reference `VITE_GOOGLE_API_KEY`
 
 ## Session header and sign-out
 

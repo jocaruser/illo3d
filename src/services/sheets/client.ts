@@ -2,27 +2,6 @@ import { useAuthStore } from '@/stores/authStore'
 import { ensureGoogleAccessToken } from '@/services/google/accessToken'
 import { googleFetchWithAuthRetry } from '@/services/google/authorizedFetch'
 
-/** Minimal typings for the Google Picker script loaded at runtime. */
-interface GooglePickerDocsView {
-  setIncludeFolders: (include: boolean) => GooglePickerDocsView
-  setMimeTypes: (mimeTypes: string) => GooglePickerDocsView
-  setSelectFolderEnabled: (enabled: boolean) => GooglePickerDocsView
-}
-
-declare global {
-  interface Window {
-    google?: {
-      picker?: {
-        PickerBuilder: new () => unknown
-        DocsView: new (viewId?: string) => GooglePickerDocsView
-        Action: { PICKED: string; CANCEL: string; ERROR: string }
-        Response?: { ACTION: string; DOCUMENTS: string }
-      }
-    }
-    gapi?: { load: (api: string, callback: () => void) => void }
-  }
-}
-
 export async function getAccessToken(): Promise<string> {
   const accessToken = useAuthStore.getState().credentials?.accessToken
   if (!accessToken) {

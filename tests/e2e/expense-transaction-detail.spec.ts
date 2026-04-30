@@ -25,7 +25,7 @@ test.describe('Expense transaction detail', () => {
   })
 
   test('inventory lot transaction links to expense detail', async ({ page }) => {
-    await page.goto('/inventory/INV1', { waitUntil: 'load' })
+    await page.goto('/#/inventory/INV1', { waitUntil: 'load' })
     await expect(page.getByRole('heading', { name: /PLA White/i })).toBeVisible({
       timeout: 15000,
     })
@@ -37,7 +37,7 @@ test.describe('Expense transaction detail', () => {
   })
 
   test('shows mismatch warning when amount disagrees with lot sum', async ({ page }) => {
-    await page.goto('/transactions/T11', { waitUntil: 'load' })
+    await page.goto('/#/transactions/T11', { waitUntil: 'load' })
     await expect(page.getByRole('heading', { name: /PLA White/i })).toBeVisible({
       timeout: 15000,
     })
@@ -50,7 +50,7 @@ test.describe('Expense transaction detail', () => {
   test('save disabled when lot amounts disagree with expense total; save after fix', async ({
     page,
   }) => {
-    await page.goto('/transactions/T11', { waitUntil: 'load' })
+    await page.goto('/#/transactions/T11', { waitUntil: 'load' })
     await expect(page.getByRole('heading', { name: /PLA White/i })).toBeVisible({
       timeout: 15000,
     })
@@ -71,7 +71,7 @@ test.describe('Expense transaction detail', () => {
   })
 
   test('income transaction id shows not found on detail route', async ({ page }) => {
-    await page.goto('/transactions/t1', { waitUntil: 'load' })
+    await page.goto('/#/transactions/t1', { waitUntil: 'load' })
     await expect(
       page.getByText(/could not be found|not an expense|no se encontró|no es un gasto/i),
     ).toBeVisible({ timeout: 15000 })

@@ -5,7 +5,7 @@ test.describe('Jobs page', () => {
     test.use({ storageState: { cookies: [], origins: [] } })
 
     test('user without shop sees setup wizard on /jobs', async ({ page }) => {
-      await page.goto('/jobs', { waitUntil: 'load' })
+      await page.goto('/#/jobs', { waitUntil: 'load' })
       await expect(page).toHaveURL(/\/jobs/)
       await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
     })
