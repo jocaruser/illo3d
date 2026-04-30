@@ -27,8 +27,6 @@ import {
   matrixToTags,
   matrixToTransactions,
 } from '@/lib/workbook/workbookEntities'
-import { applyPiecePricingMigrations } from '@/lib/workbook/migratePiecePricing'
-
 export type WorkbookStatus = 'idle' | 'loading' | 'ready' | 'error'
 
 type TabsState = Partial<Record<SheetName, string[][]>>
@@ -87,11 +85,10 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
     set({ status: 'loading', error: null, spreadsheetId })
     try {
       const { tabs, sheetIds } = await loadAllTabs(repository, spreadsheetId)
-      const { tabs: migrated, modified } = applyPiecePricingMigrations(tabs)
       set({
-        tabs: migrated,
+        tabs,
         sheetIds,
-        dirty: modified,
+        dirty: false,
         status: 'ready',
         error: null,
         spreadsheetId,
@@ -113,11 +110,10 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
     set({ status: 'loading', error: null })
     try {
       const { tabs, sheetIds } = await loadAllTabs(repository, spreadsheetId)
-      const { tabs: migrated, modified } = applyPiecePricingMigrations(tabs)
       set({
-        tabs: migrated,
+        tabs,
         sheetIds,
-        dirty: modified,
+        dirty: false,
         status: 'ready',
         error: null,
       })

@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { CsvFolderRepository } from './folderRepository'
+import { CsvFolderRepository } from '../../../tests/unit/helpers/CsvFolderRepository'
+import { getFolderRepository, GoogleFolderRepository } from './folderRepository'
+import { useBackendStore } from '@/stores/backendStore'
+import { LocalFolderRepository } from '@/services/local/LocalFolderRepository'
 
 const mockFetch = vi.fn()
 
@@ -43,5 +46,29 @@ describe('CsvFolderRepository', () => {
     const repo = new CsvFolderRepository()
     const name = await repo.getFolderName('happy-path')
     expect(name).toBe('happy-path')
+  })
+})
+
+describe('getFolderRepository', () => {
+  beforeEach(() => {
+    useBackendStore.getState().reset()
+  })
+
+  it('returns GoogleFolderRepository when backend is google-drive', () => {
+    useBackendStore.setState({ backend: 'google-drive', localDirectoryHandle: null })
+    const repo = getFolderRepository()
+    expect(repo).toBeInstanceOf(GoogleFolderRepository)
+  })
+
+  it('returns GoogleFolderRepository when backend is null and no handle', () => {
+    useBackendStore.setState({ backend: null, localDirectoryHandle: null })
+    const repo = getFolderRepository()
+    expect(repo).toBeInstanceOf(GoogleFolderRepository)
+  })
+
+  it('returns LocalFolderRepository when backend is local-csv with handle', () => {
+    useBackendStore.setState({ backend: 'local-csv', localDirectoryHandle: {} as FileSystemDirectoryHandle })
+    const repo = getFolderRepository()
+    expect(repo).toBeInstanceOf(LocalFolderRepository)
   })
 })

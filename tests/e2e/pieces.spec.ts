@@ -36,7 +36,9 @@ test.describe('Job pieces (job detail)', () => {
     await page.getByTestId('job-detail-link-J1').click()
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
-    await expect(page.getByText('Phone case prototype')).toBeVisible({
+    await expect(
+      page.getByRole('heading', { name: 'Phone case prototype' }),
+    ).toBeVisible({
       timeout: 10000,
     })
     await expect(

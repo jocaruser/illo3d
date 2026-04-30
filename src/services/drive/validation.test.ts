@@ -19,9 +19,6 @@ vi.mock('./folderRepository', () => ({
 vi.mock('@/services/sheets/validateStructure', () => ({
   validateStructure: vi.fn(),
 }))
-vi.mock('@/services/sheets/ensurePiecesSheetCanonicalRemote', () => ({
-  ensurePiecesSheetCanonicalRemote: vi.fn().mockResolvedValue(undefined),
-}))
 
 import { validateStructure } from '@/services/sheets/validateStructure'
 

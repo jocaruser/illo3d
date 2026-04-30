@@ -1,7 +1,5 @@
 import { APP_VERSION } from '@/config/version'
-import { ensureLocalPiecesCsvCanonical } from '@/services/local/ensureLocalPiecesCsvCanonical'
 import { getFolderRepository } from './folderRepository'
-import { ensurePiecesSheetCanonicalRemote } from '@/services/sheets/ensurePiecesSheetCanonicalRemote'
 import { validateStructure } from '@/services/sheets/validateStructure'
 
 export type ValidationResult =
@@ -27,9 +25,6 @@ export async function validateShopFolder(
   if (appMajor !== metaMajor) {
     return { ok: false, error: 'version' }
   }
-
-  await ensureLocalPiecesCsvCanonical(metadata.spreadsheetId)
-  await ensurePiecesSheetCanonicalRemote(metadata.spreadsheetId)
 
   const validationErrors = await validateStructure(
     metadata.spreadsheetId

@@ -1,9 +1,5 @@
 import type { ShopMetadata } from '@/types/shop'
-import {
-  getBackend,
-  isCsvBackendEnabled,
-  sanitizeFixtureFolderId,
-} from '@/config/csvBackend'
+import { getBackend } from '@/config/csvBackend'
 import { useBackendStore } from '@/stores/backendStore'
 import { LocalFolderRepository } from '@/services/local/LocalFolderRepository'
 import { driveFetch } from './client'
@@ -58,32 +54,11 @@ export class GoogleFolderRepository implements FolderRepository {
   }
 }
 
-export class CsvFolderRepository implements FolderRepository {
-  async readMetadata(folderId: string): Promise<ShopMetadata | null> {
-    const safe = sanitizeFixtureFolderId(folderId)
-    if (!safe) return null
-    const res = await fetch(`/fixtures/${safe}/illo3d.metadata.json`)
-    if (!res.ok) {
-      return null
-    }
-    return res.json() as Promise<ShopMetadata>
-  }
-
-  async getFolderName(folderId: string): Promise<string> {
-    return folderId
-  }
-}
-
 export function getFolderRepository(): FolderRepository {
   const backend = getBackend()
   const handle = useBackendStore.getState().localDirectoryHandle
   if (backend === 'local-csv' && handle) {
     return new LocalFolderRepository()
   }
-  if (isCsvBackendEnabled()) {
-    return new CsvFolderRepository()
-  }
   return new GoogleFolderRepository()
 }
-
-export const folderRepository: FolderRepository = getFolderRepository()

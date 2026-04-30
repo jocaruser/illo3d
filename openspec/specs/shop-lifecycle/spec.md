@@ -264,11 +264,11 @@ While creating the shop (folder, spreadsheet, metadata, or local CSV scaffold), 
 
 ### Requirement: Selected folder is validated before opening
 
-After the user selects a folder via Picker, directory picker, or enters a folder ID manually (Google), the system SHALL validate that the folder contains a valid `illo3d.metadata.json` when opening an existing shop, that the metadata's major version matches the app's major version, and that the spreadsheet referenced in the metadata is accessible with read-write permissions (Google Drive).
+After the user selects a folder via Picker, directory picker, or enters a folder ID manually (Google), the system SHALL validate that the folder contains a valid `illo3d.metadata.json`, that the metadata's major version matches the app's major version, and that the spreadsheet referenced in the metadata has the expected sheets and headers (via `validateStructure`). The system SHALL NOT write to or rewrite any sheet data during validation.
 
 #### Scenario: Valid folder opens immediately
 
-- **WHEN** the user selects a valid folder (metadata present, version compatible, spreadsheet accessible where applicable)
+- **WHEN** the user selects a valid folder (metadata present, version compatible, structure valid)
 - **THEN** the shop is set as active and the app loads directly (no separate congratulations step)
 
 #### Scenario: Open existing with missing metadata (Google)
@@ -281,10 +281,17 @@ After the user selects a folder via Picker, directory picker, or enters a folder
 - **WHEN** the metadata's major version differs from the app's major version
 - **THEN** the wizard shows an error indicating version incompatibility
 
-#### Scenario: Spreadsheet not accessible
+#### Scenario: Invalid sheet structure
 
-- **WHEN** the spreadsheet referenced in the metadata cannot be read or written
-- **THEN** the wizard shows an error indicating insufficient permissions
+- **WHEN** the spreadsheet is missing a required sheet or has incorrect headers
+- **THEN** the wizard shows a structure error with details of what's wrong
+- **AND** the shop is NOT opened
+
+#### Scenario: Validation is read-only
+
+- **WHEN** validation runs on an existing shop with stale headers
+- **THEN** validation fails with a structure error
+- **AND** no sheet data is rewritten or migrated
 
 #### Scenario: Validation error allows retrying
 

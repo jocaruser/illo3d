@@ -10,6 +10,5 @@ export function isGoogleDriveStyleShop(backend: Backend | null, shop: Shop | nul
   if (backend === 'local-csv') return false
   const sid = shop.spreadsheetId
   if (sid.startsWith('local-')) return false
-  if (sid.startsWith('csv-fixture-')) return false
   return true
 }

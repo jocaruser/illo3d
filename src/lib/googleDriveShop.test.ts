@@ -30,15 +30,6 @@ describe('isGoogleDriveStyleShop', () => {
     ).toBe(false)
   })
 
-  it('returns false for csv fixture spreadsheet id', () => {
-    expect(
-      isGoogleDriveStyleShop(null, {
-        ...driveShop,
-        spreadsheetId: 'csv-fixture-happy-path',
-      }),
-    ).toBe(false)
-  })
-
   it('returns true for google-drive backend and normal shop', () => {
     expect(isGoogleDriveStyleShop('google-drive', driveShop)).toBe(true)
   })

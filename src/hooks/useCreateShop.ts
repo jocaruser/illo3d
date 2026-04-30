@@ -10,6 +10,7 @@ import { getSheetsRepository } from '@/services/sheets/repository'
 import {
   showDirectoryPicker,
   isDirectoryPickerSupported,
+  FILE_SYSTEM_ACCESS_NOT_SUPPORTED,
 } from '@/services/local/directoryPicker'
 
 export function useCreateShop() {
@@ -39,7 +40,7 @@ export function useCreateShop() {
       const backend = useBackendStore.getState().backend
       if (backend === 'local-csv') {
         if (!isDirectoryPickerSupported()) {
-          throw new Error('File System Access API is not supported. Please use Chrome.')
+          throw new Error(FILE_SYSTEM_ACCESS_NOT_SUPPORTED)
         }
         const handle = await showDirectoryPicker()
         if (!handle) return
