@@ -6,7 +6,7 @@ test.describe('Record purchase flow', () => {
   test.beforeEach(async ({ page, openCsvShop }) => {
     void openCsvShop
     // Ensure clean state - reload page to clear any stuck dialogs/state
-    await page.goto('/dashboard')
+    await page.goto('/#/dashboard')
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({ timeout: 15000 })
     // Navigate to transactions
     await page.getByRole('link', { name: /transactions|transacciones/i }).first().click()

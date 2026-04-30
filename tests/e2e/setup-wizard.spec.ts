@@ -12,7 +12,7 @@ test.use({ storageState: { cookies: [], origins: [] } })
 
 test.describe('Setup wizard', () => {
   test('welcome shows local folder and Google Drive options', async ({ page }) => {
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
 
     await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
     await expect(page.getByTestId('wizard-google-drive')).toBeVisible()
@@ -33,7 +33,7 @@ test.describe('Setup wizard', () => {
 
   test('wizard stays until shop is set', async ({ page, prepareFixtureDir }) => {
     void prepareFixtureDir
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
     await mockDirectoryPicker(page, 'happy-path', 'with-metadata')
     await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
     await page.getByTestId('wizard-local-folder').click()
@@ -42,7 +42,7 @@ test.describe('Setup wizard', () => {
 
   test('local empty folder: confirm create opens a new shop', async ({ page, prepareFixtureDir }) => {
     void prepareFixtureDir
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
     await mockDirectoryPicker(page, 'happy-path', 'empty')
     await page.getByTestId('wizard-local-folder').click()
     await expect(page.getByTestId('wizard-create-confirm-action')).toBeVisible({ timeout: 15000 })
@@ -54,7 +54,7 @@ test.describe('Setup wizard', () => {
     void prepareFixtureDir
     await mockGoogleOAuth(page)
     await mockDriveApis(page)
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
     await completeWizardGoogleDriveWelcome(page)
     await expect(page.getByTestId('wizard-google-cancel')).toBeVisible({ timeout: 15000 })
     await page.getByTestId('wizard-google-cancel').click()

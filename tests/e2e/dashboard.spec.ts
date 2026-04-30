@@ -18,7 +18,7 @@ test.describe('Dashboard', () => {
 
     await expect(page.getByRole('heading', { name: /draft|borrador/i })).toBeVisible()
 
-    await expect(page.locator('a[href="/transactions"]').first()).toBeVisible()
+    await expect(page.locator('a[href="#/transactions"]').first()).toBeVisible()
 
     await expect(
       page.getByRole('heading', { name: /recent transactions|transacciones recientes/i }),
@@ -32,7 +32,7 @@ test.describe('Dashboard', () => {
     await jobConceptLink.click()
     await expect(page).toHaveURL(/\/jobs\/J4/)
 
-    await page.goto('/dashboard', { waitUntil: 'load' })
+    await page.goto('/#/dashboard', { waitUntil: 'load' })
     await expect(page).toHaveURL(/\/dashboard/)
 
     await expect(page.getByRole('link', { name: /dashboard|panel/i })).toHaveAttribute(

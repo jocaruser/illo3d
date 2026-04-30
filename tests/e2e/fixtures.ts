@@ -49,7 +49,7 @@ export async function completeWizardGoogleDriveWelcome(page: Page): Promise<void
 
 /** Wizard: mock directory picker + open local fixture shop for `fixtureScenario`. */
 export async function mockAndOpenLocalShop(page: Page, fixtureScenario = 'happy-path') {
-  await page.goto('/dashboard', { waitUntil: 'load' })
+  await page.goto('/#/dashboard', { waitUntil: 'load' })
   await mockDirectoryPicker(page, fixtureScenario, 'with-metadata')
   const localBtn = page.getByTestId('wizard-local-folder')
   await expect(localBtn).toBeVisible({ timeout: 15000 })
@@ -68,7 +68,7 @@ export async function mockAndOpenGoogleShop(
   void _fixtureScenario
   await mockGoogleOAuth(page)
   await mockDriveApis(page)
-  await page.goto('/dashboard', { waitUntil: 'load' })
+  await page.goto('/#/dashboard', { waitUntil: 'load' })
   const driveBtn = page.getByTestId('wizard-google-drive')
   await expect(driveBtn).toBeVisible({ timeout: 15000 })
   await completeWizardGoogleDriveWelcome(page)
@@ -97,7 +97,7 @@ export const test = base.extend<{
       void prepareFixtureDir
       // Clear persisted shop state and reload so Zustand rehydrates from empty
       // storage and shows the wizard. Then mock the picker and open fresh.
-      await page.goto('/dashboard', { waitUntil: 'load' })
+      await page.goto('/#/dashboard', { waitUntil: 'load' })
       await page.evaluate(() => {
         localStorage.removeItem('shop-storage')
         localStorage.removeItem('backend-storage')
