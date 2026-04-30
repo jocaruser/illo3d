@@ -18,7 +18,7 @@ illo3d is a **3D print shop management** web app: clients, jobs, money (transact
 
    This builds the Docker image, starts the stack, copies `.env.example` to `.env` if needed, and installs dependencies inside the container.
 
-3. Edit **`.env`** with your Google OAuth / API credentials as documented in `.env.example`.
+3. Edit **`.env`** with your Google OAuth credentials as documented in `.env.example`. **Never commit `.env`** — it is already in `.gitignore`.
 4. Start the dev server:
 
    ```bash
@@ -86,6 +86,21 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 | `make bash-exec CMD="<command>"` | Run a one-off command in the app container |
 | `make sync-main` | Stash WIP, checkout `main`, pull --rebase, pop stash |
 | `make sa-drive-empty` | Service-account Drive cleanup script (see Makefile) |
+
+## Deployment
+
+The app is deployed to **GitHub Pages** automatically on every push to `main`.
+
+- **Live URL:** `https://<your-username>.github.io/illo3d/`
+- **Workflow:** `.github/workflows/deploy.yml`
+
+### Required repository setup
+
+1. Go to **Settings → Secrets and variables → Actions** and add:
+   - `VITE_GOOGLE_CLIENT_ID` — your Google OAuth client ID
+2. Go to **Settings → Pages** and set **Source** to **GitHub Actions**.
+
+The next push to `main` will trigger the deploy workflow.
 
 ## Tests
 

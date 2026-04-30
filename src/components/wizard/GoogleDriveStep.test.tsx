@@ -34,8 +34,8 @@ describe('GoogleDriveStep', () => {
     fireEvent.click(screen.getByTestId('wizard-google-create'))
     expect(onCreate).toHaveBeenCalled()
 
-    fireEvent.click(screen.getByTestId('wizard-google-open-picker'))
-    expect(onOpen).toHaveBeenCalled()
+    // Open existing via picker is temporarily disabled
+    expect(screen.getByTestId('wizard-google-open-picker')).toBeDisabled()
 
     fireEvent.click(screen.getByTestId('wizard-google-open-by-id'))
     expect(onId).not.toHaveBeenCalled()

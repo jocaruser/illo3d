@@ -184,13 +184,14 @@ After the user selects a folder via the directory picker, the system SHALL read 
 
 ### Requirement: Google Drive screen shows create/open after OAuth
 
-After successful Google OAuth, the system SHALL display a screen with the user's name and avatar, a "Create new shop" button, an "Open existing" button (Drive folder picker), and a folder-ID text input. The screen SHALL include a warning about `drive.file` scope limitations. A "Cancel" button SHALL log the user out and return to the welcome screen.
+After successful Google OAuth, the system SHALL display a screen with the user's name and avatar, a "Create new shop" button, an "Open existing" button (disabled with a "Coming soon" tooltip or equivalent i18n message), and a folder-ID text input. The screen SHALL include a warning about `drive.file` scope limitations. A "Cancel" button SHALL log the user out and return to the welcome screen. The "Open existing" button SHALL be visually disabled and SHALL NOT trigger the Google Picker.
 
 #### Scenario: Google Drive screen renders after OAuth
 
 - **WHEN** Google OAuth completes successfully
 - **THEN** the user sees their name and avatar
-- **AND** sees "Create new shop" and "Open existing" buttons
+- **AND** sees "Create new shop" button (enabled)
+- **AND** sees "Open existing" button (disabled, with explanatory tooltip)
 - **AND** sees a folder-ID text input with helper text
 - **AND** sees a `drive.file` scope warning explaining cross-device access limitations
 
@@ -200,16 +201,17 @@ After successful Google OAuth, the system SHALL display a screen with the user's
 - **THEN** the system creates a new Drive folder, spreadsheet, and metadata
 - **AND** the user lands on the dashboard
 
-#### Scenario: Open existing via Drive picker
+#### Scenario: Open existing via Drive picker is disabled
 
 - **WHEN** the user clicks "Open existing" on the Google Drive screen
-- **THEN** the Google Drive folder picker opens
-- **AND** on folder selection, the system validates and opens the shop
+- **THEN** nothing happens because the button is disabled
+- **AND** a tooltip or helper text explains that folder browsing is coming soon
 
-#### Scenario: Open existing via folder ID
+#### Scenario: Open existing via folder ID remains functional
 
 - **WHEN** the user pastes a folder ID and clicks "Open"
 - **THEN** the system validates the folder and opens the shop
+- **AND** this flow continues to work exactly as before
 
 #### Scenario: Empty folder ID is rejected
 
@@ -221,11 +223,6 @@ After successful Google OAuth, the system SHALL display a screen with the user's
 - **WHEN** the user clicks "Cancel" on the Google Drive screen
 - **THEN** auth, shop, and backend state are cleared
 - **AND** the user returns to the welcome screen
-
-#### Scenario: User cancels Google folder picker without selection
-
-- **WHEN** the user closes the Google Picker without selecting a folder
-- **THEN** the user remains on the Google Drive screen (or returns to welcome per product rules)
 
 ### Requirement: Cancel on any wizard screen performs full logout
 

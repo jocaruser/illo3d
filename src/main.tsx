@@ -6,6 +6,9 @@ import App from './App'
 import './i18n'
 import './index.css'
 import { registerGoogleOAuthClientId } from '@/services/google/accessToken'
+import { initTheme } from '@/lib/theme/initTheme'
+
+initTheme()
 
 const queryClient = new QueryClient()
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''

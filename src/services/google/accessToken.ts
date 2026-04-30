@@ -21,6 +21,12 @@ type GoogleOauth2 = {
   }) => TokenClient
 }
 
+declare global {
+  interface Window {
+    google?: unknown
+  }
+}
+
 function getGoogleOauth2(): GoogleOauth2 | undefined {
   const root = window.google as unknown as
     | { accounts?: { oauth2?: GoogleOauth2 } }

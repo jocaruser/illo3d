@@ -3,7 +3,6 @@ import {
   mockAndOpenGoogleShop,
   mockDriveApis,
   mockGoogleOAuth,
-  mockGooglePickerApi,
   waitForShopDataReady,
   test,
   expect,
@@ -77,14 +76,16 @@ test.describe('Google Drive setup wizard', () => {
     ).toBeVisible({ timeout: 10000 })
   })
 
-  test('open existing via picker uses mocked folder selection', async ({ page }) => {
+  test('open existing via picker is disabled, paste-id still works', async ({ page }) => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'ok' })
-    await mockGooglePickerApi(page)
     await page.goto('/dashboard', { waitUntil: 'load' })
     await completeWizardGoogleDriveWelcome(page)
     await expect(page.getByTestId('wizard-google-open-picker')).toBeVisible({ timeout: 15000 })
-    await page.getByTestId('wizard-google-open-picker').click()
+    await expect(page.getByTestId('wizard-google-open-picker')).toBeDisabled()
+    // Paste-ID flow still works
+    await page.locator('#wizard-folder-id').fill('e2ePasteFolder1')
+    await page.getByTestId('wizard-google-open-by-id').click()
     await waitForShopDataReady(page)
   })
 })
