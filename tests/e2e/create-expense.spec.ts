@@ -76,7 +76,7 @@ test.describe('Record purchase flow', () => {
     await expect(
       page
         .getByRole('row')
-        .filter({ hasText: /2025-04-01|€19\.99|e2e filament marker/ }),
+        .filter({ hasText: /e2e filament marker/ }),
     ).toBeVisible({ timeout: 15000 })
 
     await page.getByRole('link', { name: /inventory|inventario/i }).first().click()

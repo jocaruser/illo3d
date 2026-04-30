@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { CsvSheetsRepository } from './repository'
+import { CsvSheetsRepository } from '../../../tests/unit/helpers/CsvSheetsRepository'
+import { getSheetsRepository } from './repository'
+import { useBackendStore } from '@/stores/backendStore'
+import { GoogleSheetsRepository } from './repository'
+import { LocalSheetsRepository } from '@/services/local/LocalSheetsRepository'
 
 const mockFetch = vi.fn()
 
@@ -223,5 +227,29 @@ describe('CsvSheetsRepository', () => {
       id: 'c1',
       name: '"Acme', // First column only; " Inc."' goes to next header
     })
+  })
+})
+
+describe('getSheetsRepository', () => {
+  beforeEach(() => {
+    useBackendStore.getState().reset()
+  })
+
+  it('returns GoogleSheetsRepository when backend is google-drive', () => {
+    useBackendStore.setState({ backend: 'google-drive', localDirectoryHandle: null })
+    const repo = getSheetsRepository()
+    expect(repo).toBeInstanceOf(GoogleSheetsRepository)
+  })
+
+  it('returns GoogleSheetsRepository when backend is null and no handle', () => {
+    useBackendStore.setState({ backend: null, localDirectoryHandle: null })
+    const repo = getSheetsRepository()
+    expect(repo).toBeInstanceOf(GoogleSheetsRepository)
+  })
+
+  it('returns LocalSheetsRepository when backend is local-csv with handle', () => {
+    useBackendStore.setState({ backend: 'local-csv', localDirectoryHandle: {} as FileSystemDirectoryHandle })
+    const repo = getSheetsRepository()
+    expect(repo).toBeInstanceOf(LocalSheetsRepository)
   })
 })

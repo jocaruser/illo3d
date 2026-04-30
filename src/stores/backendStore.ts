@@ -1,6 +1,10 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { appPersistJSONStorage } from '@/stores/persistStorage'
+import {
+  saveLocalDirectoryHandle,
+  clearLocalDirectoryHandle,
+} from '@/services/local/persistDirectoryHandle'
 
 export type Backend = 'local-csv' | 'google-drive'
 
@@ -25,9 +29,18 @@ export const useBackendStore = create<BackendState>()(
       backend: null,
       localDirectoryHandle: null,
       setBackend: (backend) => set({ backend }),
-      setLocalDirectoryHandle: (localDirectoryHandle) => set({ localDirectoryHandle }),
-      clearBackend: () => set(clearBackendState()),
-      reset: () => set(clearBackendState()),
+      setLocalDirectoryHandle: (localDirectoryHandle) => {
+        void saveLocalDirectoryHandle(localDirectoryHandle)
+        set({ localDirectoryHandle })
+      },
+      clearBackend: () => {
+        void clearLocalDirectoryHandle()
+        set(clearBackendState())
+      },
+      reset: () => {
+        void clearLocalDirectoryHandle()
+        set(clearBackendState())
+      },
     }),
     {
       name: 'backend-storage',

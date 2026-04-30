@@ -38,6 +38,7 @@ import { useShopStore } from './stores/shopStore'
 import { useBackendStore } from './stores/backendStore'
 import { useWorkbookStore } from './stores/workbookStore'
 import { getSheetsRepository } from '@/services/sheets/repository'
+import { restoreLocalDirectoryHandle } from '@/services/local/persistDirectoryHandle'
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {
   return isActive
@@ -88,6 +89,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const workbookStatus = useWorkbookStore((s) => s.status)
   const workbookError = useWorkbookStore((s) => s.error)
   const workbookDirty = useWorkbookStore((s) => s.dirty)
+  const backend = useBackendStore((s) => s.backend)
+  const localDirectoryHandle = useBackendStore((s) => s.localDirectoryHandle)
 
   const [refreshConfirmOpen, setRefreshConfirmOpen] = useState(false)
   const [saveBusy, setSaveBusy] = useState(false)
@@ -97,22 +100,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const spreadsheetId = activeShop?.spreadsheetId
-    if (!spreadsheetId?.startsWith('csv-fixture-')) return
-    const { localDirectoryHandle, backend } = useBackendStore.getState()
-    if (localDirectoryHandle != null) return
-    if (backend !== 'local-csv') {
-      useBackendStore.setState({ backend: 'local-csv', localDirectoryHandle: null })
-    }
-  }, [activeShop?.spreadsheetId])
-
-  useEffect(() => {
-    const spreadsheetId = activeShop?.spreadsheetId
     if (!spreadsheetId) {
       resetWorkbook()
       return
     }
+    if (backend === 'local-csv' && !localDirectoryHandle) {
+      return
+    }
     void hydrateWorkbook(getSheetsRepository(), spreadsheetId)
-  }, [activeShop?.spreadsheetId, hydrateWorkbook, resetWorkbook])
+  }, [activeShop?.spreadsheetId, backend, localDirectoryHandle, hydrateWorkbook, resetWorkbook])
 
   useEffect(() => {
     if (!workbookDirty) return
@@ -179,6 +175,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
     !activeShop?.spreadsheetId
 
   const resetBackend = useBackendStore((s) => s.reset)
+
+  useEffect(() => {
+    if (backend !== 'local-csv') return
+    if (localDirectoryHandle) return
+    void restoreLocalDirectoryHandle().then((handle) => {
+      if (handle) {
+        useBackendStore.getState().setLocalDirectoryHandle(handle)
+      }
+    })
+  }, [backend, localDirectoryHandle])
 
   const handleWizardCancel = () => {
     clearActiveShop()

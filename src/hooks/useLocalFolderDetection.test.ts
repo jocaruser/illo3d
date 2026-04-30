@@ -1,6 +1,7 @@
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { useLocalFolderDetection } from './useLocalFolderDetection'
+import { FILE_SYSTEM_ACCESS_NOT_SUPPORTED } from '@/services/local/directoryPicker'
 
 describe('useLocalFolderDetection', () => {
   const win = window as unknown as {
@@ -33,6 +34,6 @@ describe('useLocalFolderDetection', () => {
       act(async () => {
         await result.current.pickFolder()
       }),
-    ).rejects.toThrow(/Chrome/i)
+    ).rejects.toThrow(FILE_SYSTEM_ACCESS_NOT_SUPPORTED)
   })
 })

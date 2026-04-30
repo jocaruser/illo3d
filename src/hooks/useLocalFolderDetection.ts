@@ -3,6 +3,7 @@ import type { ShopMetadata } from '@/types/shop'
 import {
   showDirectoryPicker,
   isDirectoryPickerSupported,
+  FILE_SYSTEM_ACCESS_NOT_SUPPORTED,
 } from '@/services/local/directoryPicker'
 import { readMetadataFromDirectoryHandle } from '@/services/local/readLocalMetadata'
 
@@ -14,7 +15,7 @@ export type LocalFolderPickResult = {
 export function useLocalFolderDetection() {
   const pickFolder = useCallback(async (): Promise<LocalFolderPickResult | null> => {
     if (!isDirectoryPickerSupported()) {
-      throw new Error('File System Access API is not supported. Please use Chrome.')
+      throw new Error(FILE_SYSTEM_ACCESS_NOT_SUPPORTED)
     }
     const handle = await showDirectoryPicker()
     if (!handle) return null

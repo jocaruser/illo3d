@@ -1,6 +1,13 @@
-import fs from 'node:fs'
-import path from 'node:path'
 import { test, expect } from './fixtures'
+
+async function readMockCsv(page: typeof test.arguments[0], fileName: string): Promise<string> {
+  return page.evaluate(async (name) => {
+    const handle = (window as unknown as { __e2eMockDirectoryHandle: FileSystemDirectoryHandle }).__e2eMockDirectoryHandle
+    const fileHandle = await handle.getFileHandle(name)
+    const file = await fileHandle.getFile()
+    return file.text()
+  }, fileName)
+}
 
 test.describe('Job edit and delete', () => {
   test.describe.configure({ mode: 'serial' })
@@ -11,21 +18,13 @@ test.describe('Job edit and delete', () => {
   }) => {
     void openCsvShop
 
-    const notesPath = path.join(
-      process.cwd(),
-      '.e2e-fixtures',
-      'happy-path',
-      'crm_notes.csv'
-    )
-
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
       timeout: 15000,
     })
 
-    expect(fs.readFileSync(notesPath, 'utf8')).toContain(
-      'e2e-cascade-delete-note-marker'
-    )
+    const before = await readMockCsv(page, 'crm_notes.csv')
+    expect(before).toContain('e2e-cascade-delete-note-marker')
     await expect(page.getByRole('row', { name: /E2E disposable job/i })).toBeVisible()
     await page.getByTestId('job-archive-J5').click()
     await page
@@ -46,7 +45,7 @@ test.describe('Job edit and delete', () => {
       timeout: 20000,
     })
 
-    const after = fs.readFileSync(notesPath, 'utf8')
+    const after = await readMockCsv(page, 'crm_notes.csv')
     const jn5Line = after.split(/\r?\n/).find((line) => line.startsWith('JN5,'))
     expect(jn5Line).toBeDefined()
     expect(jn5Line).toContain('e2e-cascade-delete-note-marker')

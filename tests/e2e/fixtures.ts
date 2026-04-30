@@ -93,9 +93,20 @@ export const test = base.extend<{
     { auto: false },
   ],
   openCsvShop: [
-    async ({ page, prepareFixtureDir }, use) => {
+    async ({ page, prepareFixtureDir, fixtureScenario }, use) => {
       void prepareFixtureDir
+      // Clear persisted shop state and reload so Zustand rehydrates from empty
+      // storage and shows the wizard. Then mock the picker and open fresh.
       await page.goto('/dashboard', { waitUntil: 'load' })
+      await page.evaluate(() => {
+        localStorage.removeItem('shop-storage')
+        localStorage.removeItem('backend-storage')
+      })
+      await page.reload({ waitUntil: 'load' })
+      await mockDirectoryPicker(page, fixtureScenario, 'with-metadata')
+      const localBtn = page.getByTestId('wizard-local-folder')
+      await expect(localBtn).toBeVisible({ timeout: 15000 })
+      await localBtn.click()
       await waitForShopDataReady(page)
       await use()
     },

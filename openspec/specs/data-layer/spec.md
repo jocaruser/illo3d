@@ -138,7 +138,7 @@ The system SHALL provide a `FolderRepository` interface with `readMetadata(folde
 
 ### Requirement: Repository selection is backend-driven
 
-The system SHALL select the FolderRepository implementation based on the user's backend choice (from backendStore), not on `import.meta.env.DEV`. When backend is `local-csv` with a FileSystemDirectoryHandle, use LocalFolderRepository. When backend is `google-drive`, use GoogleFolderRepository. The `CsvFolderRepository` (fixture-based) SHALL only be used when wired up by E2E test mocking infrastructure, not by wizard UI.
+The system SHALL select the FolderRepository implementation based on the user's backend choice (from backendStore), not on `import.meta.env.DEV`. When backend is `local-csv` with a FileSystemDirectoryHandle, use LocalFolderRepository. When backend is `google-drive`, use GoogleFolderRepository. The `CsvFolderRepository` (fixture-based) SHALL NOT be selected by production wizard UI or `getFolderRepository()`.
 
 #### Scenario: Backend store selects LocalFolderRepository
 
@@ -152,23 +152,23 @@ The system SHALL select the FolderRepository implementation based on the user's 
 - **THEN** getFolderRepository returns GoogleFolderRepository
 - **AND** readMetadata and getFolderName hit the Google Drive API
 
-#### Scenario: CsvFolderRepository used only via test infrastructure
+#### Scenario: CsvFolderRepository is not selected by production code
 
-- **WHEN** an E2E test mocks the directory picker with fixture data
-- **THEN** the mock handle delegates to fixture files
-- **AND** CsvFolderRepository MAY be used internally by the mock but is not selected by wizard UI code
+- **WHEN** `getFolderRepository()` is called in production
+- **THEN** it never returns CsvFolderRepository
+- **AND** fixture-backed repositories are only reachable from test code
 
 ### Requirement: GoogleFolderRepository implements production backend
 
 The system SHALL provide a `GoogleFolderRepository` that uses the Google Drive API for `readMetadata` and `getFolderName`. This implementation SHALL be used when backend is `google-drive`.
 
-### Requirement: CsvFolderRepository implements fixture-backed reads
+### Requirement: CsvFolderRepository implements fixture-backed reads (test-only)
 
-The system SHALL provide a `CsvFolderRepository` that fetches metadata from `/fixtures/<folderId>/illo3d.metadata.json` and returns the folderId as the folder name. This implementation SHALL be available for E2E and test infrastructure that simulates a folder handle backed by fixtures; it SHALL NOT be selected by production wizard flows.
+The system SHALL provide a `CsvFolderRepository` that fetches metadata from `/fixtures/<folderId>/illo3d.metadata.json` and returns the folderId as the folder name. This implementation SHALL only be used by test code (unit tests and test helpers); it SHALL NOT be selected by production wizard flows or `getFolderRepository()`.
 
 #### Scenario: getFolderName for fixture folder id
 
-- **WHEN** getFolderName is called with folderId "happy-path" via fixture-backed wiring
+- **WHEN** getFolderName is called with folderId "happy-path" via fixture-backed wiring in tests
 - **THEN** CsvFolderRepository returns "happy-path" (or a display-friendly name)
 
 ### Requirement: LocalFolderRepository implements FolderRepository via File System Access API
@@ -403,14 +403,20 @@ The system SHALL provide a `SheetsRepository` interface with `readRows`, `append
 - **WHEN** `SHEET_HEADERS.pieces` is read
 - **THEN** the array includes `price` before `created_at`
 
-### Requirement: Workbook migration adds pieces price column
+### Requirement: Schema validation rejects mismatched headers
 
-When opening or validating a workbook that predates piece-level pricing, the system SHALL upgrade or reject per existing schema rules: either **add** the `price` column to `pieces` headers and empty cells for existing rows, or surface a clear validation error. Golden fixtures SHALL be updated to include the new column.
+When opening or validating a workbook, if the `pieces` sheet (or any sheet) lacks required columns such as `price`, the system SHALL fail validation and surface a clear error. The system SHALL NOT silently rewrite or migrate sheet data.
 
 #### Scenario: Happy-path fixture includes pieces price header
 
 - **WHEN** tests load the happy-path fixture
 - **THEN** `pieces.csv` header row includes `price` in the position required by `SHEET_HEADERS.pieces`
+
+#### Scenario: Missing price column fails validation
+
+- **WHEN** a workbook's `pieces` sheet lacks the `price` column
+- **THEN** `validateStructure` reports a validation error
+- **AND** the shop is NOT opened
 
 ### Requirement: Snapshot orchestration layer coordinates hydrate, Refresh, Save
 
@@ -438,7 +444,7 @@ The system SHALL provide a `GoogleSheetsRepository` implementation that performs
 
 ### Requirement: Repository selection is backend-driven
 
-The system SHALL select the SheetsRepository implementation based on the user's backend choice (from backendStore), not on `import.meta.env.DEV`. When backend is `local-csv` with a FileSystemDirectoryHandle, use LocalSheetsRepository. When backend is `local-csv` with fixture folder (dev), use CsvSheetsRepository. When backend is `google-drive`, use GoogleSheetsRepository.
+The system SHALL select the SheetsRepository implementation based on the user's backend choice (from backendStore), not on `import.meta.env.DEV`. When backend is `local-csv` with a FileSystemDirectoryHandle, use LocalSheetsRepository. When backend is `google-drive`, use GoogleSheetsRepository. The `CsvSheetsRepository` (fixture-based) SHALL NOT be selected by production code.
 
 #### Scenario: Backend store selects LocalSheetsRepository
 
@@ -446,42 +452,35 @@ The system SHALL select the SheetsRepository implementation based on the user's 
 - **THEN** getSheetsRepository returns LocalSheetsRepository
 - **AND** all operations read/write CSV files via the File System Access API
 
-#### Scenario: Backend store selects CsvSheetsRepository (fixtures)
-
-- **WHEN** the backend store has `backend: 'local-csv'` and the shop uses a fixture folder
-- **THEN** getSheetsRepository returns CsvSheetsRepository
-- **AND** read operations fetch from `/fixtures/<folder-name>/`
-
 #### Scenario: Backend store selects GoogleSheetsRepository
 
 - **WHEN** the backend store has `backend: 'google-drive'`
 - **THEN** getSheetsRepository returns GoogleSheetsRepository
 - **AND** all operations hit the Google Sheets API
 
-### Requirement: CsvSheetsRepository implements fixture-backed reads
+#### Scenario: CsvSheetsRepository is not selected by production code
 
-The system SHALL provide a `CsvSheetsRepository` implementation that reads from a fixtures folder of CSV files (one file per sheet). This implementation SHALL be used when backend is `local-csv` with a fixture-backed folder (E2E mocks or equivalent test wiring). The same implementation SHALL serve automated tests and dev workflows that use the fixtures directory.
+- **WHEN** `getSheetsRepository()` is called in production
+- **THEN** it never returns CsvSheetsRepository
+- **AND** fixture-backed repositories are only reachable from test code
+
+### Requirement: CsvSheetsRepository implements fixture-backed reads (test-only)
+
+The system SHALL provide a `CsvSheetsRepository` implementation that reads from a fixtures folder of CSV files (one file per sheet). This implementation SHALL only be used by test code (unit tests and test helpers); it SHALL NOT be selected by production wizard flows or `getSheetsRepository()`.
 
 #### Scenario: CSV files match sheet structure
 
-- **WHEN** CsvSheetsRepository reads a sheet
+- **WHEN** CsvSheetsRepository reads a sheet in tests
 - **THEN** it reads the corresponding CSV file from the selected fixture folder (e.g. `transactions.csv` for transactions sheet)
 - **AND** parses headers from the first row and data from subsequent rows
 - **AND** returns objects keyed by header names
 
-#### Scenario: Fixture folder is wired from shop store or test harness
+#### Scenario: Fixture folder is wired from test harness
 
-- **WHEN** CsvSheetsRepository is used
-- **THEN** the folder name comes from the shop store or test harness (not from a dev-only wizard text field)
+- **WHEN** CsvSheetsRepository is used in tests
+- **THEN** the folder name comes from the test harness (not from a dev-only wizard text field)
 - **AND** reads from `/fixtures/<folder-name>/<sheetName>.csv`
 - **AND** multiple fixture folders may exist (e.g. `happy-path`, `missingcolumn`, `empty`)
-
-#### Scenario: Golden fixtures are not mutated by the repository
-
-- **WHEN** CsvSheetsRepository reads or appends in dev or e2e
-- **THEN** the committed golden `fixtures/` tree at the repository root is never modified by runtime code
-- **AND** append writes go only to the directory configured by `VITE_FIXTURES_ROOT` (default `public/fixtures` for dev, or the e2e ephemeral directory during `make e2e-test`)
-- **AND** `createSpreadsheet()` is a no-op or returns a sentinel ID
 
 ### Requirement: LocalSheetsRepository implements SheetsRepository via File System Access API
 
@@ -603,19 +602,13 @@ The system SHALL extend the SheetsRepository interface with an `appendRows(sprea
 - **THEN** it uses the Google Sheets API values.append endpoint
 - **AND** rows are written to the specified sheet
 
-### Requirement: CsvSheetsRepository writes via dev server API in dev
+### Requirement: Dev server API for test fixture writes
 
-The system SHALL provide a mechanism for CsvSheetsRepository to write rows when running in dev mode. Because the browser cannot write to the filesystem, a Vite plugin SHALL expose an API endpoint (POST `/api/sheets/append`) that receives append requests and writes to the configured fixtures directory on disk. The fixtures directory SHALL be configurable via the `VITE_FIXTURES_ROOT` environment variable, defaulting to `public/fixtures`.
-
-#### Scenario: Dev append goes through API to working copy
-
-- **WHEN** appendRows is called on CsvSheetsRepository in dev mode
-- **THEN** it sends a request to the dev server API with folder, sheetName, rows
-- **AND** the API writes the rows to `public/fixtures/<folder>/<sheetName>.csv`
+The system SHALL provide a Vite plugin that exposes API endpoints (`/api/sheets/append`, `/api/sheets/row`) for writing CSV rows in development and E2E test environments. These endpoints are used by E2E test mocks and dev tooling, NOT by production repository code. The fixtures directory SHALL be configurable via the `VITE_FIXTURES_ROOT` environment variable, defaulting to `public/fixtures`.
 
 #### Scenario: E2E append goes through API to temp directory
 
-- **WHEN** appendRows is called during an e2e test
+- **WHEN** appendRows is called during an e2e test via the mock layer
 - **THEN** the e2e Vite server writes rows to the configured temp fixtures directory
 - **AND** `public/fixtures/` is not modified
 
@@ -625,10 +618,10 @@ The system SHALL provide a mechanism for CsvSheetsRepository to write rows when 
 - **THEN** the sheets append plugin writes to that directory instead of `public/fixtures`
 - **AND** when `VITE_FIXTURES_ROOT` is not set, it defaults to `public/fixtures`
 
-#### Scenario: Production does not use CSV write
+#### Scenario: Production does not use CSV write API
 
 - **WHEN** the app runs in production
-- **THEN** CsvSheetsRepository is not used (GoogleSheetsRepository is used)
+- **THEN** LocalSheetsRepository writes directly via the File System Access API
 - **AND** no dev server API exists in the production build
 
 ### Requirement: Dev server resolves fixtures root consistently for read and write
