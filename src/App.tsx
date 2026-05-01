@@ -42,8 +42,8 @@ import { restoreLocalDirectoryHandle } from '@/services/local/persistDirectoryHa
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {
   return isActive
-    ? 'text-sm font-semibold text-gray-900'
-    : 'text-sm text-gray-600 hover:text-gray-800'
+    ? 'text-sm font-semibold text-gray-900 dark:text-gray-100'
+    : 'text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -223,13 +223,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
       <GoogleSessionBanner />
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-sm dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 flex-1 items-center gap-6">
-              <Link to="/" className="text-xl font-bold text-gray-800">
+              <Link to="/" className="text-xl font-bold text-gray-800 dark:text-gray-200">
                 illo3d
               </Link>
               <nav className="hidden gap-6 md:flex">{navLinks}</nav>
@@ -242,7 +242,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     data-testid="workbook-refresh"
                     disabled={refreshDisabled}
                     onClick={onRefreshClick}
-                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
                   >
                     {t('workbook.refresh')}
                   </button>
@@ -265,7 +265,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 onClick={() => setMenuOpen((o) => !o)}
               >
                 <svg
-                  className="h-6 w-6 text-gray-700"
+                  className="h-6 w-6 text-gray-700 dark:text-gray-300"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -289,7 +289,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     data-testid="workbook-refresh-mobile"
                     disabled={refreshDisabled}
                     onClick={onRefreshClick}
-                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50"
+                    className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-800 hover:bg-gray-50 disabled:opacity-50 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800"
                   >
                     {t('workbook.refresh')}
                   </button>
@@ -305,22 +305,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </div>
               ) : null}
               {saveFeedback?.kind === 'success' ? (
-                <p className="text-sm text-green-800" role="status">
+                <p className="text-sm text-green-800 dark:text-green-200" role="status">
                   {t('workbook.saveSuccess')}
                 </p>
               ) : null}
               {saveFeedback?.kind === 'error' ? (
-                <p className="text-sm text-red-700" role="alert">
+                <p className="text-sm text-red-700 dark:text-red-300" role="alert">
                   {saveFeedback.message}
                 </p>
               ) : null}
               {workbookStatus === 'loading' ? (
-                <p className="text-sm text-gray-600" role="status">
+                <p className="text-sm text-gray-600 dark:text-gray-400" role="status">
                   {t('workbook.loading')}
                 </p>
               ) : null}
               {workbookStatus === 'error' && workbookError ? (
-                <div className="flex flex-wrap items-center gap-2 text-sm text-red-700">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-red-700 dark:text-red-300">
                   <span>
                     {workbookError === 'GOOGLE_SESSION_EXPIRED'
                       ? t('errors.googleSession')
@@ -328,7 +328,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </span>
                   <button
                     type="button"
-                    className="rounded border border-red-300 px-2 py-0.5 font-medium hover:bg-red-50"
+                    className="rounded border border-red-300 px-2 py-0.5 font-medium hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20"
                     onClick={() => {
                       if (activeShop?.spreadsheetId) {
                         void hydrateWorkbook(
@@ -347,7 +347,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           ) : null}
         </div>
         {menuOpen && (
-          <nav className="flex flex-col gap-2 border-t border-gray-200 px-4 py-3 md:hidden">
+          <nav className="flex flex-col gap-2 border-t border-gray-200 px-4 py-3 md:hidden dark:border-gray-700">
             {navLinks}
           </nav>
         )}

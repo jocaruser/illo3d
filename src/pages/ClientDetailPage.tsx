@@ -204,11 +204,11 @@ export function ClientDetailPage() {
       />
 
       {workbookStatus === 'ready' && clientId && !client && (
-          <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
-            <p className="text-gray-600">{t('clientDetail.notFound')}</p>
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-8 py-12 text-center shadow">
+            <p className="text-gray-600 dark:text-gray-400">{t('clientDetail.notFound')}</p>
             <Link
               to="/clients"
-              className="mt-4 inline-block text-blue-600 hover:text-blue-800"
+              className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
             >
               {t('clientDetail.backToList')}
             </Link>
@@ -231,45 +231,45 @@ export function ClientDetailPage() {
             }}
           >
             <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
                   {t('clientDetail.metricPaidLedger')}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
+                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {formatCurrency(metrics.paidLedger)}
                 </p>
               </div>
-              <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
                   {t('clientDetail.metricOutstanding')}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
+                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {formatCurrency(metrics.outstandingJobs)}
                 </p>
               </div>
-              <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
                   {t('clientDetail.metricJobCount')}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
+                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {metrics.jobCount}
                 </p>
               </div>
-              <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
                   {t('clientDetail.metricAvgJobPrice')}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
+                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {metrics.averageJobPrice == null
                     ? '—'
                     : formatCurrency(metrics.averageJobPrice)}
                 </p>
               </div>
-              <div className="rounded-lg border border-gray-200 bg-white p-4 shadow">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
                   {t('clientDetail.metricMaterials')}
                 </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900">
+                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {formatCurrency(metrics.materialsEstimate)}
                 </p>
               </div>
@@ -301,7 +301,7 @@ export function ClientDetailPage() {
             />
 
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-xl font-semibold text-gray-800">
+              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
                 {t('clientDetail.jobsTitle')}
               </h3>
               {clientJobs.length > 0 ? (
@@ -317,20 +317,20 @@ export function ClientDetailPage() {
             </div>
 
             {clientJobs.length === 0 ? (
-              <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+              <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-gray-50 dark:bg-gray-800">
                     <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400">
                         {t('jobs.colDescription')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400">
                         {t('jobs.colStatus')}
                       </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600">
+                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400">
                         {t('jobs.colTotal')}
                       </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600">
+                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400">
                         {t('jobs.colCreated')}
                       </th>
                     </tr>
@@ -339,7 +339,7 @@ export function ClientDetailPage() {
                     <tr>
                       <td
                         colSpan={4}
-                        className="px-4 py-12 text-center text-gray-600"
+                        className="px-4 py-12 text-center text-gray-600 dark:text-gray-400"
                       >
                         <p className="mb-4">{t('clientDetail.jobsEmpty')}</p>
                         <button
@@ -399,7 +399,7 @@ export function ClientDetailPage() {
         }}
       >
         {archiveError ? (
-          <p className="text-sm text-red-600">{archiveError}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">{archiveError}</p>
         ) : null}
       </ConfirmDialog>
     </div>

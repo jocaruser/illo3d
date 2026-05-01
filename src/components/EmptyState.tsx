@@ -9,8 +9,8 @@ export function EmptyState({ messageKey = 'transactions.empty' }: EmptyStateProp
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
-      <p className="text-gray-600">{t(messageKey)}</p>
+    <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow dark:border-gray-700 dark:bg-gray-900">
+      <p className="text-gray-600 dark:text-gray-400">{t(messageKey)}</p>
     </div>
   )
 }

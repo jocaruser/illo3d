@@ -224,7 +224,7 @@ export function CreatePurchasePopup({
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
         {error ? (
-          <p className="text-sm text-red-600" role="alert">
+          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
             {error}
           </p>
         ) : null}
@@ -239,12 +239,12 @@ export function CreatePurchasePopup({
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full rounded border border-gray-300 px-3 py-2"
+            className="w-full rounded border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
             aria-invalid={fieldErrors.date ? true : undefined}
             aria-describedby={fieldErrors.date ? 'purchase-date-err' : undefined}
           />
           {fieldErrors.date ? (
-            <p id="purchase-date-err" className="mt-1 text-sm text-red-600">
+            <p id="purchase-date-err" className="mt-1 text-sm text-red-600 dark:text-red-400">
               {fieldErrors.date}
             </p>
           ) : null}
@@ -259,7 +259,7 @@ export function CreatePurchasePopup({
             id="purchase-category"
             value={category}
             onChange={(e) => setCategory(e.target.value as PurchaseCategory)}
-            className="w-full rounded border border-gray-300 px-3 py-2"
+            className="w-full rounded border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
             {categoryOptions.map((c) => (
               <option key={c} value={c}>
@@ -282,21 +282,21 @@ export function CreatePurchasePopup({
               min="0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full rounded border border-gray-300 px-3 py-2"
+              className="w-full rounded border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               aria-invalid={fieldErrors.amount ? true : undefined}
             />
             {fieldErrors.amount ? (
-              <p className="mt-1 text-sm text-red-600">{fieldErrors.amount}</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.amount}</p>
             ) : null}
           </div>
         ) : (
           <div>
             <p className="mb-1 text-sm font-medium">{t('purchase.totalFromLines')}</p>
-            <p className="rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm">
+            <p className="rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm">
               {Number.isFinite(linesTotal) ? linesTotal.toFixed(2) : '—'}
             </p>
             {fieldErrors.lines ? (
-              <p className="mt-1 text-sm text-red-600">{fieldErrors.lines}</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.lines}</p>
             ) : null}
           </div>
         )}
@@ -312,10 +312,10 @@ export function CreatePurchasePopup({
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
             placeholder={t('purchase.notesPlaceholder')}
-            className="w-full rounded border border-gray-300 px-3 py-2"
+            className="w-full rounded border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           />
           {fieldErrors.notes ? (
-            <p className="mt-1 text-sm text-red-600">{fieldErrors.notes}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.notes}</p>
           ) : null}
         </div>
 
@@ -336,13 +336,13 @@ export function CreatePurchasePopup({
         </div>
 
         {addToInventory ? (
-          <div className="space-y-3 rounded border border-gray-200 p-3">
+          <div className="space-y-3 rounded border border-gray-200 dark:border-gray-700 p-3">
             {lines.map((line, i) => (
               <div key={line.key} className="space-y-2 border-b border-gray-100 pb-3 last:border-0">
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    className={`rounded px-2 py-1 text-xs ${line.mode === 'existing' ? 'bg-blue-100' : 'bg-gray-100'}`}
+                    className={`rounded px-2 py-1 text-xs ${line.mode === 'existing' ? 'bg-blue-100' : 'bg-gray-100 dark:bg-gray-800'}`}
                     onClick={() => {
                       const next = { ...line, mode: 'existing' as const }
                       if (next.mode === 'existing') {
@@ -366,7 +366,7 @@ export function CreatePurchasePopup({
                   </button>
                   <button
                     type="button"
-                    className={`rounded px-2 py-1 text-xs ${line.mode === 'new' ? 'bg-blue-100' : 'bg-gray-100'}`}
+                    className={`rounded px-2 py-1 text-xs ${line.mode === 'new' ? 'bg-blue-100' : 'bg-gray-100 dark:bg-gray-800'}`}
                     onClick={() => {
                       setLines(
                         lines.map((l, j) =>
@@ -405,7 +405,7 @@ export function CreatePurchasePopup({
                           ),
                         )
                       }}
-                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                      className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                     >
                       {activeInventoryIds.map((id) => {
                         const inv = allInventory.find((x) => x.id === id)
@@ -417,7 +417,7 @@ export function CreatePurchasePopup({
                       })}
                     </select>
                     {fieldErrors[`line${i}inv`] ? (
-                      <p className="text-xs text-red-600">{fieldErrors[`line${i}inv`]}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors[`line${i}inv`]}</p>
                     ) : null}
                   </div>
                 ) : (
@@ -436,7 +436,7 @@ export function CreatePurchasePopup({
                             ),
                           )
                         }}
-                        className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                        className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                       >
                         {INVENTORY_TYPES.map((typ) => (
                           <option key={typ} value={typ}>
@@ -461,10 +461,10 @@ export function CreatePurchasePopup({
                             ),
                           )
                         }}
-                        className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                        className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                       />
                       {fieldErrors[`line${i}name`] ? (
-                        <p className="text-xs text-red-600">{fieldErrors[`line${i}name`]}</p>
+                        <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors[`line${i}name`]}</p>
                       ) : null}
                     </div>
                   </>
@@ -480,15 +480,15 @@ export function CreatePurchasePopup({
                       step="0.01"
                       min="0"
                       value={line.quantity}
-                      data-testid={`purchase-line-${i}-qty`}
-                      onChange={(e) => {
-                        const v = e.target.value
-                        setLines(lines.map((l, j) => (j === i ? { ...l, quantity: v } : l)))
-                      }}
-                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                       data-testid={`purchase-line-${i}-qty`}
+                       onChange={(e) => {
+                         const v = e.target.value
+                         setLines(lines.map((l, j) => (j === i ? { ...l, quantity: v } : l)))
+                       }}
+                       className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                     />
                     {fieldErrors[`line${i}qty`] ? (
-                      <p className="text-xs text-red-600">{fieldErrors[`line${i}qty`]}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors[`line${i}qty`]}</p>
                     ) : null}
                   </div>
                   <div>
@@ -500,15 +500,15 @@ export function CreatePurchasePopup({
                       step="0.01"
                       min="0"
                       value={line.amount}
-                      data-testid={`purchase-line-${i}-amount`}
-                      onChange={(e) => {
-                        const v = e.target.value
-                        setLines(lines.map((l, j) => (j === i ? { ...l, amount: v } : l)))
-                      }}
-                      className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                       data-testid={`purchase-line-${i}-amount`}
+                       onChange={(e) => {
+                         const v = e.target.value
+                         setLines(lines.map((l, j) => (j === i ? { ...l, amount: v } : l)))
+                       }}
+                       className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                     />
                     {fieldErrors[`line${i}amt`] ? (
-                      <p className="text-xs text-red-600">{fieldErrors[`line${i}amt`]}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors[`line${i}amt`]}</p>
                     ) : null}
                   </div>
                 </div>
@@ -516,7 +516,7 @@ export function CreatePurchasePopup({
             ))}
             <button
               type="button"
-              className="text-sm font-medium text-blue-600 hover:text-blue-800"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
               onClick={() => setLines([...lines, defaultLine(activeInventoryIds)])}
             >
               {t('purchase.addLine')}
@@ -528,7 +528,7 @@ export function CreatePurchasePopup({
           <button
             type="button"
             onClick={onClose}
-            className="rounded border border-gray-300 px-4 py-2 text-sm"
+            className="rounded border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm"
           >
             {t('purchase.cancel')}
           </button>

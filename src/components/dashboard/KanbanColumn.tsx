@@ -99,10 +99,10 @@ export function KanbanColumn({
   const showViewAll = isCancelled && orderedJobs.length > CANCELLED_CAP
 
   return (
-    <div className="flex h-full min-h-[min(28rem,50vh)] w-64 shrink-0 flex-col rounded-lg border border-gray-200 bg-gray-50">
-      <div className="border-b border-gray-200 px-3 py-2">
-        <h3 className="text-sm font-semibold text-gray-800">{columnTitle}</h3>
-        <p className="text-xs text-gray-500">
+    <div className="flex h-full min-h-[min(28rem,50vh)] w-64 shrink-0 flex-col rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+      <div className="border-b border-gray-200 dark:border-gray-700 px-3 py-2">
+        <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200">{columnTitle}</h3>
+        <p className="text-xs text-gray-500 dark:text-gray-500">
           {orderedJobs.length}{' '}
           {orderedJobs.length === 1
             ? t('dashboard.kanban.jobSingular')
@@ -111,7 +111,7 @@ export function KanbanColumn({
       </div>
       <div
         className={`flex min-h-0 flex-1 flex-col transition-colors ${
-          columnDragOver ? 'bg-blue-50/80 ring-2 ring-inset ring-blue-300' : ''
+          columnDragOver ? 'bg-blue-50 dark:bg-blue-950/80 ring-2 ring-inset ring-blue-300' : ''
         }`}
         onDragEnter={(e) => {
           if (!isKanbanJobDragEvent(e)) return
@@ -137,7 +137,7 @@ export function KanbanColumn({
               onDropJob={onDropJob}
               className="flex min-h-[12rem] flex-1 flex-col items-center justify-center px-1"
             >
-              <p className="pointer-events-none text-center text-sm text-gray-500">
+              <p className="pointer-events-none text-center text-sm text-gray-500 dark:text-gray-400">
                 {t('dashboard.kanban.empty')}
               </p>
             </KanbanDropGap>
@@ -171,14 +171,14 @@ export function KanbanColumn({
                         suppressClickAfterDragRef.current = false
                       }, 0)
                     }}
-                    className={`overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm hover:border-blue-300 hover:shadow ${
+                    className={`overflow-hidden rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm hover:border-blue-300 hover:shadow ${
                       statusUpdatingId === job.id ? 'opacity-60' : ''
                     } ${statusUpdatingId === job.id ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
                   >
                     <div
                       role="link"
                       tabIndex={0}
-                      className="min-w-0 p-3 hover:bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-400"
+                      className="min-w-0 p-3 hover:bg-gray-50 dark:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-400"
                       onClick={() => {
                         if (suppressClickAfterDragRef.current) return
                         navigate(`/jobs/${job.id}`)
@@ -190,10 +190,10 @@ export function KanbanColumn({
                         navigate(`/jobs/${job.id}`)
                       }}
                     >
-                      <p className="line-clamp-2 text-sm font-medium text-gray-900">
+                      <p className="line-clamp-2 text-sm font-medium text-gray-900 dark:text-gray-100">
                         {job.description}
                       </p>
-                      <p className="mt-1 truncate text-xs text-gray-600">
+                      <p className="mt-1 truncate text-xs text-gray-600 dark:text-gray-400">
                         {clientsById.get(job.client_id) ?? ''}
                       </p>
                       <div className="mt-1">
@@ -228,7 +228,7 @@ export function KanbanColumn({
           {showViewAll ? (
             <Link
               to="/jobs"
-              className="mt-1 block shrink-0 rounded-md border border-dashed border-gray-300 px-3 py-2 text-center text-sm font-medium text-blue-600 hover:bg-white"
+              className="mt-1 block shrink-0 rounded-md border border-dashed border-gray-300 dark:border-gray-600 px-3 py-2 text-center text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-white dark:bg-gray-900"
             >
               {t('dashboard.kanban.viewAll')}
             </Link>

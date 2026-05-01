@@ -119,7 +119,7 @@ export function CreateJobPopup({
         <div>
           <label
             htmlFor={isPresetCreate ? 'job-client-preset' : 'job-client-search'}
-            className="mb-1 block text-sm font-medium text-gray-700"
+            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             {t('jobs.client')}
             <RequiredIndicator />
@@ -127,7 +127,7 @@ export function CreateJobPopup({
           {isPresetCreate ? (
             <p
               id="job-client-preset"
-              className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-800"
+              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm text-gray-800 dark:text-gray-200"
             >
               {selectedClient
                 ? t('jobs.selectedClient', { name: selectedClient.name })
@@ -143,16 +143,16 @@ export function CreateJobPopup({
                 placeholder={t('jobs.clientSearchPlaceholder')}
                 disabled={loading}
                 aria-required="true"
-                className="mb-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+                className="mb-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
               />
               {selectedClient && (
-                <p className="mb-2 text-sm text-gray-600">
+                <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
                   {t('jobs.selectedClient', { name: selectedClient.name })}
                 </p>
               )}
-              <div className="max-h-36 overflow-y-auto rounded-lg border border-gray-200">
+              <div className="max-h-36 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700">
                 {filteredClients.length === 0 ? (
-                  <p className="px-3 py-2 text-sm text-gray-500">
+                  <p className="px-3 py-2 text-sm text-gray-500 dark:text-gray-500">
                     {t('jobs.noClientsMatch')}
                   </p>
                 ) : (
@@ -165,8 +165,8 @@ export function CreateJobPopup({
                         setClientQuery(c.name)
                       }}
                       disabled={loading}
-                      className={`flex w-full px-3 py-2 text-left text-sm hover:bg-gray-50 disabled:bg-gray-100 ${
-                        clientId === c.id ? 'bg-blue-50 font-medium' : ''
+                      className={`flex w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:bg-gray-100 dark:bg-gray-800 ${
+                        clientId === c.id ? 'bg-blue-50 dark:bg-blue-950 font-medium' : ''
                       }`}
                     >
                       {c.name}
@@ -177,13 +177,13 @@ export function CreateJobPopup({
             </>
           )}
           {fieldErrors.client && (
-            <p className="mt-1 text-sm text-red-600">{fieldErrors.client}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.client}</p>
           )}
         </div>
         <div>
           <label
             htmlFor="job-description"
-            className="mb-1 block text-sm font-medium text-gray-700"
+            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             {t('jobs.description')}
             <RequiredIndicator />
@@ -196,21 +196,21 @@ export function CreateJobPopup({
             placeholder={t('jobs.descriptionPlaceholder')}
             disabled={loading}
             aria-required="true"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
           />
           {fieldErrors.description && (
-            <p className="mt-1 text-sm text-red-600">
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
               {fieldErrors.description}
             </p>
           )}
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         <div className="flex gap-3 pt-2">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
           >
             {t('jobs.cancel')}
           </button>

@@ -231,18 +231,18 @@ export function InventoryDetailPage() {
   const thresholdEditor =
     item != null ? (
       <div className="space-y-3 border-t border-gray-100 pt-4">
-        <p className="text-sm font-medium text-gray-700">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {t('inventoryDetail.qtyHeading')}
         </p>
         <div className="flex flex-wrap items-end gap-3">
-          <label className="block text-sm text-gray-600">
+          <label className="block text-sm text-gray-600 dark:text-gray-400">
             <span className="mb-1 block">{t('inventory.qtyCurrent')}</span>
             <input
               type="number"
               min={0}
               step="0.01"
               data-testid="inventory-detail-qty-current"
-              className="w-40 rounded border border-gray-300 px-2 py-1.5 text-sm"
+              className="w-40 rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={qtyInput}
               onChange={(e) => setQtyInput(e.target.value)}
             />
@@ -258,54 +258,54 @@ export function InventoryDetailPage() {
           </button>
         </div>
         {qtySaveError ? (
-          <p className="text-sm text-red-600" role="alert">
+          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
             {qtySaveError}
           </p>
         ) : null}
 
-        <p className="text-sm font-medium text-gray-700">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {t('inventoryDetail.thresholdsHeading')}
         </p>
         <div className="grid gap-3 sm:grid-cols-3">
-          <label className="block text-sm text-gray-600">
+          <label className="block text-sm text-gray-600 dark:text-gray-400">
             <span className="mb-1 block">{t('inventoryDetail.thresholdYellow')}</span>
             <input
               type="number"
               min={0}
               step={1}
               data-testid="inventory-detail-warn-yellow"
-              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm"
+              className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={warnYellow}
               onChange={(e) => setWarnYellow(e.target.value)}
             />
           </label>
-          <label className="block text-sm text-gray-600">
+          <label className="block text-sm text-gray-600 dark:text-gray-400">
             <span className="mb-1 block">{t('inventoryDetail.thresholdOrange')}</span>
             <input
               type="number"
               min={0}
               step={1}
               data-testid="inventory-detail-warn-orange"
-              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm"
+              className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={warnOrange}
               onChange={(e) => setWarnOrange(e.target.value)}
             />
           </label>
-          <label className="block text-sm text-gray-600">
+          <label className="block text-sm text-gray-600 dark:text-gray-400">
             <span className="mb-1 block">{t('inventoryDetail.thresholdRed')}</span>
             <input
               type="number"
               min={0}
               step={1}
               data-testid="inventory-detail-warn-red"
-              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm"
+              className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={warnRed}
               onChange={(e) => setWarnRed(e.target.value)}
             />
           </label>
         </div>
         {thresholdSaveError ? (
-          <p className="text-sm text-red-600" role="alert">
+          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
             {thresholdSaveError}
           </p>
         ) : null}
@@ -352,11 +352,11 @@ export function InventoryDetailPage() {
       ) : null}
 
       {workbookStatus === 'ready' && inventoryId && !item && (
-        <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
-          <p className="text-gray-600">{t('inventoryDetail.notFound')}</p>
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-8 py-12 text-center shadow">
+          <p className="text-gray-600 dark:text-gray-400">{t('inventoryDetail.notFound')}</p>
           <Link
             to="/inventory"
-            className="mt-4 inline-block text-blue-600 hover:text-blue-800"
+            className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
           >
             {t('inventoryDetail.backToList')}
           </Link>
@@ -381,7 +381,7 @@ export function InventoryDetailPage() {
             belowFields={thresholdEditor}
           >
             {lotSaveError ? (
-              <p className="mb-4 text-sm text-red-600" role="alert">
+              <p className="mb-4 text-sm text-red-600 dark:text-red-400" role="alert">
                 {lotSaveError}
               </p>
             ) : null}
@@ -391,36 +391,36 @@ export function InventoryDetailPage() {
               <div className="space-y-8">
                 {lotsForItem.length > 0 ? (
                   <section>
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800">
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
                       {t('inventoryDetail.lotsTitle')}
                     </h3>
-                    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
+                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-800">
                           <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
+                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventoryDetail.lotDate')}
                             </th>
-                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">
+                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventoryDetail.lotQuantity')}
                             </th>
-                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">
+                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventoryDetail.lotAmount')}
                             </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
+                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventoryDetail.transaction')}
                             </th>
-                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">
+                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventoryDetail.lotActions')}
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 bg-white">
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
                           {lotsForItem.map((lot) => {
                             const tx = txnById.get(lot.transaction_id)
                             return (
                               <tr key={lot.id}>
-                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                                   {formatInventoryCreatedDate(lot.created_at)}
                                 </td>
                                 <td className="whitespace-nowrap px-4 py-3 text-right align-top">
@@ -428,7 +428,7 @@ export function InventoryDetailPage() {
                                     type="text"
                                     inputMode="decimal"
                                     data-testid={`inventory-detail-lot-qty-${lot.id}`}
-                                    className="w-24 rounded border border-gray-300 px-2 py-1 text-right text-sm"
+                                    className="w-24 rounded border border-gray-300 bg-white px-2 py-1 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     value={lotQuantityInputs[lot.id] ?? ''}
                                     onChange={(e) =>
                                       setLotQuantityInputs((prev) => ({
@@ -443,7 +443,7 @@ export function InventoryDetailPage() {
                                     type="text"
                                     inputMode="decimal"
                                     data-testid={`inventory-detail-lot-amt-${lot.id}`}
-                                    className="w-28 rounded border border-gray-300 px-2 py-1 text-right text-sm"
+                                    className="w-28 rounded border border-gray-300 bg-white px-2 py-1 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                                     value={lotAmountInputs[lot.id] ?? ''}
                                     onChange={(e) =>
                                       setLotAmountInputs((prev) => ({
@@ -458,14 +458,14 @@ export function InventoryDetailPage() {
                                     <Link
                                       to={`/transactions/${lot.transaction_id}`}
                                       data-testid={`inventory-lot-tx-${lot.id}`}
-                                      className="text-blue-600 hover:text-blue-800"
+                                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                                     >
                                       {tx.concept.trim() ? tx.concept : lot.transaction_id}
                                     </Link>
                                   ) : (
                                     <Link
                                       to={`/transactions/${lot.transaction_id}`}
-                                      className="text-blue-600 hover:text-blue-800"
+                                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                                     >
                                       {lot.transaction_id}
                                     </Link>
@@ -477,7 +477,7 @@ export function InventoryDetailPage() {
                                     data-testid={`inventory-detail-save-lot-${lot.id}`}
                                     disabled={lotSaveBusyId !== null}
                                     onClick={() => void onSaveLot(lot)}
-                                    className="rounded border border-gray-300 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                                    className="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
                                   >
                                     {lotSaveBusyId === lot.id
                                       ? t('inventoryDetail.saving')
@@ -495,46 +495,46 @@ export function InventoryDetailPage() {
 
                 {consumptionRows.length > 0 ? (
                   <section>
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800">
+                    <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
                       {t('inventoryDetail.consumptionTitle')}
                     </h3>
-                    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
+                    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
+                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead className="bg-gray-50 dark:bg-gray-800">
                           <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
+                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventoryDetail.piece')}
                             </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
+                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventoryDetail.job')}
                             </th>
-                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">
+                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventoryDetail.quantity')}
                             </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
+                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventory.createdAt')}
                             </th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-200 bg-white">
+                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
                           {consumptionRows.map((row) => (
                             <tr key={row.pieceItemId}>
-                              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                                 {row.pieceName} ({row.pieceId})
                               </td>
                               <td className="px-4 py-3 text-sm">
                                 <Link
                                   to={`/jobs/${row.jobId}`}
                                   data-testid={`inventory-consumption-job-${row.pieceItemId}`}
-                                  className="text-blue-600 hover:text-blue-800"
+                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                                 >
                                   {row.jobDescription}
                                 </Link>
                               </td>
-                              <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700">
+                              <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300">
                                 {row.quantity}
                               </td>
-                              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                                 {formatInventoryCreatedDate(row.pieceCreatedAt)}
                               </td>
                             </tr>
@@ -563,7 +563,7 @@ export function InventoryDetailPage() {
             }}
           >
             {archiveError ? (
-              <p className="text-sm text-red-600">{archiveError}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">{archiveError}</p>
             ) : null}
           </ConfirmDialog>
         </>

@@ -47,20 +47,20 @@ function redoDisplay(
     return {
       remaining,
       band: t('pieces.redo.safe', { count: redos }),
-      bandClass: 'text-green-700',
+      bandClass: 'text-green-700 dark:text-green-300',
     }
   }
   if (redos === 1) {
     return {
       remaining,
       band: t('pieces.redo.tight'),
-      bandClass: 'text-amber-700',
+      bandClass: 'text-amber-700 dark:text-amber-300',
     }
   }
   return {
     remaining,
     band: t('pieces.redo.risky'),
-    bandClass: 'text-red-600',
+    bandClass: 'text-red-600 dark:text-red-400',
   }
 }
 
@@ -241,12 +241,12 @@ export function PiecesTable({
         placeholder={t('listTable.searchPlaceholder')}
         ariaLabel={t('listTable.searchAria')}
       />
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-900">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
               <th
-                className="px-2 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600"
+                className="px-2 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400"
                 aria-label={t('pieces.colExpand')}
               >
                 <span className="sr-only">{t('pieces.colExpand')}</span>
@@ -356,12 +356,12 @@ export function PiecesTable({
               </SortableColumnHeader>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
+          <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             {displayed.length === 0 ? (
               <tr>
                 <td
                   colSpan={colCount}
-                  className="px-4 py-6 text-center text-sm text-gray-600"
+                  className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400"
                 >
                   {pieces.length === 0 ? null : t('listTable.noMatches')}
                 </td>
@@ -374,10 +374,10 @@ export function PiecesTable({
                   <Fragment key={piece.id}>
                     <tr
                       id={`piece-${piece.id}`}
-                      className={`odd:bg-white even:bg-gray-50 hover:bg-gray-100 ${
+                      className={`odd:bg-white dark:bg-gray-900 even:bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 odd:dark:bg-gray-900 even:dark:bg-gray-800/50 hover:dark:bg-gray-800 ${
                         pieceUnitsAreSet(piece)
                           ? ''
-                          : 'bg-amber-50/70 ring-1 ring-inset ring-amber-200'
+                          : 'bg-amber-50 dark:bg-amber-950/70 ring-1 ring-inset ring-amber-200'
                       }`}
                     >
                       <td className="whitespace-nowrap px-2 py-3">
@@ -387,20 +387,20 @@ export function PiecesTable({
                           aria-expanded={expanded}
                           aria-controls={`piece-items-${piece.id}`}
                           onClick={() => onToggleExpand(piece.id)}
-                          className="rounded p-1 text-gray-600 hover:bg-gray-200"
+                          className="rounded p-1 text-gray-600 hover:bg-gray-200 dark:text-gray-400 dark:hover:bg-gray-700"
                         >
                           {expanded ? '\u25BC' : '\u25B6'}
                         </button>
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                         {piece.id}
                       </td>
                       {!hideJobColumn ? (
-                        <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 md:table-cell">
+                        <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 dark:text-gray-300 md:table-cell">
                           {jobLabel(jobs, piece.job_id)}
                         </td>
                       ) : null}
-                      <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 sm:table-cell">
+                      <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 dark:text-gray-300 sm:table-cell">
                         {piece.name}
                       </td>
                       <td className="hidden px-2 py-3 text-sm sm:table-cell">
@@ -419,7 +419,7 @@ export function PiecesTable({
                           onBlur={(e) => {
                             void onPieceUnitsCommit(piece.id, e.target.value)
                           }}
-                          className="w-16 rounded border border-gray-300 px-2 py-1 text-right text-gray-800 disabled:bg-gray-100"
+                          className="w-16 rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-right text-gray-800 dark:text-gray-200 disabled:bg-gray-100 dark:bg-gray-800"
                           aria-label={t('pieces.colUnits')}
                         />
                       </td>
@@ -440,7 +440,7 @@ export function PiecesTable({
                             onBlur={(e) => {
                               void onPiecePriceCommit(piece.id, e.target.value)
                             }}
-                            className="w-24 rounded border border-gray-300 px-2 py-1 text-right text-gray-800 disabled:bg-gray-100"
+                            className="w-24 rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-right text-gray-800 dark:text-gray-200 disabled:bg-gray-100 dark:bg-gray-800"
                             aria-label={t('pieces.colPricePerUnit')}
                           />
                           {(() => {
@@ -455,7 +455,7 @@ export function PiecesTable({
                               <button
                                 type="button"
                                 data-testid={`piece-suggested-${piece.id}`}
-                                className="text-xs font-medium text-blue-700 hover:text-blue-900"
+                                className="text-xs font-medium text-blue-700 dark:text-blue-300 hover:text-blue-900 dark:text-blue-200"
                                 onClick={() => {
                                   const rounded = Number(
                                     sug.suggestedPrice.toFixed(2)
@@ -474,7 +474,7 @@ export function PiecesTable({
                           })()}
                         </div>
                       </td>
-                      <td className="hidden px-2 py-3 text-right text-sm text-gray-800 md:table-cell">
+                      <td className="hidden px-2 py-3 text-right text-sm text-gray-800 dark:text-gray-200 md:table-cell">
                         {(() => {
                           const u = pieceUnitsResolved(piece)
                           const p = piece.price
@@ -488,7 +488,7 @@ export function PiecesTable({
                           return formatCurrency(u * p)
                         })()}
                       </td>
-                      <td className="hidden px-2 py-3 text-right text-sm text-gray-800 lg:table-cell">
+                      <td className="hidden px-2 py-3 text-right text-sm text-gray-800 dark:text-gray-200 lg:table-cell">
                         {(() => {
                           const u = pieceUnitsResolved(piece)
                           if (u == null || !piecePriceIsSet(piece)) return '—'
@@ -504,7 +504,7 @@ export function PiecesTable({
                           return formatCurrency(revenue - material)
                         })()}
                       </td>
-                      <td className="hidden max-w-xs px-2 py-3 text-xs text-gray-700 lg:table-cell">
+                      <td className="hidden max-w-xs px-2 py-3 text-xs text-gray-700 dark:text-gray-300 lg:table-cell">
                         {(() => {
                           const u = pieceUnitsResolved(piece)
                           if (u == null || lines.length === 0) return '—'
@@ -518,7 +518,7 @@ export function PiecesTable({
                                   redoDisplay(t, inv, line.quantity * u)
                                 return (
                                   <div key={line.id}>
-                                    <span className="font-medium text-gray-600">
+                                    <span className="font-medium text-gray-600 dark:text-gray-400">
                                       {inv?.name ?? line.inventory_id}:
                                     </span>{' '}
                                     {band ? (
@@ -533,7 +533,7 @@ export function PiecesTable({
                           )
                         })()}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                         <PieceStatusDropdown
                           pieceId={piece.id}
                           status={piece.status}
@@ -541,19 +541,19 @@ export function PiecesTable({
                           onChange={(next) => onStatusChange(piece, next)}
                         />
                       </td>
-                      <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 lg:table-cell">
+                      <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 lg:table-cell">
                         {piece.created_at}
                       </td>
                     </tr>
                     {expanded ? (
-                      <tr key={`${piece.id}-detail`} className="bg-gray-50">
+                      <tr key={`${piece.id}-detail`} className="bg-gray-50 dark:bg-gray-800">
                         <td colSpan={colCount} className="px-4 py-3">
                           <div
                             id={`piece-items-${piece.id}`}
-                            className="rounded-lg border border-gray-200 bg-white p-4"
+                            className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
                           >
                             <div className="mb-2 flex items-center justify-between gap-2">
-                              <h4 className="text-sm font-semibold text-gray-800">
+                              <h4 className="text-sm font-semibold text-gray-800 dark:text-gray-200">
                                 {t('pieces.linesHeading')}
                               </h4>
                               <button
@@ -566,13 +566,13 @@ export function PiecesTable({
                               </button>
                             </div>
                             {lines.length === 0 ? (
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-gray-600 dark:text-gray-400">
                                 {t('pieces.noLines')}
                               </p>
                             ) : (
                               <table className="min-w-full text-sm">
                                 <thead>
-                                  <tr className="border-b border-gray-200 text-left text-xs uppercase text-gray-600">
+                                  <tr className="border-b border-gray-200 dark:border-gray-700 text-left text-xs uppercase text-gray-600 dark:text-gray-400">
                                     <th className="py-2 pr-4">
                                       {t('pieces.lineColId')}
                                     </th>
@@ -596,19 +596,19 @@ export function PiecesTable({
                                       key={line.id}
                                       className="border-b border-gray-100"
                                     >
-                                      <td className="py-2 pr-4 text-gray-800">
+                                      <td className="py-2 pr-4 text-gray-800 dark:text-gray-200">
                                         {line.id}
                                       </td>
-                                      <td className="py-2 pr-4 text-gray-800">
+                                      <td className="py-2 pr-4 text-gray-800 dark:text-gray-200">
                                         {inventoryLabel(
                                           inventory,
                                           line.inventory_id
                                         )}
                                       </td>
-                                      <td className="py-2 pr-4 text-gray-800">
+                                      <td className="py-2 pr-4 text-gray-800 dark:text-gray-200">
                                         {line.quantity}
                                       </td>
-                                      <td className="py-2 pr-4 text-right text-gray-800">
+                                      <td className="py-2 pr-4 text-right text-gray-800 dark:text-gray-200">
                                         {(() => {
                                           const cost = materialCostForPieceItemLine(
                                             line,
@@ -620,7 +620,7 @@ export function PiecesTable({
                                             : formatCurrency(cost)
                                         })()}
                                       </td>
-                                      <td className="py-2 text-gray-800">
+                                      <td className="py-2 text-gray-800 dark:text-gray-200">
                                         {(() => {
                                           const inv = inventory.find(
                                             (x) => x.id === line.inventory_id

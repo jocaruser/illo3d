@@ -95,25 +95,25 @@ export function CreatePiecePopup({
       <form onSubmit={handleSubmit} className="space-y-4">
         {presetJobId ? (
           <div>
-            <p className="mb-1 text-sm font-medium text-gray-700">
+            <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-300">
               {t('pieces.job')}
             </p>
             {selectedJob ? (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {t('pieces.selectedJob', {
                   id: selectedJob.id,
                   description: selectedJob.description,
                 })}
               </p>
             ) : (
-              <p className="text-sm text-gray-600">{presetJobId}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{presetJobId}</p>
             )}
           </div>
         ) : (
           <div>
             <label
               htmlFor="piece-job-search"
-              className="mb-1 block text-sm font-medium text-gray-700"
+              className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
               {t('pieces.job')}
               <RequiredIndicator />
@@ -126,19 +126,19 @@ export function CreatePiecePopup({
               placeholder={t('pieces.jobSearchPlaceholder')}
               disabled={loading}
               aria-required="true"
-              className="mb-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+              className="mb-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
             />
             {selectedJob && (
-              <p className="mb-2 text-sm text-gray-600">
+              <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
                 {t('pieces.selectedJob', {
                   id: selectedJob.id,
                   description: selectedJob.description,
                 })}
               </p>
             )}
-            <div className="max-h-36 overflow-y-auto rounded-lg border border-gray-200">
+            <div className="max-h-36 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700">
               {filteredJobs.length === 0 ? (
-                <p className="px-3 py-2 text-sm text-gray-500">
+                <p className="px-3 py-2 text-sm text-gray-500 dark:text-gray-500">
                   {t('pieces.noJobsMatch')}
                 </p>
               ) : (
@@ -151,8 +151,8 @@ export function CreatePiecePopup({
                       setJobQuery(`${j.id} — ${j.description}`)
                     }}
                     disabled={loading}
-                    className={`flex w-full px-3 py-2 text-left text-sm hover:bg-gray-50 disabled:bg-gray-100 ${
-                      jobId === j.id ? 'bg-blue-50 font-medium' : ''
+                    className={`flex w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:bg-gray-100 dark:bg-gray-800 ${
+                      jobId === j.id ? 'bg-blue-50 dark:bg-blue-950 font-medium' : ''
                     }`}
                   >
                     <span className="truncate">
@@ -163,14 +163,14 @@ export function CreatePiecePopup({
               )}
             </div>
             {fieldErrors.job && (
-              <p className="mt-1 text-sm text-red-600">{fieldErrors.job}</p>
+              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.job}</p>
             )}
           </div>
         )}
         <div>
           <label
             htmlFor="piece-name"
-            className="mb-1 block text-sm font-medium text-gray-700"
+            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             {t('pieces.name')}
             <RequiredIndicator />
@@ -183,19 +183,19 @@ export function CreatePiecePopup({
             placeholder={t('pieces.namePlaceholder')}
             disabled={loading}
             aria-required="true"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
           />
           {fieldErrors.name && (
-            <p className="mt-1 text-sm text-red-600">{fieldErrors.name}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.name}</p>
           )}
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         <div className="flex gap-3 pt-2">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
           >
             {t('pieces.cancel')}
           </button>

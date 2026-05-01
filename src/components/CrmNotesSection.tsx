@@ -13,17 +13,17 @@ import { ConfirmDialog } from './ConfirmDialog'
 function stripSeverityClasses(severity: ClientNoteSeverity): string {
   switch (severity) {
     case 'danger':
-      return 'border-red-200 bg-red-50 text-red-900'
+      return 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 text-red-900 dark:text-red-200'
     case 'warning':
-      return 'border-amber-200 bg-amber-50 text-amber-950'
+      return 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 text-amber-950 dark:text-amber-200'
     case 'success':
-      return 'border-green-200 bg-green-50 text-green-900'
+      return 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950 text-green-900 dark:text-green-200'
     case 'primary':
-      return 'border-blue-200 bg-blue-50 text-blue-900'
+      return 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-200'
     case 'secondary':
-      return 'border-gray-200 bg-gray-50 text-gray-800'
+      return 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
     default:
-      return 'border-gray-200 bg-white text-gray-800'
+      return 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200'
   }
 }
 
@@ -166,7 +166,7 @@ export function CrmNotesSection({
 
   return (
     <div className="mb-8">
-      <h3 className="mb-3 text-xl font-semibold text-gray-800">
+      <h3 className="mb-3 text-xl font-semibold text-gray-800 dark:text-gray-200">
         {tk('notesTitle')}
       </h3>
 
@@ -195,13 +195,13 @@ export function CrmNotesSection({
       ) : null}
 
       {error ? (
-        <p className="mb-3 text-sm text-red-600" role="alert">
+        <p className="mb-3 text-sm text-red-600 dark:text-red-400" role="alert">
           {error}
         </p>
       ) : null}
 
-      <div className="mb-6 rounded-lg border border-gray-200 bg-white p-4 shadow">
-        <p className="mb-2 text-sm font-medium text-gray-700">
+      <div className="mb-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
+        <p className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
           {tk('addNote')}
         </p>
         <textarea
@@ -209,11 +209,11 @@ export function CrmNotesSection({
           onChange={(e) => setDraftBody(e.target.value)}
           rows={2}
           disabled={adding || !spreadsheetId}
-          className="mb-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="mb-2 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           placeholder={tk('noteBodyPlaceholder')}
         />
         <div className="mb-3 flex flex-wrap items-center gap-3">
-          <label className="text-sm text-gray-700">
+          <label className="text-sm text-gray-700 dark:text-gray-300">
             {tk('severityLabel')}
             <select
               value={draftSeverity}
@@ -221,7 +221,7 @@ export function CrmNotesSection({
                 setDraftSeverity(e.target.value as ClientNoteSeverity)
               }
               disabled={adding || !spreadsheetId}
-              className="ml-2 rounded border border-gray-300 px-2 py-1 text-sm"
+              className="ml-2 rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
             >
               {CLIENT_NOTE_SEVERITY_VALUES.map((s) => (
                 <option key={s} value={s}>
@@ -246,7 +246,7 @@ export function CrmNotesSection({
         {notes.map((n) => (
           <li
             key={n.id}
-            className="rounded-lg border border-gray-200 bg-white p-4 shadow"
+            className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow"
             data-testid={testIds.row(n.id)}
           >
             {editingId === n.id ? (
@@ -256,7 +256,7 @@ export function CrmNotesSection({
                   onChange={(e) => setEditBody(e.target.value)}
                   rows={2}
                   disabled={busyId === n.id}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 />
                 <select
                   value={editSeverity}
@@ -264,7 +264,7 @@ export function CrmNotesSection({
                     setEditSeverity(e.target.value as ClientNoteSeverity)
                   }
                   disabled={busyId === n.id}
-                  className="rounded border border-gray-300 px-2 py-1 text-sm"
+                  className="rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 >
                   {CLIENT_NOTE_SEVERITY_VALUES.map((s) => (
                     <option key={s} value={s}>
@@ -285,7 +285,7 @@ export function CrmNotesSection({
                     type="button"
                     disabled={busyId === n.id}
                     onClick={cancelEdit}
-                    className="rounded-lg border border-gray-300 px-3 py-1 text-sm"
+                    className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1 text-sm"
                   >
                     {t('clients.cancel')}
                   </button>
@@ -299,7 +299,7 @@ export function CrmNotesSection({
                   >
                     {sevLabel(n.severity)}
                   </span>
-                  <p className="mt-1 whitespace-pre-wrap text-sm text-gray-800">
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-gray-800 dark:text-gray-200">
                     <MentionLinkify
                       text={n.body || '—'}
                       clients={clients}
@@ -307,14 +307,14 @@ export function CrmNotesSection({
                       pieces={pieces}
                     />
                   </p>
-                  <p className="mt-1 text-xs text-gray-500">{n.created_at}</p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">{n.created_at}</p>
                 </div>
                 <div className="flex shrink-0 gap-2">
                   <button
                     type="button"
                     disabled={busyId !== null}
                     onClick={() => startEdit(n)}
-                    className="text-sm text-blue-600 hover:text-blue-800"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                   >
                     {t('clients.edit')}
                   </button>
@@ -322,7 +322,7 @@ export function CrmNotesSection({
                     type="button"
                     disabled={busyId !== null}
                     onClick={() => setDeleteId(n.id)}
-                    className="text-sm text-red-600 hover:text-red-800"
+                    className="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:text-red-200"
                   >
                     {t('clients.delete')}
                   </button>

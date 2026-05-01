@@ -12,8 +12,8 @@ export function QueryError({
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-lg border border-red-200 bg-white px-8 py-12 text-center shadow">
-      <p className="mb-4 text-sm font-medium text-red-800">
+    <div className="rounded-lg border border-red-200 bg-white px-8 py-12 text-center shadow dark:border-red-800 dark:bg-gray-900">
+      <p className="mb-4 text-sm font-medium text-red-800 dark:text-red-200">
         {t(messageKey)}
       </p>
       <button

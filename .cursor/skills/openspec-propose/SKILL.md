@@ -18,7 +18,7 @@ I'll create a change with artifacts:
 
 When ready to implement, run /opsx:apply
 
-**Workbook / shop note:** Proposals that change the Google Sheets layout or shop metadata should call out bumping **`src/config/version.ts`** (patch for traceability; **major** only when shops must not open until migrated—see `validateShopFolder`).
+**Version note:** Every change must include a version bump in **`src/config/version.ts`**. Call out the intended semver level in the proposal: **patch** for backwards-compatible fixes/tweaks, **minor** for backwards-compatible features, **major** for breaking changes. Only a **major** bump causes `validateShopFolder` to reject old shops until migrated—triple-check that anything not backwards compatible is marked major.
 
 ---
 

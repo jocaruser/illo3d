@@ -74,7 +74,7 @@ export function ProfileMenu() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex items-center gap-2 rounded-full p-1 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:hover:bg-gray-800"
         aria-label={t('profileMenu.toggleMenu')}
         aria-expanded={isOpen}
         aria-haspopup="true"
@@ -86,7 +86,7 @@ export function ProfileMenu() {
             className="h-8 w-8 rounded-full"
           />
         ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 text-sm font-medium text-gray-600">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-300 text-sm font-medium text-gray-600 dark:bg-gray-600 dark:text-gray-400">
             {user.name.charAt(0).toUpperCase()}
           </div>
         )}

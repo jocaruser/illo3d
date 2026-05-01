@@ -13,7 +13,7 @@ export function LoadingSpinner() {
     >
       <span className="sr-only">{label}</span>
       <span
-        className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600"
+        className="inline-block h-8 w-8 animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 dark:border-gray-600"
         aria-hidden
       />
     </div>

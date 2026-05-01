@@ -10,20 +10,20 @@ interface StatCardProps {
 export function StatCard({ label, value, to, valueTone = 'default' }: StatCardProps) {
   const valueClass =
     valueTone === 'positive'
-      ? 'text-green-600'
+      ? 'text-green-600 dark:text-green-400'
       : valueTone === 'negative'
-        ? 'text-red-600'
-        : 'text-gray-900'
+        ? 'text-red-600 dark:text-red-400'
+        : 'text-gray-900 dark:text-gray-100'
 
   const body = (
     <>
-      <p className="text-sm font-medium text-gray-500">{label}</p>
+      <p className="text-sm font-medium text-gray-500 dark:text-gray-500">{label}</p>
       <p className={`mt-1 text-2xl font-semibold ${valueClass}`}>{value}</p>
     </>
   )
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow-sm">
       {to ? (
         <Link to={to} className="block hover:opacity-90">
           {body}

@@ -79,7 +79,11 @@ Implement tasks from an OpenSpec change.
    - Error or blocker encountered → report and wait for guidance
    - User interrupts
 
-   **Shop / workbook schema (illo3d):** If the change adds or renames Google Sheet tabs or columns (`SHEET_HEADERS`, `validateStructure`, migrations, or `illo3d.metadata.json` fields), bump **`src/config/version.ts`** at least on the **patch** level for traceability. Remember that `validateShopFolder` compares the **major** version number only to the shop metadata: a deliberate breaking change must bump **major** so existing shops are blocked until migrated (or document how shops upgrade).
+    **Version bump (all changes):** Before starting implementation, check `src/config/version.ts`. If the version has not yet been bumped for this change, determine the correct semver level and bump it now:
+    - **Patch** — backwards-compatible bug fixes, refactors, docs, minor UI tweaks.
+    - **Minor** — backwards-compatible new features, additive schema changes.
+    - **Major** — breaking changes, incompatible schema changes, or anything that causes `validateShopFolder` to reject old shops. Triple-check: if the change is not backwards compatible, it MUST be major.
+    Ask the user when unsure.
 
 7. **On completion or pause, show status**
 

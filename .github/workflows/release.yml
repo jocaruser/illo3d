@@ -1,0 +1,38 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Extract current version
+        id: current
+        run: |
+          VERSION=$(sed -n "s/.*APP_VERSION *= *'\([^']*\)'.*/\1/p" src/config/version.ts)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract previous version
+        id: previous
+        run: |
+          VERSION=$(git show HEAD~1:src/config/version.ts 2>/dev/null | sed -n "s/.*APP_VERSION *= *'\([^']*\)'.*/\1/p" || echo "0.0.0")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        if: steps.current.outputs.version != steps.previous.outputs.version
+        run: |
+          gh release create "v${{ steps.current.outputs.version }}" \
+            --title "v${{ steps.current.outputs.version }}" \
+            --generate-notes \
+            --target ${{ github.sha }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

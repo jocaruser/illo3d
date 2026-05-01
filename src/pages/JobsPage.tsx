@@ -102,7 +102,7 @@ export function JobsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h2 className="mb-6 text-2xl font-bold text-gray-800">{t('jobs.title')}</h2>
+      <h2 className="mb-6 text-2xl font-bold text-gray-800 dark:text-gray-200">{t('jobs.title')}</h2>
 
       <ConnectionStatus
         status={workbookStatus}
@@ -111,8 +111,8 @@ export function JobsPage() {
       />
 
       {statusError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
-          <p className="text-sm font-medium text-red-800">{statusError}</p>
+        <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3" role="alert">
+          <p className="text-sm font-medium text-red-800 dark:text-red-200">{statusError}</p>
         </div>
       )}
 
@@ -179,7 +179,7 @@ export function JobsPage() {
         }}
       >
         {archiveError ? (
-          <p className="text-sm text-red-600">{archiveError}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">{archiveError}</p>
         ) : null}
       </ConfirmDialog>
 
