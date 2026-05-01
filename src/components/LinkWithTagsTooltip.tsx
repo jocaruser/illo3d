@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
 export interface LinkWithTagsTooltipProps {
-  to: string
+  to?: string
   label: string
   /** Comma-separated tag labels (display + aria). */
   tagLine?: string
@@ -36,7 +36,7 @@ export function LinkWithTagsTooltip({
   const { t } = useTranslation()
   const reactId = useId()
   const tooltipId = `${reactId}-tags-tooltip`
-  const linkRef = useRef<HTMLAnchorElement>(null)
+  const linkRef = useRef<HTMLAnchorElement | HTMLSpanElement>(null)
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState<{
     top: number
@@ -91,9 +91,21 @@ export function LinkWithTagsTooltip({
   const ariaLabel = t(tagsTooltipAriaKey, { list: trimmedLine })
 
   if (!hasTags) {
+    if (!to) {
+      return (
+        <span
+          ref={linkRef}
+          data-testid={dataTestid}
+          className={linkClassName}
+          aria-label={linkAriaLabel}
+        >
+          {label}
+        </span>
+      )
+    }
     return (
       <Link
-        ref={linkRef}
+        ref={linkRef as React.Ref<HTMLAnchorElement>}
         to={to}
         data-testid={dataTestid}
         className={linkClassName}
@@ -106,20 +118,36 @@ export function LinkWithTagsTooltip({
 
   return (
     <>
-      <Link
-        ref={linkRef}
-        to={to}
-        data-testid={dataTestid}
-        className={linkClassName}
-        aria-label={linkAriaLabel}
-        aria-describedby={show ? tooltipId : undefined}
-        onMouseEnter={openTooltip}
-        onMouseLeave={closeTooltip}
-        onFocus={openTooltip}
-        onBlur={closeTooltip}
-      >
-        {label}
-      </Link>
+      {to ? (
+        <Link
+          ref={linkRef as React.Ref<HTMLAnchorElement>}
+          to={to}
+          data-testid={dataTestid}
+          className={linkClassName}
+          aria-label={linkAriaLabel}
+          aria-describedby={show ? tooltipId : undefined}
+          onMouseEnter={openTooltip}
+          onMouseLeave={closeTooltip}
+          onFocus={openTooltip}
+          onBlur={closeTooltip}
+        >
+          {label}
+        </Link>
+      ) : (
+        <span
+          ref={linkRef}
+          data-testid={dataTestid}
+          className={linkClassName}
+          aria-label={linkAriaLabel}
+          aria-describedby={show ? tooltipId : undefined}
+          onMouseEnter={openTooltip}
+          onMouseLeave={closeTooltip}
+          onFocus={openTooltip}
+          onBlur={closeTooltip}
+        >
+          {label}
+        </span>
+      )}
       {show && pos
         ? createPortal(
             <div

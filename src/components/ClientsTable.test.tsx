@@ -89,9 +89,9 @@ describe('ClientsTable', () => {
       </MemoryRouter>
     )
 
-    const link = screen.getByRole('link', { name: 'Acme' })
-    expect(link).not.toHaveAttribute('title')
-    await user.hover(link)
+    const nameCell = screen.getByTestId('client-name-tooltip-CL1')
+    expect(nameCell).not.toHaveAttribute('title')
+    await user.hover(nameCell)
 
     const tip = screen.getByRole('tooltip')
     expect(tip).toHaveAttribute('aria-label', 'Tags: Vip, Partner')
@@ -123,7 +123,7 @@ describe('ClientsTable', () => {
       target: { value: 'VIP' },
     })
 
-    expect(screen.getByRole('link', { name: 'Beta' })).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Alpha' })).not.toBeInTheDocument()
+    expect(screen.getByText('Beta')).toBeInTheDocument()
+    expect(screen.queryByText('Alpha')).not.toBeInTheDocument()
   })
 })

@@ -24,6 +24,8 @@ function jobComparable(
   pieces: Piece[]
 ): string | number {
   switch (key) {
+    case 'id':
+      return job.id.toLowerCase()
     case 'client':
       return clientName(clients, job.client_id).toLowerCase()
     case 'description':
@@ -125,6 +127,15 @@ export function JobsTable({
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
               <SortableColumnHeader
+                columnKey="id"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                ariaLabel={sortAria(t('jobs.colId'), 'id')}
+              >
+                {t('jobs.colId')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
                 columnKey="description"
                 sortKey={sortKey}
                 sortDir={sortDir}
@@ -184,7 +195,7 @@ export function JobsTable({
           <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
                   {jobs.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -194,18 +205,26 @@ export function JobsTable({
                   key={job.id}
                   className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 odd:dark:bg-gray-900 even:dark:bg-gray-800/50 hover:dark:bg-gray-800"
                 >
+                  <td className="whitespace-nowrap px-4 py-3 text-sm">
+                    <Link
+                      to={`/jobs/${job.id}`}
+                      data-testid={`job-detail-link-${job.id}`}
+                      className="font-medium text-blue-600 hover:text-blue-800"
+                    >
+                      {job.id}
+                    </Link>
+                  </td>
                   <td className="max-w-xs truncate px-4 py-3 text-sm">
                     <LinkWithTagsTooltip
-                      to={`/jobs/${job.id}`}
                       label={job.description.trim() || job.id}
                       tagLine={tagTitleByJobId?.get(job.id)}
-                      dataTestid={`job-detail-link-${job.id}`}
+                      dataTestid={`job-description-tooltip-${job.id}`}
                       linkAriaLabel={
                         job.description.trim()
                           ? undefined
                           : t('jobs.idLinkAria', { id: job.id })
                       }
-                      linkClassName="font-medium text-blue-600 hover:text-blue-800"
+                      linkClassName="font-medium text-gray-900 dark:text-gray-100"
                     />
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 md:table-cell">

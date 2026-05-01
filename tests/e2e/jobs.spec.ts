@@ -36,7 +36,7 @@ test.describe('Jobs page', () => {
       timeout: 15000,
     })
 
-    const link = page.getByTestId('job-detail-link-J1')
+    const link = page.getByTestId('job-description-tooltip-J1')
     await expect(link).toBeVisible({ timeout: 15000 })
     await link.hover()
 

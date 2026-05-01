@@ -83,8 +83,8 @@ describe('JobsTable', () => {
       </MemoryRouter>
     )
 
-    const link = screen.getByRole('link', { name: 'Widget' })
-    await user.hover(link)
+    const descriptionCell = screen.getByTestId('job-description-tooltip-J1')
+    await user.hover(descriptionCell)
     const tip = screen.getByRole('tooltip')
     expect(tip).toHaveAttribute('aria-label', 'Tags: Vip, Partner')
     expect(tip).toHaveTextContent('Vip')

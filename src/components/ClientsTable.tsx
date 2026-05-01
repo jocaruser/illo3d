@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Client } from '@/types/money'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildClientSearchBlob } from '@/lib/listTable/searchBlobs'
-import { ClientNameLinkWithTagsTooltip } from '@/components/ClientNameLinkWithTagsTooltip'
+import { LinkWithTagsTooltip } from '@/components/LinkWithTagsTooltip'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
 
@@ -20,6 +21,8 @@ interface ClientsTableProps {
 
 function clientComparable(client: Client, key: string): string | number {
   switch (key) {
+    case 'id':
+      return client.id.toLowerCase()
     case 'name':
       return client.name.toLowerCase()
     case 'email':
@@ -100,6 +103,15 @@ export function ClientsTable({
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
               <SortableColumnHeader
+                columnKey="id"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                ariaLabel={sortAria(t('jobs.colId'), 'id')}
+              >
+                {t('jobs.colId')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
                 columnKey="name"
                 sortKey={sortKey}
                 sortDir={sortDir}
@@ -159,7 +171,7 @@ export function ClientsTable({
           <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
                   {clients.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -169,11 +181,21 @@ export function ClientsTable({
                   key={client.id}
                   className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 odd:dark:bg-gray-900 even:dark:bg-gray-800/50 hover:dark:bg-gray-800"
                 >
+                  <td className="whitespace-nowrap px-4 py-3 text-sm">
+                    <Link
+                      to={`/clients/${client.id}`}
+                      data-testid={`client-detail-link-${client.id}`}
+                      className="font-medium text-blue-600 hover:text-blue-800"
+                    >
+                      {client.id}
+                    </Link>
+                  </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
-                    <ClientNameLinkWithTagsTooltip
-                      clientId={client.id}
-                      name={client.name}
+                    <LinkWithTagsTooltip
+                      label={client.name}
                       tagLine={tagTitleByClientId?.get(client.id)}
+                      dataTestid={`client-name-tooltip-${client.id}`}
+                      linkClassName="font-medium text-gray-900 dark:text-gray-100"
                     />
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 md:table-cell">
