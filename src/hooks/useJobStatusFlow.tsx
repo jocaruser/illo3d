@@ -147,12 +147,12 @@ export function useJobStatusFlow(
         }}
       >
         {paidDialogJob ? (
-          <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+          <label className="mt-3 flex cursor-pointer items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
             <input
               type="checkbox"
               checked={paidCreateTransaction}
               onChange={(e) => setPaidCreateTransaction(e.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
             />
             <span>{t('jobs.paidCreateTransactionLabel')}</span>
           </label>

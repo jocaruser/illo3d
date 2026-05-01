@@ -126,7 +126,7 @@ export function TagAddCombobox({
 
   return (
     <div ref={containerRef} className="relative min-w-0 flex-1">
-      <label className="mb-1 block text-sm font-medium text-gray-700">
+      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
         {tk('tagsComboboxLabel')}
       </label>
       <div className="flex flex-wrap gap-2">
@@ -155,7 +155,7 @@ export function TagAddCombobox({
           onKeyDown={handleKeyDown}
           disabled={inputDisabled}
           placeholder={tk('tagsComboboxPlaceholder')}
-          className="min-w-[10rem] flex-1 rounded border border-gray-300 px-2 py-1 text-sm"
+          className="min-w-[10rem] flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
         />
         <button
           type="button"
@@ -173,10 +173,10 @@ export function TagAddCombobox({
           role="listbox"
           aria-label={tk('tagsComboboxListAria')}
           data-testid={`${testIdPrefix}-add-listbox`}
-          className="absolute z-20 mt-1 max-h-48 w-full min-w-[12rem] overflow-y-auto rounded border border-gray-200 bg-white py-1 shadow-lg"
+          className="absolute z-20 mt-1 max-h-48 w-full min-w-[12rem] overflow-y-auto rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-1 shadow-lg"
         >
           {filtered.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-gray-500" role="presentation">
+            <li className="px-3 py-2 text-sm text-gray-500 dark:text-gray-500" role="presentation">
               {tk('tagsComboboxNoMatch')}
             </li>
           ) : (
@@ -188,7 +188,7 @@ export function TagAddCombobox({
                 aria-selected={idx === activeIdx}
                 data-testid={`${testIdPrefix}-add-option-${tag.id}`}
                 className={`cursor-pointer px-3 py-2 text-sm ${
-                  idx === activeIdx ? 'bg-blue-50 text-blue-900' : 'text-gray-800'
+                  idx === activeIdx ? 'bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-200' : 'text-gray-800 dark:text-gray-200'
                 }`}
                 onMouseDown={(e) => e.preventDefault()}
                 onMouseEnter={() => setActiveIdx(idx)}

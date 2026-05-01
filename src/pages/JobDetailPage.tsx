@@ -308,11 +308,11 @@ export function JobDetailPage() {
       />
 
       {workbookStatus === 'ready' && jobId && !job && (
-        <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
-          <p className="text-gray-600">{t('jobs.jobNotFound')}</p>
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-8 py-12 text-center shadow">
+          <p className="text-gray-600 dark:text-gray-400">{t('jobs.jobNotFound')}</p>
           <Link
             to="/jobs"
-            className="mt-4 inline-block text-blue-600 hover:text-blue-800"
+            className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
           >
             {t('jobs.backToList')}
           </Link>
@@ -352,7 +352,7 @@ export function JobDetailPage() {
           />
 
           <div className="mb-4 flex items-center justify-between gap-4">
-            <h3 className="text-xl font-semibold text-gray-800">
+            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
               {t('pieces.title')}
             </h3>
             <button
@@ -367,7 +367,7 @@ export function JobDetailPage() {
 
           {lineRequirementMessage ? (
             <div
-              className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+              className="mb-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-4 py-3 text-sm text-amber-900 dark:text-amber-200"
               role="alert"
             >
               {lineRequirementMessage}
@@ -464,7 +464,7 @@ export function JobDetailPage() {
         }}
       >
         {archiveError ? (
-          <p className="text-sm text-red-600">{archiveError}</p>
+          <p className="text-sm text-red-600 dark:text-red-400">{archiveError}</p>
         ) : null}
       </ConfirmDialog>
 
@@ -515,7 +515,7 @@ export function JobDetailPage() {
         }}
       >
         {consumeShortfall.length > 0 ? (
-          <ul className="mb-3 list-inside list-disc text-sm text-amber-800">
+          <ul className="mb-3 list-inside list-disc text-sm text-amber-800 dark:text-amber-200">
             {consumeShortfall.map((s) => (
               <li key={s.id}>
                 {t('pieces.shortfallLine', {
@@ -527,17 +527,17 @@ export function JobDetailPage() {
             ))}
           </ul>
         ) : null}
-        <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+        <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
           <input
             type="checkbox"
             checked={decrementInventory}
             onChange={(e) => setDecrementInventory(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
           />
           <span>{t('pieces.decrementInventoryLabel')}</span>
         </label>
         {pieceStatusError ? (
-          <p className="mt-3 text-sm text-red-600">{pieceStatusError}</p>
+          <p className="mt-3 text-sm text-red-600 dark:text-red-400">{pieceStatusError}</p>
         ) : null}
       </ConfirmDialog>
 
@@ -564,17 +564,17 @@ export function JobDetailPage() {
           )
         }}
       >
-        <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700">
+        <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
           <input
             type="checkbox"
             checked={restoreInventory}
             onChange={(e) => setRestoreInventory(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
           />
           <span>{t('pieces.restoreInventoryLabel')}</span>
         </label>
         {pieceStatusError ? (
-          <p className="mt-3 text-sm text-red-600">{pieceStatusError}</p>
+          <p className="mt-3 text-sm text-red-600 dark:text-red-400">{pieceStatusError}</p>
         ) : null}
       </ConfirmDialog>
     </div>

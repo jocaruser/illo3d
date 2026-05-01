@@ -120,9 +120,9 @@ export function JobsTable({
         placeholder={t('listTable.searchPlaceholder')}
         ariaLabel={t('listTable.searchAria')}
       />
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-900">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
               <SortableColumnHeader
                 columnKey="description"
@@ -175,16 +175,16 @@ export function JobsTable({
               </SortableColumnHeader>
               <th
                 scope="col"
-                className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600"
+                className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400"
               >
                 {t('jobs.actions')}
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
+          <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-600">
+                <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
                   {jobs.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -192,7 +192,7 @@ export function JobsTable({
               displayed.map((job) => (
                 <tr
                   key={job.id}
-                  className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
+                  className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 odd:dark:bg-gray-900 even:dark:bg-gray-800/50 hover:dark:bg-gray-800"
                 >
                   <td className="max-w-xs truncate px-4 py-3 text-sm">
                     <LinkWithTagsTooltip
@@ -208,7 +208,7 @@ export function JobsTable({
                       linkClassName="font-medium text-blue-600 hover:text-blue-800"
                     />
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 md:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 md:table-cell">
                     <Link
                       to={`/clients/${job.client_id}`}
                       data-testid={`job-client-link-${job.id}`}
@@ -217,7 +217,7 @@ export function JobsTable({
                       {clientName(clients, job.client_id)}
                     </Link>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                     <StatusDropdown
                       jobId={job.id}
                       status={job.status}
@@ -225,14 +225,14 @@ export function JobsTable({
                       onChange={(next) => onStatusSelect(job, next)}
                     />
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 lg:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300 lg:table-cell">
                     <JobPricingTotalDisplay
                       jobId={job.id}
                       pieces={pieces}
                       t={t}
                     />
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 lg:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 lg:table-cell">
                     {job.created_at}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-sm">

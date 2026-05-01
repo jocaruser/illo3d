@@ -3,7 +3,7 @@ import { jobPricingState } from '@/utils/jobPiecePricing'
 import { formatCurrency } from '@/utils/money'
 
 const incompleteHighlightClassName =
-  'inline-flex items-center rounded-md border border-amber-300 bg-amber-50 px-2 py-0.5 font-semibold text-amber-900'
+  'inline-flex items-center rounded-md border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 font-semibold text-amber-900 dark:text-amber-200'
 
 type JobPricingTotalDisplayProps = {
   jobId: string
@@ -31,5 +31,6 @@ export function JobPricingTotalDisplay({
       </span>
     )
   }
-  return <span>{formatCurrency(s.total)}</span>
+  const toneClass = s.total > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+  return <span className={toneClass}>{formatCurrency(s.total)}</span>
 }

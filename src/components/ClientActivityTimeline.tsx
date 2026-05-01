@@ -8,17 +8,17 @@ import { formatCurrency } from '@/utils/money'
 function timelineNoteSurfaceClass(severity: ClientNoteSeverity): string {
   switch (severity) {
     case 'danger':
-      return 'border-red-200 bg-red-50 text-red-900'
+      return 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 text-red-900 dark:text-red-200'
     case 'warning':
-      return 'border-amber-200 bg-amber-50 text-amber-950'
+      return 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 text-amber-950 dark:text-amber-200'
     case 'success':
-      return 'border-green-200 bg-green-50 text-green-900'
+      return 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-950 text-green-900 dark:text-green-200'
     case 'primary':
-      return 'border-blue-200 bg-blue-50 text-blue-900'
+      return 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-200'
     case 'secondary':
-      return 'border-gray-200 bg-gray-50 text-gray-800'
+      return 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200'
     default:
-      return 'border-gray-200 bg-white text-gray-800'
+      return 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200'
   }
 }
 
@@ -58,17 +58,17 @@ export function ClientActivityTimeline({
     >
       <h2
         id="client-activity-heading"
-        className="mb-3 text-xl font-semibold text-gray-800"
+        className="mb-3 text-xl font-semibold text-gray-800 dark:text-gray-200"
       >
         {t('clientDetail.activity.title')}
       </h2>
 
       {entries.length === 0 ? (
-        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-gray-600">
+        <p className="rounded-lg border border-dashed border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-4 py-8 text-center text-gray-600 dark:text-gray-400">
           {t('clientDetail.activity.empty')}
         </p>
       ) : (
-        <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white shadow">
+        <ul className="divide-y divide-gray-200 dark:divide-gray-700 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
           {entries.map((entry) => (
             <li
               key={entry.id}
@@ -110,8 +110,8 @@ function ActivityRowBody({
         <div
           className={`rounded-md border px-3 py-2 ${timelineNoteSurfaceClass(entry.severity)}`}
         >
-          <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-600">
-            <span className="font-medium text-gray-800">{kindLabel}</span>
+          <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-600 dark:text-gray-400">
+            <span className="font-medium text-gray-800 dark:text-gray-200">{kindLabel}</span>
             <time dateTime={entry.sortAt}>{formatWhen(entry.sortAt)}</time>
           </div>
           <div className="mt-1 text-sm">
@@ -129,14 +129,14 @@ function ActivityRowBody({
         <div
           className={`rounded-md border px-3 py-2 ${timelineNoteSurfaceClass(entry.severity)}`}
         >
-          <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-600">
-            <span className="font-medium text-gray-800">{kindLabel}</span>
+          <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-600 dark:text-gray-400">
+            <span className="font-medium text-gray-800 dark:text-gray-200">{kindLabel}</span>
             <time dateTime={entry.sortAt}>{formatWhen(entry.sortAt)}</time>
           </div>
-          <p className="mt-0.5 text-xs text-gray-600">
+          <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
             <Link
               to={`/jobs/${entry.jobId}`}
-              className="font-medium text-blue-600 hover:text-blue-800"
+              className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
             >
               {t('clientDetail.activity.jobLink', {
                 description: entry.jobDescription,
@@ -156,20 +156,20 @@ function ActivityRowBody({
     case 'job_created':
       return (
         <div>
-          <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-600">
-            <span className="font-medium text-gray-800">{kindLabel}</span>
+          <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-600 dark:text-gray-400">
+            <span className="font-medium text-gray-800 dark:text-gray-200">{kindLabel}</span>
             <time dateTime={entry.sortAt}>{formatWhen(entry.sortAt)}</time>
           </div>
-          <p className="mt-1 text-sm font-medium text-gray-900">
+          <p className="mt-1 text-sm font-medium text-gray-900 dark:text-gray-100">
             <Link
               to={`/jobs/${entry.jobId}`}
-              className="text-blue-600 hover:text-blue-800"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
               data-testid={`client-activity-job-link-${entry.jobId}`}
             >
               {entry.jobDescription}
             </Link>
           </p>
-          <p className="mt-0.5 text-xs text-gray-600">
+          <p className="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
             {t('clientDetail.activity.statusLine', {
               status: t(`jobs.status.${entry.status}`),
             })}
@@ -184,8 +184,8 @@ function ActivityRowBody({
       const line = `${concept} · ${amountLabel}`
       return (
         <div>
-          <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-600">
-            <span className="font-medium text-gray-800">{kindLabel}</span>
+          <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-600 dark:text-gray-400">
+            <span className="font-medium text-gray-800 dark:text-gray-200">{kindLabel}</span>
             <time dateTime={entry.sortAt}>{formatWhen(entry.sortAt)}</time>
           </div>
           <p className="mt-1 text-sm font-medium">
@@ -193,12 +193,12 @@ function ActivityRowBody({
               <Link
                 to={entry.href}
                 data-testid={entry.linkTestId ?? undefined}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
               >
                 {line}
               </Link>
             ) : (
-              <span className="text-gray-900">{line}</span>
+              <span className="text-gray-900 dark:text-gray-100">{line}</span>
             )}
           </p>
         </div>
@@ -207,11 +207,11 @@ function ActivityRowBody({
     case 'tag':
       return (
         <div>
-          <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-600">
-            <span className="font-medium text-gray-800">{kindLabel}</span>
+          <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs text-gray-600 dark:text-gray-400">
+            <span className="font-medium text-gray-800 dark:text-gray-200">{kindLabel}</span>
             <time dateTime={entry.sortAt}>{formatWhen(entry.sortAt)}</time>
           </div>
-          <p className="mt-1 text-sm text-gray-900">{entry.tagName}</p>
+          <p className="mt-1 text-sm text-gray-900 dark:text-gray-100">{entry.tagName}</p>
         </div>
       )
     default: {

@@ -266,7 +266,7 @@ export function ExpenseTransactionDetailPage() {
           <Link
             to={link.to}
             data-testid={link.testId}
-            className="text-blue-600 hover:text-blue-800"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
           >
             {text}
           </Link>
@@ -291,7 +291,7 @@ export function ExpenseTransactionDetailPage() {
               transaction.client_id != null && transaction.client_id !== '' ? (
                 <Link
                   to={`/clients/${transaction.client_id}`}
-                  className="text-blue-600 hover:text-blue-800"
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                 >
                   {getClientName(clients, transaction.client_id) ||
                     transaction.client_id}
@@ -311,17 +311,17 @@ export function ExpenseTransactionDetailPage() {
   const editableSection =
     isRenderableExpense && transaction ? (
       <div className="space-y-8">
-        <section className="rounded-lg border border-gray-200 bg-white p-6 shadow">
-          <h3 className="mb-3 text-lg font-semibold text-gray-800">
+        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow">
+          <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
             {t('expenseTransactionDetail.amountHeading')}
           </h3>
-          <label className="block max-w-xs text-sm text-gray-600">
+          <label className="block max-w-xs text-sm text-gray-600 dark:text-gray-400">
             <span className="mb-1 block">{t('expenseTransactionDetail.amountLabel')}</span>
             <input
               type="text"
               inputMode="decimal"
               data-testid="expense-detail-amount-input"
-              className="w-full rounded border border-gray-300 px-2 py-1.5 text-sm"
+              className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={amountInput}
               onChange={(e) => {
                 setAmountInput(e.target.value)
@@ -330,7 +330,7 @@ export function ExpenseTransactionDetailPage() {
             />
           </label>
           {expenseFieldError ? (
-            <p className="mt-2 text-sm text-red-600" role="alert">
+            <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
               {expenseFieldError}
             </p>
           ) : null}
@@ -340,7 +340,7 @@ export function ExpenseTransactionDetailPage() {
           <div
             role="status"
             data-testid="expense-detail-lot-sum-mismatch"
-            className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+            className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 px-4 py-3 text-sm text-amber-900 dark:text-amber-200"
           >
             {t('expenseTransactionDetail.lotSumMismatch', {
               sumLots: sumLotsDisplay,
@@ -351,25 +351,25 @@ export function ExpenseTransactionDetailPage() {
 
         {lotsLinked.length > 0 ? (
           <section>
-            <h3 className="mb-3 text-lg font-semibold text-gray-800">
+            <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
               {t('expenseTransactionDetail.lotsTitle')}
             </h3>
-            <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
+                    <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                       {t('expenseTransactionDetail.lotDescription')}
                     </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">
+                    <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                       {t('expenseTransactionDetail.lotQuantity')}
                     </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500">
+                    <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                       {t('expenseTransactionDetail.lotAmount')}
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 bg-white">
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
                   {lotsLinked.map((lot) => {
                     const inv = inventoryById.get(lot.inventory_id)
                     const invLabel = inv?.name?.trim() ? inv.name : lot.inventory_id
@@ -381,7 +381,7 @@ export function ExpenseTransactionDetailPage() {
                           <Link
                             to={`/inventory/${lot.inventory_id}`}
                             data-testid={`expense-detail-lot-inv-${lot.id}`}
-                            className="font-medium text-blue-600 hover:text-blue-800"
+                            className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                           >
                             {invLabel}
                           </Link>
@@ -391,7 +391,7 @@ export function ExpenseTransactionDetailPage() {
                             type="text"
                             inputMode="decimal"
                             data-testid={`expense-detail-lot-quantity-input-${lot.id}`}
-                            className="ml-auto w-28 rounded border border-gray-300 px-2 py-1.5 text-right text-sm"
+                            className="ml-auto w-28 rounded border border-gray-300 bg-white px-2 py-1.5 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                             value={qtyVal}
                             onChange={(e) => {
                               setLotQuantityInputs((prev) => ({
@@ -402,7 +402,7 @@ export function ExpenseTransactionDetailPage() {
                             }}
                           />
                           {lotQuantityFieldErrors[lot.id] ? (
-                            <p className="mt-1 text-xs text-red-600" role="alert">
+                            <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
                               {lotQuantityFieldErrors[lot.id]}
                             </p>
                           ) : null}
@@ -412,7 +412,7 @@ export function ExpenseTransactionDetailPage() {
                             type="text"
                             inputMode="decimal"
                             data-testid={`expense-detail-lot-amount-input-${lot.id}`}
-                            className="ml-auto w-28 rounded border border-gray-300 px-2 py-1.5 text-right text-sm"
+                            className="ml-auto w-28 rounded border border-gray-300 bg-white px-2 py-1.5 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                             value={amtVal}
                             onChange={(e) => {
                               setLotAmountInputs((prev) => ({
@@ -423,7 +423,7 @@ export function ExpenseTransactionDetailPage() {
                             }}
                           />
                           {lotAmountFieldErrors[lot.id] ? (
-                            <p className="mt-1 text-xs text-red-600" role="alert">
+                            <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
                               {lotAmountFieldErrors[lot.id]}
                             </p>
                           ) : null}
@@ -451,7 +451,7 @@ export function ExpenseTransactionDetailPage() {
           </button>
         </div>
         {saveError ? (
-          <p className="text-sm text-red-600" role="alert" data-testid="expense-detail-save-error">
+          <p className="text-sm text-red-600 dark:text-red-400" role="alert" data-testid="expense-detail-save-error">
             {saveError}
           </p>
         ) : null}
@@ -480,11 +480,11 @@ export function ExpenseTransactionDetailPage() {
       ) : null}
 
       {showNotFound && (
-        <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow">
-          <p className="text-gray-600">{t('expenseTransactionDetail.notFound')}</p>
+        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-8 py-12 text-center shadow">
+          <p className="text-gray-600 dark:text-gray-400">{t('expenseTransactionDetail.notFound')}</p>
           <Link
             to="/transactions"
-            className="mt-4 inline-block text-blue-600 hover:text-blue-800"
+            className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
           >
             {t('expenseTransactionDetail.backToList')}
           </Link>

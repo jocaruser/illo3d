@@ -321,7 +321,7 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div
-        className="relative max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white p-6 shadow-xl"
+        className="relative max-h-[90vh] w-full max-w-md overflow-auto rounded-lg bg-white dark:bg-gray-900 p-6 shadow-xl"
         role="dialog"
         aria-modal="true"
         aria-labelledby="wizard-title"
@@ -329,9 +329,9 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
         <h2 id="wizard-title" className="sr-only">
           {t('wizard.welcomeTitle')}
         </h2>
-        {welcomeError ? <p className="mb-4 text-sm text-red-600">{welcomeError}</p> : null}
+        {welcomeError ? <p className="mb-4 text-sm text-red-600 dark:text-red-400">{welcomeError}</p> : null}
         {busy && screen === 'welcome' ? (
-          <p className="mb-4 text-sm text-gray-600">{t('wizard.pickingFolder')}</p>
+          <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">{t('wizard.pickingFolder')}</p>
         ) : null}
         {renderMain()}
       </div>

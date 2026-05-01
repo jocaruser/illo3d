@@ -160,7 +160,7 @@ export function GlobalHeaderSearch() {
         }}
         placeholder={t('globalSearch.placeholder')}
         aria-label={t('globalSearch.ariaCombobox')}
-        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
       />
       {showPanel ? (
         <ul
@@ -168,12 +168,12 @@ export function GlobalHeaderSearch() {
           data-testid="global-search-listbox"
           role="listbox"
           aria-label={t('globalSearch.listLabel')}
-          className="absolute z-50 mt-1 max-h-80 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+          className="absolute z-50 mt-1 max-h-80 w-full overflow-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-1 shadow-lg"
         >
           {results.length === 0 ? (
             <li
               role="presentation"
-              className="px-3 py-2 text-sm text-gray-500"
+              className="px-3 py-2 text-sm text-gray-500 dark:text-gray-500"
             >
               {t('globalSearch.noResults')}
             </li>
@@ -184,19 +184,19 @@ export function GlobalHeaderSearch() {
                   type="button"
                   role="option"
                   data-testid={`global-search-option-${hit.kind}-${hit.id}`}
-                  className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm hover:bg-gray-50"
+                  className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => go(hit)}
                 >
-                  <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  <span className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
                     {t(`globalSearch.kind.${hit.kind}`)}
                   </span>
-                  <span className="text-gray-900">{hit.primaryLine}</span>
+                  <span className="text-gray-900 dark:text-gray-100">{hit.primaryLine}</span>
                   {hit.secondaryLine ? (
-                    <span className="text-xs text-gray-600">{hit.secondaryLine}</span>
+                    <span className="text-xs text-gray-600 dark:text-gray-400">{hit.secondaryLine}</span>
                   ) : null}
                   {hit.snippet ? (
-                    <span className="line-clamp-2 text-xs text-gray-500">
+                    <span className="line-clamp-2 text-xs text-gray-500 dark:text-gray-500">
                       {hit.snippet}
                     </span>
                   ) : null}

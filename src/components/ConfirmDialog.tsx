@@ -25,13 +25,13 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <DialogShell isOpen={isOpen} onClose={onCancel} title={title} overlayClassName="z-[60]">
-      <p className="mb-4 text-sm text-gray-600">{message}</p>
+      <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">{message}</p>
       {children}
       <div className="mt-4 flex justify-end gap-3">
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
         >
           {cancelLabel}
         </button>

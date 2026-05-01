@@ -133,7 +133,7 @@ export function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h2 className="mb-6 text-2xl font-bold text-gray-800">
+      <h2 className="mb-6 text-2xl font-bold text-gray-800 dark:text-gray-200">
         {t('page.dashboard')}
       </h2>
 
@@ -146,8 +146,8 @@ export function DashboardPage() {
       ) : null}
 
       {statusError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3" role="alert">
-          <p className="text-sm font-medium text-red-800">{statusError}</p>
+        <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3" role="alert">
+          <p className="text-sm font-medium text-red-800 dark:text-red-200">{statusError}</p>
         </div>
       )}
 
@@ -164,7 +164,7 @@ export function DashboardPage() {
             <button
               type="button"
               onClick={() => setJobPopupOpen(true)}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50"
+              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
             >
               {t('dashboard.addJob')}
             </button>
@@ -203,7 +203,7 @@ export function DashboardPage() {
           </div>
 
           <section className="mb-8" aria-label={t('page.dashboard')}>
-            <h3 className="mb-3 text-lg font-semibold text-gray-800">
+            <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
               {t('nav.jobs')}
             </h3>
             <KanbanBoard

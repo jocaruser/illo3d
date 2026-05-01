@@ -26,7 +26,7 @@ export function PieceStatusDropdown({
       value={status}
       disabled={disabled}
       onChange={(e) => onChange(e.target.value as PieceStatus)}
-      className="rounded border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
+      className="rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-2 py-1 text-sm text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
     >
       {STATUSES.map((s) => (
         <option key={s} value={s}>

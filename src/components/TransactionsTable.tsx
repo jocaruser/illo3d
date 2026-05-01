@@ -58,7 +58,7 @@ function conceptCell(
     <Link
       to={link.to}
       data-testid={link.testId}
-      className="text-blue-600 hover:text-blue-800"
+      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
     >
       {text}
     </Link>
@@ -132,11 +132,11 @@ export function TransactionsTable({
         placeholder={t('listTable.searchPlaceholder')}
         ariaLabel={t('listTable.searchAria')}
       />
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500">
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                 {t('jobs.colId')}
               </th>
               <SortableColumnHeader
@@ -200,10 +200,10 @@ export function TransactionsTable({
               </SortableColumnHeader>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-600">
+                <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
                   {transactions.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -211,14 +211,14 @@ export function TransactionsTable({
               displayed.map((tx) => (
                 <tr
                   key={tx.id}
-                  className="odd:bg-white even:bg-gray-50 hover:bg-gray-100"
+                  className="odd:bg-white dark:bg-gray-900 even:bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                     {tx.type === 'expense' ? (
                       <Link
                         to={`/transactions/${tx.id}`}
                         data-testid={`transaction-expense-detail-link-${tx.id}`}
-                        className="font-medium text-blue-600 hover:text-blue-800"
+                        className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                       >
                         {tx.id}
                       </Link>
@@ -226,31 +226,31 @@ export function TransactionsTable({
                       tx.id
                     )}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700">
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                     {tx.date}
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 sm:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 sm:table-cell">
                     {t(`transactions.type.${tx.type}`)}
                   </td>
                   <td
                     className={`whitespace-nowrap px-4 py-3 text-right text-sm font-medium ${
-                      tx.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      tx.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                     }`}
                   >
                     {formatCurrency(tx.amount)}
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 md:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 md:table-cell">
                     {tx.category}
                   </td>
-                  <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 lg:table-cell">
+                  <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 dark:text-gray-300 lg:table-cell">
                     {conceptCell(tx, expenseTxnIdsWithLots)}
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 md:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 md:table-cell">
                     {tx.client_id ? (
                       <Link
                         to={`/clients/${tx.client_id}`}
                         data-testid={`transaction-client-link-${tx.client_id}`}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                       >
                         {getClientName(clients, tx.client_id) || tx.client_id}
                       </Link>
