@@ -9,6 +9,7 @@ import type {
 import { MentionLinkify } from '@/components/MentionLinkify'
 import { CLIENT_NOTE_SEVERITY_VALUES } from '@/services/clientNote/severity'
 import { ConfirmDialog } from './ConfirmDialog'
+import { toast } from '@/lib/toast'
 
 function stripSeverityClasses(severity: ClientNoteSeverity): string {
   switch (severity) {
@@ -96,25 +97,21 @@ export function CrmNotesSection({
   const [editSeverity, setEditSeverity] =
     useState<ClientNoteSeverity>('info')
   const [busyId, setBusyId] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
   const startEdit = (n: CrmNoteListItem) => {
     setEditingId(n.id)
     setEditBody(n.body)
     setEditSeverity(n.severity)
-    setError(null)
   }
 
   const cancelEdit = () => {
     setEditingId(null)
-    setError(null)
   }
 
   const handleAdd = async () => {
     if (!spreadsheetId || !draftBody.trim()) return
     setAdding(true)
-    setError(null)
     try {
       await onCreateNote({
         body: draftBody,
@@ -124,7 +121,7 @@ export function CrmNotesSection({
       setDraftSeverity('info')
       await onChanged()
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('wizard.errorGeneric'))
+      toast.error(e instanceof Error ? e.message : t('wizard.errorGeneric'))
     } finally {
       setAdding(false)
     }
@@ -133,7 +130,6 @@ export function CrmNotesSection({
   const handleSaveEdit = async (noteId: string) => {
     if (!spreadsheetId) return
     setBusyId(noteId)
-    setError(null)
     try {
       await onUpdateNote(noteId, {
         body: editBody,
@@ -142,7 +138,7 @@ export function CrmNotesSection({
       setEditingId(null)
       await onChanged()
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('wizard.errorGeneric'))
+      toast.error(e instanceof Error ? e.message : t('wizard.errorGeneric'))
     } finally {
       setBusyId(null)
     }
@@ -151,14 +147,13 @@ export function CrmNotesSection({
   const confirmDelete = async () => {
     if (!spreadsheetId || !deleteId) return
     setBusyId(deleteId)
-    setError(null)
     try {
       await onDeleteNote(deleteId)
       setDeleteId(null)
       if (editingId === deleteId) setEditingId(null)
       await onChanged()
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('wizard.errorGeneric'))
+      toast.error(e instanceof Error ? e.message : t('wizard.errorGeneric'))
     } finally {
       setBusyId(null)
     }
@@ -192,12 +187,6 @@ export function CrmNotesSection({
             </div>
           ))}
         </div>
-      ) : null}
-
-      {error ? (
-        <p className="mb-3 text-sm text-red-600 dark:text-red-400" role="alert">
-          {error}
-        </p>
       ) : null}
 
       <div className="mb-6 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">

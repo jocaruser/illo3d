@@ -1,0 +1,83 @@
+## ADDED Requirements
+
+### Requirement: Toast system displays action-result feedback
+
+The system SHALL provide a unified toast notification surface for all ephemeral action-result feedback (success, error, and progress). The toast surface SHALL be non-blocking, stackable, and dismissible. All toast messages SHALL be translatable via i18n.
+
+#### Scenario: Success toast appears after action
+
+- **WHEN** an action completes successfully (e.g., save workbook, archive client)
+- **THEN** a success toast appears with a brief message
+- **AND** it auto-dismisses after 3 seconds
+
+#### Scenario: Error toast appears after action failure
+
+- **WHEN** an action fails (e.g., network error, quota exceeded)
+- **THEN** an error toast appears with the failure message
+- **AND** workbook-level errors include a Retry action button
+- **AND** the toast persists until dismissed by the user
+
+#### Scenario: Toast messages are localized
+
+- **WHEN** the UI language is Spanish
+- **THEN** toast messages display Spanish text from translation resources
+
+### Requirement: Progress toast tracks workbook load
+
+The system SHALL display a non-dismissible progress toast during workbook hydration and refresh. The toast SHALL show the current sheet being loaded, the count of completed sheets, and a visual progress bar. The toast SHALL dismiss automatically when loading completes or transitions to an error toast on failure.
+
+#### Scenario: Progress toast shows during hydration
+
+- **WHEN** the workbook begins hydration after shop open
+- **THEN** a progress toast appears showing "Loading workbook…"
+- **AND** as each sheet completes, the count updates (e.g., "Loaded clients… 3/10")
+- **AND** a progress bar fills proportionally
+
+#### Scenario: Progress toast transitions to error on failure
+
+- **WHEN** a sheet read fails during hydration
+- **THEN** the progress toast is replaced by a persistent error toast
+- **AND** the error toast includes a Retry button
+- **AND** the workbook store status remains unchanged (data is not hidden)
+
+### Requirement: Progress toast tracks workbook save
+
+The system SHALL display a non-dismissible progress toast during workbook save. The toast SHALL show the current sheet being written, the count of completed sheets, and a visual progress bar. The toast SHALL dismiss automatically when saving completes or transitions to an error toast on failure.
+
+#### Scenario: Progress toast shows during save
+
+- **WHEN** the user triggers Save
+- **THEN** a progress toast appears showing "Saving workbook…"
+- **AND** as each sheet is written, the count updates (e.g., "Saving clients… 3/10")
+- **AND** a progress bar fills proportionally
+
+#### Scenario: Save failure preserves dirty state
+
+- **WHEN** a sheet write fails during save
+- **THEN** the progress toast is replaced by a persistent error toast
+- **AND** the dirty flag remains true
+- **AND** the user can retry Save after the error resolves
+
+### Requirement: Toast system supports dark mode
+
+The toast surface SHALL automatically adapt to the current theme (light or dark) by reading the `.dark` class on the `<html>` element. Toast colors in dark mode SHALL match the app's existing dark palette.
+
+#### Scenario: Toast renders in dark mode
+
+- **WHEN** the theme is set to dark
+- **THEN** toasts render with dark background, light text, and appropriate border colors
+- **AND** no additional configuration is required
+
+### Requirement: Thin toast wrapper decouples app from library
+
+The system SHALL provide a thin wrapper module (`src/lib/toast.ts`) that exposes a minimal API for showing toasts. Application code SHALL call the wrapper, not the underlying library directly.
+
+#### Scenario: App code uses wrapper API
+
+- **WHEN** a component needs to show a toast
+- **THEN** it imports from `src/lib/toast.ts`
+- **AND** does not import from `sonner` directly
+
+## MODIFIED Requirements
+
+No existing requirements from other capabilities are modified in this spec.

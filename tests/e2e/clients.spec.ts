@@ -14,7 +14,6 @@ test.describe('Clients page', () => {
       timeout: 10000,
     })
 
-    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
     await expect(page.getByText('Acme Corp')).toBeVisible()
   })
@@ -25,7 +24,6 @@ test.describe('Clients page', () => {
     await expect(page.getByRole('heading', { name: 'Clients' })).toBeVisible({
       timeout: 10000,
     })
-    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByText('Acme Corp')).toBeVisible({ timeout: 15000 })
 
     await page.getByTestId('list-table-search').fill('nomatchzzzxx')
@@ -43,7 +41,6 @@ test.describe('Clients page', () => {
     await expect(page.getByRole('heading', { name: 'Clients' })).toBeVisible({
       timeout: 10000,
     })
-    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('link', { name: 'Beta LLC' })).toBeVisible({
       timeout: 15000,
     })
@@ -61,8 +58,6 @@ test.describe('Clients page', () => {
     await expect(page.getByRole('heading', { name: 'Clients' })).toBeVisible({
       timeout: 10000,
     })
-    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
-
     const link = page.getByTestId('client-detail-link-CL1')
     await expect(link).toBeVisible({ timeout: 15000 })
     await link.hover()

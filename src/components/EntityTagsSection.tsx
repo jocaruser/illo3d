@@ -8,6 +8,7 @@ import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import type { TagCommitPayload } from '@/utils/tagNameMatch'
 import type { TagsTranslationScope } from './TagAddCombobox'
 import { TagAddCombobox } from './TagAddCombobox'
+import { toast } from '@/lib/toast'
 
 export interface EntityTagsSectionProps {
   spreadsheetId: string | null
@@ -44,12 +45,10 @@ export function EntityTagsSection({
   const availableToLink = tags.filter((tag) => !linkedTagIds.has(tag.id))
 
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const handleCommitTag = async (payload: TagCommitPayload) => {
     if (!spreadsheetId) return
     setBusy(true)
-    setError(null)
     try {
       if (payload.type === 'link') {
         await createTagLink(
@@ -64,7 +63,7 @@ export function EntityTagsSection({
       }
       await onChanged()
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('wizard.errorGeneric'))
+      toast.error(e instanceof Error ? e.message : t('wizard.errorGeneric'))
     } finally {
       setBusy(false)
     }
@@ -73,12 +72,11 @@ export function EntityTagsSection({
   const handleRemove = async (linkId: string) => {
     if (!spreadsheetId) return
     setBusy(true)
-    setError(null)
     try {
       await deleteTagLink(spreadsheetId, linkId)
       await onChanged()
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('wizard.errorGeneric'))
+      toast.error(e instanceof Error ? e.message : t('wizard.errorGeneric'))
     } finally {
       setBusy(false)
     }
@@ -89,11 +87,6 @@ export function EntityTagsSection({
       <h3 className="mb-3 text-xl font-semibold text-gray-800 dark:text-gray-200">
         {tk('tagsTitle')}
       </h3>
-      {error ? (
-        <p className="mb-2 text-sm text-red-600 dark:text-red-400" role="alert">
-          {error}
-        </p>
-      ) : null}
       <div className="mb-3 flex flex-wrap gap-2">
         {linksForEntity.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-500">{tk('tagsEmpty')}</p>

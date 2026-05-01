@@ -7,7 +7,6 @@ import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import { JobsTable } from '@/components/JobsTable'
-import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -25,8 +24,6 @@ export function JobsPage() {
   const {
     spreadsheetId,
     workbookStatus,
-    workbookError,
-    onRetry,
   } = useWorkbookConnection()
 
   const { jobs: allJobs, clients, tags, tagLinks, pieces } = useWorkbookEntities()
@@ -104,11 +101,6 @@ export function JobsPage() {
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h2 className="mb-6 text-2xl font-bold text-gray-800 dark:text-gray-200">{t('jobs.title')}</h2>
 
-      <ConnectionStatus
-        status={workbookStatus}
-        errorMessage={workbookError}
-        onRetry={onRetry}
-      />
 
       {statusError && (
         <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3" role="alert">

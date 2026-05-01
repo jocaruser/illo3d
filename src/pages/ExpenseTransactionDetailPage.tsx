@@ -3,7 +3,6 @@ import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
-import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
 import { EmptyState } from '@/components/EmptyState'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
@@ -22,6 +21,7 @@ import {
   updateTransactionAmount,
 } from '@/services/transactions/updateTransactionAmount'
 import type { Client, Lot, Transaction } from '@/types/money'
+import { toast } from '@/lib/toast'
 
 function isActiveTransaction(txn: Transaction): boolean {
   return txn.archived !== 'true' && txn.deleted !== 'true'
@@ -43,8 +43,6 @@ export function ExpenseTransactionDetailPage() {
   const {
     spreadsheetId,
     workbookStatus,
-    workbookError,
-    onRetry,
   } = useWorkbookConnection()
 
   const { transactions: allTransactions, lots: allLots, clients, inventory } =
@@ -85,7 +83,6 @@ export function ExpenseTransactionDetailPage() {
   const [amountInput, setAmountInput] = useState('')
   const [lotAmountInputs, setLotAmountInputs] = useState<Record<string, string>>({})
   const [lotQuantityInputs, setLotQuantityInputs] = useState<Record<string, string>>({})
-  const [saveError, setSaveError] = useState<string | null>(null)
   const [saveBusy, setSaveBusy] = useState(false)
 
   const lotsSignature = useMemo(
@@ -105,7 +102,6 @@ export function ExpenseTransactionDetailPage() {
     setLotQuantityInputs(
       Object.fromEntries(lotsLinked.map((l) => [l.id, String(l.quantity)])),
     )
-    setSaveError(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset when `lotsSignature` (server lot data) changes; avoid `lotsLinked` identity churn wiping drafts
   }, [lotsSignature])
 
@@ -199,11 +195,10 @@ export function ExpenseTransactionDetailPage() {
 
   const onSaveAll = async () => {
     if (!spreadsheetId || !transaction || !isRenderableExpense) return
-    setSaveError(null)
 
     const parsedExpense = parseExpenseAmountInput(amountInput)
     if (parsedExpense == null || parsedExpense >= 0) {
-      setSaveError(t('expenseTransactionDetail.amountInvalid'))
+      toast.error(t('expenseTransactionDetail.amountInvalid'))
       return
     }
 
@@ -212,11 +207,11 @@ export function ExpenseTransactionDetailPage() {
       const q = parseLotQuantityInput(lotQuantityInputs[l.id] ?? '')
       const a = parseLotPurchaseAmountInput(lotAmountInputs[l.id] ?? '')
       if (q == null) {
-        setSaveError(t('expenseTransactionDetail.lotQuantityInvalid'))
+        toast.error(t('expenseTransactionDetail.lotQuantityInvalid'))
         return
       }
       if (a == null) {
-        setSaveError(t('expenseTransactionDetail.lotAmountInvalid'))
+        toast.error(t('expenseTransactionDetail.lotAmountInvalid'))
         return
       }
       lotUpdates.push({ lotId: l.id, quantity: q, amount: a })
@@ -229,7 +224,7 @@ export function ExpenseTransactionDetailPage() {
         parsedExpense,
       )
     ) {
-      setSaveError(
+      toast.error(
         t('expenseTransactionDetail.lotSumMismatchSaveBlocked', {
           sumLots: sumLotsDisplay,
           absTxn: absTxnDisplay,
@@ -248,7 +243,7 @@ export function ExpenseTransactionDetailPage() {
         })
       }
     } catch (e) {
-      setSaveError(
+      toast.error(
         e instanceof Error ? e.message : t('expenseTransactionDetail.saveError'),
       )
     } finally {
@@ -325,7 +320,6 @@ export function ExpenseTransactionDetailPage() {
               value={amountInput}
               onChange={(e) => {
                 setAmountInput(e.target.value)
-                setSaveError(null)
               }}
             />
           </label>
@@ -398,7 +392,6 @@ export function ExpenseTransactionDetailPage() {
                                 ...prev,
                                 [lot.id]: e.target.value,
                               }))
-                              setSaveError(null)
                             }}
                           />
                           {lotQuantityFieldErrors[lot.id] ? (
@@ -419,7 +412,6 @@ export function ExpenseTransactionDetailPage() {
                                 ...prev,
                                 [lot.id]: e.target.value,
                               }))
-                              setSaveError(null)
                             }}
                           />
                           {lotAmountFieldErrors[lot.id] ? (
@@ -450,11 +442,6 @@ export function ExpenseTransactionDetailPage() {
             {saveBusy ? t('expenseTransactionDetail.saving') : t('expenseTransactionDetail.saveChanges')}
           </button>
         </div>
-        {saveError ? (
-          <p className="text-sm text-red-600 dark:text-red-400" role="alert" data-testid="expense-detail-save-error">
-            {saveError}
-          </p>
-        ) : null}
       </div>
     ) : null
 
@@ -465,13 +452,6 @@ export function ExpenseTransactionDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      {spreadsheetId ? (
-        <ConnectionStatus
-          status={workbookStatus}
-          errorMessage={workbookError}
-          onRetry={onRetry}
-        />
-      ) : null}
 
       {workbookStatus === 'loading' && spreadsheetId ? (
         <div className="mt-8 flex justify-center" aria-busy="true">

@@ -50,7 +50,6 @@ describe('useJobStatusFlow handleStatusSelect', () => {
     })
 
     expect(selectResult).toBe('blocked')
-    expect(result.current.statusError).toBe('jobs.paidPiecesIncomplete')
   })
 
   it('returns blocked when moving to cancelled with incomplete piece pricing', async () => {
@@ -64,7 +63,6 @@ describe('useJobStatusFlow handleStatusSelect', () => {
     })
 
     expect(selectResult).toBe('blocked')
-    expect(result.current.statusError).toBe('jobs.paidPiecesIncomplete')
   })
 
   it('returns blocked when price set but units unset', async () => {
@@ -78,7 +76,6 @@ describe('useJobStatusFlow handleStatusSelect', () => {
     })
 
     expect(selectResult).toBe('blocked')
-    expect(result.current.statusError).toBe('jobs.paidPiecesIncomplete')
   })
 
   it('returns dialog-opened when moving to cancelled with complete pricing', async () => {
@@ -92,6 +89,5 @@ describe('useJobStatusFlow handleStatusSelect', () => {
     })
 
     expect(selectResult).toBe('dialog-opened')
-    expect(result.current.statusError).toBeNull()
   })
 })

@@ -4,7 +4,6 @@ import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { TransactionsTable } from '@/components/TransactionsTable'
 import { BalanceDisplay } from '@/components/BalanceDisplay'
-import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
 import { CreatePurchasePopup } from '@/components/CreatePurchasePopup'
 import { calculateBalance } from '@/utils/money'
@@ -23,8 +22,6 @@ export function TransactionsPage() {
   const {
     spreadsheetId,
     workbookStatus,
-    workbookError,
-    onRetry,
   } = useWorkbookConnection()
 
   const { transactions: allTransactions, clients, lots } = useWorkbookEntities()
@@ -50,13 +47,6 @@ export function TransactionsPage() {
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h2 className="mb-6 text-2xl font-bold text-gray-800 dark:text-gray-200">{t('page.transactions')}</h2>
 
-      {spreadsheetId ? (
-        <ConnectionStatus
-          status={workbookStatus}
-          errorMessage={workbookError}
-          onRetry={onRetry}
-        />
-      ) : null}
 
       {workbookStatus === 'ready' && (
         <>

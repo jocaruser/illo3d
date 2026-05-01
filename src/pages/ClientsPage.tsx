@@ -4,7 +4,6 @@ import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import { ClientsTable } from '@/components/ClientsTable'
-import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreateClientPopup } from '@/components/CreateClientPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EmptyState } from '@/components/EmptyState'
@@ -13,6 +12,7 @@ import { updateClient } from '@/services/client/updateClient'
 import { deleteClient } from '@/services/client/deleteClient'
 import type { Client } from '@/types/money'
 import type { UpdateClientPayload } from '@/services/client/updateClient'
+import { toast } from '@/lib/toast'
 
 function isActiveEntity(c: Client): boolean {
   return c.archived !== 'true' && c.deleted !== 'true'
@@ -24,8 +24,6 @@ export function ClientsPage() {
   const {
     spreadsheetId,
     workbookStatus,
-    workbookError,
-    onRetry,
   } = useWorkbookConnection()
 
   const { clients: allClients, tags, tagLinks } = useWorkbookEntities()
@@ -60,7 +58,6 @@ export function ClientsPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [archiveTarget, setArchiveTarget] = useState<Client | null>(null)
-  const [archiveError, setArchiveError] = useState<string | null>(null)
 
   const clientPopupOpen = createOpen || editingClient !== null
 
@@ -85,12 +82,11 @@ export function ClientsPage() {
 
   const confirmArchiveClient = async () => {
     if (!spreadsheetId || !archiveTarget) return
-    setArchiveError(null)
     try {
       await deleteClient(spreadsheetId, archiveTarget.id)
       setArchiveTarget(null)
     } catch (e) {
-      setArchiveError(
+      toast.error(
         e instanceof Error ? e.message : t('wizard.errorGeneric'),
       )
     }
@@ -102,13 +98,6 @@ export function ClientsPage() {
         {t('clients.title')}
       </h2>
 
-      {spreadsheetId ? (
-        <ConnectionStatus
-          status={workbookStatus}
-          errorMessage={workbookError}
-          onRetry={onRetry}
-        />
-      ) : null}
 
       {workbookStatus === 'ready' && (
         <>
@@ -137,7 +126,6 @@ export function ClientsPage() {
                 setEditingClient(c)
               }}
               onArchive={(c) => {
-                setArchiveError(null)
                 setArchiveTarget(c)
               }}
             />
@@ -165,12 +153,9 @@ export function ClientsPage() {
         onConfirm={confirmArchiveClient}
         onCancel={() => {
           setArchiveTarget(null)
-          setArchiveError(null)
         }}
       >
-        {archiveError ? (
-          <p className="text-sm text-red-600 dark:text-red-400">{archiveError}</p>
-        ) : null}
+
       </ConfirmDialog>
     </div>
   )

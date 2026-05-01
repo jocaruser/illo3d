@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
-import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
 import { EmptyState } from '@/components/EmptyState'
@@ -20,6 +19,7 @@ import { computeAvgUnitCost } from '@/utils/avgUnitCost'
 import { formatCurrency } from '@/utils/money'
 import { formatInventoryCreatedDate } from '@/services/sheets/inventory'
 import { buildInventoryConsumptionRows } from '@/lib/inventoryDetail/consumptionRows'
+import { toast } from '@/lib/toast'
 import type { Inventory, Lot, Transaction } from '@/types/money'
 
 function isActiveInventory(row: Inventory): boolean {
@@ -45,8 +45,6 @@ export function InventoryDetailPage() {
   const {
     spreadsheetId,
     workbookStatus,
-    workbookError,
-    onRetry,
   } = useWorkbookConnection()
 
   const {
@@ -83,22 +81,18 @@ export function InventoryDetailPage() {
   }, [item, allLots])
 
   const [qtyInput, setQtyInput] = useState('')
-  const [qtySaveError, setQtySaveError] = useState<string | null>(null)
   const [qtySaveBusy, setQtySaveBusy] = useState(false)
 
   const [warnYellow, setWarnYellow] = useState('0')
   const [warnOrange, setWarnOrange] = useState('0')
   const [warnRed, setWarnRed] = useState('0')
-  const [thresholdSaveError, setThresholdSaveError] = useState<string | null>(null)
   const [thresholdSaveBusy, setThresholdSaveBusy] = useState(false)
 
   const [lotQuantityInputs, setLotQuantityInputs] = useState<Record<string, string>>({})
   const [lotAmountInputs, setLotAmountInputs] = useState<Record<string, string>>({})
   const [lotSaveBusyId, setLotSaveBusyId] = useState<string | null>(null)
-  const [lotSaveError, setLotSaveError] = useState<string | null>(null)
 
   const [archiveTarget, setArchiveTarget] = useState<Inventory | null>(null)
-  const [archiveError, setArchiveError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!item) return
@@ -122,7 +116,6 @@ export function InventoryDetailPage() {
       Object.fromEntries(lotsForItem.map((l) => [l.id, String(l.quantity)])),
     )
     setLotAmountInputs(Object.fromEntries(lotsForItem.map((l) => [l.id, String(l.amount)])))
-    setLotSaveError(null)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- reset when server-backed lot data changes
   }, [lotsSignature])
 
@@ -152,7 +145,6 @@ export function InventoryDetailPage() {
 
   const onSaveThresholds = async () => {
     if (!spreadsheetId || !item) return
-    setThresholdSaveError(null)
     setThresholdSaveBusy(true)
     try {
       await updateInventoryThresholds(spreadsheetId, item.id, {
@@ -161,7 +153,7 @@ export function InventoryDetailPage() {
         warn_red: parseThresholdInput(warnRed),
       })
     } catch (e) {
-      setThresholdSaveError(
+      toast.error(
         e instanceof Error ? e.message : t('inventoryDetail.saveError'),
       )
     } finally {
@@ -171,17 +163,16 @@ export function InventoryDetailPage() {
 
   const onSaveQtyCurrent = async () => {
     if (!spreadsheetId || !item) return
-    setQtySaveError(null)
     const parsed = parseQtyCurrentInput(qtyInput)
     if (parsed == null) {
-      setQtySaveError(t('inventoryDetail.qtyInvalid'))
+      toast.error(t('inventoryDetail.qtyInvalid'))
       return
     }
     setQtySaveBusy(true)
     try {
       await updateInventoryQtyCurrent(spreadsheetId, item.id, parsed)
     } catch (e) {
-      setQtySaveError(
+      toast.error(
         e instanceof Error ? e.message : t('inventoryDetail.qtySaveError'),
       )
     } finally {
@@ -191,22 +182,21 @@ export function InventoryDetailPage() {
 
   const onSaveLot = async (lot: Lot) => {
     if (!spreadsheetId) return
-    setLotSaveError(null)
     const qty = parseLotQuantityInput(lotQuantityInputs[lot.id] ?? '')
     const amt = parseLotPurchaseAmountInput(lotAmountInputs[lot.id] ?? '')
     if (qty == null) {
-      setLotSaveError(t('inventoryDetail.lotQuantityInvalid'))
+      toast.error(t('inventoryDetail.lotQuantityInvalid'))
       return
     }
     if (amt == null) {
-      setLotSaveError(t('inventoryDetail.lotAmountInvalid'))
+      toast.error(t('inventoryDetail.lotAmountInvalid'))
       return
     }
     setLotSaveBusyId(lot.id)
     try {
       await updateLotFields(spreadsheetId, lot.id, { quantity: qty, amount: amt })
     } catch (e) {
-      setLotSaveError(
+      toast.error(
         e instanceof Error ? e.message : t('inventoryDetail.lotSaveError'),
       )
     } finally {
@@ -216,13 +206,12 @@ export function InventoryDetailPage() {
 
   const confirmArchiveInventory = async () => {
     if (!spreadsheetId || !archiveTarget) return
-    setArchiveError(null)
     try {
       await deleteInventory(spreadsheetId, archiveTarget.id)
       setArchiveTarget(null)
       navigate('/inventory')
     } catch (e) {
-      setArchiveError(
+      toast.error(
         e instanceof Error ? e.message : t('inventoryDetail.archiveError'),
       )
     }
@@ -257,12 +246,6 @@ export function InventoryDetailPage() {
             {qtySaveBusy ? t('inventoryDetail.saving') : t('inventoryDetail.saveQty')}
           </button>
         </div>
-        {qtySaveError ? (
-          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-            {qtySaveError}
-          </p>
-        ) : null}
-
         <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
           {t('inventoryDetail.thresholdsHeading')}
         </p>
@@ -304,11 +287,6 @@ export function InventoryDetailPage() {
             />
           </label>
         </div>
-        {thresholdSaveError ? (
-          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-            {thresholdSaveError}
-          </p>
-        ) : null}
         <button
           type="button"
           data-testid="inventory-detail-save-thresholds"
@@ -337,13 +315,6 @@ export function InventoryDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      {spreadsheetId ? (
-        <ConnectionStatus
-          status={workbookStatus}
-          errorMessage={workbookError}
-          onRetry={onRetry}
-        />
-      ) : null}
 
       {workbookStatus === 'loading' && spreadsheetId ? (
         <div className="mt-8 flex justify-center" aria-busy="true">
@@ -374,17 +345,11 @@ export function InventoryDetailPage() {
             deleteLabel={t('lifecycle.archive')}
             onEdit={() => {}}
             onDelete={() => {
-              setArchiveError(null)
               setArchiveTarget(item)
             }}
             hideEditButton
             belowFields={thresholdEditor}
           >
-            {lotSaveError ? (
-              <p className="mb-4 text-sm text-red-600 dark:text-red-400" role="alert">
-                {lotSaveError}
-              </p>
-            ) : null}
             {showCombinedEmpty ? (
               <EmptyState messageKey="inventoryDetail.sectionsEmpty" />
             ) : (
@@ -559,12 +524,8 @@ export function InventoryDetailPage() {
             onConfirm={() => void confirmArchiveInventory()}
             onCancel={() => {
               setArchiveTarget(null)
-              setArchiveError(null)
             }}
           >
-            {archiveError ? (
-              <p className="text-sm text-red-600 dark:text-red-400">{archiveError}</p>
-            ) : null}
           </ConfirmDialog>
         </>
       )}

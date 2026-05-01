@@ -6,7 +6,6 @@ import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
-import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
 import { CreatePiecePopup } from '@/components/CreatePiecePopup'
 import { CreatePieceItemPopup } from '@/components/CreatePieceItemPopup'
@@ -80,8 +79,6 @@ export function JobDetailPage() {
   const {
     spreadsheetId,
     workbookStatus,
-    workbookError,
-    onRetry,
   } = useWorkbookConnection()
 
   const {
@@ -301,11 +298,6 @@ export function JobDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <ConnectionStatus
-        status={workbookStatus}
-        errorMessage={workbookError}
-        onRetry={onRetry}
-      />
 
       {workbookStatus === 'ready' && jobId && !job && (
         <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-8 py-12 text-center shadow">

@@ -4,6 +4,7 @@ import { createJob } from '@/services/job/createJob'
 import { updateJob } from '@/services/job/updateJob'
 import type { Client, Job } from '@/types/money'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
+import { toast } from '@/lib/toast'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
 
@@ -37,7 +38,6 @@ export function CreateJobPopup({
   const [clientId, setClientId] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const filteredClients = useMemo(() => {
@@ -63,7 +63,6 @@ export function CreateJobPopup({
       setClientId('')
       setDescription('')
     }
-    setError(null)
     setFieldErrors({})
   }, [isOpen, initialJob, clients, presetClientId])
 
@@ -79,7 +78,6 @@ export function CreateJobPopup({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
     if (!validate() || !spreadsheetId) return
     setLoading(true)
     try {
@@ -103,7 +101,7 @@ export function CreateJobPopup({
       }
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
+      toast.error(err instanceof Error ? err.message : t('wizard.errorGeneric'))
     } finally {
       setLoading(false)
     }
@@ -204,7 +202,6 @@ export function CreateJobPopup({
             </p>
           )}
         </div>
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         <div className="flex gap-3 pt-2">
           <button
             type="button"

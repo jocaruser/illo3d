@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { InventoryTable } from '@/components/InventoryTable'
-import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { EmptyState } from '@/components/EmptyState'
 import { useTranslation } from 'react-i18next'
 import type { Inventory } from '@/types/money'
@@ -14,10 +13,7 @@ function isActiveInventory(row: Inventory): boolean {
 export function InventoryPage() {
   const { t } = useTranslation()
   const {
-    spreadsheetId,
     workbookStatus,
-    workbookError,
-    onRetry,
   } = useWorkbookConnection()
 
   const { inventory: allInventory, lots: allLots } = useWorkbookEntities()
@@ -37,13 +33,6 @@ export function InventoryPage() {
         {t('inventory.title')}
       </h2>
 
-      {spreadsheetId ? (
-        <ConnectionStatus
-          status={workbookStatus}
-          errorMessage={workbookError}
-          onRetry={onRetry}
-        />
-      ) : null}
 
       {workbookStatus === 'ready' && (
         <>
