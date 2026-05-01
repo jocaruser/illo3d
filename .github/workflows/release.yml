@@ -11,8 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
 
       - name: Extract current version
         id: current
@@ -20,18 +18,28 @@ jobs:
           VERSION=$(sed -n "s/.*APP_VERSION *= *'\([^']*\)'.*/\1/p" src/config/version.ts)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Extract previous version
-        id: previous
+      - name: Check if release exists
+        id: check
         run: |
-          VERSION=$(git show HEAD~1:src/config/version.ts 2>/dev/null | sed -n "s/.*APP_VERSION *= *'\([^']*\)'.*/\1/p" || echo "0.0.0")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if gh release view "v${{ steps.current.outputs.version }}" > /dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
-        if: steps.current.outputs.version != steps.previous.outputs.version
+        if: steps.check.outputs.exists == 'false'
         run: |
           gh release create "v${{ steps.current.outputs.version }}" \
             --title "v${{ steps.current.outputs.version }}" \
-            --generate-notes \
-            --target ${{ github.sha }}
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger deploy
+        if: steps.check.outputs.exists == 'false'
+        run: gh workflow run deploy.yml
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
