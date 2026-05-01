@@ -1,14 +1,14 @@
 ---
 name: github-create-pr
-description: Sync and archive the thread's OpenSpec change, then create a branch, push, and open a PR via GitHub MCP. Use when the user wants to create a pull request.
+description: Sync and archive the thread's OpenSpec change, then create a branch, push, and open a PR via `gh` CLI. Use when the user wants to create a pull request.
 license: MIT
-compatibility: Requires GitHub MCP, git, and OpenSpec CLI.
+compatibility: Requires `gh` CLI, git, and OpenSpec CLI.
 metadata:
   author: agent-commands
   version: "1.0"
 ---
 
-Create a new branch, push your changes, and open a pull request using GitHub MCP. **First**, close out the OpenSpec change this thread implemented: sync delta specs into main specs, then archive the change.
+Create a new branch, push your changes, and open a pull request using `gh` CLI. **First**, close out the OpenSpec change this thread implemented: sync delta specs into main specs, then archive the change.
 
 **Do not run `make quality-gate`**—the repository's GitHub workflow runs the quality gate on the PR.
 
@@ -45,15 +45,14 @@ Optional branch name (e.g., `feat/add-auth`) and PR title. If omitted, infer fro
 
 - If current branch is `main`: create local branch `git checkout -b <branch-name>`
 - If already on a feature branch: use it as-is
-- Use GitHub MCP `create_branch` with `owner`, `repo`, `branch`, `from_branch: main`
-- Run `git push -u origin <branch-name>`
+- Run `git push -u origin <branch-name>`. GitHub auto-creates the remote branch on push.
 - If push fails, report and stop
 
-### 6. Create PR via GitHub MCP
+### 6. Create PR via `gh` CLI
 
-- Use `create_pull_request` tool: `owner`, `repo`, `title`, `head` = branch name, `base` = `main`
+- Run `gh pr create --repo <owner>/<repo> --head <branch-name> --base main --title "..." --body "..."`
 - PR body: summarize key changes (OpenSpec sync to main specs, code, etc.). Keep concise.
-- If draft PR preferred: pass `draft: true` (ask user if unsure)
+- If draft PR preferred: add `--draft` (ask user if unsure)
 
 ### 7. Output
 

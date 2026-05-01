@@ -1,13 +1,10 @@
 ---
-name: /create-pr
-id: create-pr
-category: GitHub
 description: Sync and archive the thread's OpenSpec change, then create a branch, push, and open a PR via `gh` CLI
 ---
 
 Create a new branch, push your changes, and open a pull request using `gh` CLI. **First**, close out the OpenSpec change this thread implemented: sync delta specs into main specs, then archive the change (unless the user says this PR is unrelated to OpenSpec—then skip the OpenSpec block after confirming).
 
-**Do not run `make quality-gate` (or build/lint/test/e2e) as part of this command**—the repository’s GitHub workflow runs the quality gate on the PR. The user may still run it locally if they want; `/create-pr` must not block on it.
+**Do not run `make quality-gate` (or build/lint/test/e2e) as part of this command**—the repository's GitHub workflow runs the quality gate on the PR. The user may still run it locally if they want; `/create-pr` must not block on it.
 
 **Input**: Optional branch name (e.g., `feat/add-auth`) and PR title. If omitted, infer from current changes or ask.
 
@@ -31,6 +28,7 @@ Create a new branch, push your changes, and open a pull request using `gh` CLI. 
 4. **Pre-commit checks**
    - Run `openspec list --json`. If **unexpected** active changes remain (e.g. parallel work), warn and ask whether to proceed with the PR.
    - **Do not commit `openspec/changes/archive/`**. That path is in `.gitignore`; archived OpenSpec changes stay local-only. Never `git add -f` archive folders unless the user explicitly overrides repo policy.
+   - **Version bump check**: Read `src/config/version.ts`. Compare `APP_VERSION` to the value on `main` (e.g. `git show main:src/config/version.ts`). If the version was not bumped, warn the user and ask what the new version should be. Apply the bump before proceeding. If the user says the change truly requires no version change, note it in the PR body.
    - Ensure working tree is ready: commit any uncommitted changes with a sensible message (ask if message unclear)
 
 5. **Create branch and push**

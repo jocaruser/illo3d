@@ -11,4 +11,6 @@ export interface ShopMetadata {
   spreadsheetId: string
   createdAt: string
   createdBy: string
+  iconsrc?: string
+  userName?: string
 }
