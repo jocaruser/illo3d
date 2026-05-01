@@ -161,11 +161,8 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
         toastStore.tick(name)
       }
       set({ dirty: false })
-      toastStore.success('Workbook saved')
-    } catch (e) {
-      const message = e instanceof Error ? e.message : String(e)
-      toastStore.error(message)
-      throw e
+    } finally {
+      toastStore.dismiss()
     }
   },
 
