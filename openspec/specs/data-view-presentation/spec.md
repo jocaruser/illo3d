@@ -23,24 +23,24 @@ The system SHALL wrap the rendered children of `ProtectedRoute` (the authenticat
 
 ### Requirement: In-scope data pages use a shared loading indicator
 
-On the Clients, Transactions, Expenses, and **Inventory list** pages, while the primary list query for that page reports loading (`isLoading` true) and the sheet connection is in the connected state, the system SHALL show a shared loading component (e.g. `LoadingSpinner`) with accessible busy semantics and an i18n label. Ad hoc plain-text “Loading...” paragraphs SHALL NOT be used on those pages. On the **Inventory detail** page (`/inventory/:inventoryId`), while the sheet connection is in the connected state and the **inventory row for the route id** is not yet available for render from the workbook-backed data source, the system SHALL show the same shared loading component in the main content area.
+On the Clients, Transactions, Expenses, and **Inventory list** pages, while the primary list query for that page reports loading (`isLoading` true) and the sheet connection is in the connected state, the system SHALL show a progress toast with a loading indicator and accessible busy semantics. Ad hoc plain-text “Loading...” paragraphs SHALL NOT be used on those pages. On the **Inventory detail** page (`/inventory/:inventoryId`), while the sheet connection is in the connected state and the **inventory row for the route id** is not yet available for render from the workbook-backed data source, the system SHALL show the same progress toast.
 
-#### Scenario: Clients page shows shared loading
+#### Scenario: Clients page shows progress toast during initial load
 
 - **WHEN** the clients list query is loading and the connection is connected
-- **THEN** the shared loading component is visible in the main content area
+- **THEN** a progress toast is visible showing workbook hydration progress
 
-#### Scenario: Inventory page shows shared loading
+#### Scenario: Inventory page shows progress toast during initial load
 
 - **WHEN** the inventory list query is loading and the connection is connected
-- **THEN** the shared loading component is visible in the main content area
+- **THEN** a progress toast is visible showing workbook hydration progress
 
-#### Scenario: Inventory detail shows shared loading
+#### Scenario: Inventory detail shows progress toast during initial load
 
 - **WHEN** the user navigates to `/inventory/INV1`
 - **AND** the connection is connected
 - **AND** workbook-backed inventory data needed to resolve INV1 is still loading
-- **THEN** the shared loading component is visible in the main content area
+- **THEN** a progress toast is visible showing workbook hydration progress
 
 ### Requirement: In-scope data pages use shared empty state
 

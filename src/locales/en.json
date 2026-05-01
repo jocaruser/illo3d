@@ -19,6 +19,12 @@
     "loading": "Loading...",
     "submitting": "Submitting..."
   },
+  "toast": {
+    "saveSuccess": "Saved successfully",
+    "saveError": "Could not save",
+    "loadError": "Could not load",
+    "retryAction": "Retry"
+  },
   "listTable": {
     "searchPlaceholder": "Search…",
     "searchAria": "Search this list",

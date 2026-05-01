@@ -12,13 +12,6 @@ test.describe('Transactions page', () => {
   test('transactions table or empty state visible after authenticated user navigates to /transactions', async ({
     page,
   }) => {
-    await expect(
-      page.getByText(/connecting to google sheets|conectando a google sheets/i),
-    ).not.toBeVisible({ timeout: 20000 })
-    await expect(
-      page.getByText(/loading workbook|cargando libro/i),
-    ).not.toBeVisible({ timeout: 20000 })
-
     const tableOrEmpty = page
       .getByRole('table')
       .or(page.getByText(/no transactions|no hay transacciones/i))
@@ -31,8 +24,7 @@ test.describe('Transactions page', () => {
     })
 
     const balanceLabel = page.getByText(/^Balance:|^Saldo:/)
-    const connectingOrError = page.getByText(/connecting|cargando|error/i)
-    await expect(balanceLabel.or(connectingOrError)).toBeVisible({ timeout: 15000 })
+    await expect(balanceLabel).toBeVisible({ timeout: 15000 })
   })
 
   test('no edit or delete buttons visible in transactions UI', async ({ page }) => {

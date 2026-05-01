@@ -9,6 +9,7 @@ import {
   useLocation,
 } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Toaster } from 'sonner'
 import {
   matrixToClients,
   matrixToInventory,
@@ -23,6 +24,7 @@ import { GlobalHeaderSearch } from './components/GlobalHeaderSearch'
 import { Breadcrumbs } from './components/Breadcrumbs'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { SetupWizard } from './components/wizard/SetupWizard'
+import { OperationToast } from './components/OperationToast'
 import { getBreadcrumbItems } from './breadcrumbItems'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { ExpenseTransactionDetailPage } from './pages/ExpenseTransactionDetailPage'
@@ -37,8 +39,10 @@ import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
 import { useBackendStore } from './stores/backendStore'
 import { useWorkbookStore } from './stores/workbookStore'
+import { useUserPreferencesStore } from './stores/userPreferencesStore'
 import { getSheetsRepository } from '@/services/sheets/repository'
 import { restoreLocalDirectoryHandle } from '@/services/local/persistDirectoryHandle'
+import { toast } from './lib/toast'
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {
   return isActive
@@ -87,16 +91,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const saveWorkbook = useWorkbookStore((s) => s.save)
   const resetWorkbook = useWorkbookStore((s) => s.reset)
   const workbookStatus = useWorkbookStore((s) => s.status)
-  const workbookError = useWorkbookStore((s) => s.error)
   const workbookDirty = useWorkbookStore((s) => s.dirty)
   const backend = useBackendStore((s) => s.backend)
   const localDirectoryHandle = useBackendStore((s) => s.localDirectoryHandle)
 
   const [refreshConfirmOpen, setRefreshConfirmOpen] = useState(false)
   const [saveBusy, setSaveBusy] = useState(false)
-  const [saveFeedback, setSaveFeedback] = useState<
-    null | { kind: 'success' } | { kind: 'error'; message: string }
-  >(null)
 
   useEffect(() => {
     const spreadsheetId = activeShop?.spreadsheetId
@@ -120,12 +120,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [workbookDirty])
 
-  useEffect(() => {
-    if (saveFeedback?.kind !== 'success') return
-    const id = window.setTimeout(() => setSaveFeedback(null), 2800)
-    return () => window.clearTimeout(id)
-  }, [saveFeedback])
-
   const runRefresh = () => {
     void refreshWorkbook(getSheetsRepository())
   }
@@ -146,17 +140,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
   const onSaveClick = async () => {
     if (workbookStatus !== 'ready' || saveBusy || !workbookDirty) return
-    setSaveFeedback(null)
     setSaveBusy(true)
     try {
       await saveWorkbook(getSheetsRepository())
-      setSaveFeedback({ kind: 'success' })
+      toast.success(t('workbook.saveSuccess'))
     } catch (e) {
       const message =
         e instanceof GoogleSessionError
           ? t('errors.googleSession')
           : `${t('workbook.saveError')}: ${e instanceof Error ? e.message : String(e)}`
-      setSaveFeedback({ kind: 'error', message })
+      toast.error(message, {
+        label: t('workbook.retry'),
+        onClick: () => void onSaveClick(),
+      })
     } finally {
       setSaveBusy(false)
     }
@@ -304,44 +300,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   </button>
                 </div>
               ) : null}
-              {saveFeedback?.kind === 'success' ? (
-                <p className="text-sm text-green-800 dark:text-green-200" role="status">
-                  {t('workbook.saveSuccess')}
-                </p>
-              ) : null}
-              {saveFeedback?.kind === 'error' ? (
-                <p className="text-sm text-red-700 dark:text-red-300" role="alert">
-                  {saveFeedback.message}
-                </p>
-              ) : null}
-              {workbookStatus === 'loading' ? (
-                <p className="text-sm text-gray-600 dark:text-gray-400" role="status">
-                  {t('workbook.loading')}
-                </p>
-              ) : null}
-              {workbookStatus === 'error' && workbookError ? (
-                <div className="flex flex-wrap items-center gap-2 text-sm text-red-700 dark:text-red-300">
-                  <span>
-                    {workbookError === 'GOOGLE_SESSION_EXPIRED'
-                      ? t('errors.googleSession')
-                      : `${t('workbook.loadFailed')} ${workbookError}`}
-                  </span>
-                  <button
-                    type="button"
-                    className="rounded border border-red-300 px-2 py-0.5 font-medium hover:bg-red-50 dark:border-red-700 dark:hover:bg-red-900/20"
-                    onClick={() => {
-                      if (activeShop?.spreadsheetId) {
-                        void hydrateWorkbook(
-                          getSheetsRepository(),
-                          activeShop.spreadsheetId
-                        )
-                      }
-                    }}
-                  >
-                    {t('workbook.retry')}
-                  </button>
-                </div>
-              ) : null}
               <GlobalHeaderSearch />
             </div>
           ) : null}
@@ -380,111 +338,126 @@ function RootRedirect() {
   return <Navigate to="/dashboard" replace />
 }
 
-export default function App() {
+function AppShell() {
+  const theme = useUserPreferencesStore((s) => s.theme)
   return (
-    <HashRouter>
-      <Routes>
-        <Route path="/login" element={<Navigate to="/" replace />} />
-        <Route
-          path="/"
-          element={
-            <Layout>
-              <RootRedirect />
-            </Layout>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <DashboardPage />
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
-        <Route
-          path="/clients"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <ClientsPage />
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
-        <Route
-          path="/clients/:clientId"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <ClientDetailPage />
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
-        <Route
-          path="/jobs"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <JobsPage />
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
-        <Route
-          path="/jobs/:jobId"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <JobDetailPage />
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
-        <Route
-          path="/transactions"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <TransactionsPage />
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
-        <Route
-          path="/transactions/:transactionId"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <ExpenseTransactionDetailPage />
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
-        <Route path="/expenses" element={<Navigate to="/transactions" replace />} />
-        <Route
-          path="/inventory"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <InventoryPage />
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
-        <Route
-          path="/inventory/:inventoryId"
-          element={
-            <Layout>
-              <ProtectedRoute>
-                <InventoryDetailPage />
-              </ProtectedRoute>
-            </Layout>
-          }
-        />
-      </Routes>
-    </HashRouter>
+    <>
+      <Toaster
+        position="bottom-right"
+        theme={theme}
+        toastOptions={{
+          className: 'dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700',
+        }}
+      />
+      <OperationToast />
+      <HashRouter>
+        <Routes>
+          <Route path="/login" element={<Navigate to="/" replace />} />
+          <Route
+            path="/"
+            element={
+              <Layout>
+                <RootRedirect />
+              </Layout>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route
+            path="/clients"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <ClientsPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route
+            path="/clients/:clientId"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <ClientDetailPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route
+            path="/jobs"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <JobsPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route
+            path="/jobs/:jobId"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <JobDetailPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route
+            path="/transactions"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <TransactionsPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route
+            path="/transactions/:transactionId"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <ExpenseTransactionDetailPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route path="/expenses" element={<Navigate to="/transactions" replace />} />
+          <Route
+            path="/inventory"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <InventoryPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route
+            path="/inventory/:inventoryId"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <InventoryDetailPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+        </Routes>
+      </HashRouter>
+    </>
   )
+}
+
+export default function App() {
+  return <AppShell />
 }

@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
-import { ConnectionStatus } from '@/components/ConnectionStatus'
 import { CreatePurchasePopup } from '@/components/CreatePurchasePopup'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { useJobStatusFlow } from '@/hooks/useJobStatusFlow'
@@ -46,8 +45,6 @@ export function DashboardPage() {
   const {
     spreadsheetId,
     workbookStatus,
-    workbookError,
-    onRetry,
   } = useWorkbookConnection()
   const pendingKanbanPlacementRef = useRef<PendingKanbanPlacement | null>(null)
   const {
@@ -137,13 +134,6 @@ export function DashboardPage() {
         {t('page.dashboard')}
       </h2>
 
-      {spreadsheetId ? (
-        <ConnectionStatus
-          status={workbookStatus}
-          errorMessage={workbookError}
-          onRetry={onRetry}
-        />
-      ) : null}
 
       {statusError && (
         <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3" role="alert">

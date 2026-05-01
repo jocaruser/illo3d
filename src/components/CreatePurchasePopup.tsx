@@ -5,6 +5,7 @@ import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import type { InventoryType, PurchaseCategory } from '@/types/money'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
+import { toast } from '@/lib/toast'
 
 const STOCK_CATEGORIES: PurchaseCategory[] = ['filament', 'consumable', 'equipment']
 const ALL_CATEGORIES: PurchaseCategory[] = [
@@ -94,7 +95,6 @@ export function CreatePurchasePopup({
   const [addToInventory, setAddToInventory] = useState(false)
   const [lines, setLines] = useState<LineForm[]>([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -105,7 +105,6 @@ export function CreatePurchasePopup({
     setAmount('')
     setAddToInventory(false)
     setLines([defaultLine(activeInventoryIds)])
-    setError(null)
     setFieldErrors({})
   }, [isOpen, activeInventoryIds])
 
@@ -191,7 +190,6 @@ export function CreatePurchasePopup({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
     if (!validate() || !spreadsheetId) return
     setLoading(true)
     try {
@@ -207,7 +205,7 @@ export function CreatePurchasePopup({
       onSuccess(newTransactionId)
       onClose()
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      toast.error(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
@@ -223,12 +221,6 @@ export function CreatePurchasePopup({
       panelTestId="purchase-dialog"
     >
       <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
-        {error ? (
-          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-            {error}
-          </p>
-        ) : null}
-
         <div>
           <label htmlFor="purchase-date" className="mb-1 block text-sm font-medium">
             {t('purchase.date')}

@@ -19,6 +19,12 @@
     "loading": "Cargando...",
     "submitting": "Enviando..."
   },
+  "toast": {
+    "saveSuccess": "Guardado correctamente",
+    "saveError": "No se pudo guardar",
+    "loadError": "No se pudo cargar",
+    "retryAction": "Reintentar"
+  },
   "listTable": {
     "searchPlaceholder": "Buscar…",
     "searchAria": "Buscar en esta lista",

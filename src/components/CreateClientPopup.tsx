@@ -4,6 +4,7 @@ import { createClient } from '@/services/client/createClient'
 import { updateClient } from '@/services/client/updateClient'
 import type { Client } from '@/types/money'
 import type { UpdateClientPayload } from '@/services/client/updateClient'
+import { toast } from '@/lib/toast'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
 
@@ -36,7 +37,6 @@ export function CreateClientPopup({
   const [leadSource, setLeadSource] = useState('')
   const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -58,7 +58,6 @@ export function CreateClientPopup({
       setLeadSource('')
       setAddress('')
     }
-    setError(null)
     setFieldErrors({})
   }, [isOpen, initialClient])
 
@@ -71,7 +70,6 @@ export function CreateClientPopup({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
     if (!validate() || !spreadsheetId) return
     setLoading(true)
     try {
@@ -107,7 +105,7 @@ export function CreateClientPopup({
       }
       setFieldErrors({})
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('wizard.errorGeneric'))
+      toast.error(err instanceof Error ? err.message : t('wizard.errorGeneric'))
     } finally {
       setLoading(false)
     }
@@ -237,7 +235,6 @@ export function CreateClientPopup({
             className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
           />
         </div>
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
         <div className="flex gap-3 pt-2">
           <button
             type="button"

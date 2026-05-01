@@ -9,6 +9,7 @@ import {
   canMarkJobPaid,
   incomeAmountForPaidJob,
 } from '@/utils/jobPiecePricing'
+import { toast } from '@/lib/toast'
 
 export type JobStatusSelectResult =
   | 'dialog-opened'
@@ -43,7 +44,6 @@ export function useJobStatusFlow(
   ) => {
     if (!spreadsheetId) return
     setStatusUpdatingId(job.id)
-    setStatusError(null)
     try {
       const nextJob = await updateJobStatus(
         spreadsheetId,
@@ -53,7 +53,7 @@ export function useJobStatusFlow(
       )
       flowOptions?.afterStatusCommit?.(nextJob)
     } catch {
-      setStatusError(t('errors.actionFailed'))
+      toast.error(t('errors.actionFailed'))
       flowOptions?.onStatusCommitError?.()
     } finally {
       setStatusUpdatingId(null)
@@ -96,7 +96,7 @@ export function useJobStatusFlow(
     try {
       amount = incomeAmountForPaidJob(paidDialogJob.id, pieces)
     } catch {
-      setStatusError(t('errors.actionFailed'))
+      toast.error(t('errors.actionFailed'))
       return
     }
     await commitStatus(paidDialogJob, 'paid', {

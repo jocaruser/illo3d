@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import { SHEET_NAMES, type SheetName } from '@/services/sheets/config'
 import type { SheetsRepository } from '@/services/sheets/repository'
 import { emptySheetMatrix } from '@/services/sheets/sheetMatrix'
+import { useOperationToastStore } from '@/stores/operationToastStore'
 import type {
   Client,
   CrmNote,
@@ -33,7 +34,8 @@ type TabsState = Partial<Record<SheetName, string[][]>>
 
 async function loadAllTabs(
   repository: SheetsRepository,
-  spreadsheetId: string
+  spreadsheetId: string,
+  onTick?: (sheetName: string) => void
 ): Promise<{
   tabs: Record<SheetName, string[][]>
   sheetIds: Partial<Record<SheetName, number>>
@@ -41,6 +43,7 @@ async function loadAllTabs(
   const entries = await Promise.all(
     SHEET_NAMES.map(async (name) => {
       const matrix = await repository.readSheetMatrix(spreadsheetId, name)
+      onTick?.(name)
       return [name, matrix] as const
     })
   )
@@ -82,9 +85,15 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
     }),
 
   hydrate: async (repository, spreadsheetId) => {
+    const toastStore = useOperationToastStore.getState()
+    toastStore.start('load', SHEET_NAMES.length)
     set({ status: 'loading', error: null, spreadsheetId })
     try {
-      const { tabs, sheetIds } = await loadAllTabs(repository, spreadsheetId)
+      const { tabs, sheetIds } = await loadAllTabs(
+        repository,
+        spreadsheetId,
+        (name) => toastStore.tick(name)
+      )
       set({
         tabs,
         sheetIds,
@@ -93,12 +102,15 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
         error: null,
         spreadsheetId,
       })
+      toastStore.success('Workbook loaded')
     } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
       set({
         status: 'error',
-        error: e instanceof Error ? e.message : String(e),
+        error: message,
         spreadsheetId,
       })
+      toastStore.error(message)
     }
   },
 
@@ -107,9 +119,15 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
     if (!spreadsheetId) {
       throw new Error('No active spreadsheet')
     }
+    const toastStore = useOperationToastStore.getState()
+    toastStore.start('load', SHEET_NAMES.length)
     set({ status: 'loading', error: null })
     try {
-      const { tabs, sheetIds } = await loadAllTabs(repository, spreadsheetId)
+      const { tabs, sheetIds } = await loadAllTabs(
+        repository,
+        spreadsheetId,
+        (name) => toastStore.tick(name)
+      )
       set({
         tabs,
         sheetIds,
@@ -117,11 +135,14 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
         status: 'ready',
         error: null,
       })
+      toastStore.success('Workbook refreshed')
     } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
       set({
-        status: 'error',
-        error: e instanceof Error ? e.message : String(e),
+        status: 'ready',
+        error: message,
       })
+      toastStore.error(message)
     }
   },
 
@@ -130,12 +151,22 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
     if (!spreadsheetId) {
       throw new Error('No active spreadsheet')
     }
+    const toastStore = useOperationToastStore.getState()
+    toastStore.start('save', SHEET_NAMES.length)
     const { tabs } = get()
-    for (const name of SHEET_NAMES) {
-      const matrix = tabs[name] ?? emptySheetMatrix(name)
-      await repository.replaceSheetMatrix(spreadsheetId, name, matrix)
+    try {
+      for (const name of SHEET_NAMES) {
+        const matrix = tabs[name] ?? emptySheetMatrix(name)
+        await repository.replaceSheetMatrix(spreadsheetId, name, matrix)
+        toastStore.tick(name)
+      }
+      set({ dirty: false })
+      toastStore.success('Workbook saved')
+    } catch (e) {
+      const message = e instanceof Error ? e.message : String(e)
+      toastStore.error(message)
+      throw e
     }
-    set({ dirty: false })
   },
 
   mutateTab: (sheetName, rows) =>

@@ -25,7 +25,7 @@ The system SHALL maintain an in-memory workbook store (Zustand) containing the p
 
 ### Requirement: Workbook hydration on shop open
 
-The system SHALL hydrate the workbook store immediately after a shop passes metadata and structure validation. Hydration SHALL call `readRows` for every tab in `SHEET_NAMES` (in parallel where possible) and populate the store. Until hydration completes, the app SHALL show a loading state. If hydration fails, the app SHALL show an error and NOT populate the store with partial data.
+The system SHALL hydrate the workbook store immediately after a shop passes metadata and structure validation. Hydration SHALL call `readRows` for every tab in `SHEET_NAMES` (in parallel where possible) and populate the store. Until hydration completes, the app SHALL show a loading state via a progress toast. If hydration fails, the app SHALL show a persistent error toast with a retry option and NOT populate the store with partial data.
 
 #### Scenario: Successful hydration after shop open
 
@@ -38,7 +38,8 @@ The system SHALL hydrate the workbook store immediately after a shop passes meta
 
 - **WHEN** any tab read fails during hydration
 - **THEN** the workbook store is NOT populated with partial data
-- **AND** the user sees an error with a retry option
+- **AND** the user sees an error toast with a retry option
+- **AND** the error toast persists until dismissed or retried
 
 ### Requirement: Refresh reloads workbook from backend
 
@@ -63,9 +64,16 @@ The system SHALL provide a **Refresh** action that re-reads the workbook from th
 - **WHEN** the user cancels the Refresh confirmation
 - **THEN** the workbook store remains unchanged
 
+#### Scenario: Refresh error is surfaced
+
+- **WHEN** a read fails during Refresh (e.g. network error, auth expired)
+- **THEN** the user sees an error toast with the failure message and a Retry button
+- **AND** the workbook store status does NOT transition to `'error'`
+- **AND** the existing snapshot data remains visible
+
 ### Requirement: Save persists workbook to backend
 
-The system SHALL provide a **Save** action that writes the current in-memory workbook to the active backend. Save SHALL write **all tabs** (not only dirty ones). Save SHALL overwrite the persisted representation without comparing to the last read (v1 -- no conflict detection). Save SHALL show progress feedback and surface errors.
+The system SHALL provide a **Save** action that writes the current in-memory workbook to the active backend. Save SHALL write **all tabs** (not only dirty ones). Save SHALL overwrite the persisted representation without comparing to the last read (v1 -- no conflict detection). Save SHALL show progress feedback via a progress toast and surface errors.
 
 #### Scenario: Save writes all tabs
 
@@ -76,8 +84,9 @@ The system SHALL provide a **Save** action that writes the current in-memory wor
 #### Scenario: Save error is surfaced
 
 - **WHEN** a write fails during Save (e.g. network error, Sheets quota)
-- **THEN** the user sees an error message
+- **THEN** the user sees an error toast with the failure message and a Retry button
 - **AND** the snapshot remains marked as dirty
+- **AND** the user can retry Save after the error resolves
 
 ### Requirement: Dirty tracking and beforeunload guard
 
