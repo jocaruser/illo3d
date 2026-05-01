@@ -143,6 +143,9 @@ The system SHALL store the ID token and/or access token from Google in memory (Z
 
 - **WHEN** user signs out
 - **THEN** stored credentials are removed
+- **AND** the active shop is cleared
+- **AND** the backend state is cleared
+- **AND** the workbook store is reset
 
 ### Requirement: OAuth client ID is configurable via environment
 
@@ -195,6 +198,7 @@ The system SHALL display auth status in the main layout. When signed in: show us
 
 - **WHEN** user triggers sign-out
 - **THEN** credentials are cleared, active shop is cleared, backend state is cleared where applicable, auth state updates to signed out, and the user sees the wizard welcome screen (e.g. on `/`) when no active shop remains
+- **AND** the workbook store is reset to its initial state
 
 ### Requirement: Auth UI strings support i18n
 

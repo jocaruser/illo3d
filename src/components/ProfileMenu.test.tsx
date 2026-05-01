@@ -2,6 +2,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ProfileMenu } from './ProfileMenu'
 import { useAuthStore } from '@/stores/authStore'
+import { useShopStore } from '@/stores/shopStore'
+import { useBackendStore } from '@/stores/backendStore'
+import { useWorkbookStore } from '@/stores/workbookStore'
 import { useUserPreferencesStore } from '@/stores/userPreferencesStore'
 import { clearTestPersistStorage } from '@/stores/persistStorage'
 import i18n from '@/i18n'
@@ -26,6 +29,9 @@ describe('ProfileMenu', () => {
       isAuthenticated: false,
       googleSessionNeedsReauth: false,
     })
+    useShopStore.setState({ activeShop: null })
+    useBackendStore.setState({ backend: null, localDirectoryHandle: null })
+    useWorkbookStore.getState().reset()
     useUserPreferencesStore.setState({
       language: 'en',
       theme: 'light',
@@ -139,13 +145,19 @@ describe('ProfileMenu', () => {
     })
   })
 
-  it('should sign out when sign out button clicked', async () => {
+  it('should sign out and clear all stores when sign out button clicked', async () => {
     const logoutSpy = vi.fn()
     useAuthStore.setState({
       user: { name: 'Test User', email: 'test@example.com', picture: undefined },
       isAuthenticated: true,
       logout: logoutSpy,
     })
+    useShopStore.setState({
+      activeShop: { folderId: 'f', folderName: 'Shop', spreadsheetId: 's', metadataVersion: '2.0.0' },
+    })
+    useBackendStore.setState({ backend: 'google-drive', localDirectoryHandle: null })
+    useWorkbookStore.setState({ dirty: true, status: 'ready' })
+
     render(<ProfileMenu />)
     const button = screen.getByRole('button')
     fireEvent.click(button)
@@ -153,6 +165,11 @@ describe('ProfileMenu', () => {
       const signOutButton = screen.getByText('auth.signOut')
       fireEvent.click(signOutButton)
     })
+
     expect(logoutSpy).toHaveBeenCalled()
+    expect(useShopStore.getState().activeShop).toBeNull()
+    expect(useBackendStore.getState().backend).toBeNull()
+    expect(useWorkbookStore.getState().dirty).toBe(false)
+    expect(useWorkbookStore.getState().status).toBe('idle')
   })
 })
