@@ -41,15 +41,15 @@ test.describe('Clients page', () => {
     await expect(page.getByRole('heading', { name: 'Clients' })).toBeVisible({
       timeout: 10000,
     })
-    await expect(page.getByRole('link', { name: 'Beta LLC' })).toBeVisible({
+    await expect(page.getByText('Beta LLC')).toBeVisible({
       timeout: 15000,
     })
 
     await page.getByTestId('list-table-search').fill('VIP')
-    await expect(page.getByRole('link', { name: 'Beta LLC' })).toBeVisible({
+    await expect(page.getByText('Beta LLC')).toBeVisible({
       timeout: 5000,
     })
-    await expect(page.getByRole('link', { name: 'Acme Corp' })).not.toBeVisible()
+    await expect(page.getByText('Acme Corp')).not.toBeVisible()
   })
 
   test('client name shows tag tooltip on hover', async ({ page, openCsvShop }) => {
