@@ -19,8 +19,7 @@
 
 ### 3. Quality Gate Before Finish
 ```
-make quality-gate   # build, lint, unit tests — must all pass
-make e2e-test       # when relevant — must pass with 0 skipped
+make quality-gate   # build, lint, unit tests, e2e tests — must all pass
 ```
 
 ### 4. TDD for Bug Fixes
@@ -32,6 +31,11 @@ When fixing a confirmed bug or regression, follow the TDD workflow:
 ### 5. No OpenSpec Changes in Git
 - The `openspec/changes/` directory is `.gitignore`d.
 - Do not `git add` OpenSpec change folders unless the user explicitly requests it.
+
+### 6. Use `gh` CLI for GitHub Operations
+- Prefer `gh` CLI over GitHub MCP tools for PR, branch, and other GitHub operations.
+- GitHub MCP tools may fail with authentication errors in this environment; `gh` uses local git credentials and works reliably.
+- Use `gh pr create`, `gh repo`, `gh issue`, etc. as needed.
 
 ## Project Structure
 - `src/` — React + TypeScript frontend
