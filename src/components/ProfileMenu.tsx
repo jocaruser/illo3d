@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/authStore'
 import { useShopStore } from '@/stores/shopStore'
 import { useBackendStore } from '@/stores/backendStore'
+import { useWorkbookStore } from '@/stores/workbookStore'
 import { useUserPreferencesStore } from '@/stores/userPreferencesStore'
 import i18n from '@/i18n'
 
@@ -14,6 +15,7 @@ export function ProfileMenu() {
   const { user, isAuthenticated, logout } = useAuthStore()
   const clearActiveShop = useShopStore((s) => s.clearActiveShop)
   const resetBackend = useBackendStore((s) => s.reset)
+  const resetWorkbook = useWorkbookStore((s) => s.reset)
   const { language, theme, setLanguage, toggleTheme } = useUserPreferencesStore()
 
   // Apply theme class on mount and theme change
@@ -58,6 +60,7 @@ export function ProfileMenu() {
   const handleSignOut = () => {
     clearActiveShop()
     resetBackend()
+    resetWorkbook()
     logout()
     setIsOpen(false)
   }
