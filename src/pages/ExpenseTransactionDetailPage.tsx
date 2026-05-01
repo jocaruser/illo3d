@@ -353,6 +353,9 @@ export function ExpenseTransactionDetailPage() {
                 <thead className="bg-gray-50 dark:bg-gray-800">
                   <tr>
                     <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                      {t('jobs.colId')}
+                    </th>
+                    <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                       {t('expenseTransactionDetail.lotDescription')}
                     </th>
                     <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
@@ -371,14 +374,17 @@ export function ExpenseTransactionDetailPage() {
                     const amtVal = lotAmountInputs[lot.id] ?? String(lot.amount)
                     return (
                       <tr key={lot.id}>
-                        <td className="px-4 py-3 text-sm">
+                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                           <Link
                             to={`/inventory/${lot.inventory_id}`}
                             data-testid={`expense-detail-lot-inv-${lot.id}`}
                             className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                           >
-                            {invLabel}
+                            {lot.inventory_id}
                           </Link>
+                        </td>
+                        <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {invLabel}
                         </td>
                         <td className="px-4 py-3 text-right align-top">
                           <input

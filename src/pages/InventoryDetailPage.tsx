@@ -364,6 +364,9 @@ export function InventoryDetailPage() {
                         <thead className="bg-gray-50 dark:bg-gray-800">
                           <tr>
                             <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                              {t('jobs.colId')}
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventoryDetail.lotDate')}
                             </th>
                             <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
@@ -385,6 +388,15 @@ export function InventoryDetailPage() {
                             const tx = txnById.get(lot.transaction_id)
                             return (
                               <tr key={lot.id}>
+                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                  <Link
+                                    to={`/transactions/${lot.transaction_id}`}
+                                    data-testid={`inventory-lot-tx-${lot.id}`}
+                                    className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+                                  >
+                                    {lot.id}
+                                  </Link>
+                                </td>
                                 <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                                   {formatInventoryCreatedDate(lot.created_at)}
                                 </td>
@@ -418,23 +430,8 @@ export function InventoryDetailPage() {
                                     }
                                   />
                                 </td>
-                                <td className="px-4 py-3 text-sm">
-                                  {tx ? (
-                                    <Link
-                                      to={`/transactions/${lot.transaction_id}`}
-                                      data-testid={`inventory-lot-tx-${lot.id}`}
-                                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
-                                    >
-                                      {tx.concept.trim() ? tx.concept : lot.transaction_id}
-                                    </Link>
-                                  ) : (
-                                    <Link
-                                      to={`/transactions/${lot.transaction_id}`}
-                                      className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
-                                    >
-                                      {lot.transaction_id}
-                                    </Link>
-                                  )}
+                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                  {tx?.concept.trim() ? tx.concept : lot.transaction_id}
                                 </td>
                                 <td className="whitespace-nowrap px-4 py-3 text-right">
                                   <button
@@ -468,6 +465,9 @@ export function InventoryDetailPage() {
                         <thead className="bg-gray-50 dark:bg-gray-800">
                           <tr>
                             <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                              {t('jobs.colId')}
+                            </th>
+                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
                               {t('inventoryDetail.piece')}
                             </th>
                             <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
@@ -485,16 +485,19 @@ export function InventoryDetailPage() {
                           {consumptionRows.map((row) => (
                             <tr key={row.pieceItemId}>
                               <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                {row.pieceName} ({row.pieceId})
-                              </td>
-                              <td className="px-4 py-3 text-sm">
                                 <Link
                                   to={`/jobs/${row.jobId}`}
                                   data-testid={`inventory-consumption-job-${row.pieceItemId}`}
-                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+                                  className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
                                 >
-                                  {row.jobDescription}
+                                  {row.jobId}
                                 </Link>
+                              </td>
+                              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                {row.pieceName} ({row.pieceId})
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                                {row.jobDescription}
                               </td>
                               <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300">
                                 {row.quantity}

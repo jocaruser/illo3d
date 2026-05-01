@@ -17,6 +17,8 @@ function embeddedJobComparable(
   pieces: Piece[],
 ): string | number {
   switch (key) {
+    case 'id':
+      return job.id.toLowerCase()
     case 'description':
       return (job.description.trim() || job.id).toLowerCase()
     case 'status':
@@ -102,6 +104,15 @@ export function ClientJobsDiscoveryTable({
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
               <SortableColumnHeader
+                columnKey="id"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                ariaLabel={sortAria(t('jobs.colId'), 'id')}
+              >
+                {t('jobs.colId')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
                 columnKey="description"
                 sortKey={sortKey}
                 sortDir={sortDir}
@@ -145,7 +156,7 @@ export function ClientJobsDiscoveryTable({
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
                   {jobs.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -155,17 +166,17 @@ export function ClientJobsDiscoveryTable({
                   key={job.id}
                   className="odd:bg-white dark:bg-gray-900 even:bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
-                  <td className="max-w-xs truncate px-4 py-3 text-sm">
+                  <td className="whitespace-nowrap px-4 py-3 text-sm">
                     <Link
                       to={`/jobs/${job.id}`}
                       data-testid={`job-detail-link-${job.id}`}
                       className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
-                      {...(job.description.trim()
-                        ? {}
-                        : { 'aria-label': t('jobs.idLinkAria', { id: job.id }) })}
                     >
-                      {job.description.trim() || job.id}
+                      {job.id}
                     </Link>
+                  </td>
+                  <td className="max-w-xs truncate px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                    {job.description.trim() || job.id}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
                     {t(`jobs.status.${job.status}`)}

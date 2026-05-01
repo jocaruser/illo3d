@@ -34,6 +34,8 @@ function inventoryComparable(
   ctx: { typeLabel: string; avg: number | null }
 ): string | number {
   switch (key) {
+    case 'id':
+      return item.id.toLowerCase()
     case 'name':
       return item.name.toLowerCase()
     case 'type':
@@ -114,6 +116,15 @@ export function InventoryTable({ items, lots }: InventoryTableProps) {
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
               <SortableColumnHeader
+                columnKey="id"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                ariaLabel={sortAria(t('jobs.colId'), 'id')}
+              >
+                {t('jobs.colId')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
                 columnKey="name"
                 sortKey={sortKey}
                 sortDir={sortDir}
@@ -169,7 +180,7 @@ export function InventoryTable({ items, lots }: InventoryTableProps) {
           <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
                   {items.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -185,10 +196,13 @@ export function InventoryTable({ items, lots }: InventoryTableProps) {
                       <Link
                         to={`/inventory/${item.id}`}
                         data-testid={`inventory-table-link-${item.id}`}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="font-medium text-blue-600 hover:text-blue-800"
                       >
-                        {item.name}
+                        {item.id}
                       </Link>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      {item.name}
                     </td>
                     <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 sm:table-cell">
                       {t(`inventory.type.${item.type}`)}

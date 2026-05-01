@@ -36,7 +36,7 @@ For the primary search input on each in-scope list, the system SHALL NOT apply f
 
 ### Requirement: Search index includes hidden fields and i18n
 
-For each row, the system SHALL build a search index that includes **all fields** from the underlying domain model that are needed for operator discovery, **including fields not rendered as table columns** (for example transaction `notes`, `ref_id`, `ref_type`, job `client_id`, expense `id`, piece `job_id`, and inventory linkage ids where applicable). The index SHALL include **both** canonical stored tokens (e.g. enum keys) **and** user-visible translated strings for the **active UI locale** for columns that use i18n in the table (for example transaction type and expense category labels).
+For each row, the system SHALL build a search index that includes **all fields** from the underlying domain model that are needed for operator discovery, **including fields not rendered as table columns** (for example transaction `notes`, `ref_id`, `ref_type`, job `client_id`, expense `id`, piece `job_id`, and inventory linkage ids where applicable). The index SHALL explicitly include the entity **`id`** for every in-scope table so that operators can discover rows by typing all or part of the identifier. The index SHALL include **both** canonical stored tokens (e.g. enum keys) **and** user-visible translated strings for the **active UI locale** for columns that use i18n in the table (for example transaction type and expense category labels).
 
 #### Scenario: Hidden transaction notes match
 
@@ -49,6 +49,18 @@ For each row, the system SHALL build a search index that includes **all fields**
 - **WHEN** the UI locale is Spanish
 - **AND** the user searches for a substring of the Spanish label for an income transaction
 - **THEN** matching income rows are included in the filtered results
+
+#### Scenario: Job id search matches visible id column
+
+- **WHEN** a job row has `id` `JOB-12`
+- **AND** the user enters the query `JOB-12`
+- **THEN** that job row is included in the filtered results
+
+#### Scenario: Inventory id search matches visible id column
+
+- **WHEN** an inventory row has `id` `INV-5`
+- **AND** the user enters the query `INV-5`
+- **THEN** that inventory row is included in the filtered results
 
 ### Requirement: Fuzzy matching strength
 

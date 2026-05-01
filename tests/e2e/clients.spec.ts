@@ -58,7 +58,7 @@ test.describe('Clients page', () => {
     await expect(page.getByRole('heading', { name: 'Clients' })).toBeVisible({
       timeout: 10000,
     })
-    const link = page.getByTestId('client-detail-link-CL1')
+    const link = page.getByTestId('client-name-tooltip-CL1')
     await expect(link).toBeVisible({ timeout: 15000 })
     await link.hover()
     const tip = page.getByRole('tooltip')
