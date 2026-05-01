@@ -13,7 +13,12 @@
     "language": "Idioma",
     "theme": "Tema",
     "lightMode": "Modo claro",
-    "darkMode": "Modo oscuro"
+    "darkMode": "Modo oscuro",
+    "openDriveFolder": "Abrir carpeta de Drive",
+    "localFolder": "Carpeta local",
+    "editMetadata": "Editar metadata.json",
+    "changelog": "Registro de cambios",
+    "localUserDefault": "Usuario local"
   },
   "common": {
     "loading": "Cargando...",

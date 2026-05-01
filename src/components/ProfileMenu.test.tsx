@@ -19,6 +19,20 @@ vi.mock('react-i18next', async () => {
   }
 })
 
+vi.mock('@/hooks/useShopMetadata', () => ({
+  useShopMetadata: vi.fn(() => ({ data: null, error: null, loading: false })),
+}))
+
+vi.mock('@/hooks/useLocalAvatarUrl', () => ({
+  useLocalAvatarUrl: vi.fn(() => null),
+}))
+
+vi.mock('@/config/version', () => ({
+  APP_VERSION: '1.0.3',
+}))
+
+import { useShopMetadata } from '@/hooks/useShopMetadata'
+
 describe('ProfileMenu', () => {
   beforeEach(() => {
     clearTestPersistStorage()
@@ -38,6 +52,8 @@ describe('ProfileMenu', () => {
     })
     // Reset i18n language
     i18n.changeLanguage('en')
+    // Reset mocks
+    vi.mocked(useShopMetadata).mockReturnValue({ data: null, error: null, loading: false })
   })
 
   it('should not render when not authenticated', () => {
@@ -171,5 +187,132 @@ describe('ProfileMenu', () => {
     expect(useBackendStore.getState().backend).toBeNull()
     expect(useWorkbookStore.getState().dirty).toBe(false)
     expect(useWorkbookStore.getState().status).toBe('idle')
+  })
+
+  describe('Google user', () => {
+    beforeEach(() => {
+      useAuthStore.setState({
+        user: { name: 'Google User', email: 'google@example.com', picture: 'https://example.com/avatar.png' },
+        isAuthenticated: true,
+      })
+      useBackendStore.setState({ backend: 'google-drive', localDirectoryHandle: null })
+      useShopStore.setState({
+        activeShop: { folderId: 'folder123', folderName: 'MyShop', spreadsheetId: 's', metadataVersion: '1.0.3' },
+      })
+    })
+
+    it('shows name, email, and avatar in Identity section', async () => {
+      render(<ProfileMenu />)
+      const button = screen.getByRole('button')
+      fireEvent.click(button)
+      await waitFor(() => {
+        expect(screen.getByText('Google User')).toBeInTheDocument()
+      })
+      expect(screen.getByText('google@example.com')).toBeInTheDocument()
+      const imgs = screen.getAllByAltText('Google User')
+      expect(imgs).toHaveLength(2)
+      expect(imgs[0]).toHaveAttribute('src', 'https://example.com/avatar.png')
+      expect(imgs[1]).toHaveAttribute('src', 'https://example.com/avatar.png')
+    })
+
+    it('shows Drive folder link with correct href', async () => {
+      render(<ProfileMenu />)
+      const button = screen.getByRole('button')
+      fireEvent.click(button)
+      await waitFor(() => {
+        const link = screen.getByText('profileMenu.openDriveFolder')
+        expect(link).toHaveAttribute('href', 'https://drive.google.com/drive/folders/folder123')
+        expect(link).toHaveAttribute('target', '_blank')
+      })
+    })
+  })
+
+  describe('Local user', () => {
+    beforeEach(() => {
+      useAuthStore.setState({
+        user: { name: 'Local user', email: '', picture: undefined },
+        isAuthenticated: true,
+      })
+      useBackendStore.setState({ backend: 'local-csv', localDirectoryHandle: null })
+      useShopStore.setState({
+        activeShop: { folderId: 'MyLocalShop', folderName: 'MyLocalShop', spreadsheetId: 'local-MyLocalShop', metadataVersion: '1.0.2' },
+      })
+    })
+
+    it('shows metadata.userName and no email', async () => {
+      vi.mocked(useShopMetadata).mockReturnValue({
+        data: { app: 'illo3d', version: '1.0.2', spreadsheetId: 'local-MyLocalShop', createdAt: '', createdBy: '', userName: 'Workshop Owner' },
+        error: null,
+        loading: false,
+      })
+      render(<ProfileMenu />)
+      const button = screen.getByRole('button')
+      fireEvent.click(button)
+      await waitFor(() => {
+        expect(screen.getByText('Workshop Owner')).toBeInTheDocument()
+      })
+      expect(screen.queryByText('google@example.com')).not.toBeInTheDocument()
+    })
+
+    it('falls back to "Local user" when metadata.userName is absent', async () => {
+      vi.mocked(useShopMetadata).mockReturnValue({
+        data: { app: 'illo3d', version: '1.0.2', spreadsheetId: 'local-MyLocalShop', createdAt: '', createdBy: '' },
+        error: null,
+        loading: false,
+      })
+      render(<ProfileMenu />)
+      const button = screen.getByRole('button')
+      fireEvent.click(button)
+      await waitFor(() => {
+        expect(screen.getByText('profileMenu.localUserDefault')).toBeInTheDocument()
+      })
+    })
+
+    it('shows local folder name', async () => {
+      render(<ProfileMenu />)
+      const button = screen.getByRole('button')
+      fireEvent.click(button)
+      await waitFor(() => {
+        expect(screen.getByText('MyLocalShop')).toBeInTheDocument()
+      })
+    })
+  })
+
+  it('shows version row with app and shop versions', async () => {
+    useAuthStore.setState({
+      user: { name: 'Test User', email: 'test@example.com', picture: undefined },
+      isAuthenticated: true,
+    })
+    useShopStore.setState({
+      activeShop: { folderId: 'f', folderName: 'Shop', spreadsheetId: 's', metadataVersion: '2.0.0' },
+    })
+    vi.mocked(useShopMetadata).mockReturnValue({
+      data: { app: 'illo3d', version: '2.0.0', spreadsheetId: 's', createdAt: '', createdBy: '' },
+      error: null,
+      loading: false,
+    })
+    render(<ProfileMenu />)
+    const button = screen.getByRole('button')
+    fireEvent.click(button)
+    await waitFor(() => {
+      expect(screen.getByText(/App 1\.0\.3/)).toBeInTheDocument()
+      expect(screen.getByText(/Shop 2\.0\.0/)).toBeInTheDocument()
+    })
+  })
+
+  it('shows disabled Edit metadata.json and Changelog buttons', async () => {
+    useAuthStore.setState({
+      user: { name: 'Test User', email: 'test@example.com', picture: undefined },
+      isAuthenticated: true,
+    })
+    render(<ProfileMenu />)
+    const button = screen.getByRole('button')
+    fireEvent.click(button)
+    await waitFor(() => {
+      const editBtn = screen.getByText('profileMenu.editMetadata')
+      const changelogBtn = screen.getByText('profileMenu.changelog')
+      expect(editBtn).toBeDisabled()
+      expect(changelogBtn).toBeDisabled()
+    })
   })
 })
