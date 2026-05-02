@@ -4,9 +4,11 @@ import { useOperationToastStore } from '@/stores/operationToastStore'
 
 vi.mock('@/stores/operationToastStore')
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string, params?: { sheet?: string }) => {
-    if (params?.sheet) return `${key} ${params.sheet}…`
-    return key
+  useTranslation: () => ({
+    t: (key: string, params?: { sheet?: string }) => {
+      if (params?.sheet) return `${key} ${params.sheet}…`
+      return key
+    },
   }),
 }))
 

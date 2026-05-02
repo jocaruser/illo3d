@@ -87,7 +87,7 @@ test.describe('Dashboard', () => {
     page,
     openCsvShop,
   }) => {
-    void openCsvShop()
+    void openCsvShop
 
     await expect(page).toHaveURL(/\/dashboard/)
     await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({

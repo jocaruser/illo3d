@@ -75,6 +75,8 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
   status: 'idle',
   error: null,
   spreadsheetId: null,
+  saveInProgress: false,
+  mutatedDuringSave: false,
 
   reset: () =>
     set({
@@ -84,6 +86,8 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
       status: 'idle',
       error: null,
       spreadsheetId: null,
+      saveInProgress: false,
+      mutatedDuringSave: false,
     }),
 
   hydrate: async (repository, spreadsheetId) => {
@@ -176,6 +180,7 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
     set((s) => ({
       tabs: { ...s.tabs, [sheetName]: rows },
       dirty: true,
+      mutatedDuringSave: s.saveInProgress ? true : s.mutatedDuringSave,
     })),
 }))
 

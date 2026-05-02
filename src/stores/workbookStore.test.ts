@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useWorkbookStore } from './workbookStore'
-import { useOperationToastStore } from './operationToastStore'
 import type { SheetsRepository } from '@/services/sheets/repository'
 import type { SheetName } from '@/services/sheets/config'
 import { SHEET_NAMES } from '@/services/sheets/config'
