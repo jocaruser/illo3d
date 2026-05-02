@@ -8,6 +8,8 @@ import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import { JobsTable } from '@/components/JobsTable'
 import { EmptyState } from '@/components/EmptyState'
+import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
+import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import type { Job } from '@/types/money'
@@ -58,6 +60,7 @@ export function JobsPage() {
   const [editingJob, setEditingJob] = useState<Job | null>(null)
   const [archiveTarget, setArchiveTarget] = useState<Job | null>(null)
   const [archiveError, setArchiveError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
   const {
     handleStatusSelect,
     statusError,
@@ -99,9 +102,6 @@ export function JobsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h2 className="mb-6 text-2xl font-bold text-gray-800 dark:text-gray-200">{t('jobs.title')}</h2>
-
-
       {statusError && (
         <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3" role="alert">
           <p className="text-sm font-medium text-red-800 dark:text-red-200">{statusError}</p>
@@ -110,22 +110,37 @@ export function JobsPage() {
 
       {workbookStatus === 'ready' && (
         <>
-          <div className="mb-4 flex items-center justify-end">
-            <button
-              type="button"
-              data-testid="add-job-button"
-              onClick={() => setPopupOpen(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              {t('jobs.addJob')}
-            </button>
-          </div>
+          <ListTablePageHeader
+            title={t('jobs.title')}
+            search={
+              <ListTableSearchField
+                value={query}
+                onChange={setQuery}
+                placeholder={t('listTable.searchPlaceholder')}
+                ariaLabel={t('listTable.searchAria')}
+              />
+            }
+            actions={
+              <button
+                type="button"
+                data-testid="add-job-button"
+                onClick={() => {
+                  setQuery('')
+                  setPopupOpen(true)
+                }}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                {t('jobs.addJob')}
+              </button>
+            }
+          />
 
           {jobs.length === 0 ? (
             <EmptyState messageKey="jobs.empty" />
           ) : (
             <JobsTable
               jobs={jobs}
+              query={query}
               pieces={pieces}
               clients={clients}
               tagTitleByJobId={tagTitleByJobId}

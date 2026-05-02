@@ -7,12 +7,13 @@ import { formatCurrency } from '@/utils/money'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildTransactionSearchBlob } from '@/lib/listTable/searchBlobs'
-import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
 import { getTransactionConceptLink } from '@/lib/money/transactionConceptLink'
 
 interface TransactionsTableProps {
   transactions: Transaction[]
+  /** Search query to filter rows. */
+  query?: string
   clients: Client[]
   /** Expense transactions that have at least one lot link to inventory. */
   expenseTxnIdsWithLots?: Set<string>
@@ -67,11 +68,11 @@ function conceptCell(
 
 export function TransactionsTable({
   transactions,
+  query = '',
   clients,
   expenseTxnIdsWithLots,
 }: TransactionsTableProps) {
   const { t } = useTranslation()
-  const [query, setQuery] = useState('')
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<SortDirection>('asc')
 
@@ -125,14 +126,7 @@ export function TransactionsTable({
   }
 
   return (
-    <div>
-      <ListTableSearchField
-        value={query}
-        onChange={setQuery}
-        placeholder={t('listTable.searchPlaceholder')}
-        ariaLabel={t('listTable.searchAria')}
-      />
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -264,6 +258,5 @@ export function TransactionsTable({
           </tbody>
         </table>
       </div>
-    </div>
   )
 }

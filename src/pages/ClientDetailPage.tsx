@@ -14,6 +14,8 @@ import { ClientNotesSection } from '@/components/ClientNotesSection'
 import { ClientTagsSection } from '@/components/ClientTagsSection'
 import { MentionLinkify } from '@/components/MentionLinkify'
 import { ClientJobsDiscoveryTable } from '@/components/ClientJobsDiscoveryTable'
+import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
+import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import type { Client, ClientNote } from '@/types/money'
 import { formatCurrency } from '@/utils/money'
 import { computeClientDetailMetrics } from '@/utils/clientMetrics'
@@ -106,6 +108,7 @@ export function ClientDetailPage() {
   const [archiveTarget, setArchiveTarget] = useState<Client | null>(null)
   const [archiveError, setArchiveError] = useState<string | null>(null)
   const [jobPopupOpen, setJobPopupOpen] = useState(false)
+  const [query, setQuery] = useState('')
 
   const handleMutationSuccess = async (newJobId?: string) => {
     if (newJobId) {
@@ -292,21 +295,32 @@ export function ClientDetailPage() {
               onChanged={handleMutationSuccess}
             />
 
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-                {t('clientDetail.jobsTitle')}
-              </h3>
-              {clientJobs.length > 0 ? (
+            <ListTablePageHeader
+              title={t('clientDetail.jobsTitle')}
+              search={
+                clientJobs.length > 0 ? (
+                  <ListTableSearchField
+                    value={query}
+                    onChange={setQuery}
+                    placeholder={t('listTable.searchPlaceholder')}
+                    ariaLabel={t('listTable.searchAria')}
+                  />
+                ) : undefined
+              }
+              actions={
                 <button
                   type="button"
                   data-testid="client-detail-add-job"
-                  onClick={() => setJobPopupOpen(true)}
+                  onClick={() => {
+                    setQuery('')
+                    setJobPopupOpen(true)
+                  }}
                   className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
                   {t('jobs.addJob')}
                 </button>
-              ) : null}
-            </div>
+              }
+            />
 
             {clientJobs.length === 0 ? (
               <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
@@ -350,6 +364,7 @@ export function ClientDetailPage() {
             ) : (
               <ClientJobsDiscoveryTable
                 jobs={clientJobs}
+                query={query}
                 pieces={pieces}
                 clientName={client.name}
               />

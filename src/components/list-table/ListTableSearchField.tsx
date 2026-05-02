@@ -17,7 +17,7 @@ export function ListTableSearchField({
 }: ListTableSearchFieldProps) {
   const inputId = useId()
   return (
-    <div className={`mb-3 ${className}`}>
+    <div className={className}>
       <label className="sr-only" htmlFor={inputId}>
         {ariaLabel}
       </label>

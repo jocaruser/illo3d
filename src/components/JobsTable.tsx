@@ -9,7 +9,6 @@ import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildJobSearchBlob } from '@/lib/listTable/searchBlobs'
 import { LinkWithTagsTooltip } from '@/components/LinkWithTagsTooltip'
-import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
 
 function clientName(clients: Client[], clientId: string): string {
@@ -45,6 +44,8 @@ interface JobsTableProps {
   jobs: Job[]
   pieces: Piece[]
   clients: Client[]
+  /** Search query to filter rows. */
+  query?: string
   /** Comma-joined tag names per job id (for job id link tooltip). */
   tagTitleByJobId?: ReadonlyMap<string, string>
   /** Space-joined tag names per job id (for fuzzy search). */
@@ -59,6 +60,7 @@ export function JobsTable({
   jobs,
   pieces,
   clients,
+  query = '',
   tagTitleByJobId,
   tagSearchLineByJobId,
   onStatusSelect,
@@ -67,7 +69,6 @@ export function JobsTable({
   statusUpdatingId,
 }: JobsTableProps) {
   const { t } = useTranslation()
-  const [query, setQuery] = useState('')
   const [sortKey, setSortKey] = useState<string>('created_at')
   const [sortDir, setSortDir] = useState<SortDirection>('desc')
 
@@ -115,14 +116,7 @@ export function JobsTable({
   }
 
   return (
-    <div>
-      <ListTableSearchField
-        value={query}
-        onChange={setQuery}
-        placeholder={t('listTable.searchPlaceholder')}
-        ariaLabel={t('listTable.searchAria')}
-      />
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-900">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-900">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -278,6 +272,5 @@ export function JobsTable({
           </tbody>
         </table>
       </div>
-    </div>
   )
 }
