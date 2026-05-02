@@ -9,7 +9,7 @@ import {
   pieceUnitsResolved,
 } from '@/utils/pieceEffectiveInventory'
 import { formatCurrency } from '@/utils/money'
-import { PieceStatusDropdown } from '@/components/PieceStatusDropdown'
+import { Select } from '@/components/Select'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildPieceSearchBlob } from '@/lib/listTable/searchBlobs'
@@ -528,11 +528,16 @@ export function PiecesTable({
                         })()}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                        <PieceStatusDropdown
-                          pieceId={piece.id}
-                          status={piece.status}
+                        <Select
+                          items={['pending', 'done', 'failed'] as const}
+                          value={piece.status}
+                          onChange={(key) => onStatusChange(piece, key as Piece['status'])}
+                          getKey={(s) => s}
+                          getLabel={(s) => t(`pieces.status.${s}`)}
                           disabled={statusUpdatingId === piece.id}
-                          onChange={(next) => onStatusChange(piece, next)}
+                          id={`piece-status-${piece.id}`}
+                          testId={`piece-status-${piece.id}`}
+                          ariaLabel={t('pieces.statusFieldAria', { id: piece.id })}
                         />
                       </td>
                       <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 lg:table-cell">

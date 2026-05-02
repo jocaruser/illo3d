@@ -10,6 +10,7 @@ import { MentionLinkify } from '@/components/MentionLinkify'
 import { CLIENT_NOTE_SEVERITY_VALUES } from '@/services/clientNote/severity'
 import { ConfirmDialog } from './ConfirmDialog'
 import { toast } from '@/lib/toast'
+import { Combobox } from './Combobox'
 
 function stripSeverityClasses(severity: ClientNoteSeverity): string {
   switch (severity) {
@@ -204,20 +205,15 @@ export function CrmNotesSection({
         <div className="mb-3 flex flex-wrap items-center gap-3">
           <label className="text-sm text-gray-700 dark:text-gray-300">
             {tk('severityLabel')}
-            <select
+            <Combobox
+              items={CLIENT_NOTE_SEVERITY_VALUES}
               value={draftSeverity}
-              onChange={(e) =>
-                setDraftSeverity(e.target.value as ClientNoteSeverity)
-              }
+              onChange={(key) => setDraftSeverity(key as ClientNoteSeverity)}
+              getKey={(s) => s}
+              getLabel={(s) => sevLabel(s)}
               disabled={adding || !spreadsheetId}
-              className="ml-2 rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-            >
-              {CLIENT_NOTE_SEVERITY_VALUES.map((s) => (
-                <option key={s} value={s}>
-                  {sevLabel(s)}
-                </option>
-              ))}
-            </select>
+              searchable={false}
+            />
           </label>
           <button
             type="button"
@@ -247,20 +243,15 @@ export function CrmNotesSection({
                   disabled={busyId === n.id}
                   className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                 />
-                <select
+                <Combobox
+                  items={CLIENT_NOTE_SEVERITY_VALUES}
                   value={editSeverity}
-                  onChange={(e) =>
-                    setEditSeverity(e.target.value as ClientNoteSeverity)
-                  }
+                  onChange={(key) => setEditSeverity(key as ClientNoteSeverity)}
+                  getKey={(s) => s}
+                  getLabel={(s) => sevLabel(s)}
                   disabled={busyId === n.id}
-                  className="rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                >
-                  {CLIENT_NOTE_SEVERITY_VALUES.map((s) => (
-                    <option key={s} value={s}>
-                      {sevLabel(s)}
-                    </option>
-                  ))}
-                </select>
+                  searchable={false}
+                />
                 <div className="flex gap-2">
                   <button
                     type="button"

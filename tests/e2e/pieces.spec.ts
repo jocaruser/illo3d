@@ -102,6 +102,11 @@ test.describe('Job pieces (job detail)', () => {
       page.getByRole('heading', { name: /add material line|añadir línea de material/i })
     ).toBeVisible()
 
+    const combobox = page.locator('#piece-item-inventory')
+    await combobox.fill('Ender')
+    await page.waitForSelector('.cursor-pointer', { timeout: 5000 })
+    await page.locator('.cursor-pointer').first().click()
+
     await page.getByLabel(/quantity|cantidad/i).fill('7')
 
     await page.getByRole('button', { name: /add line|añadir línea/i }).click()
@@ -259,8 +264,52 @@ test.describe('Job pieces (job detail)', () => {
 
     await page.getByTestId('expand-piece-P1').click()
     await page.getByTestId('add-line-P1').click()
-    const select = page.locator('#piece-item-inventory')
-    await expect(select.locator('option').nth(1)).toContainText(/\d/)
+    const combobox = page.locator('#piece-item-inventory')
+    await combobox.fill('PLA')
+    await expect(combobox).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 })
+    await page.waitForSelector('.cursor-pointer', { timeout: 5000 })
+    await page.locator('.cursor-pointer').first().click()
+  })
+
+  test('add line modal starts with dropdown empty', async ({ page, openCsvShop }) => {
+    void openCsvShop
+
+    await page.getByRole('link', { name: 'Jobs' }).click()
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 15000,
+    })
+
+    await page.getByTestId('job-detail-link-J1').click()
+    await expect(page).toHaveURL(/\/jobs\/J1/)
+
+    await page.getByTestId('expand-piece-P1').click()
+    await page.getByTestId('add-line-P1').click()
+
+    const combobox = page.locator('#piece-item-inventory')
+    await expect(combobox).toHaveValue('', { timeout: 5000 })
+  })
+
+  test('clearing combobox input stays empty', async ({ page, openCsvShop }) => {
+    void openCsvShop
+
+    await page.getByRole('link', { name: 'Jobs' }).click()
+    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
+      timeout: 15000,
+    })
+
+    await page.getByTestId('job-detail-link-J1').click()
+    await expect(page).toHaveURL(/\/jobs\/J1/)
+
+    await page.getByTestId('expand-piece-P1').click()
+    await page.getByTestId('add-line-P1').click()
+
+    const combobox = page.locator('#piece-item-inventory')
+    await combobox.fill('PLA')
+    await expect(combobox).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 })
+    await expect(combobox).toHaveValue('PLA')
+
+    await combobox.fill('')
+    await expect(combobox).toHaveValue('', { timeout: 5000 })
   })
 
   test('piece table offers BOM-based suggested price per piece', async ({

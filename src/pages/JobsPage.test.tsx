@@ -111,9 +111,9 @@ describe('JobsPage', () => {
       expect(screen.getByRole('table')).toBeInTheDocument()
     })
 
-    fireEvent.change(document.querySelector('#job-status-JX') as HTMLSelectElement, {
-      target: { value: 'delivered' },
-    })
+    const statusInput = document.querySelector('#job-status-JX') as HTMLInputElement
+    fireEvent.focus(statusInput)
+    fireEvent.click(screen.getByRole('option', { name: 'jobs.status.delivered' }))
 
     expect(
       screen.getByRole('heading', { name: 'jobs.confirmLeavePaidTitle' })

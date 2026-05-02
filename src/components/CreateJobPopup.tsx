@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createJob } from '@/services/job/createJob'
 import { updateJob } from '@/services/job/updateJob'
@@ -7,6 +7,7 @@ import type { UpdateJobPayload } from '@/services/job/updateJob'
 import { toast } from '@/lib/toast'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
+import { Combobox } from './Combobox'
 
 interface CreateJobPopupProps {
   isOpen: boolean
@@ -34,32 +35,20 @@ export function CreateJobPopup({
   onUpdateJob,
 }: CreateJobPopupProps) {
   const { t } = useTranslation()
-  const [clientQuery, setClientQuery] = useState('')
   const [clientId, setClientId] = useState('')
   const [description, setDescription] = useState('')
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  const filteredClients = useMemo(() => {
-    const q = clientQuery.trim().toLowerCase()
-    if (!q) return clients
-    return clients.filter((c) => c.name.toLowerCase().includes(q))
-  }, [clients, clientQuery])
-
   useEffect(() => {
     if (!isOpen) return
     if (initialJob) {
-      const c = clients.find((x) => x.id === initialJob.client_id)
-      setClientQuery(c?.name ?? '')
       setClientId(initialJob.client_id)
       setDescription(initialJob.description)
     } else if (presetClientId) {
-      const c = clients.find((x) => x.id === presetClientId)
       setClientId(presetClientId)
-      setClientQuery(c?.name ?? '')
       setDescription('')
     } else {
-      setClientQuery('')
       setClientId('')
       setDescription('')
     }
@@ -132,47 +121,17 @@ export function CreateJobPopup({
                 : presetClientId}
             </p>
           ) : (
-            <>
-              <input
-                id="job-client-search"
-                type="text"
-                value={clientQuery}
-                onChange={(e) => setClientQuery(e.target.value)}
-                placeholder={t('jobs.clientSearchPlaceholder')}
-                disabled={loading}
-                aria-required="true"
-                className="mb-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
-              />
-              {selectedClient && (
-                <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
-                  {t('jobs.selectedClient', { name: selectedClient.name })}
-                </p>
-              )}
-              <div className="max-h-36 overflow-y-auto rounded-lg border border-gray-200 dark:border-gray-700">
-                {filteredClients.length === 0 ? (
-                  <p className="px-3 py-2 text-sm text-gray-500 dark:text-gray-500">
-                    {t('jobs.noClientsMatch')}
-                  </p>
-                ) : (
-                  filteredClients.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => {
-                        setClientId(c.id)
-                        setClientQuery(c.name)
-                      }}
-                      disabled={loading}
-                      className={`flex w-full px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 disabled:bg-gray-100 dark:bg-gray-800 ${
-                        clientId === c.id ? 'bg-blue-50 dark:bg-blue-950 font-medium' : ''
-                      }`}
-                    >
-                      {c.name}
-                    </button>
-                  ))
-                )}
-              </div>
-            </>
+            <Combobox
+              items={clients}
+              value={clientId}
+              onChange={(key) => setClientId(key)}
+              getKey={(c) => c.id}
+              getLabel={(c) => c.name}
+              disabled={loading}
+              id="job-client-search"
+              placeholder={t('jobs.clientSearchPlaceholder')}
+              searchable
+            />
           )}
           {fieldErrors.client && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.client}</p>

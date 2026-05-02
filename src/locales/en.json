@@ -224,6 +224,7 @@
     "cancel": "Cancel",
     "addToInventory": "Add to inventory",
     "totalFromLines": "Total (line items)",
+    "searchInventory": "Search inventory...",
     "lineExisting": "Existing item",
     "lineNew": "New item",
     "inventoryItem": "Inventory item",
@@ -404,6 +405,7 @@
     "statusInsufficientStockDetail": "Could not decrement: {{detail}}. Uncheck “Decrement from inventory” or cancel.",
     "shortfallLine": "{{id}}: need {{need}}, have {{have}}",
     "inventoryLot": "Inventory lot",
+    "searchInventory": "Search inventory...",
     "quantity": "Quantity",
     "noInventory": "No inventory available",
     "submitLine": "Add line",
@@ -539,5 +541,11 @@
     "savingSheet": "Saving {{sheet}}…",
     "loadingSheet": "Loading {{sheet}}…",
     "progress": "Progress"
+  },
+  "combobox": {
+    "noMatch": "No matching items",
+    "noItems": "No items available",
+    "createOption": "Create \"{{query}}\"",
+    "placeholder": "Search..."
   }
 }

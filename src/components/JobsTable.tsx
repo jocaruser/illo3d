@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { Client, Job, Piece } from '@/types/money'
 import { jobTotalSortValue } from '@/utils/jobPiecePricing'
 import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
-import { StatusDropdown } from './StatusDropdown'
+import { Combobox } from './Combobox'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildJobSearchBlob } from '@/lib/listTable/searchBlobs'
@@ -231,11 +231,16 @@ export function JobsTable({
                     </Link>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                    <StatusDropdown
-                      jobId={job.id}
-                      status={job.status}
+                    <Combobox
+                      items={['draft', 'in_progress', 'delivered', 'paid', 'cancelled'] as const}
+                      value={job.status}
+                      onChange={(key) => onStatusSelect(job, key as Job['status'])}
+                      getKey={(s) => s}
+                      getLabel={(s) => t(`jobs.status.${s}`)}
                       disabled={statusUpdatingId === job.id}
-                      onChange={(next) => onStatusSelect(job, next)}
+                      id={`job-status-${job.id}`}
+                      ariaLabel={t('jobs.statusFieldAria', { id: job.id })}
+                      searchable={false}
                     />
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300 lg:table-cell">

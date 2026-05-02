@@ -6,6 +6,8 @@ import type { InventoryType, PurchaseCategory } from '@/types/money'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
 import { toast } from '@/lib/toast'
+import { Select } from './Select'
+import { Combobox } from './Combobox'
 
 const STOCK_CATEGORIES: PurchaseCategory[] = ['filament', 'consumable', 'equipment']
 const ALL_CATEGORIES: PurchaseCategory[] = [
@@ -247,18 +249,14 @@ export function CreatePurchasePopup({
             {t('purchase.category')}
             <RequiredIndicator />
           </label>
-          <select
-            id="purchase-category"
+          <Select
+            items={categoryOptions}
             value={category}
-            onChange={(e) => setCategory(e.target.value as PurchaseCategory)}
-            className="w-full rounded border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-          >
-            {categoryOptions.map((c) => (
-              <option key={c} value={c}>
-                {t(`purchase.category.${c}`)}
-              </option>
-            ))}
-          </select>
+            onChange={(key) => setCategory(key as PurchaseCategory)}
+            getKey={(c) => c}
+            getLabel={(c) => t(`purchase.category.${c}`)}
+            id="purchase-category"
+          />
         </div>
 
         {!addToInventory ? (
@@ -380,63 +378,56 @@ export function CreatePurchasePopup({
                   </button>
                 </div>
 
-                {line.mode === 'existing' ? (
+                  {line.mode === 'existing' ? (
                   <div>
                     <label className="mb-1 block text-xs font-medium">
                       {t('purchase.inventoryItem')}
                     </label>
-                    <select
+                    <Combobox
+                      items={activeInventoryIds.map(id => {
+                        const inv = allInventory.find((x) => x.id === id)
+                        return { id, name: inv ? `${inv.name} (${id})` : id }
+                      })}
                       value={line.inventoryId}
-                      onChange={(e) => {
-                        const id = e.target.value
+                      onChange={(key) => {
                         setLines(
                           lines.map((l, j) =>
                             j === i && l.mode === 'existing'
-                              ? { ...l, inventoryId: id }
+                              ? { ...l, inventoryId: key }
                               : l,
                           ),
                         )
                       }}
-                      className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                    >
-                      {activeInventoryIds.map((id) => {
-                        const inv = allInventory.find((x) => x.id === id)
-                        return (
-                          <option key={id} value={id}>
-                            {inv ? `${inv.name} (${id})` : id}
-                          </option>
-                        )
-                      })}
-                    </select>
+                      getKey={(item) => item.id}
+                      getLabel={(item) => item.name}
+                      searchable
+                      placeholder={t('purchase.searchInventory')}
+                    />
                     {fieldErrors[`line${i}inv`] ? (
                       <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors[`line${i}inv`]}</p>
                     ) : null}
                   </div>
                 ) : (
                   <>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium">
-                        {t('purchase.inventoryTypeLabel')}
-                      </label>
-                      <select
-                        value={line.type}
-                        onChange={(e) => {
-                          const typ = e.target.value as InventoryType
-                          setLines(
-                            lines.map((l, j) =>
-                              j === i && l.mode === 'new' ? { ...l, type: typ } : l,
-                            ),
-                          )
-                        }}
-                        className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                      >
-                        {INVENTORY_TYPES.map((typ) => (
-                          <option key={typ} value={typ}>
-                            {t(`purchase.inventoryType.${typ}`)}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                      <div>
+                        <label className="mb-1 block text-xs font-medium">
+                          {t('purchase.inventoryTypeLabel')}
+                        </label>
+                        <Select
+                          items={INVENTORY_TYPES}
+                          value={line.type}
+                          onChange={(key) => {
+                            const typ = key as InventoryType
+                            setLines(
+                              lines.map((l, j) =>
+                                j === i && l.mode === 'new' ? { ...l, type: typ } : l,
+                              ),
+                            )
+                          }}
+                          getKey={(typ) => typ}
+                          getLabel={(typ) => t(`purchase.inventoryType.${typ}`)}
+                        />
+                      </div>
                     <div>
                       <label className="mb-1 block text-xs font-medium">
                         {t('purchase.inventoryName')}
