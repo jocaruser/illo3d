@@ -533,6 +533,11 @@
     "cancel": "Cancel",
     "saving": "Saving…",
     "saveSuccess": "Workbook saved.",
-    "saveError": "Could not save workbook."
+    "saveError": "Could not save workbook.",
+    "savingWorkbook": "Saving workbook",
+    "loadingWorkbook": "Loading workbook",
+    "savingSheet": "Saving {{sheet}}…",
+    "loadingSheet": "Loading {{sheet}}…",
+    "progress": "Progress"
   }
 }

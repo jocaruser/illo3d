@@ -25,6 +25,7 @@ import { Breadcrumbs } from './components/Breadcrumbs'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { SetupWizard } from './components/wizard/SetupWizard'
 import { OperationToast } from './components/OperationToast'
+import { BlockingOverlay } from './components/BlockingOverlay'
 import { getBreadcrumbItems } from './breadcrumbItems'
 import { TransactionsPage } from './pages/TransactionsPage'
 import { ExpenseTransactionDetailPage } from './pages/ExpenseTransactionDetailPage'
@@ -350,6 +351,7 @@ function AppShell() {
         }}
       />
       <OperationToast />
+      <BlockingOverlay />
       <HashRouter>
         <Routes>
           <Route path="/login" element={<Navigate to="/" replace />} />

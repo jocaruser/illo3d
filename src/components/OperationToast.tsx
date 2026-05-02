@@ -39,11 +39,14 @@ function ProgressToast({
 }
 
 export function OperationToast() {
-  const { operation, phase, current, total, sheetName, message } =
+  const { blocking, operation, phase, current, total, sheetName, message } =
     useOperationToastStore()
+
   const toastIdRef = useRef<string | number | null>(null)
 
   useEffect(() => {
+    if (blocking) return
+
     if (phase === 'loading' && operation) {
       const id = toast.custom(
         <ProgressToast

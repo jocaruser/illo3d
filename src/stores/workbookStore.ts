@@ -59,6 +59,8 @@ export interface WorkbookState {
   status: WorkbookStatus
   error: string | null
   spreadsheetId: string | null
+  saveInProgress: boolean
+  mutatedDuringSave: boolean
   reset: () => void
   hydrate: (repository: SheetsRepository, spreadsheetId: string) => Promise<void>
   refresh: (repository: SheetsRepository) => Promise<void>
@@ -73,6 +75,8 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
   status: 'idle',
   error: null,
   spreadsheetId: null,
+  saveInProgress: false,
+  mutatedDuringSave: false,
 
   reset: () =>
     set({
@@ -82,6 +86,8 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
       status: 'idle',
       error: null,
       spreadsheetId: null,
+      saveInProgress: false,
+      mutatedDuringSave: false,
     }),
 
   hydrate: async (repository, spreadsheetId) => {
@@ -152,16 +158,20 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
       throw new Error('No active spreadsheet')
     }
     const toastStore = useOperationToastStore.getState()
-    toastStore.start('save', SHEET_NAMES.length)
-    const { tabs } = get()
+    toastStore.start('save', SHEET_NAMES.length, true)
+    set({ saveInProgress: true, mutatedDuringSave: false })
     try {
       for (const name of SHEET_NAMES) {
+        const { tabs } = get()
         const matrix = tabs[name] ?? emptySheetMatrix(name)
         await repository.replaceSheetMatrix(spreadsheetId, name, matrix)
         toastStore.tick(name)
       }
-      set({ dirty: false })
+      if (!get().mutatedDuringSave) {
+        set({ dirty: false })
+      }
     } finally {
+      set({ saveInProgress: false })
       toastStore.dismiss()
     }
   },
@@ -170,6 +180,7 @@ export const useWorkbookStore = create<WorkbookState>((set, get) => ({
     set((s) => ({
       tabs: { ...s.tabs, [sheetName]: rows },
       dirty: true,
+      mutatedDuringSave: s.saveInProgress ? true : s.mutatedDuringSave,
     })),
 }))
 

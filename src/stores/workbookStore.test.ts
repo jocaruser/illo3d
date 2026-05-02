@@ -5,6 +5,28 @@ import type { SheetName } from '@/services/sheets/config'
 import { SHEET_NAMES } from '@/services/sheets/config'
 import { emptySheetMatrix } from '@/services/sheets/sheetMatrix'
 
+const mockToastStore = {
+  start: vi.fn(),
+  tick: vi.fn(),
+  error: vi.fn(),
+  success: vi.fn(),
+  dismiss: vi.fn(),
+}
+
+vi.mock('./operationToastStore', () => ({
+  useOperationToastStore: {
+    getState: vi.fn(() => mockToastStore),
+  },
+}))
+
+beforeEach(() => {
+  mockToastStore.start.mockClear()
+  mockToastStore.tick.mockClear()
+  mockToastStore.error.mockClear()
+  mockToastStore.success.mockClear()
+  mockToastStore.dismiss.mockClear()
+})
+
 function headerPlusRow(sheetName: SheetName, row: string[]): string[][] {
   const h = emptySheetMatrix(sheetName)[0]
   const width = h.length
@@ -94,9 +116,46 @@ describe('useWorkbookStore', () => {
     const repo = createMockRepo()
     await useWorkbookStore.getState().hydrate(repo, 'sheet-1')
     useWorkbookStore.getState().mutateTab('jobs', headerPlusRow('jobs', []))
+
     await useWorkbookStore.getState().save(repo)
 
     expect(repo.replaceSheetMatrix).toHaveBeenCalled()
+    expect(useWorkbookStore.getState().dirty).toBe(false)
+  })
+
+  it('save passes blocking: true to toast store', async () => {
+    const repo = createMockRepo()
+    await useWorkbookStore.getState().hydrate(repo, 'sheet-1')
+    await useWorkbookStore.getState().save(repo)
+
+    expect(mockToastStore.start).toHaveBeenCalledWith(
+      'save',
+      SHEET_NAMES.length,
+      true
+    )
+  })
+
+  it('save preserves dirty when edits happen during save', async () => {
+    const repo = createMockRepo()
+    await useWorkbookStore.getState().hydrate(repo, 'sheet-1')
+    useWorkbookStore.getState().mutateTab('jobs', headerPlusRow('jobs', []))
+
+    const slowRepo = createMockRepo({
+      replaceSheetMatrix: vi.fn(async () => {
+        useWorkbookStore.getState().mutateTab('clients', headerPlusRow('clients', []))
+      }),
+    })
+
+    await useWorkbookStore.getState().save(slowRepo)
+    expect(useWorkbookStore.getState().dirty).toBe(true)
+  })
+
+  it('save clears dirty only when no edits during save', async () => {
+    const repo = createMockRepo()
+    await useWorkbookStore.getState().hydrate(repo, 'sheet-1')
+    useWorkbookStore.getState().mutateTab('jobs', headerPlusRow('jobs', []))
+
+    await useWorkbookStore.getState().save(repo)
     expect(useWorkbookStore.getState().dirty).toBe(false)
   })
 
