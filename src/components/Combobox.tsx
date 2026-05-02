@@ -13,6 +13,7 @@ export interface ComboboxProps<T> {
   disabled?: boolean
   className?: string
   id?: string
+  testId?: string
   ariaLabel?: string
 }
 
@@ -35,6 +36,7 @@ export function Combobox<T>({
   disabled = false,
   className = '',
   id,
+  testId,
   ariaLabel,
 }: ComboboxProps<T>) {
   const baseId = useId()
@@ -130,6 +132,7 @@ export function Combobox<T>({
     <div ref={containerRef} className="relative min-w-0 flex-1">
       <input
         id={id}
+        data-testid={testId}
         type="text"
         role="combobox"
         aria-expanded={open}

@@ -135,7 +135,8 @@ test.describe('Job pieces (job detail)', () => {
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
     await commitPieceUnits(page, 'P2', '1')
-    await page.getByTestId('piece-status-P2').selectOption('done')
+    await page.getByTestId('piece-status-P2').focus()
+    await page.getByRole('option', { name: /^done$/i }).click()
     await expect(
       page.getByRole('heading', { name: /complete piece|completar pieza/i })
     ).toBeVisible()
@@ -147,7 +148,7 @@ test.describe('Job pieces (job detail)', () => {
     await expect(
       page.getByRole('heading', { name: /complete piece|completar pieza/i })
     ).not.toBeVisible({ timeout: 15000 })
-    await expect(page.getByTestId('piece-status-P2')).toHaveValue('done')
+    await expect(page.getByTestId('piece-status-P2')).toHaveValue(/^done$/i)
   })
 
   test('revert piece to pending shows restore checkbox', async ({
@@ -165,13 +166,15 @@ test.describe('Job pieces (job detail)', () => {
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
     await commitPieceUnits(page, 'P2', '1')
-    await page.getByTestId('piece-status-P2').selectOption('done')
+    await page.getByTestId('piece-status-P2').focus()
+    await page.getByRole('option', { name: /^done$/i }).click()
     await page.getByRole('button', { name: /confirm|confirmar/i }).click()
-    await expect(page.getByTestId('piece-status-P2')).toHaveValue('done', {
+    await expect(page.getByTestId('piece-status-P2')).toHaveValue(/^done$/i, {
       timeout: 15000,
     })
 
-    await page.getByTestId('piece-status-P2').selectOption('pending')
+    await page.getByTestId('piece-status-P2').focus()
+    await page.getByRole('option', { name: /^pending$/i }).click()
     await expect(
       page.getByRole('heading', { name: /revert piece|revertir estado/i })
     ).toBeVisible()
@@ -183,7 +186,7 @@ test.describe('Job pieces (job detail)', () => {
     await expect(
       page.getByRole('heading', { name: /revert piece|revertir estado/i })
     ).not.toBeVisible({ timeout: 15000 })
-    await expect(page.getByTestId('piece-status-P2')).toHaveValue('pending')
+    await expect(page.getByTestId('piece-status-P2')).toHaveValue(/^pending$/i)
   })
 
   test('skip inventory decrement via checkbox still completes piece', async ({
@@ -201,12 +204,13 @@ test.describe('Job pieces (job detail)', () => {
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
     await commitPieceUnits(page, 'P1', '1')
-    await page.getByTestId('piece-status-P1').selectOption('done')
+    await page.getByTestId('piece-status-P1').focus()
+    await page.getByRole('option', { name: /^done$/i }).click()
     await page
       .getByRole('checkbox', { name: /decrement|descontar/i })
       .setChecked(false)
     await page.getByRole('button', { name: /confirm|confirmar/i }).click()
-    await expect(page.getByTestId('piece-status-P1')).toHaveValue('done', {
+    await expect(page.getByTestId('piece-status-P1')).toHaveValue(/^done$/i, {
       timeout: 15000,
     })
   })
@@ -237,7 +241,8 @@ test.describe('Job pieces (job detail)', () => {
       .filter({ has: page.getByText('no-lines-piece') })
       .first()
     const statusSelect = newPieceRow.locator('[data-testid^="piece-status-"]')
-    await statusSelect.selectOption('done')
+    await statusSelect.focus()
+    await page.getByRole('option', { name: /^done$/i }).click()
     await expect(
       page.getByRole('alert').filter({
         hasText: /at least one material|al menos una línea de material/i,

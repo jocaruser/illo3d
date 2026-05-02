@@ -9,7 +9,7 @@ import {
   pieceUnitsResolved,
 } from '@/utils/pieceEffectiveInventory'
 import { formatCurrency } from '@/utils/money'
-import { Select } from '@/components/Select'
+import { Combobox } from '@/components/Combobox'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildPieceSearchBlob } from '@/lib/listTable/searchBlobs'
@@ -528,7 +528,7 @@ export function PiecesTable({
                         })()}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                        <Select
+                        <Combobox
                           items={['pending', 'done', 'failed'] as const}
                           value={piece.status}
                           onChange={(key) => onStatusChange(piece, key as Piece['status'])}
@@ -538,6 +538,7 @@ export function PiecesTable({
                           id={`piece-status-${piece.id}`}
                           testId={`piece-status-${piece.id}`}
                           ariaLabel={t('pieces.statusFieldAria', { id: piece.id })}
+                          searchable={false}
                         />
                       </td>
                       <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 lg:table-cell">

@@ -6,7 +6,6 @@ import type { InventoryType, PurchaseCategory } from '@/types/money'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
 import { toast } from '@/lib/toast'
-import { Select } from './Select'
 import { Combobox } from './Combobox'
 
 const STOCK_CATEGORIES: PurchaseCategory[] = ['filament', 'consumable', 'equipment']
@@ -249,13 +248,14 @@ export function CreatePurchasePopup({
             {t('purchase.category')}
             <RequiredIndicator />
           </label>
-          <Select
+          <Combobox
             items={categoryOptions}
             value={category}
             onChange={(key) => setCategory(key as PurchaseCategory)}
             getKey={(c) => c}
             getLabel={(c) => t(`purchase.category.${c}`)}
             id="purchase-category"
+            searchable={false}
           />
         </div>
 
@@ -413,7 +413,7 @@ export function CreatePurchasePopup({
                         <label className="mb-1 block text-xs font-medium">
                           {t('purchase.inventoryTypeLabel')}
                         </label>
-                        <Select
+                        <Combobox
                           items={INVENTORY_TYPES}
                           value={line.type}
                           onChange={(key) => {
@@ -426,6 +426,7 @@ export function CreatePurchasePopup({
                           }}
                           getKey={(typ) => typ}
                           getLabel={(typ) => t(`purchase.inventoryType.${typ}`)}
+                          searchable={false}
                         />
                       </div>
                     <div>

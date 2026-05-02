@@ -63,10 +63,9 @@ test.describe('Record purchase flow', () => {
     await page.getByTestId('purchase-line-0-amount').fill('19.99')
 
     // Wait for navigation to complete after creating
-    await Promise.all([
-      page.waitForURL(/\/transactions\/T\d+/, { timeout: 20000 }),
-      page.getByRole('button', { name: /save purchase|guardar compra/i }).click(),
-    ])
+    await page.getByRole('button', { name: /save purchase|guardar compra/i }).click()
+
+    await expect(page).toHaveURL(/\/transactions\/T\d+/, { timeout: 20000 })
 
     await expect(page.getByRole('heading', { name: 'e2e filament marker' })).toBeVisible({ timeout: 15000 })
 
@@ -118,10 +117,8 @@ test.describe('Record purchase flow', () => {
     await page.locator('#purchase-notes').fill('e2e no inventory')
 
     // Wait for navigation to complete after creating
-    await Promise.all([
-      page.waitForURL(/\/transactions\/T\d+/, { timeout: 20000 }),
-      page.getByRole('button', { name: /save purchase|guardar compra/i }).click(),
-    ])
+    await page.getByRole('button', { name: /save purchase|guardar compra/i }).click()
+    await page.waitForURL(/\/transactions\/T\d+/, { timeout: 20000 })
 
     await expect(page.getByRole('heading', { name: 'e2e no inventory' })).toBeVisible({ timeout: 15000 })
 
@@ -159,10 +156,8 @@ test.describe('Record purchase flow', () => {
     await page.locator('#purchase-notes').fill('e2e redirect row')
 
     // Wait for navigation to complete after creating
-    await Promise.all([
-      page.waitForURL(/\/transactions\/T\d+/, { timeout: 20000 }),
-      page.getByRole('button', { name: /save purchase|guardar compra/i }).click(),
-    ])
+    await page.getByRole('button', { name: /save purchase|guardar compra/i }).click()
+    await page.waitForURL(/\/transactions\/T\d+/, { timeout: 20000 })
 
     await expect(page.getByRole('heading', { name: 'e2e redirect row' })).toBeVisible({ timeout: 15000 })
 
