@@ -24,7 +24,7 @@ The system SHALL provide a unified toast notification surface for all ephemeral 
 
 ### Requirement: Progress toast tracks workbook load
 
-The system SHALL display a non-dismissible progress toast during workbook hydration and refresh. The toast SHALL show the current sheet being loaded, the count of completed sheets, and a visual progress bar. The toast SHALL dismiss automatically when loading completes or transitions to an error toast on failure.
+The system SHALL display a non-dismissible progress toast during workbook hydration and refresh. The toast SHALL show the current sheet being loaded, the count of completed sheets, and a visual progress bar. The toast SHALL dismiss automatically when loading completes or transitions to an error toast on failure. The toast SHALL be non-blocking, allowing user interaction during read-only operations.
 
 #### Scenario: Progress toast shows during hydration
 
@@ -32,6 +32,7 @@ The system SHALL display a non-dismissible progress toast during workbook hydrat
 - **THEN** a progress toast appears showing "Loading workbook…"
 - **AND** as each sheet completes, the count updates (e.g., "Loaded clients… 3/10")
 - **AND** a progress bar fills proportionally
+- **AND** the toast is non-blocking (user can interact with the app)
 
 #### Scenario: Progress toast transitions to error on failure
 
@@ -40,23 +41,15 @@ The system SHALL display a non-dismissible progress toast during workbook hydrat
 - **AND** the error toast includes a Retry button
 - **AND** the workbook store status remains unchanged (data is not hidden)
 
-### Requirement: Progress toast tracks workbook save
+### Requirement: Progress toast does NOT track workbook save
 
-The system SHALL display a non-dismissible progress toast during workbook save. The toast SHALL show the current sheet being written, the count of completed sheets, and a visual progress bar. The toast SHALL dismiss automatically when saving completes or transitions to an error toast on failure.
+The system SHALL NOT use progress toasts for workbook save operations. Save operations SHALL use a blocking overlay instead (see blocking-save-overlay capability).
 
-#### Scenario: Progress toast shows during save
+#### Scenario: Save operation does not show toast
 
 - **WHEN** the user triggers Save
-- **THEN** a progress toast appears showing "Saving workbook…"
-- **AND** as each sheet is written, the count updates (e.g., "Saving clients… 3/10")
-- **AND** a progress bar fills proportionally
-
-#### Scenario: Save failure preserves dirty state
-
-- **WHEN** a sheet write fails during save
-- **THEN** the progress toast is replaced by a persistent error toast
-- **AND** the dirty flag remains true
-- **AND** the user can retry Save after the error resolves
+- **THEN** no progress toast appears
+- **AND** the blocking overlay from blocking-save-overlay is shown instead
 
 ### Requirement: Toast system supports dark mode
 

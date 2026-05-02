@@ -10,7 +10,9 @@ interface OperationToastState {
   total: number
   sheetName: string
   message: string
-  start: (operation: NonNullable<ToastOperation>, total: number) => void
+  blocking: boolean
+  start: (operation: NonNullable<ToastOperation>, total: number, blocking?: boolean) => void
+  setBlocking: (blocking: boolean) => void
   tick: (sheetName?: string) => void
   error: (message: string) => void
   success: (message: string) => void
@@ -24,8 +26,9 @@ export const useOperationToastStore = create<OperationToastState>((set) => ({
   total: 0,
   sheetName: '',
   message: '',
+  blocking: false,
 
-  start: (operation, total) =>
+  start: (operation, total, blocking = false) =>
     set({
       operation,
       phase: 'loading',
@@ -33,7 +36,10 @@ export const useOperationToastStore = create<OperationToastState>((set) => ({
       total,
       sheetName: '',
       message: '',
+      blocking,
     }),
+
+  setBlocking: (blocking) => set({ blocking }),
 
   tick: (sheetName) =>
     set((s) => ({
@@ -53,5 +59,6 @@ export const useOperationToastStore = create<OperationToastState>((set) => ({
       total: 0,
       sheetName: '',
       message: '',
+      blocking: false,
     }),
 }))

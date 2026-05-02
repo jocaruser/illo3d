@@ -533,6 +533,11 @@
     "cancel": "Cancelar",
     "saving": "Guardando…",
     "saveSuccess": "Libro guardado.",
-    "saveError": "No se pudo guardar el libro."
+    "saveError": "No se pudo guardar el libro.",
+    "savingWorkbook": "Guardando libro",
+    "loadingWorkbook": "Cargando libro",
+    "savingSheet": "Guardando {{sheet}}…",
+    "loadingSheet": "Cargando {{sheet}}…",
+    "progress": "Progreso"
   }
 }
