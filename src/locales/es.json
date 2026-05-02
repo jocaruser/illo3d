@@ -224,6 +224,7 @@
     "cancel": "Cancelar",
     "addToInventory": "Añadir al inventario",
     "totalFromLines": "Total (líneas)",
+    "searchInventory": "Buscar inventario...",
     "lineExisting": "Artículo existente",
     "lineNew": "Artículo nuevo",
     "inventoryItem": "Artículo de inventario",
@@ -404,6 +405,7 @@
     "statusInsufficientStockDetail": "No se pudo descontar: {{detail}}. Desmarca «Descontar del inventario» o cancela.",
     "shortfallLine": "{{id}}: hace falta {{need}}, hay {{have}}",
     "inventoryLot": "Lote de inventario",
+    "searchInventory": "Buscar inventario...",
     "quantity": "Cantidad",
     "noInventory": "No hay inventario disponible",
     "submitLine": "Añadir línea",
@@ -539,5 +541,11 @@
     "savingSheet": "Guardando {{sheet}}…",
     "loadingSheet": "Cargando {{sheet}}…",
     "progress": "Progreso"
+  },
+  "combobox": {
+    "noMatch": "No hay elementos que coincidan",
+    "noItems": "No hay elementos disponibles",
+    "createOption": "Crear \"{{query}}\"",
+    "placeholder": "Buscar..."
   }
 }

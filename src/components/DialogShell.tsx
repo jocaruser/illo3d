@@ -83,7 +83,7 @@ export function DialogShell({
         aria-modal="true"
         aria-labelledby={titleId}
         data-testid={panelTestId}
-        className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900"
+        className="my-4 w-full max-w-md max-h-[85vh] overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900"
         onClick={(e) => e.stopPropagation()}
       >
         <h3

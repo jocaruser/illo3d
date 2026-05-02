@@ -46,10 +46,9 @@ describe('CreateJobPopup', () => {
       />
     )
 
-    fireEvent.change(screen.getByPlaceholderText('jobs.clientSearchPlaceholder'), {
-      target: { value: 'Alice' },
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Alice' }))
+    const combobox = screen.getByPlaceholderText('jobs.clientSearchPlaceholder')
+    fireEvent.change(combobox, { target: { value: 'Alice' } })
+    fireEvent.click(screen.getByRole('option', { name: 'Alice' }))
     fireEvent.change(screen.getByPlaceholderText('jobs.descriptionPlaceholder'), {
       target: { value: 'New print' },
     })

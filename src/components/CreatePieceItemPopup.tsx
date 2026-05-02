@@ -7,6 +7,7 @@ import {
 import type { Inventory, PieceItem } from '@/types/money'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
+import { Combobox } from './Combobox'
 
 interface CreatePieceItemPopupProps {
   isOpen: boolean
@@ -40,12 +41,16 @@ export function CreatePieceItemPopup({
   )
 
   useEffect(() => {
-    if (!isOpen) return
-    setInventoryId(sortedInventory[0]?.id ?? '')
+    if (!isOpen) {
+      if (inventoryId) setInventoryId('')
+      return
+    }
     setQuantity('')
     setError(null)
     setFieldErrors({})
-  }, [isOpen, sortedInventory])
+  }, [isOpen])
+
+
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {}
@@ -114,34 +119,27 @@ export function CreatePieceItemPopup({
             {t('pieces.inventoryLot')}
             <RequiredIndicator />
           </label>
-          <select
-            id="piece-item-inventory"
+          <Combobox
+            items={sortedInventory}
             value={inventoryId}
-            onChange={(e) => setInventoryId(e.target.value)}
+            onChange={(key) => setInventoryId(key)}
+            getKey={(inv) => inv.id}
+            getLabel={(inv) => inv.type === 'filament'
+              ? t('pieces.inventoryOptionFilament', {
+                  name: inv.name,
+                  id: inv.id,
+                  qty: inv.qty_current,
+                })
+              : t('pieces.inventoryOptionUnits', {
+                  name: inv.name,
+                  id: inv.id,
+                  qty: inv.qty_current,
+                })}
             disabled={loading || sortedInventory.length === 0}
-            aria-required="true"
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
-          >
-            {sortedInventory.length === 0 ? (
-              <option value="">{t('pieces.noInventory')}</option>
-            ) : (
-              sortedInventory.map((inv) => (
-                <option key={inv.id} value={inv.id}>
-                  {inv.type === 'filament'
-                    ? t('pieces.inventoryOptionFilament', {
-                        name: inv.name,
-                        id: inv.id,
-                        qty: inv.qty_current,
-                      })
-                    : t('pieces.inventoryOptionUnits', {
-                        name: inv.name,
-                        id: inv.id,
-                        qty: inv.qty_current,
-                      })}
-                </option>
-              ))
-            )}
-          </select>
+            id="piece-item-inventory"
+            placeholder={t('pieces.searchInventory')}
+            searchable
+          />
           {fieldErrors.inventory && (
             <p className="mt-1 text-sm text-red-600 dark:text-red-400">
               {fieldErrors.inventory}
