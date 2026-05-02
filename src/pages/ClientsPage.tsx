@@ -7,6 +7,8 @@ import { ClientsTable } from '@/components/ClientsTable'
 import { CreateClientPopup } from '@/components/CreateClientPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EmptyState } from '@/components/EmptyState'
+import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
+import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { useTranslation } from 'react-i18next'
 import { updateClient } from '@/services/client/updateClient'
 import { deleteClient } from '@/services/client/deleteClient'
@@ -58,6 +60,7 @@ export function ClientsPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [archiveTarget, setArchiveTarget] = useState<Client | null>(null)
+  const [query, setQuery] = useState('')
 
   const clientPopupOpen = createOpen || editingClient !== null
 
@@ -94,31 +97,39 @@ export function ClientsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h2 className="mb-6 text-2xl font-bold text-gray-800 dark:text-gray-200">
-        {t('clients.title')}
-      </h2>
-
-
       {workbookStatus === 'ready' && (
         <>
-          <div className="mb-4 flex items-center justify-end">
-            <button
-              type="button"
-              onClick={() => {
-                setEditingClient(null)
-                setCreateOpen(true)
-              }}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              {t('clients.addClient')}
-            </button>
-          </div>
+          <ListTablePageHeader
+            title={t('clients.title')}
+            search={
+              <ListTableSearchField
+                value={query}
+                onChange={setQuery}
+                placeholder={t('listTable.searchPlaceholder')}
+                ariaLabel={t('listTable.searchAria')}
+              />
+            }
+            actions={
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery('')
+                  setEditingClient(null)
+                  setCreateOpen(true)
+                }}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                {t('clients.addClient')}
+              </button>
+            }
+          />
 
           {clients.length === 0 ? (
             <EmptyState messageKey="clients.empty" />
           ) : (
             <ClientsTable
               clients={clients}
+              query={query}
               tagSearchLineByClientId={tagSearchLineByClientId}
               tagTitleByClientId={tagTitleByClientId}
               onEdit={(c) => {

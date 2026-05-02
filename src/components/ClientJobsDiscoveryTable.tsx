@@ -7,7 +7,6 @@ import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildJobSearchBlob } from '@/lib/listTable/searchBlobs'
-import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
 
 function embeddedJobComparable(
@@ -34,6 +33,8 @@ function embeddedJobComparable(
 
 interface ClientJobsDiscoveryTableProps {
   jobs: Job[]
+  /** Search query to filter rows. */
+  query?: string
   pieces: Piece[]
   /** Resolved client name for search blob (all rows share this client). */
   clientName: string
@@ -41,11 +42,11 @@ interface ClientJobsDiscoveryTableProps {
 
 export function ClientJobsDiscoveryTable({
   jobs,
+  query = '',
   pieces,
   clientName,
 }: ClientJobsDiscoveryTableProps) {
   const { t } = useTranslation()
-  const [query, setQuery] = useState('')
   const [sortKey, setSortKey] = useState<string>('created_at')
   const [sortDir, setSortDir] = useState<SortDirection>('desc')
 
@@ -92,14 +93,7 @@ export function ClientJobsDiscoveryTable({
   }
 
   return (
-    <div>
-      <ListTableSearchField
-        value={query}
-        onChange={setQuery}
-        placeholder={t('listTable.searchPlaceholder')}
-        ariaLabel={t('listTable.searchAria')}
-      />
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -197,6 +191,5 @@ export function ClientJobsDiscoveryTable({
           </tbody>
         </table>
       </div>
-    </div>
   )
 }

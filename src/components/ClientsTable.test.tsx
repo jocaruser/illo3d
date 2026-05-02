@@ -112,16 +112,13 @@ describe('ClientsTable', () => {
       <MemoryRouter>
         <ClientsTable
           clients={clients}
+          query="VIP"
           tagSearchLineByClientId={tagSearch}
           onEdit={vi.fn()}
           onArchive={vi.fn()}
         />
       </MemoryRouter>
     )
-
-    fireEvent.change(screen.getByTestId('list-table-search'), {
-      target: { value: 'VIP' },
-    })
 
     expect(screen.getByText('Beta')).toBeInTheDocument()
     expect(screen.queryByText('Alpha')).not.toBeInTheDocument()

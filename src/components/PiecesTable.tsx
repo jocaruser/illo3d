@@ -13,7 +13,6 @@ import { PieceStatusDropdown } from '@/components/PieceStatusDropdown'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildPieceSearchBlob } from '@/lib/listTable/searchBlobs'
-import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
 
 function jobLabel(jobs: Job[], jobId: string): string {
@@ -125,6 +124,8 @@ function pieceComparable(
 
 interface PiecesTableProps {
   pieces: Piece[]
+  /** Search query to filter rows. */
+  query?: string
   jobs: Job[]
   pieceItems: PieceItem[]
   inventory: Inventory[]
@@ -142,6 +143,7 @@ interface PiecesTableProps {
 
 export function PiecesTable({
   pieces,
+  query = '',
   jobs,
   pieceItems,
   inventory,
@@ -159,7 +161,6 @@ export function PiecesTable({
   const { t } = useTranslation()
   const colCount = hideJobColumn ? 10 : 11
 
-  const [query, setQuery] = useState('')
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<SortDirection>('asc')
 
@@ -234,14 +235,7 @@ export function PiecesTable({
   }
 
   return (
-    <div>
-      <ListTableSearchField
-        value={query}
-        onChange={setQuery}
-        placeholder={t('listTable.searchPlaceholder')}
-        ariaLabel={t('listTable.searchAria')}
-      />
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-900">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-900">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -657,6 +651,5 @@ export function PiecesTable({
           </tbody>
         </table>
       </div>
-    </div>
   )
 }

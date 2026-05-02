@@ -10,6 +10,8 @@ import { EmptyState } from '@/components/EmptyState'
 import { CreatePiecePopup } from '@/components/CreatePiecePopup'
 import { CreatePieceItemPopup } from '@/components/CreatePieceItemPopup'
 import { PiecesTable } from '@/components/PiecesTable'
+import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
+import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
@@ -125,6 +127,7 @@ export function JobDetailPage() {
     useState<PieceStatusFlow>(null)
   const [decrementInventory, setDecrementInventory] = useState(true)
   const [restoreInventory, setRestoreInventory] = useState(true)
+  const [query, setQuery] = useState('')
   const [pieceStatusError, setPieceStatusError] = useState<string | null>(
     null
   )
@@ -343,19 +346,30 @@ export function JobDetailPage() {
             onChanged={handleMutationSuccess}
           />
 
-          <div className="mb-4 flex items-center justify-between gap-4">
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-              {t('pieces.title')}
-            </h3>
-            <button
-              type="button"
-              data-testid="add-piece-button"
-              onClick={() => setCreateOpen(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-            >
-              {t('pieces.addPiece')}
-            </button>
-          </div>
+          <ListTablePageHeader
+            title={t('pieces.title')}
+            search={
+              <ListTableSearchField
+                value={query}
+                onChange={setQuery}
+                placeholder={t('listTable.searchPlaceholder')}
+                ariaLabel={t('listTable.searchAria')}
+              />
+            }
+            actions={
+              <button
+                type="button"
+                data-testid="add-piece-button"
+                onClick={() => {
+                  setQuery('')
+                  setCreateOpen(true)
+                }}
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                {t('pieces.addPiece')}
+              </button>
+            }
+          />
 
           {lineRequirementMessage ? (
             <div
@@ -371,6 +385,7 @@ export function JobDetailPage() {
           ) : (
             <PiecesTable
               pieces={pieces}
+              query={query}
               jobs={jobs}
               pieceItems={pieceItems}
               inventory={inventory}

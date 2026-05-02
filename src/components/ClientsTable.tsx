@@ -6,11 +6,12 @@ import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildClientSearchBlob } from '@/lib/listTable/searchBlobs'
 import { LinkWithTagsTooltip } from '@/components/LinkWithTagsTooltip'
-import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
 
 interface ClientsTableProps {
   clients: Client[]
+  /** Search query to filter rows. */
+  query?: string
   /** Space-joined tag names per client id (for fuzzy search). */
   tagSearchLineByClientId?: ReadonlyMap<string, string>
   /** Comma-joined tag names per client id (for name link tooltip). */
@@ -40,13 +41,13 @@ function clientComparable(client: Client, key: string): string | number {
 
 export function ClientsTable({
   clients,
+  query = '',
   tagSearchLineByClientId,
   tagTitleByClientId,
   onEdit,
   onArchive,
 }: ClientsTableProps) {
   const { t } = useTranslation()
-  const [query, setQuery] = useState('')
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<SortDirection>('asc')
 
@@ -91,14 +92,7 @@ export function ClientsTable({
   }
 
   return (
-    <div>
-      <ListTableSearchField
-        value={query}
-        onChange={setQuery}
-        placeholder={t('listTable.searchPlaceholder')}
-        ariaLabel={t('listTable.searchAria')}
-      />
-      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-900">
+    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-900">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className="bg-gray-50 dark:bg-gray-800">
             <tr>
@@ -232,6 +226,5 @@ export function ClientsTable({
           </tbody>
         </table>
       </div>
-    </div>
   )
 }
