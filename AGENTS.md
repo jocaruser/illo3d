@@ -32,7 +32,12 @@ When fixing a confirmed bug or regression, follow the TDD workflow:
 - The `openspec/changes/` directory is `.gitignore`d.
 - Do not `git add` OpenSpec change folders unless the user explicitly requests it.
 
-### 6. Use `gh` CLI for GitHub Operations
+### 6. Version Must Be Bumped in Every PR
+- Every PR **must** increment `APP_VERSION` in `src/config/version.ts`.
+- Follow semver: bump major for breaking changes, minor for new features, patch for bug fixes.
+- Do this **before** creating the PR commit so the version reflects the change being merged.
+
+### 7. Use `gh` CLI for GitHub Operations
 - Prefer `gh` CLI over GitHub MCP tools for PR, branch, and other GitHub operations.
 - GitHub MCP tools may fail with authentication errors in this environment; `gh` uses local git credentials and works reliably.
 - Use `gh pr create`, `gh repo`, `gh issue`, etc. as needed.
