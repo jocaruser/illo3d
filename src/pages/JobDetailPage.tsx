@@ -8,18 +8,27 @@ import { deleteJob } from '@/services/job/deleteJob'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
 import { EmptyState } from '@/components/EmptyState'
 import { CreatePiecePopup } from '@/components/CreatePiecePopup'
-import { CreatePieceItemPopup } from '@/components/CreatePieceItemPopup'
 import { PiecesTable } from '@/components/PiecesTable'
 import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
-import { EntityDetailPage } from '@/components/EntityDetailPage'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { JobNotesSection } from '@/components/JobNotesSection'
 import { JobTagsSection } from '@/components/JobTagsSection'
+import { JobWidget } from '@/components/JobWidget'
+import { JobWidgetGrid } from '@/components/JobWidgetGrid'
+import { JobMaterialsSummary } from '@/components/JobMaterialsSummary'
+import { ColoredNumber } from '@/components/ColoredNumber'
+import { jobOverallRiskFactor } from '@/utils/jobOverallRiskFactor'
 import { updatePieceStatus } from '@/services/piece/updatePieceStatus'
 import { updatePiecePrice } from '@/services/piece/updatePiecePrice'
 import { updatePieceUnits } from '@/services/piece/updatePieceUnits'
+import { updatePieceName } from '@/services/piece/updatePieceName'
+import { updatePieceItem } from '@/services/piece/updatePieceItem'
+import { deletePieceItem } from '@/services/piece/deletePieceItem'
+import { createPieceItem, DUPLICATE_PIECE_ITEM_INVENTORY } from '@/services/piece/createPieceItem'
+import { useJobStatusFlow } from '@/hooks/useJobStatusFlow'
+import { Combobox } from '@/components/Combobox'
 import type {
   Inventory,
   Job,
@@ -33,6 +42,13 @@ import {
   effectiveNeedByInventory,
   pieceUnitsAreSet,
 } from '@/utils/pieceEffectiveInventory'
+import { jobPricingState } from '@/utils/jobPiecePricing'
+import { jobMaterialCost } from '@/utils/jobMaterialCost'
+import { jobFilamentGrams } from '@/utils/jobFilamentGrams'
+import { jobConsumableUnits } from '@/utils/jobConsumableUnits'
+import { jobDueDateGradient } from '@/utils/jobDueDateGradient'
+import { buildMaterialsSummary } from '@/utils/jobMaterialsSummary'
+import { formatCurrency } from '@/utils/money'
 
 function clientName(
   clients: { id: string; name: string }[],
@@ -94,6 +110,14 @@ export function JobDetailPage() {
     tags,
     tagLinks,
   } = useWorkbookEntities()
+
+  const {
+    handleStatusSelect: handleJobStatusSelect,
+    statusError: jobStatusError,
+    statusUpdatingId: jobStatusUpdatingId,
+    statusDialogs: jobStatusDialogs,
+  } = useJobStatusFlow(spreadsheetId)
+
   const jobNotes = useMemo((): JobNote[] => {
     const list = crmNotes
       .filter((n) => n.entity_type === 'job' && n.entity_id === jobId)
@@ -117,9 +141,47 @@ export function JobDetailPage() {
     [allPieces, jobId]
   )
 
+  const jobPricing = useMemo(
+    () => (job ? jobPricingState(job.id, allPieces) : { kind: 'incomplete' as const }),
+    [job, allPieces]
+  )
+
+  const materialCost = useMemo(
+    () => jobMaterialCost(pieces, pieceItems, inventory, lots),
+    [pieces, pieceItems, inventory, lots]
+  )
+
+  const filamentGrams = useMemo(
+    () => jobFilamentGrams(pieces, pieceItems, inventory),
+    [pieces, pieceItems, inventory]
+  )
+
+  const consumableUnits = useMemo(
+    () => jobConsumableUnits(pieces, pieceItems, inventory),
+    [pieces, pieceItems, inventory]
+  )
+
+  const dueDate = useMemo(
+    () => (job ? jobDueDateGradient(job.created_at) : null),
+    [job]
+  )
+
+  const materialsSummary = useMemo(
+    () =>
+      job
+        ? buildMaterialsSummary(job.id, allPieces, pieceItems, inventory, lots)
+        : [],
+    [job, allPieces, pieceItems, inventory, lots]
+  )
+
+  const overallRiskFactor = useMemo(
+    () =>
+      job ? jobOverallRiskFactor(pieces, pieceItems, inventory) : null,
+    [pieces, pieceItems, inventory]
+  )
+
   const [createOpen, setCreateOpen] = useState(false)
-  const [expandedPieceId, setExpandedPieceId] = useState<string | null>(null)
-  const [linePieceId, setLinePieceId] = useState<string | null>(null)
+  const [expandedPieceIds, setExpandedPieceIds] = useState<Set<string>>(new Set())
   const [editingJob, setEditingJob] = useState<Job | null>(null)
   const [archiveTarget, setArchiveTarget] = useState<Job | null>(null)
   const [archiveError, setArchiveError] = useState<string | null>(null)
@@ -142,6 +204,8 @@ export function JobDetailPage() {
     if (workbookStatus !== 'ready' || !job) return
     const anchor = location.hash.replace(/^#/, '')
     if (!anchor.startsWith('piece-')) return
+    const pieceId = anchor.replace('piece-', '')
+    setExpandedPieceIds((prev) => new Set([...prev, pieceId]))
     const id = window.setTimeout(() => {
       document.getElementById(anchor)?.scrollIntoView({
         behavior: 'smooth',
@@ -274,19 +338,56 @@ export function JobDetailPage() {
         )
       : []
 
-  const detailFields = job
+  const widgets = job
     ? [
-        { label: t('jobs.colId'), value: job.id },
         {
-          label: t('jobs.colClient'),
-          value: clientName(clients, job.client_id),
+          label: t('jobs.widgetId'),
+          value: (
+            <div className="flex items-center justify-between gap-2">
+              <span>{`${job.id} — ${job.description}`}</span>
+              <div className="flex shrink-0 gap-2">
+                <button
+                  type="button"
+                  data-testid="entity-detail-edit"
+                  onClick={() => setEditingJob(job)}
+                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                >
+                  {t('jobs.editJob')}
+                </button>
+                <button
+                  type="button"
+                  data-testid="entity-detail-delete"
+                  onClick={() => {
+                    setArchiveError(null)
+                    setArchiveTarget(job)
+                  }}
+                  className="rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-gray-900 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950"
+                >
+                  {t('lifecycle.archive')}
+                </button>
+              </div>
+            </div>
+          ),
+          colSpan: 2 as const,
         },
         {
-          label: t('jobs.colStatus'),
-          value: t(`jobs.status.${job.status}`),
+          label: t('jobs.widgetStatus'),
+          value: (
+            <Combobox
+              items={['draft', 'in_progress', 'delivered', 'paid', 'cancelled'] as const}
+              value={job.status}
+              onChange={(key) => {
+                void handleJobStatusSelect(job, key as Job['status'])
+              }}
+              getKey={(s) => s}
+              getLabel={(s) => t(`jobs.status.${s}`)}
+              disabled={jobStatusUpdatingId === job.id}
+              searchable={false}
+            />
+          ),
         },
         {
-          label: t('jobs.colTotal'),
+          label: t('jobs.widgetTotal'),
           value: (
             <JobPricingTotalDisplay
               jobId={job.id}
@@ -294,8 +395,77 @@ export function JobDetailPage() {
               t={t}
             />
           ),
+          alignRight: true,
         },
-        { label: t('jobs.colCreated'), value: job.created_at },
+        {
+          label: t('jobs.widgetClient'),
+          value: (
+            <Link
+              to={`/clients/${job.client_id}`}
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+            >
+              {clientName(clients, job.client_id)}
+            </Link>
+          ),
+          colSpan: 2 as const,
+        },
+        {
+          label: t('jobs.widgetDueDate'),
+          value: dueDate?.label ?? '—',
+          bgClass: dueDate?.bgClass,
+          textClass: dueDate?.textClass,
+        },
+        {
+          label: t('jobs.widgetBeneficio'),
+          value:
+            jobPricing.kind === 'complete'
+              ? (
+                <ColoredNumber
+                  value={jobPricing.total - materialCost}
+                  formatter={formatCurrency}
+                />
+              )
+              : (
+                <span className="inline-flex items-center rounded-md border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 font-semibold text-amber-900 dark:text-amber-200 text-sm">
+                  {t('jobs.totalIncomplete')}
+                </span>
+              ),
+          alignRight: true,
+        },
+        {
+          label: t('jobs.widgetFilament'),
+          value: `${filamentGrams}g`,
+        },
+        {
+          label: t('jobs.widgetConsumibles'),
+          value: `${consumableUnits} ${t('jobs.materialsUnits')}`,
+        },
+        {
+          label: t('jobs.widgetRiskFactor'),
+          value: overallRiskFactor
+            ? (() => {
+                const { minRedos, inventoryName } = overallRiskFactor
+                const colorClass =
+                  minRedos >= 2
+                    ? 'text-green-600 dark:text-green-400'
+                    : minRedos === 1
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-red-600 dark:text-red-400'
+                return (
+                  <span className={colorClass}>
+                    {t('jobs.riskFactorValue', { redos: minRedos, name: inventoryName })}
+                  </span>
+                )
+              })()
+            : '—',
+          testId: 'job-widget-risk-factor',
+        },
+        {
+          label: t('jobs.widgetMaterialCost'),
+          value: <ColoredNumber value={materialCost} formatter={formatCurrency} forceRed />,
+          alignRight: true,
+          testId: 'job-widget-material-cost',
+        },
       ]
     : []
 
@@ -315,19 +485,45 @@ export function JobDetailPage() {
       )}
 
       {workbookStatus === 'ready' && job && (
-        <EntityDetailPage
-          backTo="/jobs"
-          backLabel={t('jobs.backToList')}
-          title={job.description}
-          fields={detailFields}
-          editLabel={t('jobs.editJob')}
-          deleteLabel={t('lifecycle.archive')}
-          onEdit={() => setEditingJob(job)}
-          onDelete={() => {
-            setArchiveError(null)
-            setArchiveTarget(job)
-          }}
-        >
+        <div>
+          <div className="mb-4">
+            <Link
+              to="/jobs"
+              data-testid="entity-detail-back"
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+            >
+              ← {t('jobs.backToList')}
+            </Link>
+          </div>
+
+          <div className="mb-6">
+            <JobWidgetGrid>
+          {widgets.map((w) => (
+            <JobWidget
+              key={w.label}
+              label={w.label}
+              value={w.value}
+              bgClass={w.bgClass}
+              textClass={w.textClass}
+              colSpan={w.colSpan}
+              alignRight={w.alignRight}
+              testId={w.testId}
+            />
+          ))}
+            </JobWidgetGrid>
+          </div>
+
+          {jobStatusError ? (
+            <div
+              className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-900 dark:text-red-200"
+              role="alert"
+            >
+              {jobStatusError}
+            </div>
+          ) : null}
+
+          <JobMaterialsSummary rows={materialsSummary} />
+
           <JobTagsSection
             spreadsheetId={spreadsheetId}
             jobId={job.id}
@@ -391,11 +587,18 @@ export function JobDetailPage() {
               inventory={inventory}
               lots={lots}
               spreadsheetId={spreadsheetId}
-              expandedPieceId={expandedPieceId}
+              expandedPieceIds={expandedPieceIds}
               onToggleExpand={(id) =>
-                setExpandedPieceId((cur) => (cur === id ? null : id))
+                setExpandedPieceIds((prev) => {
+                  const next = new Set(prev)
+                  if (next.has(id)) {
+                    next.delete(id)
+                  } else {
+                    next.add(id)
+                  }
+                  return next
+                })
               }
-              onOpenAddLine={(id) => setLinePieceId(id)}
               onStatusChange={(p, next) => {
                 void handlePieceStatusSelect(p, next)
               }}
@@ -437,11 +640,50 @@ export function JobDetailPage() {
                 if (same) return
                 await updatePieceUnits(spreadsheetId, pieceId, v)
               }}
+              onPieceNameCommit={async (pieceId, raw) => {
+                if (!spreadsheetId) return
+                const trim = raw.trim()
+                if (!trim) return
+                const cur = pieces.find((p) => p.id === pieceId)?.name
+                if (trim === cur) return
+                await updatePieceName(spreadsheetId, pieceId, trim)
+              }}
+              onPieceItemQuantityCommit={async (pieceItemId, raw) => {
+                if (!spreadsheetId) return
+                const trim = raw.trim()
+                if (trim === '') return
+                const n = parseFloat(trim)
+                if (Number.isNaN(n) || n <= 0) return
+                await updatePieceItem(spreadsheetId, pieceItemId, { quantity: n })
+              }}
+              onPieceItemInventoryCommit={async (pieceItemId, inventoryId) => {
+                if (!spreadsheetId) return
+                await updatePieceItem(spreadsheetId, pieceItemId, { inventory_id: inventoryId })
+              }}
+              onPieceItemDelete={async (pieceItemId) => {
+                if (!spreadsheetId) return
+                await deletePieceItem(spreadsheetId, pieceItemId)
+              }}
+              onAddPieceItem={async (pieceId) => {
+                if (!spreadsheetId) return
+                try {
+                  await createPieceItem(spreadsheetId, {
+                    piece_id: pieceId,
+                    inventory_id: '',
+                    quantity: 1,
+                  })
+                  setExpandedPieceIds((prev) => new Set([...prev, pieceId]))
+                } catch (e) {
+                  if (e instanceof Error && e.message === DUPLICATE_PIECE_ITEM_INVENTORY) {
+                    // Ignore duplicate error - user can change inventory
+                  }
+                }
+              }}
               statusUpdatingId={pieceStatusUpdatingId}
               hideJobColumn
             />
           )}
-        </EntityDetailPage>
+        </div>
       )}
 
       <CreateJobPopup
@@ -482,16 +724,6 @@ export function JobDetailPage() {
         spreadsheetId={spreadsheetId}
         jobs={jobs}
         presetJobId={job?.id}
-      />
-
-      <CreatePieceItemPopup
-        isOpen={linePieceId != null}
-        onClose={() => setLinePieceId(null)}
-        onSuccess={handleMutationSuccess}
-        spreadsheetId={spreadsheetId}
-        pieceId={linePieceId}
-        inventory={inventory}
-        pieceItems={pieceItems}
       />
 
       <ConfirmDialog
@@ -584,6 +816,8 @@ export function JobDetailPage() {
           <p className="mt-3 text-sm text-red-600 dark:text-red-400">{pieceStatusError}</p>
         ) : null}
       </ConfirmDialog>
+
+      {jobStatusDialogs}
     </div>
   )
 }

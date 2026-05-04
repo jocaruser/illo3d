@@ -104,7 +104,7 @@ test.describe('Job edit and delete', () => {
     await detailEditDialog.getByRole('button', { name: /save|guardar/i }).click()
 
     await expect(detailEditDialog).not.toBeVisible({ timeout: 15000 })
-    await expect(page.getByRole('heading', { name: newDesc })).toBeVisible({
+    await expect(page.getByText(`J3 — ${newDesc}`)).toBeVisible({
       timeout: 15000,
     })
   })

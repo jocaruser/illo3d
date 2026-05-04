@@ -179,7 +179,7 @@ function parsePieceItemQty(value: unknown): number {
 export function matrixToPieceItems(matrix: string[][] | undefined): PieceItem[] {
   const raw = matrixToObjects<PieceItem>('piece_items', matrix)
   return raw
-    .filter((r) => r.id && r.piece_id && r.inventory_id)
+    .filter((r) => r.id && r.piece_id)
     .map((r) => ({
       ...r,
       quantity: parsePieceItemQty(r.quantity),

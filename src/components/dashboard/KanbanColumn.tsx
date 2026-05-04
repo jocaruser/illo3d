@@ -3,6 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Job, JobStatus, Piece } from '@/types/money'
 import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
+import { jobDueDateGradient } from '@/utils/jobDueDateGradient'
+import { jobPricingState } from '@/utils/jobPiecePricing'
+
+import { formatCurrency } from '@/utils/money'
 import {
   KANBAN_JOB_DRAG_MIME,
   beginKanbanJobDrag,
@@ -149,7 +153,14 @@ export function KanbanColumn({
                 onDropJob={onDropJob}
                 className="min-h-[10px] shrink-0"
               />
-              {visibleJobs.map((job, idx) => (
+              {visibleJobs.map((job, idx) => {
+                const due = jobDueDateGradient(job.created_at)
+                const pricing = jobPricingState(job.id, pieces)
+                const benefit =
+                  pricing.kind === 'complete'
+                    ? pricing.total
+                    : null
+                return (
                 <Fragment key={job.id}>
                   <div
                     data-testid={`kanban-drag-${job.id}`}
@@ -175,34 +186,50 @@ export function KanbanColumn({
                       statusUpdatingId === job.id ? 'opacity-60' : ''
                     } ${statusUpdatingId === job.id ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
                   >
-                    <div
-                      role="link"
-                      tabIndex={0}
-                      className="min-w-0 p-3 hover:bg-gray-50 dark:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-400"
-                      onClick={() => {
-                        if (suppressClickAfterDragRef.current) return
-                        navigate(`/jobs/${job.id}`)
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key !== 'Enter' && e.key !== ' ') return
-                        e.preventDefault()
-                        if (suppressClickAfterDragRef.current) return
-                        navigate(`/jobs/${job.id}`)
-                      }}
-                    >
-                      <p className="line-clamp-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {job.description}
-                      </p>
-                      <p className="mt-1 truncate text-xs text-gray-600 dark:text-gray-400">
-                        {clientsById.get(job.client_id) ?? ''}
-                      </p>
-                      <div className="mt-1">
-                        <JobPricingTotalDisplay
-                          jobId={job.id}
-                          pieces={pieces}
-                          t={t}
-                          size="compact"
+                    <div className="flex">
+                      {due.days >= 3 && (
+                        <div
+                          className={`w-1 shrink-0 ${due.bgClass.replace('bg-', 'bg-').replace('dark:bg-', 'dark:bg-')}`}
+                          style={{
+                            backgroundColor: undefined,
+                          }}
+                          aria-hidden="true"
                         />
+                      )}
+                      <div
+                        role="link"
+                        tabIndex={0}
+                        className="min-w-0 flex-1 p-3 hover:bg-gray-50 dark:bg-gray-800/50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-400"
+                        onClick={() => {
+                          if (suppressClickAfterDragRef.current) return
+                          navigate(`/jobs/${job.id}`)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key !== 'Enter' && e.key !== ' ') return
+                          e.preventDefault()
+                          if (suppressClickAfterDragRef.current) return
+                          navigate(`/jobs/${job.id}`)
+                        }}
+                      >
+                        <p className="line-clamp-2 text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {job.description}
+                        </p>
+                        <p className="mt-1 truncate text-xs text-gray-600 dark:text-gray-400">
+                          {clientsById.get(job.client_id) ?? ''}
+                        </p>
+                        <div className="mt-1 flex items-center gap-1">
+                          <JobPricingTotalDisplay
+                            jobId={job.id}
+                            pieces={pieces}
+                            t={t}
+                            size="compact"
+                          />
+                          {benefit !== null && (
+                            <span className="text-xs text-green-600 dark:text-green-400">
+                              ({formatCurrency(benefit)})
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -222,7 +249,7 @@ export function KanbanColumn({
                     />
                   )}
                 </Fragment>
-              ))}
+              )})}
             </>
           )}
           {showViewAll ? (

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import type { Client, Job, Piece } from '@/types/money'
 import { jobTotalSortValue } from '@/utils/jobPiecePricing'
 import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
+import { jobDueDateGradient } from '@/utils/jobDueDateGradient'
 import { Combobox } from './Combobox'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
@@ -33,6 +34,8 @@ function jobComparable(
       return job.status
     case 'price':
       return jobTotalSortValue(job.id, pieces)
+    case 'due_date':
+      return jobDueDateGradient(job.created_at).days
     case 'created_at':
       return job.created_at
     default:
@@ -169,6 +172,16 @@ export function JobsTable({
                 {t('jobs.colTotal')}
               </SortableColumnHeader>
               <SortableColumnHeader
+                columnKey="due_date"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                thClassName="hidden lg:table-cell"
+                ariaLabel={sortAria(t('jobs.widgetDueDate'), 'due_date')}
+              >
+                {t('jobs.widgetDueDate')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
                 columnKey="created_at"
                 sortKey={sortKey}
                 sortDir={sortDir}
@@ -189,7 +202,7 @@ export function JobsTable({
           <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                <td colSpan={8} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
                   {jobs.length === 0 ? null : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -249,6 +262,16 @@ export function JobsTable({
                       pieces={pieces}
                       t={t}
                     />
+                  </td>
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm lg:table-cell">
+                    {(() => {
+                      const due = jobDueDateGradient(job.created_at)
+                      return (
+                        <span className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${due.bgClass} ${due.textClass}`}>
+                          {due.label}
+                        </span>
+                      )
+                    })()}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 lg:table-cell">
                     {job.created_at}
