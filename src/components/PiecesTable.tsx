@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Inventory, Job, Lot, Piece, PieceItem } from '@/types/money'
 import { piecePriceIsSet } from '@/utils/jobPiecePricing'
@@ -19,12 +19,6 @@ function jobLabel(jobs: Job[], jobId: string): string {
   const j = jobs.find((x) => x.id === jobId)
   if (!j) return jobId
   return `${j.id} — ${j.description}`
-}
-
-function inventoryLabel(inventory: Inventory[], inventoryId: string): string {
-  const inv = inventory.find((x) => x.id === inventoryId)
-  if (!inv) return inventoryId
-  return `${inv.name} (${inv.id})`
 }
 
 function redoDisplay(
@@ -131,12 +125,16 @@ interface PiecesTableProps {
   inventory: Inventory[]
   lots: Lot[]
   spreadsheetId: string | null
-  expandedPieceId: string | null
+  expandedPieceIds: Set<string>
   onToggleExpand: (pieceId: string) => void
-  onOpenAddLine: (pieceId: string) => void
   onStatusChange: (piece: Piece, nextStatus: Piece['status']) => void
   onPiecePriceCommit: (pieceId: string, raw: string) => Promise<void>
   onPieceUnitsCommit: (pieceId: string, raw: string) => Promise<void>
+  onPieceNameCommit: (pieceId: string, raw: string) => Promise<void>
+  onPieceItemQuantityCommit: (pieceItemId: string, raw: string) => Promise<void>
+  onPieceItemInventoryCommit: (pieceItemId: string, inventoryId: string) => Promise<void>
+  onPieceItemDelete: (pieceItemId: string) => Promise<void>
+  onAddPieceItem: (pieceId: string) => Promise<void>
   statusUpdatingId?: string | null
   hideJobColumn?: boolean
 }
@@ -149,12 +147,16 @@ export function PiecesTable({
   inventory,
   lots,
   spreadsheetId,
-  expandedPieceId,
+  expandedPieceIds,
   onToggleExpand,
-  onOpenAddLine,
   onStatusChange,
   onPiecePriceCommit,
   onPieceUnitsCommit,
+  onPieceNameCommit,
+  onPieceItemQuantityCommit,
+  onPieceItemInventoryCommit,
+  onPieceItemDelete,
+  onAddPieceItem,
   statusUpdatingId = null,
   hideJobColumn = false,
 }: PiecesTableProps) {
@@ -163,10 +165,13 @@ export function PiecesTable({
 
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<SortDirection>('asc')
+  const [editingNameId, setEditingNameId] = useState<string | null>(null)
+  const [inventoryErrors, setInventoryErrors] = useState<Record<string, string>>({})
 
   const linesByPiece = useMemo(() => {
     const map = new Map<string, PieceItem[]>()
     for (const item of pieceItems) {
+      if (item.deleted === 'true') continue
       const list = map.get(item.piece_id) ?? []
       list.push(item)
       map.set(item.piece_id, list)
@@ -208,12 +213,7 @@ export function PiecesTable({
     )
   }, [filtered, sortKey, sortDir, jobs, t, pieceItems, inventory, lots])
 
-  useEffect(() => {
-    if (!expandedPieceId) return
-    if (!displayed.some((p) => p.id === expandedPieceId)) {
-      onToggleExpand(expandedPieceId)
-    }
-  }, [displayed, expandedPieceId, onToggleExpand])
+
 
   const onSortChange = (key: string) => {
     if (sortKey === key) {
@@ -362,7 +362,7 @@ export function PiecesTable({
               </tr>
             ) : (
               displayed.map((piece) => {
-                const expanded = expandedPieceId === piece.id
+                const expanded = expandedPieceIds.has(piece.id)
                 const lines = linesByPiece.get(piece.id) ?? []
                 return (
                   <Fragment key={piece.id}>
@@ -395,7 +395,36 @@ export function PiecesTable({
                         </td>
                       ) : null}
                       <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 dark:text-gray-300 sm:table-cell">
-                        {piece.name}
+                        {editingNameId === piece.id ? (
+                          <input
+                            type="text"
+                            defaultValue={piece.name}
+                            autoFocus
+                            onBlur={(e) => {
+                              setEditingNameId(null)
+                              if (e.target.value.trim() && e.target.value !== piece.name) {
+                                void onPieceNameCommit(piece.id, e.target.value)
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                setEditingNameId(null)
+                                if ((e.target as HTMLInputElement).value.trim() && (e.target as HTMLInputElement).value !== piece.name) {
+                                  void onPieceNameCommit(piece.id, (e.target as HTMLInputElement).value)
+                                }
+                              }
+                            }}
+                            className="w-full rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-sm text-gray-800 dark:text-gray-200 dark:bg-gray-800"
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setEditingNameId(piece.id)}
+                            className="text-left hover:text-blue-600 dark:hover:text-blue-400"
+                          >
+                            {piece.name}
+                          </button>
+                        )}
                       </td>
                       <td className="hidden px-2 py-3 text-sm sm:table-cell">
                         <input
@@ -559,7 +588,9 @@ export function PiecesTable({
                               <button
                                 type="button"
                                 data-testid={`add-line-${piece.id}`}
-                                onClick={() => onOpenAddLine(piece.id)}
+                                onClick={() => {
+                                  void onAddPieceItem(piece.id)
+                                }}
                                 className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
                               >
                                 {t('pieces.addLine')}
@@ -588,6 +619,7 @@ export function PiecesTable({
                                     <th className="py-2">
                                       {t('pieces.lineColStock')}
                                     </th>
+                                    <th className="py-2"></th>
                                   </tr>
                                 </thead>
                                 <tbody>
@@ -600,13 +632,54 @@ export function PiecesTable({
                                         {line.id}
                                       </td>
                                       <td className="py-2 pr-4 text-gray-800 dark:text-gray-200">
-                                        {inventoryLabel(
-                                          inventory,
-                                          line.inventory_id
-                                        )}
+                                        <div
+                                          ref={(el) => {
+                                            if (el && line.inventory_id === '') {
+                                              const input = el.querySelector('input')
+                                              if (input) {
+                                                input.focus()
+                                              }
+                                            }
+                                          }}
+                                        >
+                                          <Combobox
+                                            items={inventory.filter((i) => i.deleted !== 'true' && i.archived !== 'true')}
+                                            value={line.inventory_id}
+                                            onChange={(key) => {
+                                              void onPieceItemInventoryCommit(line.id, key).catch(() => {
+                                                setInventoryErrors((prev) => ({ ...prev, [line.id]: t('pieces.validation.duplicateInventory') }))
+                                                setTimeout(() => {
+                                                  setInventoryErrors((prev) => {
+                                                    const next = { ...prev }
+                                                    delete next[line.id]
+                                                    return next
+                                                  })
+                                                }, 3000)
+                                              })
+                                            }}
+                                            getKey={(i) => i.id}
+                                            getLabel={(i) => i.name}
+                                            disabled={!spreadsheetId}
+                                            placeholder={t('pieces.searchInventory')}
+                                            className="w-48"
+                                          />
+                                        </div>
+                                        {inventoryErrors[line.id] ? (
+                                          <span className="text-xs text-red-600 dark:text-red-400">{inventoryErrors[line.id]}</span>
+                                        ) : null}
                                       </td>
                                       <td className="py-2 pr-4 text-gray-800 dark:text-gray-200">
-                                        {line.quantity}
+                                        <input
+                                          type="number"
+                                          min={1}
+                                          step={1}
+                                          defaultValue={String(line.quantity)}
+                                          disabled={!spreadsheetId}
+                                          onBlur={(e) => {
+                                            void onPieceItemQuantityCommit(line.id, e.target.value)
+                                          }}
+                                          className="w-20 rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-right text-gray-800 dark:text-gray-200 disabled:bg-gray-100 dark:bg-gray-800"
+                                        />
                                       </td>
                                       <td className="py-2 pr-4 text-right text-gray-800 dark:text-gray-200">
                                         {(() => {
@@ -623,7 +696,7 @@ export function PiecesTable({
                                       <td className="py-2 text-gray-800 dark:text-gray-200">
                                         {(() => {
                                           const inv = inventory.find(
-                                            (x) => x.id === line.inventory_id
+                                            (x) => x.id === line.inventory_id,
                                           )
                                           const { remaining, band, bandClass } =
                                             redoDisplay(t, inv, line.quantity)
@@ -640,6 +713,18 @@ export function PiecesTable({
                                             <span>{remaining}</span>
                                           )
                                         })()}
+                                      </td>
+                                      <td className="py-2">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            void onPieceItemDelete(line.id)
+                                          }}
+                                          className="rounded p-1 text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                                          aria-label={t('lifecycle.delete')}
+                                        >
+                                          ×
+                                        </button>
                                       </td>
                                     </tr>
                                   ))}

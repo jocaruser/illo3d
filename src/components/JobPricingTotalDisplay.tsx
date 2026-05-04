@@ -1,4 +1,5 @@
 import type { Piece } from '@/types/money'
+import { ColoredNumber } from '@/components/ColoredNumber'
 import { jobPricingState } from '@/utils/jobPiecePricing'
 import { formatCurrency } from '@/utils/money'
 
@@ -31,6 +32,5 @@ export function JobPricingTotalDisplay({
       </span>
     )
   }
-  const toneClass = s.total > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-  return <span className={toneClass}>{formatCurrency(s.total)}</span>
+  return <ColoredNumber value={s.total} formatter={formatCurrency} />
 }

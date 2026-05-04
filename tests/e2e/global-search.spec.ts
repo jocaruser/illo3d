@@ -35,7 +35,7 @@ test.describe('Global header search', () => {
     await page.getByTestId('global-search-option-piece-P1').click()
     await expect(page).toHaveURL(/\/jobs\/J1/)
     await expect(
-      page.getByRole('heading', { name: 'Phone case prototype' })
+      page.getByText('J1 — Phone case prototype')
     ).toBeVisible({ timeout: 10000 })
   })
 

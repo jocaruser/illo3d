@@ -1,0 +1,45 @@
+export interface DueDateGradient {
+  days: number
+  label: string
+  bgClass: string
+  textClass: string
+}
+
+/** Compute days since creation and return gradient styling. */
+export function jobDueDateGradient(createdAt: string): DueDateGradient {
+  const created = new Date(createdAt)
+  const now = new Date()
+  const diffMs = now.getTime() - created.getTime()
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (days >= 7) {
+    return {
+      days,
+      label: `${days} days ago`,
+      bgClass: 'bg-red-100 dark:bg-red-900/40',
+      textClass: 'text-red-800 dark:text-red-200',
+    }
+  }
+  if (days >= 5) {
+    return {
+      days,
+      label: `${days} days ago`,
+      bgClass: 'bg-orange-100 dark:bg-orange-900/40',
+      textClass: 'text-orange-800 dark:text-orange-200',
+    }
+  }
+  if (days >= 3) {
+    return {
+      days,
+      label: `${days} days ago`,
+      bgClass: 'bg-yellow-100 dark:bg-yellow-900/40',
+      textClass: 'text-yellow-800 dark:text-yellow-200',
+    }
+  }
+  return {
+    days,
+    label: `${days} days ago`,
+    bgClass: 'bg-gray-50 dark:bg-gray-800',
+    textClass: 'text-gray-700 dark:text-gray-300',
+  }
+}
