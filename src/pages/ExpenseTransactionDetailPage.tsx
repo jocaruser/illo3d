@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
-import { EmptyState } from '@/components/EmptyState'
+import { NotFoundCard } from '@/components/NotFoundCard'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import {
   buildExpenseLotLinkMaps,
@@ -20,16 +20,9 @@ import {
   parseExpenseAmountInput,
   updateTransactionAmount,
 } from '@/services/transactions/updateTransactionAmount'
-import type { Client, Lot, Transaction } from '@/types/money'
+import type { Client } from '@/types/money'
 import { toast } from '@/lib/toast'
-
-function isActiveTransaction(txn: Transaction): boolean {
-  return txn.archived !== 'true' && txn.deleted !== 'true'
-}
-
-function isActiveLot(l: Lot): boolean {
-  return l.archived !== 'true' && l.deleted !== 'true'
-}
+import { isActiveRow, isActiveLot } from '@/lib/entityFilters'
 
 function getClientName(clients: Client[], clientId?: string): string {
   if (!clientId) return ''
@@ -56,7 +49,7 @@ export function ExpenseTransactionDetailPage() {
   const transaction = useMemo(() => {
     if (!transactionId) return undefined
     return allTransactions.find(
-      (tx) => tx.id === transactionId && isActiveTransaction(tx),
+      (tx) => tx.id === transactionId && isActiveRow(tx),
     )
   }, [allTransactions, transactionId])
 
@@ -343,99 +336,105 @@ export function ExpenseTransactionDetailPage() {
           </div>
         ) : null}
 
-        {lotsLinked.length > 0 ? (
-          <section>
-            <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
-              {t('expenseTransactionDetail.lotsTitle')}
-            </h3>
-            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
-              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                <thead className="bg-gray-50 dark:bg-gray-800">
+        <section>
+          <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
+            {t('expenseTransactionDetail.lotsTitle')}
+          </h3>
+          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
+            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead className="bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                    {t('jobs.colId')}
+                  </th>
+                  <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                    {t('expenseTransactionDetail.lotDescription')}
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                    {t('expenseTransactionDetail.lotQuantity')}
+                  </th>
+                  <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                    {t('expenseTransactionDetail.lotAmount')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+                {lotsLinked.length === 0 ? (
                   <tr>
-                    <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                      {t('jobs.colId')}
-                    </th>
-                    <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                      {t('expenseTransactionDetail.lotDescription')}
-                    </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                      {t('expenseTransactionDetail.lotQuantity')}
-                    </th>
-                    <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                      {t('expenseTransactionDetail.lotAmount')}
-                    </th>
+                    <td
+                      colSpan={4}
+                      className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400"
+                    >
+                      {t('expenseTransactionDetail.lotsEmpty')}
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-                  {lotsLinked.map((lot) => {
-                    const inv = inventoryById.get(lot.inventory_id)
-                    const invLabel = inv?.name?.trim() ? inv.name : lot.inventory_id
-                    const qtyVal = lotQuantityInputs[lot.id] ?? String(lot.quantity)
-                    const amtVal = lotAmountInputs[lot.id] ?? String(lot.amount)
-                    return (
-                      <tr key={lot.id}>
-                        <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                          <Link
-                            to={`/inventory/${lot.inventory_id}`}
-                            data-testid={`expense-detail-lot-inv-${lot.id}`}
-                            className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
-                          >
-                            {lot.inventory_id}
-                          </Link>
-                        </td>
-                        <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
-                          {invLabel}
-                        </td>
-                        <td className="px-4 py-3 text-right align-top">
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            data-testid={`expense-detail-lot-quantity-input-${lot.id}`}
-                            className="ml-auto w-28 rounded border border-gray-300 bg-white px-2 py-1.5 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                            value={qtyVal}
-                            onChange={(e) => {
-                              setLotQuantityInputs((prev) => ({
-                                ...prev,
-                                [lot.id]: e.target.value,
-                              }))
-                            }}
-                          />
-                          {lotQuantityFieldErrors[lot.id] ? (
-                            <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
-                              {lotQuantityFieldErrors[lot.id]}
-                            </p>
-                          ) : null}
-                        </td>
-                        <td className="px-4 py-3 text-right align-top">
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            data-testid={`expense-detail-lot-amount-input-${lot.id}`}
-                            className="ml-auto w-28 rounded border border-gray-300 bg-white px-2 py-1.5 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                            value={amtVal}
-                            onChange={(e) => {
-                              setLotAmountInputs((prev) => ({
-                                ...prev,
-                                [lot.id]: e.target.value,
-                              }))
-                            }}
-                          />
-                          {lotAmountFieldErrors[lot.id] ? (
-                            <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
-                              {lotAmountFieldErrors[lot.id]}
-                            </p>
-                          ) : null}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        ) : (
-          <EmptyState messageKey="expenseTransactionDetail.lotsEmpty" />
-        )}
+                ) : null}
+                {lotsLinked.map((lot) => {
+                  const inv = inventoryById.get(lot.inventory_id)
+                  const invLabel = inv?.name?.trim() ? inv.name : lot.inventory_id
+                  const qtyVal = lotQuantityInputs[lot.id] ?? String(lot.quantity)
+                  const amtVal = lotAmountInputs[lot.id] ?? String(lot.amount)
+                  return (
+                    <tr key={lot.id}>
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                        <Link
+                          to={`/inventory/${lot.inventory_id}`}
+                          data-testid={`expense-detail-lot-inv-${lot.id}`}
+                          className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+                        >
+                          {lot.inventory_id}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                        {invLabel}
+                      </td>
+                      <td className="px-4 py-3 text-right align-top">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          data-testid={`expense-detail-lot-quantity-input-${lot.id}`}
+                          className="ml-auto w-28 rounded border border-gray-300 bg-white px-2 py-1.5 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                          value={qtyVal}
+                          onChange={(e) => {
+                            setLotQuantityInputs((prev) => ({
+                              ...prev,
+                              [lot.id]: e.target.value,
+                            }))
+                          }}
+                        />
+                        {lotQuantityFieldErrors[lot.id] ? (
+                          <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
+                            {lotQuantityFieldErrors[lot.id]}
+                          </p>
+                        ) : null}
+                      </td>
+                      <td className="px-4 py-3 text-right align-top">
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          data-testid={`expense-detail-lot-amount-input-${lot.id}`}
+                          className="ml-auto w-28 rounded border border-gray-300 bg-white px-2 py-1.5 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                          value={amtVal}
+                          onChange={(e) => {
+                            setLotAmountInputs((prev) => ({
+                              ...prev,
+                              [lot.id]: e.target.value,
+                            }))
+                          }}
+                        />
+                        {lotAmountFieldErrors[lot.id] ? (
+                          <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
+                            {lotAmountFieldErrors[lot.id]}
+                          </p>
+                        ) : null}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <button
@@ -443,7 +442,7 @@ export function ExpenseTransactionDetailPage() {
             data-testid="expense-detail-save-changes"
             disabled={saveDisabled}
             onClick={() => void onSaveAll()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="btn-primary disabled:opacity-50"
           >
             {saveBusy ? t('expenseTransactionDetail.saving') : t('expenseTransactionDetail.saveChanges')}
           </button>
@@ -466,15 +465,11 @@ export function ExpenseTransactionDetailPage() {
       ) : null}
 
       {showNotFound && (
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-8 py-12 text-center shadow">
-          <p className="text-gray-600 dark:text-gray-400">{t('expenseTransactionDetail.notFound')}</p>
-          <Link
-            to="/transactions"
-            className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
-          >
-            {t('expenseTransactionDetail.backToList')}
-          </Link>
-        </div>
+        <NotFoundCard
+          message={t('expenseTransactionDetail.notFound')}
+          backTo="/transactions"
+          backLabel={t('expenseTransactionDetail.backToList')}
+        />
       )}
 
       {workbookStatus === 'ready' && isRenderableExpense && transaction && (

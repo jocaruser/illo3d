@@ -162,7 +162,7 @@ export function CrmNotesSection({
 
   return (
     <div className="mb-8">
-      <h3 className="mb-3 text-xl font-semibold text-gray-800 dark:text-gray-200">
+      <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
         {tk('notesTitle')}
       </h3>
 

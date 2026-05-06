@@ -25,7 +25,7 @@ The system SHALL maintain an in-memory workbook store (Zustand) containing the p
 
 ### Requirement: Workbook hydration on shop open
 
-The system SHALL hydrate the workbook store immediately after a shop passes metadata and structure validation. Hydration SHALL call `readRows` for every tab in `SHEET_NAMES` (in parallel where possible) and populate the store. Until hydration completes, the app SHALL show a loading state via a progress toast. If hydration fails, the app SHALL show a persistent error toast with a retry option and NOT populate the store with partial data.
+The system SHALL hydrate the workbook store immediately after a shop passes metadata and structure validation. Hydration SHALL call `readRows` for every tab in `SHEET_NAMES` (in parallel where possible) and populate the store. Until hydration completes, the app SHALL show a loading state via a progress toast. If hydration fails, the app SHALL show a persistent error toast (no in-toast Retry button from `OperationToast`) and NOT populate the store with partial data.
 
 #### Scenario: Successful hydration after shop open
 
@@ -38,8 +38,8 @@ The system SHALL hydrate the workbook store immediately after a shop passes meta
 
 - **WHEN** any tab read fails during hydration
 - **THEN** the workbook store is NOT populated with partial data
-- **AND** the user sees an error toast with a retry option
-- **AND** the error toast persists until dismissed or retried
+- **AND** the user sees an error toast with the failure message
+- **AND** the error toast persists until dismissed per toast behavior
 
 ### Requirement: Refresh reloads workbook from backend
 
@@ -67,9 +67,10 @@ The system SHALL provide a **Refresh** action that re-reads the workbook from th
 #### Scenario: Refresh error is surfaced
 
 - **WHEN** a read fails during Refresh (e.g. network error, auth expired)
-- **THEN** the user sees an error toast with the failure message and a Retry button
+- **THEN** the user sees an error toast with the failure message (no in-toast Retry from `OperationToast`)
 - **AND** the workbook store status does NOT transition to `'error'`
 - **AND** the existing snapshot data remains visible
+- **AND** the user MAY trigger Refresh again from the header to retry
 
 ### Requirement: Save persists workbook to backend
 

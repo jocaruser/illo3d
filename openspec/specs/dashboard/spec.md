@@ -34,7 +34,7 @@ The system SHALL provide a `/dashboard` route protected by the same authenticati
 
 ### Requirement: Jobs kanban on dashboard
 
-The system SHALL display a kanban board on the dashboard with one column per `JobStatus` value (`draft`, `in_progress`, `delivered`, `paid`, `cancelled`). Each card SHALL show the job description, client name, and price (when set). Cards SHALL link to `/jobs/:id`. The `cancelled` column SHALL display at most 10 cards with a link to `/jobs` to view all. Archived and deleted jobs SHALL be excluded.
+The system SHALL display a kanban board on the dashboard with one column per `JobStatus` value (`draft`, `in_progress`, `delivered`, `paid`, `cancelled`). Each card SHALL show the job description, client name, and price (when set). **When** counting-piece pricing for the job is **complete** (same completeness rules as elsewhere: every non-deleted counting piece has set `price` and resolvable `units`), the card SHALL show the formatted **total revenue once** and, beside it in parentheses, **benefit** equal to **total revenue minus estimated material cost** for that job only, using the same formulas as the job detail page: total revenue from derived piece pricing; material cost as the sum over that job’s active `piece_item` lines of `quantity × units × avg_unit_cost` (avg unit cost from lots per **inventory-display** rules). The parenthetical amount SHALL NOT repeat the total revenue (it SHALL represent benefit, not a second copy of the total). **When** pricing is incomplete, the card SHALL show the incomplete pricing affordance only and SHALL NOT show a parenthetical benefit. Cards SHALL link to `/jobs/:id`. The `cancelled` column SHALL display at most 10 cards with a link to `/jobs` to view all. Archived and deleted jobs SHALL be excluded. The kanban SHALL provide a **keyboard-accessible alternative** to drag-and-drop: each card SHALL expose a control (e.g. a labelled `<select>`) that allows keyboard users to move the card to any available status column without relying on pointer events.
 
 #### Scenario: Kanban shows all status columns
 
@@ -46,6 +46,12 @@ The system SHALL display a kanban board on the dashboard with one column per `Jo
 - **WHEN** user clicks a kanban card
 - **THEN** they are navigated to `/jobs/:id` for that job
 
+#### Scenario: Kanban card keyboard move
+
+- **WHEN** a keyboard user focuses the move control on a kanban card
+- **AND** selects a different status column
+- **THEN** the job is moved to the selected column through the same flow as drag-and-drop (including any confirmation dialogs)
+
 #### Scenario: Cancelled column is capped at 10 cards
 
 - **WHEN** more than 10 cancelled jobs exist
@@ -55,6 +61,17 @@ The system SHALL display a kanban board on the dashboard with one column per `Jo
 
 - **WHEN** a status column has no jobs
 - **THEN** the column shows a localized empty state message
+
+#### Scenario: Complete pricing shows total and benefit in parentheses
+
+- **WHEN** a kanban card has complete piece pricing for that job
+- **THEN** the card shows the formatted total revenue exactly once
+- **AND** shows benefit in parentheses as revenue minus material cost (not a duplicate of the total)
+
+#### Scenario: Incomplete pricing shows no parenthetical benefit
+
+- **WHEN** a kanban card has incomplete piece pricing for that job
+- **THEN** the card shows the incomplete pricing indicator and does not show a parenthetical benefit amount
 
 ---
 
@@ -98,22 +115,27 @@ The dashboard SHALL display a widget titled per i18n that shows **expected benef
 
 ### Requirement: Inventory alert widget on dashboard
 
-The system SHALL display an inventory alert widget showing items below stock thresholds using the same tier logic as `InventoryTable`: items with `qty_current / qty_initial ≤ 0.3` (and `qty_initial > 1`). Items with ratio ≤ 0.1 SHALL be shown as critical (red), items with ratio > 0.1 and ≤ 0.3 as low stock (orange/yellow). The widget SHALL link each item to `/inventory`. Archived and deleted inventory rows SHALL be excluded.
+The system SHALL display an inventory alert widget showing items below stock thresholds using the **same configurable per-item threshold logic as `InventoryTable`** (`warn_red`, `warn_orange`, `warn_yellow`): when `qty_current` is at or below a configured threshold and that threshold is greater than zero, the row SHALL appear in the widget with the same tier styling precedence as the table (critical red when red applies, else orange when orange applies, else yellow when yellow applies). The widget SHALL NOT exclude an item solely because only `warn_yellow` is non-zero among thresholds. The widget SHALL link each item to its **inventory detail page** (`/inventory/:inventoryId`). Archived and deleted inventory rows SHALL be excluded.
 
-#### Scenario: Critical items appear in alert widget
+#### Scenario: Critical threshold appears in alert widget
 
-- **WHEN** an inventory item has `qty_current / qty_initial ≤ 0.1` and `qty_initial > 1`
+- **WHEN** an inventory item has `warn_red > 0` and `qty_current <= warn_red`
 - **THEN** the item appears in the inventory alert widget with critical styling
 
-#### Scenario: Low-stock items appear in alert widget
+#### Scenario: Orange threshold appears in alert widget
 
-- **WHEN** an inventory item has ratio > 0.1 and ≤ 0.3 and `qty_initial > 1`
-- **THEN** the item appears in the inventory alert widget with warning styling
+- **WHEN** an inventory item is not in the red tier and has `warn_orange > 0` and `qty_current <= warn_orange`
+- **THEN** the item appears in the inventory alert widget with low-stock (orange) styling
 
-#### Scenario: No alerts when all stock is healthy
+#### Scenario: Yellow-only threshold appears in alert widget
 
-- **WHEN** all inventory items have ratio > 0.3 or `qty_initial ≤ 1`
-- **THEN** the inventory alert widget shows a localized "all stock healthy" message
+- **WHEN** an inventory item has `warn_red` and `warn_orange` both zero or not breached, `warn_yellow > 0`, and `qty_current <= warn_yellow`
+- **THEN** the item appears in the inventory alert widget with caution (yellow) styling
+
+#### Scenario: No alerts when stock is above all thresholds
+
+- **WHEN** every active inventory item has `qty_current` above all of its configured positive thresholds (or all thresholds are zero)
+- **THEN** the inventory alert widget shows a localized "all stock healthy" message (or equivalent empty state)
 
 ---
 

@@ -6,7 +6,6 @@ import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
-import { EmptyState } from '@/components/EmptyState'
 import { CreatePiecePopup } from '@/components/CreatePiecePopup'
 import { PiecesTable } from '@/components/PiecesTable'
 import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
@@ -49,6 +48,8 @@ import { jobConsumableUnits } from '@/utils/jobConsumableUnits'
 import { jobDueDateGradient } from '@/utils/jobDueDateGradient'
 import { buildMaterialsSummary } from '@/utils/jobMaterialsSummary'
 import { formatCurrency } from '@/utils/money'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { NotFoundCard } from '@/components/NotFoundCard'
 
 function clientName(
   clients: { id: string; name: string }[],
@@ -219,8 +220,6 @@ export function JobDetailPage() {
     location.hash,
     pieces.length,
   ])
-
-  const handleMutationSuccess = async () => {}
 
   const handleUpdateJob = async (
     jobIdParam: string,
@@ -471,17 +470,18 @@ export function JobDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
+      {workbookStatus === 'loading' && spreadsheetId ? (
+        <div className="mt-8 flex justify-center" aria-busy="true">
+          <LoadingSpinner />
+        </div>
+      ) : null}
 
       {workbookStatus === 'ready' && jobId && !job && (
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-8 py-12 text-center shadow">
-          <p className="text-gray-600 dark:text-gray-400">{t('jobs.jobNotFound')}</p>
-          <Link
-            to="/jobs"
-            className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
-          >
-            {t('jobs.backToList')}
-          </Link>
-        </div>
+        <NotFoundCard
+          message={t('jobs.jobNotFound')}
+          backTo="/jobs"
+          backLabel={t('jobs.backToList')}
+        />
       )}
 
       {workbookStatus === 'ready' && job && (
@@ -496,7 +496,7 @@ export function JobDetailPage() {
             </Link>
           </div>
 
-          <div className="mb-6">
+          <div className="mb-8">
             <JobWidgetGrid>
           {widgets.map((w) => (
             <JobWidget
@@ -529,7 +529,7 @@ export function JobDetailPage() {
             jobId={job.id}
             tags={tags}
             tagLinks={tagLinks}
-            onChanged={handleMutationSuccess}
+            onChanged={async () => {}}
           />
 
           <JobNotesSection
@@ -539,7 +539,7 @@ export function JobDetailPage() {
             clients={clients}
             jobs={jobs}
             pieces={allPieces}
-            onChanged={handleMutationSuccess}
+            onChanged={async () => {}}
           />
 
           <ListTablePageHeader
@@ -560,7 +560,7 @@ export function JobDetailPage() {
                   setQuery('')
                   setCreateOpen(true)
                 }}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="btn-primary"
               >
                 {t('pieces.addPiece')}
               </button>
@@ -576,120 +576,116 @@ export function JobDetailPage() {
             </div>
           ) : null}
 
-          {pieces.length === 0 ? (
-            <EmptyState messageKey="pieces.empty" />
-          ) : (
-            <PiecesTable
-              pieces={pieces}
-              query={query}
-              jobs={jobs}
-              pieceItems={pieceItems}
-              inventory={inventory}
-              lots={lots}
-              spreadsheetId={spreadsheetId}
-              expandedPieceIds={expandedPieceIds}
-              onToggleExpand={(id) =>
-                setExpandedPieceIds((prev) => {
-                  const next = new Set(prev)
-                  if (next.has(id)) {
-                    next.delete(id)
-                  } else {
-                    next.add(id)
-                  }
-                  return next
-                })
-              }
-              onStatusChange={(p, next) => {
-                void handlePieceStatusSelect(p, next)
-              }}
-              onPiecePriceCommit={async (pieceId, raw) => {
-                if (!spreadsheetId) return
-                const trim = raw.trim()
-                let v: number | undefined
-                if (trim === '') v = undefined
-                else {
-                  const n = parseFloat(trim)
-                  if (Number.isNaN(n) || n < 0) return
-                  v = n
+          <PiecesTable
+            pieces={pieces}
+            query={query}
+            jobs={jobs}
+            pieceItems={pieceItems}
+            inventory={inventory}
+            lots={lots}
+            spreadsheetId={spreadsheetId}
+            expandedPieceIds={expandedPieceIds}
+            onToggleExpand={(id) =>
+              setExpandedPieceIds((prev) => {
+                const next = new Set(prev)
+                if (next.has(id)) {
+                  next.delete(id)
+                } else {
+                  next.add(id)
                 }
-                const cur = pieces.find((p) => p.id === pieceId)?.price
-                const same =
-                  (v === undefined && cur === undefined) ||
-                  (v !== undefined &&
-                    cur !== undefined &&
-                    Math.abs(v - cur) < 1e-9)
-                if (same) return
-                await updatePiecePrice(spreadsheetId, pieceId, v)
-              }}
-              onPieceUnitsCommit={async (pieceId, raw) => {
-                if (!spreadsheetId) return
-                const trim = raw.trim()
-                let v: number | undefined
-                if (trim === '') v = undefined
-                else {
-                  const n = parseInt(trim, 10)
-                  if (Number.isNaN(n) || n < 1) return
-                  v = n
-                }
-                const cur = pieces.find((p) => p.id === pieceId)?.units
-                const same =
-                  (v === undefined && cur === undefined) ||
-                  (v !== undefined &&
-                    cur !== undefined &&
-                    cur === v)
-                if (same) return
-                await updatePieceUnits(spreadsheetId, pieceId, v)
-              }}
-              onPieceNameCommit={async (pieceId, raw) => {
-                if (!spreadsheetId) return
-                const trim = raw.trim()
-                if (!trim) return
-                const cur = pieces.find((p) => p.id === pieceId)?.name
-                if (trim === cur) return
-                await updatePieceName(spreadsheetId, pieceId, trim)
-              }}
-              onPieceItemQuantityCommit={async (pieceItemId, raw) => {
-                if (!spreadsheetId) return
-                const trim = raw.trim()
-                if (trim === '') return
+                return next
+              })
+            }
+            onStatusChange={(p, next) => {
+              void handlePieceStatusSelect(p, next)
+            }}
+            onPiecePriceCommit={async (pieceId, raw) => {
+              if (!spreadsheetId) return
+              const trim = raw.trim()
+              let v: number | undefined
+              if (trim === '') v = undefined
+              else {
                 const n = parseFloat(trim)
-                if (Number.isNaN(n) || n <= 0) return
-                await updatePieceItem(spreadsheetId, pieceItemId, { quantity: n })
-              }}
-              onPieceItemInventoryCommit={async (pieceItemId, inventoryId) => {
-                if (!spreadsheetId) return
-                await updatePieceItem(spreadsheetId, pieceItemId, { inventory_id: inventoryId })
-              }}
-              onPieceItemDelete={async (pieceItemId) => {
-                if (!spreadsheetId) return
-                await deletePieceItem(spreadsheetId, pieceItemId)
-              }}
-              onAddPieceItem={async (pieceId) => {
-                if (!spreadsheetId) return
-                try {
-                  await createPieceItem(spreadsheetId, {
-                    piece_id: pieceId,
-                    inventory_id: '',
-                    quantity: 1,
-                  })
-                  setExpandedPieceIds((prev) => new Set([...prev, pieceId]))
-                } catch (e) {
-                  if (e instanceof Error && e.message === DUPLICATE_PIECE_ITEM_INVENTORY) {
-                    // Ignore duplicate error - user can change inventory
-                  }
+                if (Number.isNaN(n) || n < 0) return
+                v = n
+              }
+              const cur = pieces.find((p) => p.id === pieceId)?.price
+              const same =
+                (v === undefined && cur === undefined) ||
+                (v !== undefined &&
+                  cur !== undefined &&
+                  Math.abs(v - cur) < 1e-9)
+              if (same) return
+              await updatePiecePrice(spreadsheetId, pieceId, v)
+            }}
+            onPieceUnitsCommit={async (pieceId, raw) => {
+              if (!spreadsheetId) return
+              const trim = raw.trim()
+              let v: number | undefined
+              if (trim === '') v = undefined
+              else {
+                const n = parseInt(trim, 10)
+                if (Number.isNaN(n) || n < 1) return
+                v = n
+              }
+              const cur = pieces.find((p) => p.id === pieceId)?.units
+              const same =
+                (v === undefined && cur === undefined) ||
+                (v !== undefined &&
+                  cur !== undefined &&
+                  cur === v)
+              if (same) return
+              await updatePieceUnits(spreadsheetId, pieceId, v)
+            }}
+            onPieceNameCommit={async (pieceId, raw) => {
+              if (!spreadsheetId) return
+              const trim = raw.trim()
+              if (!trim) return
+              const cur = pieces.find((p) => p.id === pieceId)?.name
+              if (trim === cur) return
+              await updatePieceName(spreadsheetId, pieceId, trim)
+            }}
+            onPieceItemQuantityCommit={async (pieceItemId, raw) => {
+              if (!spreadsheetId) return
+              const trim = raw.trim()
+              if (trim === '') return
+              const n = parseFloat(trim)
+              if (Number.isNaN(n) || n <= 0) return
+              await updatePieceItem(spreadsheetId, pieceItemId, { quantity: n })
+            }}
+            onPieceItemInventoryCommit={async (pieceItemId, inventoryId) => {
+              if (!spreadsheetId) return
+              await updatePieceItem(spreadsheetId, pieceItemId, { inventory_id: inventoryId })
+            }}
+            onPieceItemDelete={async (pieceItemId) => {
+              if (!spreadsheetId) return
+              await deletePieceItem(spreadsheetId, pieceItemId)
+            }}
+            onAddPieceItem={async (pieceId) => {
+              if (!spreadsheetId) return
+              try {
+                await createPieceItem(spreadsheetId, {
+                  piece_id: pieceId,
+                  inventory_id: '',
+                  quantity: 1,
+                })
+                setExpandedPieceIds((prev) => new Set([...prev, pieceId]))
+              } catch (e) {
+                if (e instanceof Error && e.message === DUPLICATE_PIECE_ITEM_INVENTORY) {
+                  // Ignore duplicate error - user can change inventory
                 }
-              }}
-              statusUpdatingId={pieceStatusUpdatingId}
-              hideJobColumn
-            />
-          )}
+              }
+            }}
+            statusUpdatingId={pieceStatusUpdatingId}
+            hideJobColumn
+          />
         </div>
       )}
 
       <CreateJobPopup
         isOpen={editingJob !== null}
         onClose={closeEditPopup}
-        onSuccess={handleMutationSuccess}
+        onSuccess={() => {}}
         spreadsheetId={spreadsheetId}
         clients={clients}
         initialJob={editingJob}
@@ -720,7 +716,7 @@ export function JobDetailPage() {
       <CreatePiecePopup
         isOpen={createOpen}
         onClose={() => setCreateOpen(false)}
-        onSuccess={handleMutationSuccess}
+        onSuccess={() => {}}
         spreadsheetId={spreadsheetId}
         jobs={jobs}
         presetJobId={job?.id}

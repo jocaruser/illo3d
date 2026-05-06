@@ -36,7 +36,6 @@ import { useShopMetadata } from '@/hooks/useShopMetadata'
 describe('ProfileMenu', () => {
   beforeEach(() => {
     clearTestPersistStorage()
-    // Reset stores
     useAuthStore.setState({
       user: null,
       credentials: null,
@@ -50,9 +49,7 @@ describe('ProfileMenu', () => {
       language: 'en',
       theme: 'light',
     })
-    // Reset i18n language
     i18n.changeLanguage('en')
-    // Reset mocks
     vi.mocked(useShopMetadata).mockReturnValue({ data: null, error: null, loading: false })
   })
 

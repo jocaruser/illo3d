@@ -357,7 +357,7 @@ export function PiecesTable({
                   colSpan={colCount}
                   className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400"
                 >
-                  {pieces.length === 0 ? null : t('listTable.noMatches')}
+                  {pieces.length === 0 ? t('pieces.empty') : t('listTable.noMatches')}
                 </td>
               </tr>
             ) : (

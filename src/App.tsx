@@ -258,6 +258,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 aria-label={t('nav.toggleMenu')}
+                aria-expanded={menuOpen}
                 className="md:hidden"
                 onClick={() => setMenuOpen((o) => !o)}
               >

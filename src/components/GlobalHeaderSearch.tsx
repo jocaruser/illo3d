@@ -54,6 +54,7 @@ export function GlobalHeaderSearch() {
 
   const [query, setQuery] = useState('')
   const [open, setOpen] = useState(false)
+  const [activeIdx, setActiveIdx] = useState(-1)
 
   const rows = useMemo(
     () =>
@@ -99,6 +100,10 @@ export function GlobalHeaderSearch() {
     }
   }, [])
 
+  useEffect(() => {
+    setActiveIdx(-1)
+  }, [query])
+
   const go = (hit: GlobalSearchHit) => {
     navigate(hit.navigateTo)
     setOpen(false)
@@ -137,6 +142,7 @@ export function GlobalHeaderSearch() {
         aria-expanded={showPanel}
         aria-controls={listboxId}
         aria-autocomplete="list"
+        aria-activedescendant={activeIdx >= 0 && results[activeIdx] ? `${listboxId}-option-${results[activeIdx].kind}-${results[activeIdx].id}` : undefined}
         data-testid="global-header-search"
         value={query}
         onChange={(e) => {
@@ -151,11 +157,23 @@ export function GlobalHeaderSearch() {
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
             setOpen(false)
+            setActiveIdx(-1)
+            return
+          }
+          if (e.key === 'ArrowDown') {
+            e.preventDefault()
+            setActiveIdx((i) => Math.min(i + 1, results.length - 1))
+            return
+          }
+          if (e.key === 'ArrowUp') {
+            e.preventDefault()
+            setActiveIdx((i) => Math.max(i - 1, -1))
             return
           }
           if (e.key === 'Enter' && results.length > 0) {
             e.preventDefault()
-            go(results[0])
+            go(results[activeIdx >= 0 ? activeIdx : 0])
+            setActiveIdx(-1)
           }
         }}
         placeholder={t('globalSearch.placeholder')}
@@ -178,13 +196,15 @@ export function GlobalHeaderSearch() {
               {t('globalSearch.noResults')}
             </li>
           ) : (
-            results.map((hit) => (
+            results.map((hit, idx) => (
               <li key={`${hit.kind}-${hit.id}`} role="presentation">
                 <button
+                  id={`${listboxId}-option-${hit.kind}-${hit.id}`}
                   type="button"
                   role="option"
+                  aria-selected={idx === activeIdx}
                   data-testid={`global-search-option-${hit.kind}-${hit.id}`}
-                  className="flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className={`flex w-full flex-col items-start gap-0.5 px-3 py-2 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-800 ${idx === activeIdx ? 'bg-blue-50 dark:bg-blue-950' : ''}`}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => go(hit)}
                 >

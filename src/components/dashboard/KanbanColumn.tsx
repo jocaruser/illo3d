@@ -1,11 +1,12 @@
 import { Fragment, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { Job, JobStatus, Piece } from '@/types/money'
+import type { Inventory, Job, JobStatus, Lot, Piece, PieceItem } from '@/types/money'
+import { ColoredNumber } from '@/components/ColoredNumber'
 import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
 import { jobDueDateGradient } from '@/utils/jobDueDateGradient'
+import { jobMaterialCost } from '@/utils/jobMaterialCost'
 import { jobPricingState } from '@/utils/jobPiecePricing'
-
 import { formatCurrency } from '@/utils/money'
 import {
   KANBAN_JOB_DRAG_MIME,
@@ -21,6 +22,9 @@ interface KanbanColumnProps {
   status: JobStatus
   jobs: Job[]
   pieces: Piece[]
+  pieceItems: PieceItem[]
+  inventory: Inventory[]
+  lots: Lot[]
   clientsById: Map<string, string>
   columnTitle: string
   onDropJob: (
@@ -29,6 +33,7 @@ interface KanbanColumnProps {
     insertBeforeId: string | null,
   ) => void
   statusUpdatingId: string | null
+  statusOptions: { value: string; label: string }[]
 }
 
 function KanbanDropGap({
@@ -87,10 +92,14 @@ export function KanbanColumn({
   status,
   jobs,
   pieces,
+  pieceItems,
+  inventory,
+  lots,
   clientsById,
   columnTitle,
   onDropJob,
   statusUpdatingId,
+  statusOptions,
 }: KanbanColumnProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -156,9 +165,16 @@ export function KanbanColumn({
               {visibleJobs.map((job, idx) => {
                 const due = jobDueDateGradient(job.created_at)
                 const pricing = jobPricingState(job.id, pieces)
+                const piecesForJob = pieces.filter((p) => p.job_id === job.id)
+                const material = jobMaterialCost(
+                  piecesForJob,
+                  pieceItems,
+                  inventory,
+                  lots,
+                )
                 const benefit =
                   pricing.kind === 'complete'
-                    ? pricing.total
+                    ? pricing.total - material
                     : null
                 return (
                 <Fragment key={job.id}>
@@ -225,11 +241,28 @@ export function KanbanColumn({
                             size="compact"
                           />
                           {benefit !== null && (
-                            <span className="text-xs text-green-600 dark:text-green-400">
-                              ({formatCurrency(benefit)})
-                            </span>
+                            <ColoredNumber
+                              value={benefit}
+                              className="text-xs tabular-nums"
+                            >
+                              {`(${formatCurrency(benefit)})`}
+                            </ColoredNumber>
                           )}
                         </div>
+                        <select
+                          className="sr-only focus:not-sr-only focus:mt-1 focus:w-full focus:rounded focus:border focus:border-gray-300 focus:bg-white focus:px-1 focus:py-0.5 focus:text-xs dark:focus:border-gray-600 dark:focus:bg-gray-800 dark:focus:text-gray-200"
+                          aria-label={t('dashboard.kanban.moveToColumn')}
+                          value={status}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            const next = e.target.value as JobStatus
+                            if (next !== status) onDropJob(job.id, next, null)
+                          }}
+                        >
+                          {statusOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
                   </div>

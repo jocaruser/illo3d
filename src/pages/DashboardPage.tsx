@@ -5,7 +5,7 @@ import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { CreatePurchasePopup } from '@/components/CreatePurchasePopup'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { useJobStatusFlow } from '@/hooks/useJobStatusFlow'
-import { StatCard } from '@/components/dashboard/StatCard'
+import { StatCard } from '@/components/StatCard'
 import { KanbanBoard } from '@/components/dashboard/KanbanBoard'
 import { InventoryAlerts } from '@/components/dashboard/InventoryAlerts'
 import { RecentList, type RecentListItem } from '@/components/dashboard/RecentList'
@@ -16,7 +16,7 @@ import {
   revenueThisMonth,
   countPiecesCompletedThisWeek,
 } from '@/utils/dashboardStats'
-import type { JobStatus, Transaction } from '@/types/money'
+import type { JobStatus } from '@/types/money'
 import {
   applyKanbanBoardOrderAfterStatusCommit,
   applyKanbanDrop,
@@ -26,10 +26,7 @@ import {
   buildExpenseLotLinkMaps,
   getTransactionConceptLink,
 } from '@/lib/money/transactionConceptLink'
-
-function isActiveTransaction(txn: Transaction): boolean {
-  return txn.archived !== 'true' && txn.deleted !== 'true'
-}
+import { isActiveRow } from '@/lib/entityFilters'
 
 type PendingKanbanPlacement = {
   fromStatus: JobStatus
@@ -83,7 +80,7 @@ export function DashboardPage() {
   } = useWorkbookEntities()
 
   const transactions = useMemo(
-    () => allTransactions.filter(isActiveTransaction),
+    () => allTransactions.filter(isActiveRow),
     [allTransactions],
   )
 
@@ -147,7 +144,7 @@ export function DashboardPage() {
             <button
               type="button"
               onClick={() => setPurchasePopupOpen(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              className="btn-primary"
             >
               {t('purchase.recordButton')}
             </button>
@@ -192,13 +189,16 @@ export function DashboardPage() {
             />
           </div>
 
-          <section className="mb-8" aria-label={t('page.dashboard')}>
+          <section className="mb-8">
             <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
               {t('nav.jobs')}
             </h3>
             <KanbanBoard
               jobs={jobs}
               pieces={pieces}
+              pieceItems={pieceItems}
+              inventory={inventory}
+              lots={lots}
               clientsById={clientsById}
               onJobMoveToStatus={(job, next, insertBeforeId) => {
                 if (!spreadsheetId) return

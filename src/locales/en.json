@@ -78,7 +78,8 @@
       "empty": "No jobs",
       "viewAll": "View all jobs",
       "jobSingular": "job",
-      "jobPlural": "jobs"
+      "jobPlural": "jobs",
+      "moveToColumn": "Move to column"
     },
     "inventory": {
       "alerts": "Stock alerts",
@@ -294,6 +295,8 @@
     "backToList": "Back to inventory",
     "notFound": "No inventory item with this id.",
     "sectionsEmpty": "No purchase lots or consumption recorded for this material yet.",
+    "lotsEmpty": "No purchase lots yet.",
+    "consumptionEmpty": "No consumption recorded for this material yet.",
     "lotsTitle": "Purchase lots",
     "consumptionTitle": "Consumption",
     "transaction": "Transaction",
@@ -567,6 +570,7 @@
     "noMatch": "No matching items",
     "noItems": "No items available",
     "createOption": "Create \"{{query}}\"",
-    "placeholder": "Search..."
+    "placeholder": "Search...",
+    "ariaLabel": "Options"
   }
 }

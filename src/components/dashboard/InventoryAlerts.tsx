@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Inventory } from '@/types/money'
+import { isActiveRow } from '@/lib/entityFilters'
 
 function alertTierClass(item: Inventory): string | null {
   const q = item.qty_current
@@ -16,10 +17,6 @@ function alertTierClass(item: Inventory): string | null {
   return null
 }
 
-function isActiveInventory(row: Inventory): boolean {
-  return row.archived !== 'true' && row.deleted !== 'true'
-}
-
 interface InventoryAlertsProps {
   items: Inventory[]
 }
@@ -28,8 +25,7 @@ export function InventoryAlerts({ items }: InventoryAlertsProps) {
   const { t } = useTranslation()
 
   const alerts = items.filter((item) => {
-    if (!isActiveInventory(item)) return false
-    if (item.warn_orange <= 0 && item.warn_red <= 0) return false
+    if (!isActiveRow(item)) return false
     const q = item.qty_current
     return (
       (item.warn_yellow > 0 && q <= item.warn_yellow) ||
@@ -60,7 +56,7 @@ export function InventoryAlerts({ items }: InventoryAlertsProps) {
             return (
               <li key={item.id}>
                 <Link
-                  to="/inventory"
+                  to={`/inventory/${item.id}`}
                   className={`block rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm hover:opacity-90 ${tier ?? 'bg-gray-50 dark:bg-gray-800'}`}
                 >
                   <span className="font-medium text-gray-900 dark:text-gray-100">{item.name}</span>

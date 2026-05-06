@@ -25,6 +25,12 @@ The system SHALL wrap the rendered children of `ProtectedRoute` (the authenticat
 
 On the Clients, Transactions, Expenses, and **Inventory list** pages, while the primary list query for that page reports loading (`isLoading` true) and the sheet connection is in the connected state, the system SHALL show a progress toast with a loading indicator and accessible busy semantics. Ad hoc plain-text “Loading...” paragraphs SHALL NOT be used on those pages. On the **Inventory detail** page (`/inventory/:inventoryId`), while the sheet connection is in the connected state and the **inventory row for the route id** is not yet available for render from the workbook-backed data source, the system SHALL show the same progress toast.
 
+#### Scenario: In-scope table pages expose aria-busy while loading
+
+- **WHEN** the workbook is not yet ready on any in-scope list page (Clients, Jobs, Transactions, Inventory)
+- **THEN** the page's root container exposes `aria-busy="true"` so assistive technology announces loading state
+- **AND** once the workbook is ready the attribute resolves to `false`
+
 #### Scenario: Clients page shows progress toast during initial load
 
 - **WHEN** the clients list query is loading and the connection is connected
@@ -58,7 +64,7 @@ On the Clients, Transactions, Expenses, and Inventory pages, when the primary li
 
 ### Requirement: Scope of shared list presentation
 
-The shared loading requirement in this specification applies to the Clients, Transactions, Expenses, **Inventory list**, and **Inventory detail** pages. The shared **empty-state** requirement applies to the Clients, Transactions, Expenses, and Inventory **list** pages as before. Other authenticated data pages (e.g. Jobs) MAY use different loading or empty presentation until they are explicitly brought under this specification.
+The shared loading requirement in this specification applies to the Clients, Transactions, Expenses, **Inventory list**, and **Inventory detail** pages. In addition, the **Clients**, **Jobs**, **Inventory**, and **Transactions** list pages SHALL expose `aria-busy` on the page root while the workbook is not yet `ready`, alongside the progress toast, so assistive technology can announce loading. The shared **empty-state** requirement applies to the Clients, Transactions, Expenses, and Inventory **list** pages as before.
 
 #### Scenario: Normative scope includes inventory detail loading
 

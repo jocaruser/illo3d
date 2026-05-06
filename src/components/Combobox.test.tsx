@@ -1,6 +1,10 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { Combobox } from './Combobox'
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}))
+
 describe('Combobox', () => {
   const items = [
     { id: '1', name: 'Filament Red' },
@@ -75,12 +79,10 @@ describe('Combobox', () => {
     const input = screen.getByRole('combobox')
     fireEvent.focus(input)
 
-    // First item is highlighted on focus
     expect(screen.getByText('Filament Red')).toHaveAttribute('aria-selected', 'true')
 
     fireEvent.keyDown(input, { key: 'ArrowDown' })
 
-    // ArrowDown moves to the second item
     const secondOption = screen.getByText('Filament Blue')
     expect(secondOption).toHaveAttribute('aria-selected', 'true')
   })
@@ -99,7 +101,6 @@ describe('Combobox', () => {
 
     const input = screen.getByRole('combobox')
     fireEvent.focus(input)
-    // First item is already highlighted on focus
     fireEvent.keyDown(input, { key: 'Enter' })
 
     expect(onChange).toHaveBeenCalledWith('1')
@@ -168,7 +169,7 @@ describe('Combobox', () => {
 
     const input = screen.getByRole('combobox')
     fireEvent.focus(input)
-    expect(screen.getByText('No items available')).toBeInTheDocument()
+    expect(screen.getByText('combobox.noItems')).toBeInTheDocument()
   })
 
   it('shows creatable option when no match', () => {
@@ -189,6 +190,6 @@ describe('Combobox', () => {
     fireEvent.focus(input)
     fireEvent.change(input, { target: { value: 'New Item' } })
 
-    expect(screen.getByText('Create "New Item"')).toBeInTheDocument()
+    expect(screen.getByText('combobox.createOption')).toBeInTheDocument()
   })
 })

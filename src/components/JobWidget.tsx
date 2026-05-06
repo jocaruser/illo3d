@@ -22,7 +22,7 @@ export function JobWidget({
   const spanClass = colSpan === 2 ? 'md:col-span-2' : 'md:col-span-1'
   return (
     <div
-      data-test-id={testId}
+      data-testid={testId}
       className={`rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm ${bgClass} ${spanClass}`}
     >
       <div className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">

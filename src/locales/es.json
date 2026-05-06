@@ -78,7 +78,8 @@
       "empty": "Sin trabajos",
       "viewAll": "Ver todos los trabajos",
       "jobSingular": "trabajo",
-      "jobPlural": "trabajos"
+      "jobPlural": "trabajos",
+      "moveToColumn": "Mover a columna"
     },
     "inventory": {
       "alerts": "Alertas de stock",
@@ -294,6 +295,8 @@
     "backToList": "Volver al inventario",
     "notFound": "No hay ningún artículo de inventario con este id.",
     "sectionsEmpty": "Aún no hay lotes de compra ni consumo registrados para este material.",
+    "lotsEmpty": "Aún no hay lotes de compra.",
+    "consumptionEmpty": "Aún no hay consumo registrado para este material.",
     "lotsTitle": "Lotes de compra",
     "consumptionTitle": "Consumo",
     "transaction": "Transacción",
@@ -567,6 +570,7 @@
     "noMatch": "No hay elementos que coincidan",
     "noItems": "No hay elementos disponibles",
     "createOption": "Crear \"{{query}}\"",
-    "placeholder": "Buscar..."
+    "placeholder": "Buscar...",
+    "ariaLabel": "Opciones"
   }
 }

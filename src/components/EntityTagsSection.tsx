@@ -84,7 +84,7 @@ export function EntityTagsSection({
 
   return (
     <div className="mb-8" data-testid={sectionTestId}>
-      <h3 className="mb-3 text-xl font-semibold text-gray-800 dark:text-gray-200">
+      <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
         {tk('tagsTitle')}
       </h3>
       <div className="mb-3 flex flex-wrap gap-2">

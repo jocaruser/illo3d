@@ -194,6 +194,18 @@ The inventory detail page SHALL display the item **name**, **type** (localized),
 - **AND** the item no longer appears as an active row on `/inventory`
 - **AND** navigating to `/inventory/:inventoryId` for that id treats the item as absent for active-detail purposes (same not-found behavior as other archived primary entities)
 
+### Requirement: Inventory detail lots and consumption as dedicated components
+
+The inventory detail page SHALL render the **purchase lots** section using a dedicated `InventoryLotsTable` component and the **consumption** section using a dedicated `InventoryConsumptionTable` component. Neither section SHALL be implemented as inline JSX directly in the page. Each component SHALL receive only the data and callbacks it needs as props.
+
+#### Scenario: Lots and consumption sections use dedicated components
+
+- **WHEN** the inventory detail page renders
+- **THEN** the lots section is provided by `InventoryLotsTable`
+- **AND** the consumption section is provided by `InventoryConsumptionTable`
+
+---
+
 ### Requirement: Inventory detail lots section
 
 The inventory detail page SHALL show a table (or equivalent) of **active** lots for that `inventory_id`, including **created date**, **quantity**, **amount** (cost), and a **link** to the related **transaction** using the lot’s **`transaction_id`**. The table SHALL allow the user to edit each lot’s **quantity** and **amount** in place and persist changes to the lots sheet only. The system SHALL NOT automatically update **`qty_current`** on the inventory row when a lot’s quantity or amount changes from this page. The system SHALL NOT require updating the linked transaction’s **`amount`** when a lot is edited from this page. Lot field validation SHALL reject non-finite or non-positive **quantity** values and non-finite or negative **amount** values (amount **zero** SHALL be allowed), consistent with existing lot update validation. Lots excluded from average unit cost (archived/deleted) SHALL be excluded from this table. Lots SHALL be ordered by `created_at` descending. The link SHALL navigate to **`/transactions/:transactionId`** using the lot’s **`transaction_id`**. The visible link text MAY be the resolved transaction **concept**, the **transaction id**, or equivalent concise labeling.

@@ -39,7 +39,7 @@ export function CreateConfirmModal({
             type="button"
             data-testid="wizard-create-confirm-action"
             onClick={onConfirm}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="btn-primary"
           >
             {t('wizard.createConfirmAction')}
           </button>

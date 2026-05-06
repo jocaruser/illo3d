@@ -70,7 +70,6 @@ export function ProfileMenu() {
     }
   }, [theme])
 
-  // Handle click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {

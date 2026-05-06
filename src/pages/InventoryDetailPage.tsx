@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
-import { EmptyState } from '@/components/EmptyState'
+import { NotFoundCard } from '@/components/NotFoundCard'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { InventoryLotsTable } from '@/components/inventory/InventoryLotsTable'
+import { InventoryConsumptionTable } from '@/components/inventory/InventoryConsumptionTable'
 import { deleteInventory } from '@/services/inventory/deleteInventory'
 import { updateInventoryQtyCurrent } from '@/services/inventory/updateInventoryQtyCurrent'
 import { updateInventoryThresholds } from '@/services/inventory/updateInventoryThresholds'
@@ -20,15 +22,8 @@ import { formatCurrency } from '@/utils/money'
 import { formatInventoryCreatedDate } from '@/services/sheets/inventory'
 import { buildInventoryConsumptionRows } from '@/lib/inventoryDetail/consumptionRows'
 import { toast } from '@/lib/toast'
+import { isActiveRow, isActiveLot } from '@/lib/entityFilters'
 import type { Inventory, Lot, Transaction } from '@/types/money'
-
-function isActiveInventory(row: Inventory): boolean {
-  return row.archived !== 'true' && row.deleted !== 'true'
-}
-
-function isActiveLot(l: Lot): boolean {
-  return l.archived !== 'true' && l.deleted !== 'true'
-}
 
 function parseQtyCurrentInput(raw: string): number | null {
   const trimmed = raw.trim().replace(',', '.')
@@ -58,7 +53,7 @@ export function InventoryDetailPage() {
 
   const item = useMemo(() => {
     if (!inventoryId) return undefined
-    return allInventory.find((i) => i.id === inventoryId && isActiveInventory(i))
+    return allInventory.find((i) => i.id === inventoryId && isActiveRow(i))
   }, [allInventory, inventoryId])
 
   const lotsForItem = useMemo(() => {
@@ -241,7 +236,7 @@ export function InventoryDetailPage() {
             data-testid="inventory-detail-save-qty"
             disabled={qtySaveBusy}
             onClick={() => void onSaveQtyCurrent()}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="btn-primary disabled:opacity-50"
           >
             {qtySaveBusy ? t('inventoryDetail.saving') : t('inventoryDetail.saveQty')}
           </button>
@@ -292,7 +287,7 @@ export function InventoryDetailPage() {
           data-testid="inventory-detail-save-thresholds"
           disabled={thresholdSaveBusy}
           onClick={() => void onSaveThresholds()}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary disabled:opacity-50"
         >
           {thresholdSaveBusy
             ? t('inventoryDetail.saving')
@@ -311,8 +306,6 @@ export function InventoryDetailPage() {
     return m
   }, [transactions])
 
-  const showCombinedEmpty = lotsForItem.length === 0 && consumptionRows.length === 0
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
 
@@ -323,15 +316,11 @@ export function InventoryDetailPage() {
       ) : null}
 
       {workbookStatus === 'ready' && inventoryId && !item && (
-        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-8 py-12 text-center shadow">
-          <p className="text-gray-600 dark:text-gray-400">{t('inventoryDetail.notFound')}</p>
-          <Link
-            to="/inventory"
-            className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
-          >
-            {t('inventoryDetail.backToList')}
-          </Link>
-        </div>
+        <NotFoundCard
+          message={t('inventoryDetail.notFound')}
+          backTo="/inventory"
+          backLabel={t('inventoryDetail.backToList')}
+        />
       )}
 
       {workbookStatus === 'ready' && item && (
@@ -350,170 +339,24 @@ export function InventoryDetailPage() {
             hideEditButton
             belowFields={thresholdEditor}
           >
-            {showCombinedEmpty ? (
-              <EmptyState messageKey="inventoryDetail.sectionsEmpty" />
-            ) : (
-              <div className="space-y-8">
-                {lotsForItem.length > 0 ? (
-                  <section>
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
-                      {t('inventoryDetail.lotsTitle')}
-                    </h3>
-                    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
-                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50 dark:bg-gray-800">
-                          <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('jobs.colId')}
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('inventoryDetail.lotDate')}
-                            </th>
-                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('inventoryDetail.lotQuantity')}
-                            </th>
-                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('inventoryDetail.lotAmount')}
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('inventoryDetail.transaction')}
-                            </th>
-                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('inventoryDetail.lotActions')}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-                          {lotsForItem.map((lot) => {
-                            const tx = txnById.get(lot.transaction_id)
-                            return (
-                              <tr key={lot.id}>
-                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                  <Link
-                                    to={`/transactions/${lot.transaction_id}`}
-                                    data-testid={`inventory-lot-tx-${lot.id}`}
-                                    className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
-                                  >
-                                    {lot.id}
-                                  </Link>
-                                </td>
-                                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                  {formatInventoryCreatedDate(lot.created_at)}
-                                </td>
-                                <td className="whitespace-nowrap px-4 py-3 text-right align-top">
-                                  <input
-                                    type="text"
-                                    inputMode="decimal"
-                                    data-testid={`inventory-detail-lot-qty-${lot.id}`}
-                                    className="w-24 rounded border border-gray-300 bg-white px-2 py-1 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                                    value={lotQuantityInputs[lot.id] ?? ''}
-                                    onChange={(e) =>
-                                      setLotQuantityInputs((prev) => ({
-                                        ...prev,
-                                        [lot.id]: e.target.value,
-                                      }))
-                                    }
-                                  />
-                                </td>
-                                <td className="whitespace-nowrap px-4 py-3 text-right align-top">
-                                  <input
-                                    type="text"
-                                    inputMode="decimal"
-                                    data-testid={`inventory-detail-lot-amt-${lot.id}`}
-                                    className="w-28 rounded border border-gray-300 bg-white px-2 py-1 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
-                                    value={lotAmountInputs[lot.id] ?? ''}
-                                    onChange={(e) =>
-                                      setLotAmountInputs((prev) => ({
-                                        ...prev,
-                                        [lot.id]: e.target.value,
-                                      }))
-                                    }
-                                  />
-                                </td>
-                                <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                  {tx?.concept.trim() ? tx.concept : lot.transaction_id}
-                                </td>
-                                <td className="whitespace-nowrap px-4 py-3 text-right">
-                                  <button
-                                    type="button"
-                                    data-testid={`inventory-detail-save-lot-${lot.id}`}
-                                    disabled={lotSaveBusyId !== null}
-                                    onClick={() => void onSaveLot(lot)}
-                                    className="rounded border border-gray-300 dark:border-gray-600 px-2 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
-                                  >
-                                    {lotSaveBusyId === lot.id
-                                      ? t('inventoryDetail.saving')
-                                      : t('inventoryDetail.saveLot')}
-                                  </button>
-                                </td>
-                              </tr>
-                            )
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  </section>
-                ) : null}
+            <div className="space-y-8">
+              <InventoryLotsTable
+                lotsForItem={lotsForItem}
+                txnById={txnById}
+                lotQuantityInputs={lotQuantityInputs}
+                lotAmountInputs={lotAmountInputs}
+                onQuantityChange={(lotId, value) =>
+                  setLotQuantityInputs((prev) => ({ ...prev, [lotId]: value }))
+                }
+                onAmountChange={(lotId, value) =>
+                  setLotAmountInputs((prev) => ({ ...prev, [lotId]: value }))
+                }
+                onSaveLot={onSaveLot}
+                lotSaveBusyId={lotSaveBusyId}
+              />
 
-                {consumptionRows.length > 0 ? (
-                  <section>
-                    <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
-                      {t('inventoryDetail.consumptionTitle')}
-                    </h3>
-                    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
-                      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                        <thead className="bg-gray-50 dark:bg-gray-800">
-                          <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('jobs.colId')}
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('inventoryDetail.piece')}
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('inventoryDetail.job')}
-                            </th>
-                            <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('inventoryDetail.quantity')}
-                            </th>
-                            <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
-                              {t('inventory.createdAt')}
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
-                          {consumptionRows.map((row) => (
-                            <tr key={row.pieceItemId}>
-                              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                <Link
-                                  to={`/jobs/${row.jobId}`}
-                                  data-testid={`inventory-consumption-job-${row.pieceItemId}`}
-                                  className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
-                                >
-                                  {row.jobId}
-                                </Link>
-                              </td>
-                              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                {row.pieceName} ({row.pieceId})
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                {row.jobDescription}
-                              </td>
-                              <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300">
-                                {row.quantity}
-                              </td>
-                              <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
-                                {formatInventoryCreatedDate(row.pieceCreatedAt)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </section>
-                ) : null}
-              </div>
-            )}
+              <InventoryConsumptionTable consumptionRows={consumptionRows} />
+            </div>
           </EntityDetailPage>
 
           <ConfirmDialog

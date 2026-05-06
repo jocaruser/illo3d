@@ -133,6 +133,36 @@ Selecting a suggestion SHALL navigate via client-side routing: **clients** → `
 - **WHEN** the user activates a client note suggestion for client `CL2`
 - **THEN** the app navigates to `/clients/CL2`
 
+### Requirement: Global search keyboard navigation
+
+The system SHALL support keyboard navigation through the suggestion list while the global search input is focused. **ArrowDown** SHALL advance the active suggestion index by one; **ArrowUp** SHALL retreat it by one; both SHALL be clamped to valid indices and SHALL prevent default scroll. **Enter** with an active index SHALL navigate to that suggestion's route; **Enter** with no active index SHALL navigate to the first suggestion (existing behavior). **Escape** SHALL close the panel and reset the active index. The input SHALL expose `aria-activedescendant` pointing to the `id` of the currently active suggestion element (omitted when none is active). Each suggestion option SHALL expose `aria-selected` reflecting whether it is the active suggestion. The active suggestion SHALL be distinguishable visually (e.g. highlighted background) in addition to the ARIA state.
+
+#### Scenario: ArrowDown highlights first suggestion
+
+- **WHEN** the suggestion panel is open with at least one result
+- **AND** the user presses ArrowDown with focus in the global search field
+- **THEN** the first suggestion is visually highlighted
+- **AND** `aria-activedescendant` on the input points to that suggestion's element id
+
+#### Scenario: Enter selects highlighted suggestion
+
+- **WHEN** the user has navigated to a suggestion with arrow keys
+- **AND** the user presses Enter
+- **THEN** the app navigates to the route of the highlighted suggestion
+
+#### Scenario: Active suggestion has aria-selected true
+
+- **WHEN** the user has navigated to a suggestion
+- **THEN** that suggestion has `aria-selected="true"`
+- **AND** all other suggestions have `aria-selected="false"`
+
+#### Scenario: Active index resets on query change
+
+- **WHEN** the user types a character while a suggestion is highlighted
+- **THEN** the active suggestion index resets and no suggestion is highlighted until the user presses ArrowDown again
+
+---
+
 ### Requirement: Global search does not affect nav active state
 
 Interacting with the global search control SHALL NOT change which primary section link is styled as active; active section styling SHALL remain based on the **current route** only.

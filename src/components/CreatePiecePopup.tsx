@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createPiece } from '@/services/piece/createPiece'
+import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import type { Job } from '@/types/money'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
@@ -37,13 +38,8 @@ export function CreatePiecePopup({
   )
 
   const filteredJobs = useMemo(() => {
-    const q = jobQuery.trim().toLowerCase()
-    if (!q) return sortedJobs
-    return sortedJobs.filter(
-      (j) =>
-        j.id.toLowerCase().includes(q) ||
-        j.description.toLowerCase().includes(q)
-    )
+    if (!jobQuery.trim()) return sortedJobs
+    return filterRowsBySearchQuery(sortedJobs, jobQuery, (j) => `${j.id} ${j.description}`)
   }, [sortedJobs, jobQuery])
 
   useEffect(() => {

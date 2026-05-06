@@ -5,7 +5,6 @@ export interface DueDateGradient {
   textClass: string
 }
 
-/** Compute days since creation and return gradient styling. */
 export function jobDueDateGradient(createdAt: string): DueDateGradient {
   const created = new Date(createdAt)
   const now = new Date()

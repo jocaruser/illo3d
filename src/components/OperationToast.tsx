@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useOperationToastStore } from '@/stores/operationToastStore'
 import { toast } from '@/lib/toast'
 
@@ -13,12 +14,15 @@ function ProgressToast({
   total: number
   sheetName: string
 }) {
+  const { t } = useTranslation()
   const percent = total > 0 ? Math.round((current / total) * 100) : 0
-  const label =
-    operation === 'load' ? 'Loading workbook' : 'Saving workbook'
   const actionLabel = sheetName
-    ? `${operation === 'load' ? 'Loaded' : 'Saving'} ${sheetName}…`
-    : label
+    ? operation === 'load'
+      ? t('workbook.loadingSheet', { sheet: sheetName })
+      : t('workbook.savingSheet', { sheet: sheetName })
+    : operation === 'load'
+      ? t('workbook.loadingWorkbook')
+      : t('workbook.savingWorkbook')
 
   return (
     <div className="w-80 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-900">
@@ -63,12 +67,7 @@ export function OperationToast() {
 
     if (phase === 'error' && operation) {
       toast.dismiss('operation-toast')
-      const id = toast.error(message, {
-        label: 'Retry',
-        onClick: () => {
-          // Retry is handled by the caller via the error toast action
-        },
-      })
+      const id = toast.error(message)
       toastIdRef.current = id
       return
     }

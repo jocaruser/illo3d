@@ -1,4 +1,4 @@
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Toast system displays action-result feedback
 
@@ -14,8 +14,19 @@ The system SHALL provide a unified toast notification surface for all ephemeral 
 
 - **WHEN** an action fails (e.g., network error, quota exceeded)
 - **THEN** an error toast appears with the failure message
-- **AND** workbook-level errors include a Retry action button
-- **AND** the toast persists until dismissed by the user
+- **AND** the toast persists until dismissed by the user (or per library defaults)
+
+#### Scenario: Save failure toast MAY include in-toast retry
+
+- **WHEN** workbook Save from the header fails after the blocking overlay dismisses
+- **THEN** the error toast MAY expose a Retry action that triggers Save again
+- **AND** all labels for that action SHALL come from i18n
+
+#### Scenario: OperationToast error does not include in-toast retry
+
+- **WHEN** hydration or Refresh fails and `OperationToast` surfaces the error via `toast.error`
+- **THEN** the error toast SHALL show the failure message only (no in-toast Retry action)
+- **AND** the user MAY retry using other header or page controls (e.g. Refresh) where applicable
 
 #### Scenario: Toast messages are localized
 
@@ -24,22 +35,22 @@ The system SHALL provide a unified toast notification surface for all ephemeral 
 
 ### Requirement: Progress toast tracks workbook load
 
-The system SHALL display a non-dismissible progress toast during workbook hydration and refresh. The toast SHALL show the current sheet being loaded, the count of completed sheets, and a visual progress bar. The toast SHALL dismiss automatically when loading completes or transitions to an error toast on failure. The toast SHALL be non-blocking, allowing user interaction during read-only operations.
+The system SHALL display a non-dismissible progress toast during workbook hydration and refresh. The toast SHALL show the current sheet being loaded, the count of completed sheets, and a visual progress bar. The toast SHALL dismiss automatically when loading completes or transitions to an error toast on failure. The toast SHALL be non-blocking, allowing user interaction during read-only operations. Progress strings SHALL use i18n keys (e.g. `workbook.loadingWorkbook`, `workbook.loadingSheet`).
 
 #### Scenario: Progress toast shows during hydration
 
 - **WHEN** the workbook begins hydration after shop open
-- **THEN** a progress toast appears showing "Loading workbook…"
-- **AND** as each sheet completes, the count updates (e.g., "Loaded clients… 3/10")
+- **THEN** a progress toast appears showing localized loading copy
+- **AND** as each sheet completes, the count updates (e.g., progress fraction and sheet name)
 - **AND** a progress bar fills proportionally
 - **AND** the toast is non-blocking (user can interact with the app)
 
 #### Scenario: Progress toast transitions to error on failure
 
 - **WHEN** a sheet read fails during hydration
-- **THEN** the progress toast is replaced by a persistent error toast
-- **AND** the error toast includes a Retry button
-- **AND** the workbook store status remains unchanged (data is not hidden)
+- **THEN** the progress toast is replaced by a persistent error toast with the failure message
+- **AND** the error toast SHALL NOT include an in-toast Retry action from `OperationToast`
+- **AND** the workbook store reflects the failure state per `workbook-snapshot` (e.g. `status: 'error'` on initial hydrate)
 
 ### Requirement: Progress toast does NOT track workbook save
 
@@ -70,7 +81,3 @@ The system SHALL provide a thin wrapper module (`src/lib/toast.ts`) that exposes
 - **WHEN** a component needs to show a toast
 - **THEN** it imports from `src/lib/toast.ts`
 - **AND** does not import from `sonner` directly
-
-## MODIFIED Requirements
-
-No existing requirements from other capabilities are modified in this spec.
