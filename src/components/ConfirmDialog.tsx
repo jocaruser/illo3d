@@ -39,7 +39,7 @@ export function ConfirmDialog({
           type="button"
           disabled={confirmDisabled}
           onClick={onConfirm}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary disabled:opacity-50"
         >
           {confirmLabel}
         </button>

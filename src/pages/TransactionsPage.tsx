@@ -4,18 +4,13 @@ import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { TransactionsTable } from '@/components/TransactionsTable'
 import { BalanceDisplay } from '@/components/BalanceDisplay'
-import { EmptyState } from '@/components/EmptyState'
 import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { CreatePurchasePopup } from '@/components/CreatePurchasePopup'
 import { calculateBalance } from '@/utils/money'
 import { useTranslation } from 'react-i18next'
-import type { Transaction } from '@/types/money'
 import { buildExpenseLotLinkMaps } from '@/lib/money/transactionConceptLink'
-
-function isActiveTransaction(txn: Transaction): boolean {
-  return txn.archived !== 'true' && txn.deleted !== 'true'
-}
+import { isActiveRow } from '@/lib/entityFilters'
 
 export function TransactionsPage() {
   const { t } = useTranslation()
@@ -29,7 +24,7 @@ export function TransactionsPage() {
 
   const { transactions: allTransactions, clients, lots } = useWorkbookEntities()
   const transactions = useMemo(
-    () => allTransactions.filter(isActiveTransaction),
+    () => allTransactions.filter(isActiveRow),
     [allTransactions],
   )
 
@@ -47,7 +42,7 @@ export function TransactionsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8" aria-busy={workbookStatus !== 'ready'}>
       {workbookStatus === 'ready' && (
         <>
           <ListTablePageHeader
@@ -70,7 +65,7 @@ export function TransactionsPage() {
                     setQuery('')
                     setPopupOpen(true)
                   }}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  className="btn-primary"
                 >
                   {t('purchase.recordButton')}
                 </button>
@@ -78,16 +73,12 @@ export function TransactionsPage() {
             }
           />
 
-          {transactions.length === 0 ? (
-            <EmptyState messageKey="transactions.empty" />
-          ) : (
-            <TransactionsTable
-              transactions={transactions}
-              query={query}
-              clients={clients}
-              expenseTxnIdsWithLots={expenseTxnIdsWithLots}
-            />
-          )}
+          <TransactionsTable
+            transactions={transactions}
+            query={query}
+            clients={clients}
+            expenseTxnIdsWithLots={expenseTxnIdsWithLots}
+          />
         </>
       )}
 

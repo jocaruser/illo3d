@@ -122,6 +122,17 @@ For the `/jobs` list and the embedded jobs list on client detail, the **initial*
 - **WHEN** an authenticated user opens `/jobs` and has not changed sort on that visit
 - **THEN** rows are ordered by `created_at` descending using stable id tie-breaks where timestamps collide
 
+### Requirement: Inline job pickers use the same fuzzy matching as list tables
+
+Popup or inline search inputs that filter a list of **jobs** for selection (e.g. the job picker in `CreatePiecePopup`) SHALL use the same fuzzy matching logic (`filterRowsBySearchQuery`) as the in-scope list tables. Simple `includes` substring matching SHALL NOT be used for job search in those pickers.
+
+#### Scenario: CreatePiecePopup job search matches fuzzy typos
+
+- **WHEN** the user types in the job search field in `CreatePiecePopup` with a minor typo
+- **THEN** the matching jobs appear using the same fuzzy rules as `JobsTable`
+
+---
+
 ### Requirement: Responsive essential columns on small viewports
 
 On narrow viewports, the system SHALL hide non-essential columns using responsive CSS so that each in-scope table keeps a small set of always-visible columns (including the primary navigation link and actions where the table has actions). Hidden columns remain searchable and sortable via their header on wider breakpoints per implementation; the system SHALL preserve the product rule that users can open detail pages from visible primary links.

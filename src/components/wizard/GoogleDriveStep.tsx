@@ -68,8 +68,8 @@ export function GoogleDriveStep({
         </p>
       ) : null}
 
-      {error ? <p className="text-sm text-red-600 dark:text-red-400">{error}</p> : null}
-      {idError ? <p className="text-sm text-red-600 dark:text-red-400">{idError}</p> : null}
+      {error ? <p className="text-sm text-red-600 dark:text-red-400" role="alert" aria-live="assertive">{error}</p> : null}
+      {idError ? <p className="text-sm text-red-600 dark:text-red-400" role="alert" aria-live="assertive">{idError}</p> : null}
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
@@ -77,7 +77,7 @@ export function GoogleDriveStep({
           data-testid="wizard-google-create"
           disabled={loading}
           onClick={onCreateNew}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="btn-primary disabled:opacity-50"
         >
           {t('wizard.createNewShop')}
         </button>

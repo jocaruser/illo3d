@@ -1,4 +1,5 @@
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export interface ComboboxProps<T> {
   items: readonly T[]
@@ -39,6 +40,7 @@ export function Combobox<T>({
   testId,
   ariaLabel,
 }: ComboboxProps<T>) {
+  const { t } = useTranslation()
   const baseId = useId()
   const listboxId = `${baseId}-listbox`
   const [query, setQuery] = useState('')
@@ -164,19 +166,19 @@ export function Combobox<T>({
         }}
         onKeyDown={handleKeyDown}
         disabled={inputDisabled}
-        placeholder={placeholder ?? 'Search...'}
+        placeholder={placeholder ?? t('combobox.placeholder')}
         className={`w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:disabled:bg-gray-700 ${className}`}
       />
       {open && !disabled ? (
         <ul
           id={listboxId}
           role="listbox"
-          aria-label={ariaLabel ?? 'Options'}
+          aria-label={ariaLabel ?? t('combobox.ariaLabel')}
           className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-1 shadow-lg"
         >
           {itemsMapped.length === 0 ? (
             <li className="px-3 py-2 text-sm text-gray-500 dark:text-gray-500" role="presentation">
-              No items available
+              {t('combobox.noItems')}
             </li>
           ) : filtered.length === 0 && query.trim() ? (
             creatable ? (
@@ -187,11 +189,11 @@ export function Combobox<T>({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => void handleCreatableSelect()}
               >
-                {'Create "' + query.trim() + '"'}
+                {t('combobox.createOption', { query: query.trim() })}
               </li>
             ) : (
               <li className="px-3 py-2 text-sm text-gray-500 dark:text-gray-500" role="presentation">
-                No matching items
+                {t('combobox.noMatch')}
               </li>
             )
           ) : (

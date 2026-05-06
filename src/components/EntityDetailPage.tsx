@@ -11,10 +11,10 @@ interface EntityDetailPageProps {
   backLabel: string
   title: string
   fields: EntityDetailField[]
-  editLabel: string
-  deleteLabel: string
-  onEdit: () => void
-  onDelete: () => void
+  editLabel?: string
+  deleteLabel?: string
+  onEdit?: () => void
+  onDelete?: () => void
   /** Extra controls inside the header card, below the field list. */
   belowFields?: ReactNode
   /** When true, the Edit / Delete buttons are not shown. */
@@ -29,10 +29,10 @@ export function EntityDetailPage({
   backLabel,
   title,
   fields,
-  editLabel,
-  deleteLabel,
-  onEdit,
-  onDelete,
+  editLabel = '',
+  deleteLabel = '',
+  onEdit = () => {},
+  onDelete = () => {},
   belowFields,
   hidePrimaryActions = false,
   hideEditButton = false,

@@ -7,7 +7,6 @@ import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import { updateJob } from '@/services/job/updateJob'
 import { deleteJob } from '@/services/job/deleteJob'
 import { JobsTable } from '@/components/JobsTable'
-import { EmptyState } from '@/components/EmptyState'
 import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
@@ -15,10 +14,7 @@ import { ConfirmDialog } from '@/components/ConfirmDialog'
 import type { Job } from '@/types/money'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
 import { useJobStatusFlow } from '@/hooks/useJobStatusFlow'
-
-function isActiveJob(j: Job): boolean {
-  return j.archived !== 'true' && j.deleted !== 'true'
-}
+import { isActiveRow } from '@/lib/entityFilters'
 
 export function JobsPage() {
   const { t } = useTranslation()
@@ -30,7 +26,7 @@ export function JobsPage() {
 
   const { jobs: allJobs, clients, tags, tagLinks, pieces } = useWorkbookEntities()
   const jobs = useMemo(
-    () => allJobs.filter(isActiveJob),
+    () => allJobs.filter(isActiveRow),
     [allJobs],
   )
 
@@ -101,7 +97,7 @@ export function JobsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8" aria-busy={workbookStatus !== 'ready'}>
       {statusError && (
         <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3" role="alert">
           <p className="text-sm font-medium text-red-800 dark:text-red-200">{statusError}</p>
@@ -128,34 +124,30 @@ export function JobsPage() {
                   setQuery('')
                   setPopupOpen(true)
                 }}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="btn-primary"
               >
                 {t('jobs.addJob')}
               </button>
             }
           />
 
-          {jobs.length === 0 ? (
-            <EmptyState messageKey="jobs.empty" />
-          ) : (
-            <JobsTable
-              jobs={jobs}
-              query={query}
-              pieces={pieces}
-              clients={clients}
-              tagTitleByJobId={tagTitleByJobId}
-              tagSearchLineByJobId={tagSearchLineByJobId}
-              statusUpdatingId={statusUpdatingId}
-              onStatusSelect={(job, next) => {
-                void handleStatusSelect(job, next)
-              }}
-              onEdit={(job) => setEditingJob(job)}
-              onArchive={(job) => {
-                setArchiveError(null)
-                setArchiveTarget(job)
-              }}
-            />
-          )}
+          <JobsTable
+            jobs={jobs}
+            query={query}
+            pieces={pieces}
+            clients={clients}
+            tagTitleByJobId={tagTitleByJobId}
+            tagSearchLineByJobId={tagSearchLineByJobId}
+            statusUpdatingId={statusUpdatingId}
+            onStatusSelect={(job, next) => {
+              void handleStatusSelect(job, next)
+            }}
+            onEdit={(job) => setEditingJob(job)}
+            onArchive={(job) => {
+              setArchiveError(null)
+              setArchiveTarget(job)
+            }}
+          />
         </>
       )}
 

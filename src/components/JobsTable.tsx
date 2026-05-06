@@ -203,7 +203,7 @@ export function JobsTable({
             {displayed.length === 0 ? (
               <tr>
                 <td colSpan={8} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
-                  {jobs.length === 0 ? null : t('listTable.noMatches')}
+                  {jobs.length === 0 ? t('jobs.empty') : t('listTable.noMatches')}
                 </td>
               </tr>
             ) : (

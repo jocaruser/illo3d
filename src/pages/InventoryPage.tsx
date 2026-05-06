@@ -2,15 +2,10 @@ import { useMemo, useState } from 'react'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { InventoryTable } from '@/components/InventoryTable'
-import { EmptyState } from '@/components/EmptyState'
 import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { useTranslation } from 'react-i18next'
-import type { Inventory } from '@/types/money'
-
-function isActiveInventory(row: Inventory): boolean {
-  return row.archived !== 'true' && row.deleted !== 'true'
-}
+import { isActiveRow, isActiveLot } from '@/lib/entityFilters'
 
 export function InventoryPage() {
   const { t } = useTranslation()
@@ -20,18 +15,17 @@ export function InventoryPage() {
 
   const { inventory: allInventory, lots: allLots } = useWorkbookEntities()
   const items = useMemo(
-    () => allInventory.filter(isActiveInventory),
+    () => allInventory.filter(isActiveRow),
     [allInventory],
   )
   const lots = useMemo(
-    () =>
-      allLots.filter((l) => l.archived !== 'true' && l.deleted !== 'true'),
+    () => allLots.filter(isActiveLot),
     [allLots],
   )
   const [query, setQuery] = useState('')
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8" aria-busy={workbookStatus !== 'ready'}>
       {workbookStatus === 'ready' && (
         <>
           <ListTablePageHeader
@@ -46,11 +40,7 @@ export function InventoryPage() {
             }
           />
 
-          {items.length === 0 ? (
-            <EmptyState messageKey="inventory.empty" />
-          ) : (
-            <InventoryTable items={items} query={query} lots={lots} />
-          )}
+          <InventoryTable items={items} query={query} lots={lots} />
         </>
       )}
     </div>

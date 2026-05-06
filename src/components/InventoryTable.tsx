@@ -174,7 +174,7 @@ export function InventoryTable({ items, query = '', lots }: InventoryTableProps)
             {displayed.length === 0 ? (
               <tr>
                 <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
-                  {items.length === 0 ? null : t('listTable.noMatches')}
+                  {items.length === 0 ? t('inventory.empty') : t('listTable.noMatches')}
                 </td>
               </tr>
             ) : (

@@ -382,7 +382,7 @@ test.describe('Job pieces (job detail)', () => {
     await page.getByTestId('job-detail-link-J1').click()
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
-    const materialCostWidget = page.locator('[data-test-id="job-widget-material-cost"]')
+    const materialCostWidget = page.locator('[data-testid="job-widget-material-cost"]')
     await expect(materialCostWidget).toBeVisible({ timeout: 15000 })
     await expect(materialCostWidget.locator('.text-red-600')).toBeVisible()
   })
@@ -401,7 +401,7 @@ test.describe('Job pieces (job detail)', () => {
     await page.getByTestId('job-detail-link-J1').click()
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
-    await expect(page.locator('[data-test-id="job-widget-risk-factor"]')).toBeVisible({ timeout: 15000 })
+    await expect(page.locator('[data-testid="job-widget-risk-factor"]')).toBeVisible({ timeout: 15000 })
   })
 
   test('materials summary shows remaining qty column', async ({

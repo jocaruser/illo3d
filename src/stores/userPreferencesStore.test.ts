@@ -5,7 +5,6 @@ import { clearTestPersistStorage } from './persistStorage'
 describe('userPreferencesStore', () => {
   beforeEach(() => {
     clearTestPersistStorage()
-    // Reset store to initial state
     const store = useUserPreferencesStore.getState()
     store.setLanguage('en')
     store.setTheme('light')

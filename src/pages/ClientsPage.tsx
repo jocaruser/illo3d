@@ -6,7 +6,6 @@ import { formatTagNameTitleCase } from '@/utils/tagNameFormat'
 import { ClientsTable } from '@/components/ClientsTable'
 import { CreateClientPopup } from '@/components/CreateClientPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { EmptyState } from '@/components/EmptyState'
 import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
 import { ListTableSearchField } from '@/components/list-table/ListTableSearchField'
 import { useTranslation } from 'react-i18next'
@@ -15,10 +14,7 @@ import { deleteClient } from '@/services/client/deleteClient'
 import type { Client } from '@/types/money'
 import type { UpdateClientPayload } from '@/services/client/updateClient'
 import { toast } from '@/lib/toast'
-
-function isActiveEntity(c: Client): boolean {
-  return c.archived !== 'true' && c.deleted !== 'true'
-}
+import { isActiveRow } from '@/lib/entityFilters'
 
 export function ClientsPage() {
   const { t } = useTranslation()
@@ -30,7 +26,7 @@ export function ClientsPage() {
 
   const { clients: allClients, tags, tagLinks } = useWorkbookEntities()
   const clients = useMemo(
-    () => allClients.filter(isActiveEntity),
+    () => allClients.filter(isActiveRow),
     [allClients],
   )
 
@@ -96,7 +92,7 @@ export function ClientsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8" aria-busy={workbookStatus !== 'ready'}>
       {workbookStatus === 'ready' && (
         <>
           <ListTablePageHeader
@@ -117,30 +113,26 @@ export function ClientsPage() {
                   setEditingClient(null)
                   setCreateOpen(true)
                 }}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="btn-primary"
               >
                 {t('clients.addClient')}
               </button>
             }
           />
 
-          {clients.length === 0 ? (
-            <EmptyState messageKey="clients.empty" />
-          ) : (
-            <ClientsTable
-              clients={clients}
-              query={query}
-              tagSearchLineByClientId={tagSearchLineByClientId}
-              tagTitleByClientId={tagTitleByClientId}
-              onEdit={(c) => {
-                setCreateOpen(false)
-                setEditingClient(c)
-              }}
-              onArchive={(c) => {
-                setArchiveTarget(c)
-              }}
-            />
-          )}
+          <ClientsTable
+            clients={clients}
+            query={query}
+            tagSearchLineByClientId={tagSearchLineByClientId}
+            tagTitleByClientId={tagTitleByClientId}
+            onEdit={(c) => {
+              setCreateOpen(false)
+              setEditingClient(c)
+            }}
+            onArchive={(c) => {
+              setArchiveTarget(c)
+            }}
+          />
         </>
       )}
 
@@ -165,9 +157,7 @@ export function ClientsPage() {
         onCancel={() => {
           setArchiveTarget(null)
         }}
-      >
-
-      </ConfirmDialog>
+      />
     </div>
   )
 }

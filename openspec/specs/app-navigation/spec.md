@@ -141,6 +141,22 @@ When the path matches `/inventory/:inventoryId`, breadcrumbs SHALL be **Home** â
 - **WHEN** user views `/inventory/INV1` and the name is not yet available
 - **THEN** the last breadcrumb label is `INV1`
 
+### Requirement: Mobile menu button exposes expansion state
+
+The system SHALL expose `aria-expanded` on the mobile menu toggle button, set to `true` when the mobile navigation menu is open and `false` when it is closed.
+
+#### Scenario: Menu button reflects closed state
+
+- **WHEN** the mobile menu is closed
+- **THEN** the toggle button has `aria-expanded="false"`
+
+#### Scenario: Menu button reflects open state
+
+- **WHEN** the user opens the mobile menu
+- **THEN** the toggle button has `aria-expanded="true"`
+
+---
+
 ### Requirement: Refresh control in top navigation
 
 The system SHALL render a **Refresh** button in the authenticated app header whenever the user has an **active shop**. The button SHALL be visible alongside primary section links, global search, and auth status. The button SHALL have an accessible label (i18n). Activating Refresh SHALL reload the workbook from the backend as defined in the `workbook-snapshot` spec.

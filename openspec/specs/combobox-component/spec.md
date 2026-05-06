@@ -92,6 +92,17 @@ The Combobox component SHALL support a `creatable` prop that allows creating new
 - **WHEN** user selects the "Create" option
 - **THEN** `onCreateItem` SHALL be called with the input text
 
+### Requirement: Combobox user-facing strings use i18n
+
+All user-visible strings in the Combobox component SHALL use i18next keys so they are translatable into all supported locales. This includes: search placeholder (`combobox.searchPlaceholder`), listbox accessible label (`combobox.ariaLabel`), empty-items message (`combobox.noItems`), no-match message (`combobox.noMatch`), and create-option label (`combobox.create`). Hard-coded English strings SHALL NOT be used for any of these surfaces.
+
+#### Scenario: Combobox renders Spanish strings
+
+- **WHEN** the UI locale is Spanish
+- **THEN** the search placeholder, empty messages, and create label all show Spanish translations from the `combobox.*` namespace
+
+---
+
 ### Requirement: Combobox has consistent styling
 
 The Combobox component SHALL use consistent Tailwind classes matching the app's design system.

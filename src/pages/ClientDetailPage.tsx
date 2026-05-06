@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
@@ -21,6 +21,9 @@ import { formatCurrency } from '@/utils/money'
 import { computeClientDetailMetrics } from '@/utils/clientMetrics'
 import { buildClientActivityTimeline } from '@/utils/buildClientActivityTimeline'
 import { ClientActivityTimeline } from '@/components/ClientActivityTimeline'
+import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { NotFoundCard } from '@/components/NotFoundCard'
+import { StatCard } from '@/components/StatCard'
 
 export function ClientDetailPage() {
   const { t } = useTranslation()
@@ -197,18 +200,19 @@ export function ClientDetailPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
+      {workbookStatus === 'loading' && spreadsheetId ? (
+        <div className="mt-8 flex justify-center" aria-busy="true">
+          <LoadingSpinner />
+        </div>
+      ) : null}
 
       {workbookStatus === 'ready' && clientId && !client && (
-          <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-8 py-12 text-center shadow">
-            <p className="text-gray-600 dark:text-gray-400">{t('clientDetail.notFound')}</p>
-            <Link
-              to="/clients"
-              className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
-            >
-              {t('clientDetail.backToList')}
-            </Link>
-          </div>
-        )}
+        <NotFoundCard
+          message={t('clientDetail.notFound')}
+          backTo="/clients"
+          backLabel={t('clientDetail.backToList')}
+        />
+      )}
 
       {workbookStatus === 'ready' && client && (
         <>
@@ -226,48 +230,11 @@ export function ClientDetailPage() {
             }}
           >
             <div className="mb-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
-                  {t('clientDetail.metricPaidLedger')}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {formatCurrency(metrics.paidLedger)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
-                  {t('clientDetail.metricOutstanding')}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {formatCurrency(metrics.outstandingJobs)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
-                  {t('clientDetail.metricJobCount')}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {metrics.jobCount}
-                </p>
-              </div>
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
-                  {t('clientDetail.metricAvgJobPrice')}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {metrics.averageJobPrice == null
-                    ? '—'
-                    : formatCurrency(metrics.averageJobPrice)}
-                </p>
-              </div>
-              <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500">
-                  {t('clientDetail.metricMaterials')}
-                </p>
-                <p className="mt-1 text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {formatCurrency(metrics.materialsEstimate)}
-                </p>
-              </div>
+              <StatCard size="sm" label={t('clientDetail.metricPaidLedger')} value={formatCurrency(metrics.paidLedger)} />
+              <StatCard size="sm" label={t('clientDetail.metricOutstanding')} value={formatCurrency(metrics.outstandingJobs)} />
+              <StatCard size="sm" label={t('clientDetail.metricJobCount')} value={String(metrics.jobCount)} />
+              <StatCard size="sm" label={t('clientDetail.metricAvgJobPrice')} value={metrics.averageJobPrice == null ? '—' : formatCurrency(metrics.averageJobPrice)} />
+              <StatCard size="sm" label={t('clientDetail.metricMaterials')} value={formatCurrency(metrics.materialsEstimate)} />
             </div>
 
             <ClientTagsSection
@@ -315,60 +282,19 @@ export function ClientDetailPage() {
                     setQuery('')
                     setJobPopupOpen(true)
                   }}
-                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                  className="btn-primary"
                 >
                   {t('jobs.addJob')}
                 </button>
               }
             />
 
-            {clientJobs.length === 0 ? (
-              <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
-                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                  <thead className="bg-gray-50 dark:bg-gray-800">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400">
-                        {t('jobs.colDescription')}
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400">
-                        {t('jobs.colStatus')}
-                      </th>
-                      <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400">
-                        {t('jobs.colTotal')}
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400">
-                        {t('jobs.colCreated')}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="px-4 py-12 text-center text-gray-600 dark:text-gray-400"
-                      >
-                        <p className="mb-4">{t('clientDetail.jobsEmpty')}</p>
-                        <button
-                          type="button"
-                          data-testid="client-detail-add-job"
-                          onClick={() => setJobPopupOpen(true)}
-                          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                        >
-                          {t('jobs.addJob')}
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <ClientJobsDiscoveryTable
-                jobs={clientJobs}
-                query={query}
-                pieces={pieces}
-                clientName={client.name}
-              />
-            )}
+            <ClientJobsDiscoveryTable
+              jobs={clientJobs}
+              query={query}
+              pieces={pieces}
+              clientName={client.name}
+            />
           </EntityDetailPage>
         </>
       )}
