@@ -178,7 +178,7 @@ export function JobsPage() {
         }}
       >
         {archiveError ? (
-          <p className="text-sm text-red-600 dark:text-red-400">{archiveError}</p>
+          <p className="text-sm text-danger">{archiveError}</p>
         ) : null}
       </ConfirmDialog>
 

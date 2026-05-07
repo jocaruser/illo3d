@@ -6,6 +6,8 @@ import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { EntityDetailPage } from '@/components/EntityDetailPage'
 import { NotFoundCard } from '@/components/NotFoundCard'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
+import { FormGroup, FormLabel, FormInput, FormError } from '@/components/Form'
+import { AlertBox } from '@/components/AlertBox'
 import {
   buildExpenseLotLinkMaps,
   getTransactionConceptLink,
@@ -254,7 +256,7 @@ export function ExpenseTransactionDetailPage() {
           <Link
             to={link.to}
             data-testid={link.testId}
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+            className="text-primary hover:text-blue-800 dark:text-blue-200"
           >
             {text}
           </Link>
@@ -279,7 +281,7 @@ export function ExpenseTransactionDetailPage() {
               transaction.client_id != null && transaction.client_id !== '' ? (
                 <Link
                   to={`/clients/${transaction.client_id}`}
-                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+                  className="text-primary hover:text-blue-800 dark:text-blue-200"
                 >
                   {getClientName(clients, transaction.client_id) ||
                     transaction.client_id}
@@ -299,101 +301,94 @@ export function ExpenseTransactionDetailPage() {
   const editableSection =
     isRenderableExpense && transaction ? (
       <div className="space-y-8">
-        <section className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-6 shadow">
-          <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
+        <section className="rounded-lg border border-border bg-surface-elevated p-6 shadow">
+          <h3 className="mb-3 text-lg font-semibold text-text">
             {t('expenseTransactionDetail.amountHeading')}
           </h3>
-          <label className="block max-w-xs text-sm text-gray-600 dark:text-gray-400">
-            <span className="mb-1 block">{t('expenseTransactionDetail.amountLabel')}</span>
-            <input
+          <FormGroup className="max-w-xs">
+            <FormLabel>{t('expenseTransactionDetail.amountLabel')}</FormLabel>
+            <FormInput
               type="text"
               inputMode="decimal"
               data-testid="expense-detail-amount-input"
-              className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={amountInput}
               onChange={(e) => {
                 setAmountInput(e.target.value)
               }}
             />
-          </label>
-          {expenseFieldError ? (
-            <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
-              {expenseFieldError}
-            </p>
-          ) : null}
+            {expenseFieldError ? (
+              <FormError>{expenseFieldError}</FormError>
+            ) : null}
+          </FormGroup>
         </section>
 
         {showLotSumMismatch ? (
-          <div
-            role="status"
-            data-testid="expense-detail-lot-sum-mismatch"
-            className="rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950 px-4 py-3 text-sm text-amber-900 dark:text-amber-200"
-          >
+          <AlertBox variant="warning" title={t('expenseTransactionDetail.lotSumMismatchTitle')}>
             {t('expenseTransactionDetail.lotSumMismatch', {
               sumLots: sumLotsDisplay,
               absTxn: absTxnDisplay,
             })}
-          </div>
+          </AlertBox>
         ) : null}
 
         <section>
-          <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
+          <h3 className="mb-3 text-lg font-semibold text-text">
             {t('expenseTransactionDetail.lotsTitle')}
           </h3>
-          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-gray-50 dark:bg-gray-800">
+          <div className="overflow-x-auto rounded-lg border border-border bg-surface-elevated shadow">
+            <table className="min-w-full divide-y divide-border">
+              <thead className="bg-surface">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                  <th className="px-4 py-2 text-left text-xs font-medium uppercase text-text-muted/60">
                     {t('jobs.colId')}
                   </th>
-                  <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                  <th className="px-4 py-2 text-left text-xs font-medium uppercase text-text-muted/60">
                     {t('expenseTransactionDetail.lotDescription')}
                   </th>
-                  <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                  <th className="px-4 py-2 text-right text-xs font-medium uppercase text-text-muted/60">
                     {t('expenseTransactionDetail.lotQuantity')}
                   </th>
-                  <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+                  <th className="px-4 py-2 text-right text-xs font-medium uppercase text-text-muted/60">
                     {t('expenseTransactionDetail.lotAmount')}
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+              <tbody className="divide-y divide-border bg-surface-elevated">
                 {lotsLinked.length === 0 ? (
                   <tr>
                     <td
                       colSpan={4}
-                      className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400"
+                      className="px-4 py-6 text-center text-sm text-text-muted"
                     >
                       {t('expenseTransactionDetail.lotsEmpty')}
                     </td>
                   </tr>
                 ) : null}
-                {lotsLinked.map((lot) => {
+                {lotsLinked.map((lot, index) => {
                   const inv = inventoryById.get(lot.inventory_id)
                   const invLabel = inv?.name?.trim() ? inv.name : lot.inventory_id
                   const qtyVal = lotQuantityInputs[lot.id] ?? String(lot.quantity)
                   const amtVal = lotAmountInputs[lot.id] ?? String(lot.amount)
                   return (
-                    <tr key={lot.id}>
-                      <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                    <tr key={lot.id} className={index % 2 === 0 ? 'bg-surface-elevated' : 'bg-surface-alt'}>
+                      <td className="whitespace-nowrap px-4 py-3 text-sm text-text">
                         <Link
                           to={`/inventory/${lot.inventory_id}`}
                           data-testid={`expense-detail-lot-inv-${lot.id}`}
-                          className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+                          className="font-medium text-primary hover:text-blue-800 dark:text-blue-200"
                         >
                           {lot.inventory_id}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <td className="px-4 py-3 text-sm font-medium text-text">
                         {invLabel}
                       </td>
                       <td className="px-4 py-3 text-right align-top">
-                        <input
+                        <FormInput
                           type="text"
                           inputMode="decimal"
                           data-testid={`expense-detail-lot-quantity-input-${lot.id}`}
-                          className="ml-auto w-28 rounded border border-gray-300 bg-white px-2 py-1.5 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                          className="ml-auto w-28 text-right"
                           value={qtyVal}
                           onChange={(e) => {
                             setLotQuantityInputs((prev) => ({
@@ -403,17 +398,17 @@ export function ExpenseTransactionDetailPage() {
                           }}
                         />
                         {lotQuantityFieldErrors[lot.id] ? (
-                          <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
+                          <p className="mt-1 text-xs text-danger" role="alert">
                             {lotQuantityFieldErrors[lot.id]}
                           </p>
                         ) : null}
                       </td>
                       <td className="px-4 py-3 text-right align-top">
-                        <input
+                        <FormInput
                           type="text"
                           inputMode="decimal"
                           data-testid={`expense-detail-lot-amount-input-${lot.id}`}
-                          className="ml-auto w-28 rounded border border-gray-300 bg-white px-2 py-1.5 text-right text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
+                          className="ml-auto w-28 text-right"
                           value={amtVal}
                           onChange={(e) => {
                             setLotAmountInputs((prev) => ({
@@ -423,7 +418,7 @@ export function ExpenseTransactionDetailPage() {
                           }}
                         />
                         {lotAmountFieldErrors[lot.id] ? (
-                          <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
+                          <p className="mt-1 text-xs text-danger" role="alert">
                             {lotAmountFieldErrors[lot.id]}
                           </p>
                         ) : null}

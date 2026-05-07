@@ -13,7 +13,7 @@ export function ListTablePageHeader({
 }: ListTablePageHeaderProps) {
   return (
     <div className="mb-3 flex flex-wrap items-center gap-3">
-      <h2 className="text-2xl font-bold leading-none text-gray-800 dark:text-gray-200">
+      <h2 className="text-2xl font-bold leading-none text-text">
         {title}
       </h2>
 

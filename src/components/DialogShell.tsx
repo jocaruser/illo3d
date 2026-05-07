@@ -74,7 +74,7 @@ export function DialogShell({
 
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center bg-black/50 ${overlayClassName}`}
+      className={`fixed inset-0 flex items-center justify-center bg-black/50 dialog-overlay-enter ${overlayClassName}`}
       onClick={handleOverlay}
     >
       <div
@@ -83,12 +83,12 @@ export function DialogShell({
         aria-modal="true"
         aria-labelledby={titleId}
         data-testid={panelTestId}
-        className="my-4 w-full max-w-md max-h-[85vh] overflow-y-auto rounded-lg bg-white p-6 shadow-xl dark:bg-gray-900"
+        className="my-4 w-full max-w-md max-h-[85vh] overflow-y-auto rounded-lg border border-border bg-surface p-6 shadow-xl dialog-panel-enter motion-reduce:transition-none"
         onClick={(e) => e.stopPropagation()}
       >
         <h3
           id={titleId}
-          className="mb-4 text-lg font-semibold text-gray-800 dark:text-gray-200"
+          className="mb-4 text-lg font-semibold text-text"
         >
           {title}
         </h3>

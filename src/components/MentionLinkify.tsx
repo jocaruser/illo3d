@@ -57,7 +57,7 @@ export function MentionLinkify({
           <Link
             key={i}
             to={href}
-            className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+            className="font-medium text-primary hover:text-blue-800 dark:text-blue-200"
           >
             {label}
           </Link>

@@ -53,8 +53,8 @@ export function GoogleDriveStep({
           />
         ) : null}
         <div>
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">{t('wizard.googleDriveTitle')}</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">{user.name}</p>
+          <h3 className="text-lg font-semibold text-text">{t('wizard.googleDriveTitle')}</h3>
+          <p className="text-sm text-text-muted">{user.name}</p>
         </div>
       </div>
 
@@ -63,13 +63,13 @@ export function GoogleDriveStep({
       </p>
 
       {loading && statusMessage ? (
-        <p className="text-sm text-gray-600 dark:text-gray-400" role="status" aria-live="polite">
+        <p className="text-sm text-text-muted" role="status" aria-live="polite">
           {statusMessage}
         </p>
       ) : null}
 
-      {error ? <p className="text-sm text-red-600 dark:text-red-400" role="alert" aria-live="assertive">{error}</p> : null}
-      {idError ? <p className="text-sm text-red-600 dark:text-red-400" role="alert" aria-live="assertive">{idError}</p> : null}
+      {error ? <p className="text-sm text-danger" role="alert" aria-live="assertive">{error}</p> : null}
+      {idError ? <p className="text-sm text-danger" role="alert" aria-live="assertive">{idError}</p> : null}
 
       <div className="flex flex-col gap-3 sm:flex-row">
         <button
@@ -86,15 +86,15 @@ export function GoogleDriveStep({
           data-testid="wizard-google-open-picker"
           disabled={true}
           onClick={onOpenExisting}
-          className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-lg border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-text hover:bg-surface disabled:opacity-50 disabled:cursor-not-allowed"
           title={t('wizard.openExistingComingSoon')}
         >
           {t('wizard.openExistingShop')}
         </button>
       </div>
 
-      <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-        <label htmlFor="wizard-folder-id" className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="border-t border-border pt-4">
+        <label htmlFor="wizard-folder-id" className="mb-2 block text-sm font-medium text-text">
           {t('wizard.folderIdLabel')}
         </label>
         <input
@@ -104,15 +104,15 @@ export function GoogleDriveStep({
           onChange={(e) => setFolderId(e.target.value)}
           disabled={loading}
           placeholder={t('wizard.folderIdPlaceholder')}
-          className="mb-2 w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-800 dark:text-gray-200 disabled:bg-gray-100 dark:bg-gray-800"
+          className="mb-2 w-full rounded-lg border border-border px-3 py-2 text-sm text-text disabled:bg-gray-100 dark:bg-gray-800"
         />
-        <p className="mb-3 text-xs text-gray-500 dark:text-gray-500">{t('wizard.folderIdHelper')}</p>
+        <p className="mb-3 text-xs text-text-muted/60">{t('wizard.folderIdHelper')}</p>
         <button
           type="button"
           data-testid="wizard-google-open-by-id"
           disabled={loading}
           onClick={handleOpenById}
-          className="rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+          className="rounded-lg border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-text hover:bg-surface disabled:opacity-50"
         >
           {t('wizard.openButton')}
         </button>
@@ -123,7 +123,7 @@ export function GoogleDriveStep({
           type="button"
           data-testid="wizard-google-cancel"
           onClick={onCancel}
-          className="text-sm text-gray-500 dark:text-gray-500 hover:text-gray-700 dark:text-gray-300"
+          className="text-sm text-text-muted/60 hover:text-text"
         >
           {t('wizard.cancel')}
         </button>

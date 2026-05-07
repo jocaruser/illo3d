@@ -84,12 +84,12 @@ export function EntityTagsSection({
 
   return (
     <div className="mb-8" data-testid={sectionTestId}>
-      <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
+      <h3 className="mb-3 text-lg font-semibold text-text">
         {tk('tagsTitle')}
       </h3>
       <div className="mb-3 flex flex-wrap gap-2">
         {linksForEntity.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-500">{tk('tagsEmpty')}</p>
+          <p className="text-sm text-text-muted/60">{tk('tagsEmpty')}</p>
         ) : (
           linksForEntity.map((link) => {
             const tag = tags.find((x) => x.id === link.tag_id)
@@ -101,7 +101,7 @@ export function EntityTagsSection({
               <span
                 key={link.id}
                 data-testid={`${chipTestIdPrefix}-chip-${link.tag_id}`}
-                className="inline-flex items-center gap-1 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-3 py-1 text-sm text-gray-800 dark:text-gray-200"
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-3 py-1 text-sm text-text"
               >
                 {label}
                 <button
@@ -109,7 +109,7 @@ export function EntityTagsSection({
                   disabled={busy || !spreadsheetId}
                   data-testid={`${chipTestIdPrefix}-remove-${link.id}`}
                   onClick={() => void handleRemove(link.id)}
-                  className="text-red-600 dark:text-red-400 hover:text-red-800 dark:text-red-200 disabled:opacity-50"
+                  className="text-danger hover:text-red-800 dark:text-red-200 disabled:opacity-50"
                   aria-label={tk('tagsRemove')}
                 >
                   ×
@@ -119,7 +119,7 @@ export function EntityTagsSection({
           })
         )}
       </div>
-      <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
+      <div className="rounded-lg border border-border bg-surface-elevated p-4 shadow">
         <TagAddCombobox
           allTags={tags}
           suggestionTags={availableToLink}

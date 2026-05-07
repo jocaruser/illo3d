@@ -13,8 +13,8 @@ export interface JobWidgetProps {
 export function JobWidget({
   label,
   value,
-  bgClass = 'bg-white dark:bg-gray-900',
-  textClass = 'text-gray-800 dark:text-gray-200',
+  bgClass = 'bg-surface-elevated',
+  textClass = 'text-text',
   colSpan = 1,
   alignRight = false,
   testId,
@@ -23,9 +23,9 @@ export function JobWidget({
   return (
     <div
       data-testid={testId}
-      className={`rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm ${bgClass} ${spanClass}`}
+      className={`rounded-lg border border-border p-4 shadow-sm ${bgClass} ${spanClass}`}
     >
-      <div className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+      <div className="text-xs font-medium uppercase tracking-wider text-text-muted">
         {label}
       </div>
       <div className={`mt-1 text-lg font-semibold ${textClass} ${alignRight ? 'text-right' : ''}`}>

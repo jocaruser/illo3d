@@ -93,9 +93,9 @@ export function ClientJobsDiscoveryTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-800">
+    <div className="overflow-x-auto rounded-lg border border-border bg-surface-elevated shadow">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-surface">
             <tr>
               <SortableColumnHeader
                 columnKey="id"
@@ -147,10 +147,10 @@ export function ClientJobsDiscoveryTable({
               </SortableColumnHeader>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+          <tbody className="divide-y divide-border bg-surface-elevated">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                <td colSpan={5} className="px-4 py-6 text-center text-sm text-text-muted">
                   {jobs.length === 0 ? t('clientDetail.jobsEmpty') : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -158,31 +158,31 @@ export function ClientJobsDiscoveryTable({
               displayed.map((job) => (
                 <tr
                   key={job.id}
-                  className="odd:bg-white dark:bg-gray-900 even:bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="odd:bg-surface-elevated even:bg-surface-alt hover:bg-surface"
                 >
                   <td className="whitespace-nowrap px-4 py-3 text-sm">
                     <Link
                       to={`/jobs/${job.id}`}
                       data-testid={`job-detail-link-${job.id}`}
-                      className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+                      className="font-medium text-primary hover:text-blue-800 dark:text-blue-200"
                     >
                       {job.id}
                     </Link>
                   </td>
-                  <td className="max-w-xs truncate px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <td className="max-w-xs truncate px-4 py-3 text-sm font-medium text-text">
                     {job.description.trim() || job.id}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                  <td className="whitespace-nowrap px-4 py-3 text-sm text-text">
                     {t(`jobs.status.${job.status}`)}
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300 lg:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-text lg:table-cell">
                     <JobPricingTotalDisplay
                       jobId={job.id}
                       pieces={pieces}
                       t={t}
                     />
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 lg:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-text lg:table-cell">
                     {job.created_at}
                   </td>
                 </tr>

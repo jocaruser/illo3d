@@ -237,7 +237,7 @@ export function CreatePurchasePopup({
             aria-describedby={fieldErrors.date ? 'purchase-date-err' : undefined}
           />
           {fieldErrors.date ? (
-            <p id="purchase-date-err" className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p id="purchase-date-err" className="mt-1 text-sm text-danger">
               {fieldErrors.date}
             </p>
           ) : null}
@@ -276,17 +276,17 @@ export function CreatePurchasePopup({
               aria-invalid={fieldErrors.amount ? true : undefined}
             />
             {fieldErrors.amount ? (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.amount}</p>
+              <p className="mt-1 text-sm text-danger">{fieldErrors.amount}</p>
             ) : null}
           </div>
         ) : (
           <div>
             <p className="mb-1 text-sm font-medium">{t('purchase.totalFromLines')}</p>
-            <p className="rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm">
+            <p className="rounded border border-border bg-surface px-3 py-2 text-sm">
               {Number.isFinite(linesTotal) ? linesTotal.toFixed(2) : '—'}
             </p>
             {fieldErrors.lines ? (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.lines}</p>
+              <p className="mt-1 text-sm text-danger">{fieldErrors.lines}</p>
             ) : null}
           </div>
         )}
@@ -305,7 +305,7 @@ export function CreatePurchasePopup({
             className="w-full rounded border border-gray-300 bg-white px-3 py-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           />
           {fieldErrors.notes ? (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.notes}</p>
+            <p className="mt-1 text-sm text-danger">{fieldErrors.notes}</p>
           ) : null}
         </div>
 
@@ -326,7 +326,7 @@ export function CreatePurchasePopup({
         </div>
 
         {addToInventory ? (
-          <div className="space-y-3 rounded border border-gray-200 dark:border-gray-700 p-3">
+          <div className="space-y-3 rounded border border-border p-3">
             {lines.map((line, i) => (
               <div key={line.key} className="space-y-2 border-b border-gray-100 pb-3 last:border-0">
                 <div className="flex flex-wrap gap-2">
@@ -404,7 +404,7 @@ export function CreatePurchasePopup({
                       placeholder={t('purchase.searchInventory')}
                     />
                     {fieldErrors[`line${i}inv`] ? (
-                      <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors[`line${i}inv`]}</p>
+                      <p className="text-xs text-danger">{fieldErrors[`line${i}inv`]}</p>
                     ) : null}
                   </div>
                 ) : (
@@ -448,7 +448,7 @@ export function CreatePurchasePopup({
                         className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                       />
                       {fieldErrors[`line${i}name`] ? (
-                        <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors[`line${i}name`]}</p>
+                        <p className="text-xs text-danger">{fieldErrors[`line${i}name`]}</p>
                       ) : null}
                     </div>
                   </>
@@ -472,7 +472,7 @@ export function CreatePurchasePopup({
                        className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                     />
                     {fieldErrors[`line${i}qty`] ? (
-                      <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors[`line${i}qty`]}</p>
+                      <p className="text-xs text-danger">{fieldErrors[`line${i}qty`]}</p>
                     ) : null}
                   </div>
                   <div>
@@ -492,7 +492,7 @@ export function CreatePurchasePopup({
                        className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
                     />
                     {fieldErrors[`line${i}amt`] ? (
-                      <p className="text-xs text-red-600 dark:text-red-400">{fieldErrors[`line${i}amt`]}</p>
+                      <p className="text-xs text-danger">{fieldErrors[`line${i}amt`]}</p>
                     ) : null}
                   </div>
                 </div>
@@ -500,7 +500,7 @@ export function CreatePurchasePopup({
             ))}
             <button
               type="button"
-              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+              className="text-sm font-medium text-primary hover:text-blue-800 dark:text-blue-200"
               onClick={() => setLines([...lines, defaultLine(activeInventoryIds)])}
             >
               {t('purchase.addLine')}
@@ -512,7 +512,7 @@ export function CreatePurchasePopup({
           <button
             type="button"
             onClick={onClose}
-            className="rounded border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm"
+            className="rounded border border-border px-4 py-2 text-sm"
           >
             {t('purchase.cancel')}
           </button>

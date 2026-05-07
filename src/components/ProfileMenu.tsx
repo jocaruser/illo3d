@@ -116,7 +116,7 @@ export function ProfileMenu() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="rounded-full p-0.5 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:hover:bg-gray-800"
+        className="rounded-full p-0.5 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary dark:hover:bg-gray-800"
         aria-label={t('profileMenu.toggleMenu')}
         aria-expanded={isOpen}
         aria-haspopup="true"
@@ -151,11 +151,11 @@ export function ProfileMenu() {
                 </div>
               )}
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-100">
+                <p className="truncate text-sm font-medium text-text">
                   {displayName}
                 </p>
                 {!isLocal && user.email ? (
-                  <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                  <p className="truncate text-xs text-text-muted">
                     {user.email}
                   </p>
                 ) : null}
@@ -190,7 +190,7 @@ export function ProfileMenu() {
                 </a>
               ) : isLocal ? (
                 <p
-                  className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+                  className="flex items-center gap-2 text-sm text-text-muted"
                 >
                   <svg
                     className="h-4 w-4 shrink-0"
@@ -213,7 +213,7 @@ export function ProfileMenu() {
 
           {/* Preferences */}
           <div className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-            <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+            <p className="mb-2 text-xs font-medium text-text-muted">
               {t('profileMenu.language')}
             </p>
             <div className="flex gap-2">
@@ -224,7 +224,7 @@ export function ProfileMenu() {
                 className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${
                   language === 'en'
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-surface-elevated dark:text-gray-300 dark:hover:bg-gray-600'
                 } disabled:cursor-not-allowed`}
               >
                 English
@@ -236,7 +236,7 @@ export function ProfileMenu() {
                 className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${
                   language === 'es'
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-surface-elevated dark:text-gray-300 dark:hover:bg-gray-600'
                 } disabled:cursor-not-allowed`}
               >
                 Español
@@ -245,13 +245,13 @@ export function ProfileMenu() {
           </div>
 
           <div className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-            <p className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
+            <p className="mb-2 text-xs font-medium text-text-muted">
               {t('profileMenu.theme')}
             </p>
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex w-full items-center justify-between rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+              className="flex w-full items-center justify-between rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-surface-elevated dark:text-gray-300 dark:hover:bg-gray-600"
             >
               <span>
                 {theme === 'light'
@@ -282,7 +282,7 @@ export function ProfileMenu() {
 
           {/* System */}
           <div className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
-            <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">
+            <p className="mb-2 text-xs text-text-muted">
               App {APP_VERSION} · OpenShop{' '}
               {metadata?.version ?? activeShop?.metadataVersion ?? '-'}
             </p>

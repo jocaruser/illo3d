@@ -5,6 +5,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import App from './App'
 import './i18n'
 import './index.css'
+import './styles/tokens.css'
 import { registerGoogleOAuthClientId } from '@/services/google/accessToken'
 import { initTheme } from '@/lib/theme/initTheme'
 

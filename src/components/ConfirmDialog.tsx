@@ -25,7 +25,7 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <DialogShell isOpen={isOpen} onClose={onCancel} title={title} overlayClassName="z-[60]">
-      <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">{message}</p>
+      <p className="mb-4 text-sm text-text-muted">{message}</p>
       {children}
       <div className="mt-4 flex justify-end gap-3">
         <button

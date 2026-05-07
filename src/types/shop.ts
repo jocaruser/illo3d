@@ -13,4 +13,5 @@ export interface ShopMetadata {
   createdBy: string
   iconsrc?: string
   userName?: string
+  logo?: string
 }

@@ -9,6 +9,7 @@ import { NotFoundCard } from '@/components/NotFoundCard'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { InventoryLotsTable } from '@/components/inventory/InventoryLotsTable'
 import { InventoryConsumptionTable } from '@/components/inventory/InventoryConsumptionTable'
+import { FormGroup, FormLabel, FormInput } from '@/components/Form'
 import { deleteInventory } from '@/services/inventory/deleteInventory'
 import { updateInventoryQtyCurrent } from '@/services/inventory/updateInventoryQtyCurrent'
 import { updateInventoryThresholds } from '@/services/inventory/updateInventoryThresholds'
@@ -214,23 +215,22 @@ export function InventoryDetailPage() {
 
   const thresholdEditor =
     item != null ? (
-      <div className="space-y-3 border-t border-gray-100 pt-4">
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="space-y-4 border-t border-border pt-4">
+        <p className="text-sm font-semibold text-text">
           {t('inventoryDetail.qtyHeading')}
         </p>
         <div className="flex flex-wrap items-end gap-3">
-          <label className="block text-sm text-gray-600 dark:text-gray-400">
-            <span className="mb-1 block">{t('inventory.qtyCurrent')}</span>
-            <input
+          <FormGroup className="w-40">
+            <FormLabel>{t('inventory.qtyCurrent')}</FormLabel>
+            <FormInput
               type="number"
               min={0}
               step="0.01"
               data-testid="inventory-detail-qty-current"
-              className="w-40 rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={qtyInput}
               onChange={(e) => setQtyInput(e.target.value)}
             />
-          </label>
+          </FormGroup>
           <button
             type="button"
             data-testid="inventory-detail-save-qty"
@@ -241,46 +241,43 @@ export function InventoryDetailPage() {
             {qtySaveBusy ? t('inventoryDetail.saving') : t('inventoryDetail.saveQty')}
           </button>
         </div>
-        <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <p className="text-sm font-semibold text-text">
           {t('inventoryDetail.thresholdsHeading')}
         </p>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <label className="block text-sm text-gray-600 dark:text-gray-400">
-            <span className="mb-1 block">{t('inventoryDetail.thresholdYellow')}</span>
-            <input
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormGroup>
+            <FormLabel>{t('inventoryDetail.thresholdYellow')}</FormLabel>
+            <FormInput
               type="number"
               min={0}
               step={1}
               data-testid="inventory-detail-warn-yellow"
-              className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={warnYellow}
               onChange={(e) => setWarnYellow(e.target.value)}
             />
-          </label>
-          <label className="block text-sm text-gray-600 dark:text-gray-400">
-            <span className="mb-1 block">{t('inventoryDetail.thresholdOrange')}</span>
-            <input
+          </FormGroup>
+          <FormGroup>
+            <FormLabel>{t('inventoryDetail.thresholdOrange')}</FormLabel>
+            <FormInput
               type="number"
               min={0}
               step={1}
               data-testid="inventory-detail-warn-orange"
-              className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={warnOrange}
               onChange={(e) => setWarnOrange(e.target.value)}
             />
-          </label>
-          <label className="block text-sm text-gray-600 dark:text-gray-400">
-            <span className="mb-1 block">{t('inventoryDetail.thresholdRed')}</span>
-            <input
+          </FormGroup>
+          <FormGroup>
+            <FormLabel>{t('inventoryDetail.thresholdRed')}</FormLabel>
+            <FormInput
               type="number"
               min={0}
               step={1}
               data-testid="inventory-detail-warn-red"
-              className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
               value={warnRed}
               onChange={(e) => setWarnRed(e.target.value)}
             />
-          </label>
+          </FormGroup>
         </div>
         <button
           type="button"

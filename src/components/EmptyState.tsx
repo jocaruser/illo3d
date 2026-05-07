@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { Card, CardBody } from './Card'
 
 type EmptyStateProps = {
   /** i18n key for empty copy (default matches previous transactions-only behavior). */
@@ -9,8 +10,10 @@ export function EmptyState({ messageKey = 'transactions.empty' }: EmptyStateProp
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white px-8 py-12 text-center shadow dark:border-gray-700 dark:bg-gray-900">
-      <p className="text-gray-600 dark:text-gray-400">{t(messageKey)}</p>
-    </div>
+    <Card>
+      <CardBody className="px-8 py-12 text-center">
+        <p className="text-text-muted">{t(messageKey)}</p>
+      </CardBody>
+    </Card>
   )
 }

@@ -126,7 +126,7 @@ export function TagAddCombobox({
 
   return (
     <div ref={containerRef} className="relative min-w-0 flex-1">
-      <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label className="mb-1 block text-sm font-medium text-text">
         {tk('tagsComboboxLabel')}
       </label>
       <div className="flex flex-wrap gap-2">
@@ -173,10 +173,10 @@ export function TagAddCombobox({
           role="listbox"
           aria-label={tk('tagsComboboxListAria')}
           data-testid={`${testIdPrefix}-add-listbox`}
-          className="absolute z-20 mt-1 max-h-48 w-full min-w-[12rem] overflow-y-auto rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-1 shadow-lg"
+          className="absolute z-20 mt-1 max-h-48 w-full min-w-[12rem] overflow-y-auto rounded border border-border bg-surface-elevated py-1 shadow-lg"
         >
           {filtered.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-gray-500 dark:text-gray-500" role="presentation">
+            <li className="px-3 py-2 text-sm text-text-muted/60" role="presentation">
               {tk('tagsComboboxNoMatch')}
             </li>
           ) : (
@@ -188,7 +188,7 @@ export function TagAddCombobox({
                 aria-selected={idx === activeIdx}
                 data-testid={`${testIdPrefix}-add-option-${tag.id}`}
                 className={`cursor-pointer px-3 py-2 text-sm ${
-                  idx === activeIdx ? 'bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-200' : 'text-gray-800 dark:text-gray-200'
+                  idx === activeIdx ? 'bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-200' : 'text-text'
                 }`}
                 onMouseDown={(e) => e.preventDefault()}
                 onMouseEnter={() => setActiveIdx(idx)}

@@ -33,11 +33,11 @@ export function SortableColumnHeader({
     <th
       scope="col"
       aria-sort={ariaSort}
-      className={`px-4 py-3 text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400 ${alignTh} ${thClassName}`}
+      className={`px-4 py-3 text-xs font-medium uppercase tracking-wider text-text-muted ${alignTh} ${thClassName}`}
     >
       <button
         type="button"
-          className={`inline-flex max-w-full items-center gap-1 rounded px-0.5 py-0.5 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:hover:bg-gray-800 ${alignBtn} ${className}`}
+          className={`inline-flex max-w-full items-center gap-1 rounded px-0.5 py-0.5 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary dark:hover:bg-gray-800 ${alignBtn} ${className}`}
         onClick={() => onSortChange(columnKey)}
         aria-label={ariaLabel}
       >

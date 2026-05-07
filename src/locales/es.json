@@ -286,6 +286,7 @@
     "saving": "Guardando…",
     "saveError": "No se pudieron guardar los cambios.",
     "amountInvalid": "Introduce un importe de gasto válido (número negativo, p. ej. -29,99).",
+    "lotSumMismatchTitle": "Diferencia de Importes",
     "lotSumMismatch": "Los importes de los lotes suman {{sumLots}} € pero el total de este gasto es {{absTxn}} €. Ajusta los campos para que coincidan antes de guardar.",
     "lotSumMismatchSaveBlocked": "Los importes de los lotes suman {{sumLots}} € pero el total del gasto es {{absTxn}} €. Haz que los totales coincidan antes de guardar.",
     "lotAmountInvalid": "Introduce un importe no negativo para este lote (p. ej. 0 o 29,99).",
