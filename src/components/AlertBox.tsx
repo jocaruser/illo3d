@@ -50,6 +50,7 @@ export function AlertBox({
     <div 
       className={`rounded-lg border px-4 py-3 text-sm ${styles.container} ${className}`}
       data-testid={dataTestId}
+      role="alert"
     >
       {title && (
         <h4 className={`mb-1 font-semibold ${styles.title}`}>
