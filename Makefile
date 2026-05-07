@@ -57,7 +57,7 @@ preview:
 
 # ============ DEPENDENCIES ============
 install:
-	$(APP) pnpm install
+	$(APP) sh -c 'pnpm config set ignore-build-scripts false && pnpm install'
 
 add:
 	$(APP) pnpm add $(PKG)
