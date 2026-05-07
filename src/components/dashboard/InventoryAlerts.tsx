@@ -35,20 +35,20 @@ export function InventoryAlerts({ items }: InventoryAlertsProps) {
   })
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow-sm">
+    <div className="rounded-lg border border-border bg-surface-elevated p-4 shadow-sm">
       <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+        <h3 className="text-lg font-semibold text-text">
           {t('dashboard.inventory.alerts')}
         </h3>
         <Link
           to="/inventory"
-          className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+          className="text-sm font-medium text-primary hover:text-blue-800 dark:text-blue-200"
         >
           {t('dashboard.inventory.viewAll')}
         </Link>
       </div>
       {alerts.length === 0 ? (
-        <p className="text-sm text-gray-600 dark:text-gray-400">{t('dashboard.inventory.healthy')}</p>
+        <p className="text-sm text-text-muted">{t('dashboard.inventory.healthy')}</p>
       ) : (
         <ul className="space-y-2">
           {alerts.map((item) => {
@@ -57,10 +57,10 @@ export function InventoryAlerts({ items }: InventoryAlertsProps) {
               <li key={item.id}>
                 <Link
                   to={`/inventory/${item.id}`}
-                  className={`block rounded-md border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm hover:opacity-90 ${tier ?? 'bg-gray-50 dark:bg-gray-800'}`}
+                  className={`block rounded-md border border-border px-3 py-2 text-sm hover:opacity-90 ${tier ?? 'bg-surface'}`}
                 >
-                  <span className="font-medium text-gray-900 dark:text-gray-100">{item.name}</span>
-                  <span className="ml-2 text-gray-600 dark:text-gray-400">{item.qty_current}</span>
+                  <span className="font-medium text-text">{item.name}</span>
+                  <span className="ml-2 text-text-muted">{item.qty_current}</span>
                 </Link>
               </li>
             )

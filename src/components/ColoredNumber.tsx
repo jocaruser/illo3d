@@ -19,10 +19,10 @@ export function ColoredNumber({
   forceRed = false,
 }: ColoredNumberProps) {
   const colorClass = forceRed
-    ? 'text-red-600 dark:text-red-400'
+    ? 'text-danger'
     : value > 0
-      ? 'text-green-600 dark:text-green-400'
-      : 'text-red-600 dark:text-red-400'
+      ? 'text-success'
+      : 'text-danger'
   const text = children ?? (formatter ? formatter(value) : String(value))
   return <span className={`${colorClass} ${className}`}>{text}</span>
 }

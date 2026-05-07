@@ -25,14 +25,14 @@ function ProgressToast({
       : t('workbook.savingWorkbook')
 
   return (
-    <div className="w-80 rounded-lg border border-gray-200 bg-white p-4 shadow-lg dark:border-gray-700 dark:bg-gray-900">
-      <div className="mb-2 flex items-center justify-between text-sm font-medium text-gray-800 dark:text-gray-200">
+    <div className="w-80 rounded-lg border border-border bg-surface p-4 shadow-lg">
+      <div className="mb-2 flex items-center justify-between text-sm font-medium text-text">
         <span>{actionLabel}</span>
-        <span className="text-gray-500 dark:text-gray-400">
+        <span className="text-text-muted">
           {current}/{total}
         </span>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-surface-elevated">
         <div
           className="h-full rounded-full bg-blue-600 transition-all duration-300"
           style={{ width: `${percent}%` }}

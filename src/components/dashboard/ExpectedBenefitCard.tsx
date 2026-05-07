@@ -32,10 +32,10 @@ export function ExpectedBenefitCard({
   if (!has) {
     return (
       <div
-        className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 text-sm text-gray-600 dark:text-gray-400 shadow"
+        className="rounded-lg border border-border bg-surface-elevated p-4 text-sm text-text-muted shadow"
         data-testid="dashboard-expected-benefit-empty"
       >
-        <p className="font-medium text-gray-800 dark:text-gray-200">
+        <p className="font-medium text-text">
           {t('dashboard.expectedBenefit')}
         </p>
         <p className="mt-2">{t('dashboard.expectedBenefitEmpty')}</p>
@@ -50,12 +50,12 @@ export function ExpectedBenefitCard({
     lots,
   )
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow">
-      <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+    <div className="rounded-lg border border-border bg-surface-elevated p-4 shadow">
+      <p className="text-sm font-medium text-text">
         {t('dashboard.expectedBenefit')}
       </p>
       <p
-        className="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100"
+        className="mt-2 text-2xl font-semibold text-text"
         data-testid="dashboard-expected-benefit"
       >
         {formatCurrency(total)}

@@ -92,9 +92,9 @@ export function ClientsTable({
   }
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow dark:border-gray-700 dark:bg-gray-900">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-800">
+    <div className="overflow-x-auto rounded-lg border border-border bg-surface-elevated shadow">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-surface">
             <tr>
               <SortableColumnHeader
                 columnKey="id"
@@ -156,16 +156,16 @@ export function ClientsTable({
               </SortableColumnHeader>
               <th
                 scope="col"
-                className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-600 dark:text-gray-400"
+                className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted"
               >
                 {t('clients.actions')}
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
+          <tbody className="divide-y divide-border bg-surface-elevated">
             {displayed.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400">
+                <td colSpan={7} className="px-4 py-6 text-center text-sm text-text-muted">
                   {clients.length === 0 ? t('clients.empty') : t('listTable.noMatches')}
                 </td>
               </tr>
@@ -173,7 +173,7 @@ export function ClientsTable({
               displayed.map((client) => (
                 <tr
                   key={client.id}
-                  className="odd:bg-white even:bg-gray-50 hover:bg-gray-100 odd:dark:bg-gray-900 even:dark:bg-gray-800/50 hover:dark:bg-gray-800"
+                  className="odd:bg-surface-elevated even:bg-surface-alt hover:bg-surface"
                 >
                   <td className="whitespace-nowrap px-4 py-3 text-sm">
                     <Link
@@ -184,24 +184,24 @@ export function ClientsTable({
                       {client.id}
                     </Link>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-text">
                     <LinkWithTagsTooltip
                       label={client.name}
                       tagLine={tagTitleByClientId?.get(client.id)}
                       dataTestid={`client-name-tooltip-${client.id}`}
-                      linkClassName="font-medium text-gray-900 dark:text-gray-100"
+                      linkClassName="font-medium text-text"
                     />
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 md:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-text md:table-cell">
                     {client.email ?? ''}
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 md:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-text md:table-cell">
                     {client.phone ?? ''}
                   </td>
-                  <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-gray-700 dark:text-gray-300 lg:table-cell">
+                  <td className="hidden max-w-xs truncate px-4 py-3 text-sm text-text lg:table-cell">
                     {client.notes ?? ''}
                   </td>
-                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300 lg:table-cell">
+                  <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-text lg:table-cell">
                     {client.created_at}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-right text-sm">

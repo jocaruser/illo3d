@@ -107,14 +107,14 @@ export function CreatePieceItemPopup({
 
   return (
     <DialogShell isOpen={isOpen} onClose={onClose} title={t('pieces.addLineTitle')}>
-      <p className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+      <p className="mb-4 text-sm text-text-muted">
         {t('pieces.addLineForPiece', { id: pieceId })}
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label
             htmlFor="piece-item-inventory"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('pieces.inventoryLot')}
             <RequiredIndicator />
@@ -141,7 +141,7 @@ export function CreatePieceItemPopup({
             searchable
           />
           {fieldErrors.inventory && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-danger">
               {fieldErrors.inventory}
             </p>
           )}
@@ -149,7 +149,7 @@ export function CreatePieceItemPopup({
         <div>
           <label
             htmlFor="piece-item-quantity"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('pieces.quantity')}
             <RequiredIndicator />
@@ -163,21 +163,21 @@ export function CreatePieceItemPopup({
             onChange={(e) => setQuantity(e.target.value)}
             disabled={loading}
             aria-required="true"
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
+            className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
           />
           {fieldErrors.quantity && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-danger">
               {fieldErrors.quantity}
             </p>
           )}
         </div>
-        {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+        {error && <p className="text-sm text-danger">{error}</p>}
         <div className="flex gap-3 pt-2">
           <button
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+            className="rounded-lg border border-border px-4 py-2 text-text hover:bg-surface disabled:opacity-50"
           >
             {t('pieces.cancel')}
           </button>

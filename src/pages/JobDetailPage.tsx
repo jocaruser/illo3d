@@ -50,6 +50,7 @@ import { buildMaterialsSummary } from '@/utils/jobMaterialsSummary'
 import { formatCurrency } from '@/utils/money'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
 import { NotFoundCard } from '@/components/NotFoundCard'
+import { AlertBox } from '@/components/AlertBox'
 
 function clientName(
   clients: { id: string; name: string }[],
@@ -349,7 +350,7 @@ export function JobDetailPage() {
                   type="button"
                   data-testid="entity-detail-edit"
                   onClick={() => setEditingJob(job)}
-                  className="rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-1.5 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-text hover:bg-surface"
                 >
                   {t('jobs.editJob')}
                 </button>
@@ -360,7 +361,7 @@ export function JobDetailPage() {
                     setArchiveError(null)
                     setArchiveTarget(job)
                   }}
-                  className="rounded-lg border border-red-200 dark:border-red-800 bg-white dark:bg-gray-900 px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950"
+                  className="rounded-lg border border-red-200 dark:border-red-800 bg-surface-elevated px-3 py-1.5 text-xs font-medium text-red-700 dark:text-red-300 hover:bg-red-50 dark:bg-red-950"
                 >
                   {t('lifecycle.archive')}
                 </button>
@@ -401,7 +402,7 @@ export function JobDetailPage() {
           value: (
             <Link
               to={`/clients/${job.client_id}`}
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+              className="text-primary hover:text-blue-800 dark:text-blue-200"
             >
               {clientName(clients, job.client_id)}
             </Link>
@@ -446,10 +447,10 @@ export function JobDetailPage() {
                 const { minRedos, inventoryName } = overallRiskFactor
                 const colorClass =
                   minRedos >= 2
-                    ? 'text-green-600 dark:text-green-400'
+                    ? 'text-success'
                     : minRedos === 1
-                      ? 'text-amber-600 dark:text-amber-400'
-                      : 'text-red-600 dark:text-red-400'
+                      ? 'text-accent'
+                      : 'text-danger'
                 return (
                   <span className={colorClass}>
                     {t('jobs.riskFactorValue', { redos: minRedos, name: inventoryName })}
@@ -490,7 +491,7 @@ export function JobDetailPage() {
             <Link
               to="/jobs"
               data-testid="entity-detail-back"
-              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+              className="text-sm font-medium text-primary hover:text-blue-800 dark:text-blue-200"
             >
               ← {t('jobs.backToList')}
             </Link>
@@ -568,12 +569,9 @@ export function JobDetailPage() {
           />
 
           {lineRequirementMessage ? (
-            <div
-              className="mb-4 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-4 py-3 text-sm text-amber-900 dark:text-amber-200"
-              role="alert"
-            >
+            <AlertBox variant="warning" className="mb-4">
               {lineRequirementMessage}
-            </div>
+            </AlertBox>
           ) : null}
 
           <PiecesTable
@@ -709,7 +707,7 @@ export function JobDetailPage() {
         }}
       >
         {archiveError ? (
-          <p className="text-sm text-red-600 dark:text-red-400">{archiveError}</p>
+          <p className="text-sm text-danger">{archiveError}</p>
         ) : null}
       </ConfirmDialog>
 
@@ -762,17 +760,17 @@ export function JobDetailPage() {
             ))}
           </ul>
         ) : null}
-        <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+        <label className="flex cursor-pointer items-start gap-2 text-sm text-text">
           <input
             type="checkbox"
             checked={decrementInventory}
             onChange={(e) => setDecrementInventory(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+            className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
           />
           <span>{t('pieces.decrementInventoryLabel')}</span>
         </label>
         {pieceStatusError ? (
-          <p className="mt-3 text-sm text-red-600 dark:text-red-400">{pieceStatusError}</p>
+          <p className="mt-3 text-sm text-danger">{pieceStatusError}</p>
         ) : null}
       </ConfirmDialog>
 
@@ -799,17 +797,17 @@ export function JobDetailPage() {
           )
         }}
       >
-        <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+        <label className="flex cursor-pointer items-start gap-2 text-sm text-text">
           <input
             type="checkbox"
             checked={restoreInventory}
             onChange={(e) => setRestoreInventory(e.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-gray-300 dark:border-gray-600 text-blue-600 dark:text-blue-400 focus:ring-blue-500"
+            className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
           />
           <span>{t('pieces.restoreInventoryLabel')}</span>
         </label>
         {pieceStatusError ? (
-          <p className="mt-3 text-sm text-red-600 dark:text-red-400">{pieceStatusError}</p>
+          <p className="mt-3 text-sm text-danger">{pieceStatusError}</p>
         ) : null}
       </ConfirmDialog>
 

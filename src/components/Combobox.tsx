@@ -167,17 +167,17 @@ export function Combobox<T>({
         onKeyDown={handleKeyDown}
         disabled={inputDisabled}
         placeholder={placeholder ?? t('combobox.placeholder')}
-        className={`w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:disabled:bg-gray-700 ${className}`}
+        className={`w-full rounded border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:disabled:bg-gray-700 ${className}`}
       />
       {open && !disabled ? (
         <ul
           id={listboxId}
           role="listbox"
           aria-label={ariaLabel ?? t('combobox.ariaLabel')}
-          className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 py-1 shadow-lg"
+          className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded border border-border bg-surface-elevated py-1 shadow-lg"
         >
           {itemsMapped.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-gray-500 dark:text-gray-500" role="presentation">
+            <li className="px-3 py-2 text-sm text-text-muted/60" role="presentation">
               {t('combobox.noItems')}
             </li>
           ) : filtered.length === 0 && query.trim() ? (
@@ -185,14 +185,14 @@ export function Combobox<T>({
               <li
                 role="option"
                 aria-selected={false}
-                className="cursor-pointer px-3 py-2 text-sm text-gray-800 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-950"
+                className="cursor-pointer px-3 py-2 text-sm text-text hover:bg-blue-50 dark:hover:bg-blue-950"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => void handleCreatableSelect()}
               >
                 {t('combobox.createOption', { query: query.trim() })}
               </li>
             ) : (
-              <li className="px-3 py-2 text-sm text-gray-500 dark:text-gray-500" role="presentation">
+              <li className="px-3 py-2 text-sm text-text-muted/60" role="presentation">
                 {t('combobox.noMatch')}
               </li>
             )
@@ -206,7 +206,7 @@ export function Combobox<T>({
                 className={`cursor-pointer px-3 py-2 text-sm ${
                   idx === activeIdx
                     ? 'bg-blue-50 dark:bg-blue-950 text-blue-900 dark:text-blue-200'
-                    : 'text-gray-800 dark:text-gray-200'
+                    : 'text-text'
                 }`}
                 onMouseDown={(e) => e.preventDefault()}
                 onMouseEnter={() => setActiveIdx(idx)}

@@ -31,7 +31,7 @@ export function LinkWithTagsTooltip({
   dataTestid,
   linkAriaLabel,
   tagsTooltipAriaKey = 'clients.tagsTooltip',
-  linkClassName = 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200',
+  linkClassName = 'text-primary hover:text-blue-800 dark:text-blue-200',
 }: LinkWithTagsTooltipProps) {
   const { t } = useTranslation()
   const reactId = useId()
@@ -159,13 +159,13 @@ export function LinkWithTagsTooltip({
                 left: pos.left,
                 maxWidth: pos.maxW,
               }}
-              className="pointer-events-none fixed z-[200] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-3 py-2 text-sm text-gray-800 dark:text-gray-200 shadow"
+              className="pointer-events-none fixed z-[200] rounded-lg border border-border bg-surface-elevated px-3 py-2 text-sm text-text shadow"
             >
               <div className="flex flex-wrap gap-1.5">
                 {tagParts.map((tagName, i) => (
                   <span
                     key={`${tagName}-${i}`}
-                    className="inline-flex items-center rounded-full border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-200"
+                    className="inline-flex items-center rounded-full border border-border bg-surface px-2.5 py-0.5 text-xs font-medium text-text"
                   >
                     {tagName}
                   </span>

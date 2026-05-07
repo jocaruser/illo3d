@@ -384,7 +384,7 @@ test.describe('Job pieces (job detail)', () => {
 
     const materialCostWidget = page.locator('[data-testid="job-widget-material-cost"]')
     await expect(materialCostWidget).toBeVisible({ timeout: 15000 })
-    await expect(materialCostWidget.locator('.text-red-600')).toBeVisible()
+    await expect(materialCostWidget.locator('.text-danger')).toBeVisible()
   })
 
   test('job detail shows risk factor widget', async ({

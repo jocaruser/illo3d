@@ -9,13 +9,13 @@ export function BalanceDisplay({ balance }: BalanceDisplayProps) {
   const { t } = useTranslation()
 
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-1 shadow">
-      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+    <div className="rounded-lg border border-border bg-surface-elevated px-4 py-1 shadow">
+      <span className="text-sm font-medium text-text-muted">
         {t('transactions.balance')}:{' '}
       </span>
       <span
         className={`text-lg font-semibold ${
-          balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+          balance >= 0 ? 'text-success' : 'text-danger'
         }`}
       >
         {formatCurrency(balance)}

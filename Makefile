@@ -57,7 +57,7 @@ preview:
 
 # ============ DEPENDENCIES ============
 install:
-	$(APP) pnpm install
+	$(APP) sh -c 'export CI=true && pnpm install'
 
 add:
 	$(APP) pnpm add $(PKG)

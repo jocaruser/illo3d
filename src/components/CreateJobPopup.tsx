@@ -106,7 +106,7 @@ export function CreateJobPopup({
         <div>
           <label
             htmlFor={isPresetCreate ? 'job-client-preset' : 'job-client-search'}
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('jobs.client')}
             <RequiredIndicator />
@@ -114,7 +114,7 @@ export function CreateJobPopup({
           {isPresetCreate ? (
             <p
               id="job-client-preset"
-              className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-3 py-2 text-sm text-gray-800 dark:text-gray-200"
+              className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-text"
             >
               {selectedClient
                 ? t('jobs.selectedClient', { name: selectedClient.name })
@@ -134,13 +134,13 @@ export function CreateJobPopup({
             />
           )}
           {fieldErrors.client && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.client}</p>
+            <p className="mt-1 text-sm text-danger">{fieldErrors.client}</p>
           )}
         </div>
         <div>
           <label
             htmlFor="job-description"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('jobs.description')}
             <RequiredIndicator />
@@ -153,10 +153,10 @@ export function CreateJobPopup({
             placeholder={t('jobs.descriptionPlaceholder')}
             disabled={loading}
             aria-required="true"
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
+            className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
           />
           {fieldErrors.description && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+            <p className="mt-1 text-sm text-danger">
               {fieldErrors.description}
             </p>
           )}
@@ -166,7 +166,7 @@ export function CreateJobPopup({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+            className="rounded-lg border border-border px-4 py-2 text-text hover:bg-surface disabled:opacity-50"
           >
             {t('jobs.cancel')}
           </button>

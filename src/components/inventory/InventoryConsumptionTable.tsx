@@ -14,59 +14,59 @@ export function InventoryConsumptionTable({ consumptionRows }: Props) {
   return (
     <section>
       <SectionHeading title={t('inventoryDetail.consumptionTitle')} />
-      <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow">
-        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead className="bg-gray-50 dark:bg-gray-800">
+      <div className="overflow-x-auto rounded-lg border border-border bg-surface-elevated shadow">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-surface">
             <tr>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-text-muted/60">
                 {t('jobs.colId')}
               </th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-text-muted/60">
                 {t('inventoryDetail.piece')}
               </th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-text-muted/60">
                 {t('inventoryDetail.job')}
               </th>
-              <th className="px-4 py-2 text-right text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+              <th className="px-4 py-2 text-right text-xs font-medium uppercase text-text-muted/60">
                 {t('inventoryDetail.quantity')}
               </th>
-              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-gray-500 dark:text-gray-500">
+              <th className="px-4 py-2 text-left text-xs font-medium uppercase text-text-muted/60">
                 {t('inventory.createdAt')}
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-900">
+          <tbody className="divide-y divide-border bg-surface-elevated">
             {consumptionRows.length === 0 ? (
               <tr>
                 <td
                   colSpan={5}
-                  className="px-4 py-6 text-center text-sm text-gray-600 dark:text-gray-400"
+                  className="px-4 py-6 text-center text-sm text-text-muted"
                 >
                   {t('inventoryDetail.consumptionEmpty')}
                 </td>
               </tr>
             ) : null}
-            {consumptionRows.map((row) => (
-              <tr key={row.pieceItemId}>
-                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+            {consumptionRows.map((row, index) => (
+              <tr key={row.pieceItemId} className={index % 2 === 0 ? 'bg-surface-elevated' : 'bg-surface-alt'}>
+                <td className="whitespace-nowrap px-4 py-3 text-sm text-text">
                   <Link
                     to={`/jobs/${row.jobId}`}
                     data-testid={`inventory-consumption-job-${row.pieceItemId}`}
-                    className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+                    className="font-medium text-primary hover:text-blue-800 dark:text-blue-200"
                   >
                     {row.jobId}
                   </Link>
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                <td className="whitespace-nowrap px-4 py-3 text-sm text-text">
                   {row.pieceName} ({row.pieceId})
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                <td className="px-4 py-3 text-sm text-text">
                   {row.jobDescription}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-700 dark:text-gray-300">
+                <td className="whitespace-nowrap px-4 py-3 text-right text-sm text-text">
                   {row.quantity}
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-sm text-gray-700 dark:text-gray-300">
+                <td className="whitespace-nowrap px-4 py-3 text-sm text-text">
                   {formatInventoryCreatedDate(row.pieceCreatedAt)}
                 </td>
               </tr>

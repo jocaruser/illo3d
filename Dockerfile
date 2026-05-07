@@ -1,6 +1,7 @@
 FROM node:25-alpine
 
-RUN npm install -g pnpm@latest
+# Pin pnpm to v9 to avoid breaking changes in v10 regarding build scripts
+RUN npm install -g pnpm@9.15.0
 
 WORKDIR /app
 

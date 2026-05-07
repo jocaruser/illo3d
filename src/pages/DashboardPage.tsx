@@ -127,7 +127,7 @@ export function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h2 className="mb-6 text-2xl font-bold text-gray-800 dark:text-gray-200">
+      <h2 className="mb-6 text-2xl font-bold text-text">
         {t('page.dashboard')}
       </h2>
 
@@ -190,7 +190,7 @@ export function DashboardPage() {
           </div>
 
           <section className="mb-8">
-            <h3 className="mb-3 text-lg font-semibold text-gray-800 dark:text-gray-200">
+            <h3 className="mb-3 text-lg font-semibold text-text">
               {t('nav.jobs')}
             </h3>
             <KanbanBoard

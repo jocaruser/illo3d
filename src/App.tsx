@@ -42,12 +42,15 @@ import { useBackendStore } from './stores/backendStore'
 import { useWorkbookStore } from './stores/workbookStore'
 import { useUserPreferencesStore } from './stores/userPreferencesStore'
 import { getSheetsRepository } from '@/services/sheets/repository'
-import { restoreLocalDirectoryHandle } from '@/services/local/persistDirectoryHandle'
+import { restoreLocalDirectoryHandle } from './services/local/persistDirectoryHandle'
 import { toast } from './lib/toast'
+import { useShopMetadata } from './hooks/useShopMetadata'
+import { useShopLogoUrl } from './hooks/useShopLogoUrl'
+import { FaviconUpdater } from './components/FaviconUpdater'
 
 function navLinkClassName({ isActive }: { isActive: boolean }) {
   return isActive
-    ? 'text-sm font-semibold text-gray-900 dark:text-gray-100'
+    ? 'text-sm font-semibold text-text'
     : 'text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200'
 }
 
@@ -95,6 +98,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const workbookDirty = useWorkbookStore((s) => s.dirty)
   const backend = useBackendStore((s) => s.backend)
   const localDirectoryHandle = useBackendStore((s) => s.localDirectoryHandle)
+  const { data: metadata } = useShopMetadata()
+  const shopLogoUrl = useShopLogoUrl(
+    metadata?.logo,
+    backend === 'local-csv' ? localDirectoryHandle : null
+  )
+  const [logoError, setLogoError] = useState(false)
 
   const [refreshConfirmOpen, setRefreshConfirmOpen] = useState(false)
   const [saveBusy, setSaveBusy] = useState(false)
@@ -220,14 +229,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
+    <div className="min-h-screen bg-surface">
       <GoogleSessionBanner />
       <header className="bg-white shadow-sm dark:bg-gray-900">
         <div className="mx-auto max-w-7xl px-4 py-3">
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 flex-1 items-center gap-6">
-              <Link to="/" className="text-xl font-bold text-gray-800 dark:text-gray-200">
-                illo3d
+              <Link to="/" className="flex items-center gap-2 text-xl font-bold text-text">
+                {shopLogoUrl && !logoError && (
+                  <img
+                    src={shopLogoUrl}
+                    alt=""
+                    aria-hidden="true"
+                    data-testid="shop-logo"
+                    className="h-8 w-auto"
+                    style={{ filter: 'brightness(0) saturate(100%) invert(34%) sepia(82%) saturate(2148%) hue-rotate(205deg) brightness(96%) contrast(93%)' }}
+                    onError={() => setLogoError(true)}
+                  />
+                )}
+                <span>illo3d</span>
               </Link>
               <nav className="hidden gap-6 md:flex">{navLinks}</nav>
             </div>
@@ -263,7 +283,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 onClick={() => setMenuOpen((o) => !o)}
               >
                 <svg
-                  className="h-6 w-6 text-gray-700 dark:text-gray-300"
+                  className="h-6 w-6 text-text"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -342,8 +362,17 @@ function RootRedirect() {
 
 function AppShell() {
   const theme = useUserPreferencesStore((s) => s.theme)
+  const backend = useBackendStore((s) => s.backend)
+  const localDirectoryHandle = useBackendStore((s) => s.localDirectoryHandle)
+  const { data: metadata } = useShopMetadata()
+  const shopLogoUrl = useShopLogoUrl(
+    metadata?.logo,
+    backend === 'local-csv' ? localDirectoryHandle : null
+  )
+
   return (
     <>
+      <FaviconUpdater logoUrl={shopLogoUrl} />
       <Toaster
         position="bottom-right"
         theme={theme}

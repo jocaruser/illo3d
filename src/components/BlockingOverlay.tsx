@@ -18,20 +18,20 @@ function ProgressCard({
   const actionKey = operation === 'save' ? 'workbook.savingSheet' : 'workbook.loadingSheet'
 
   return (
-    <div className="w-80 rounded-lg border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-700 dark:bg-gray-900">
-      <div className="mb-3 text-center text-lg font-semibold text-gray-800 dark:text-gray-200">
+    <div className="w-80 rounded-lg border border-border bg-surface p-6 shadow-2xl">
+      <div className="mb-3 text-center text-lg font-semibold text-text">
         {t(labelKey)}
       </div>
-      <div className="mb-4 text-sm text-gray-600 dark:text-gray-400">
+      <div className="mb-4 text-sm text-text-muted">
         {sheetName ? t(actionKey, { sheet: sheetName }) : t(labelKey)}
       </div>
-      <div className="mb-2 flex items-center justify-between text-sm font-medium text-gray-700 dark:text-gray-300">
+      <div className="mb-2 flex items-center justify-between text-sm font-medium text-text">
         <span>{t('workbook.progress')}</span>
         <span>
           {current}/{total}
         </span>
       </div>
-      <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+      <div className="h-3 w-full overflow-hidden rounded-full bg-surface-elevated">
         <div
           className="h-full rounded-full bg-blue-600 transition-all duration-300"
           style={{ width: `${percent}%` }}

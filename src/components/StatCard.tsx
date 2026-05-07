@@ -11,14 +11,14 @@ interface StatCardProps {
 export function StatCard({ label, value, to, valueTone = 'default', size = 'default' }: StatCardProps) {
   const valueClass =
     valueTone === 'positive'
-      ? 'text-green-600 dark:text-green-400'
+      ? 'text-success'
       : valueTone === 'negative'
-        ? 'text-red-600 dark:text-red-400'
-        : 'text-gray-900 dark:text-gray-100'
+        ? 'text-danger'
+        : 'text-text'
 
   const labelClass = size === 'sm'
-    ? 'text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-500'
-    : 'text-sm font-medium text-gray-500 dark:text-gray-500'
+    ? 'text-xs font-medium uppercase tracking-wide text-text-muted/60'
+    : 'text-sm font-medium text-text-muted/60'
   const valueSize = size === 'sm' ? 'mt-1 text-lg font-semibold' : 'mt-1 text-2xl font-semibold'
 
   const body = (
@@ -28,10 +28,14 @@ export function StatCard({ label, value, to, valueTone = 'default', size = 'defa
     </>
   )
 
+  const cardClasses = to
+    ? 'rounded-lg border border-border bg-surface-elevated p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md motion-reduce:transition-none motion-reduce:hover:translate-y-0'
+    : 'rounded-lg border border-border bg-surface-elevated p-4 shadow-sm'
+
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow-sm">
+    <div className={cardClasses}>
       {to ? (
-        <Link to={to} className="block hover:opacity-90">
+        <Link to={to} className="block">
           {body}
         </Link>
       ) : (

@@ -8,11 +8,11 @@ interface NotFoundCardProps {
 
 export function NotFoundCard({ message, backTo, backLabel }: NotFoundCardProps) {
   return (
-    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-8 py-12 text-center shadow">
-      <p className="text-gray-600 dark:text-gray-400">{message}</p>
+    <div className="rounded-lg border border-border bg-surface-elevated px-8 py-12 text-center shadow">
+      <p className="text-text-muted">{message}</p>
       <Link
         to={backTo}
-        className="mt-4 inline-block text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:text-blue-200"
+        className="mt-4 inline-block text-primary hover:text-blue-800 dark:text-blue-200"
       >
         {backLabel}
       </Link>

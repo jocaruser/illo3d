@@ -120,7 +120,7 @@ export function CreateClientPopup({
         <div>
           <label
             htmlFor="client-name"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('clients.name')}
             <RequiredIndicator />
@@ -133,16 +133,16 @@ export function CreateClientPopup({
             placeholder={t('clients.namePlaceholder')}
             disabled={loading}
             aria-required="true"
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
+            className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
           />
           {fieldErrors.name && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.name}</p>
+            <p className="mt-1 text-sm text-danger">{fieldErrors.name}</p>
           )}
         </div>
         <div>
           <label
             htmlFor="client-email"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('clients.email')}
           </label>
@@ -152,13 +152,13 @@ export function CreateClientPopup({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={loading}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
+            className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
           />
         </div>
         <div>
           <label
             htmlFor="client-phone"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('clients.phone')}
           </label>
@@ -168,13 +168,13 @@ export function CreateClientPopup({
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
             disabled={loading}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
+            className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
           />
         </div>
         <div>
           <label
             htmlFor="client-notes"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('clients.notes')}
           </label>
@@ -184,13 +184,13 @@ export function CreateClientPopup({
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             disabled={loading}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
+            className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
           />
         </div>
         <div>
           <label
             htmlFor="client-preferred-contact"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('clients.preferredContact')}
           </label>
@@ -200,13 +200,13 @@ export function CreateClientPopup({
             value={preferredContact}
             onChange={(e) => setPreferredContact(e.target.value)}
             disabled={loading}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
+            className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
           />
         </div>
         <div>
           <label
             htmlFor="client-lead-source"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('clients.leadSource')}
           </label>
@@ -216,13 +216,13 @@ export function CreateClientPopup({
             value={leadSource}
             onChange={(e) => setLeadSource(e.target.value)}
             disabled={loading}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
+            className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
           />
         </div>
         <div>
           <label
             htmlFor="client-address"
-            className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="mb-1 block text-sm font-medium text-text"
           >
             {t('clients.address')}
           </label>
@@ -232,7 +232,7 @@ export function CreateClientPopup({
             onChange={(e) => setAddress(e.target.value)}
             disabled={loading}
             rows={3}
-            className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-800 dark:text-gray-200 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100 dark:bg-gray-800"
+            className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
           />
         </div>
         <div className="flex gap-3 pt-2">
@@ -240,7 +240,7 @@ export function CreateClientPopup({
             type="button"
             onClick={onClose}
             disabled={loading}
-            className="rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50"
+            className="rounded-lg border border-border px-4 py-2 text-text hover:bg-surface disabled:opacity-50"
           >
             {t('clients.cancel')}
           </button>
