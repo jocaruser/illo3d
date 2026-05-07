@@ -57,7 +57,7 @@ preview:
 
 # ============ DEPENDENCIES ============
 install:
-	$(APP) sh -c 'if ! grep -q "esbuild" node_modules/.modules.yaml 2>/dev/null; then mkdir -p node_modules && echo "onlyBuiltDependencies: [esbuild]" > node_modules/.modules.yaml; fi; pnpm install'
+	$(APP) sh -c 'export CI=true && if ! grep -q "esbuild" node_modules/.modules.yaml 2>/dev/null; then mkdir -p node_modules && echo "onlyBuiltDependencies: [esbuild]" > node_modules/.modules.yaml; fi && pnpm install'
 
 add:
 	$(APP) pnpm add $(PKG)
