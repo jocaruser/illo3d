@@ -1,6 +1,0 @@
-packages:
-  - '.'
-
-# Allow build scripts for esbuild (required for Vite)
-onlyBuiltDependencies:
-  - esbuild

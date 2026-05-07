@@ -57,7 +57,7 @@ preview:
 
 # ============ DEPENDENCIES ============
 install:
-	$(APP) sh -c 'export CI=true && mkdir -p /root/.config/pnpm && echo "onlyBuiltDependencies: [esbuild]" > /root/.config/pnpm/rc.yaml && pnpm install'
+	$(APP) sh -c 'export CI=true && pnpm install'
 
 add:
 	$(APP) pnpm add $(PKG)
