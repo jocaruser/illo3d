@@ -7,6 +7,7 @@ interface AlertBoxProps {
   variant?: AlertVariant
   className?: string
   title?: string
+  'data-testid'?: string
 }
 
 const variantStyles: Record<AlertVariant, { container: string; title: string }> = {
@@ -40,12 +41,16 @@ export function AlertBox({
   children, 
   variant = 'info', 
   className = '',
-  title 
+  title,
+  'data-testid': dataTestId
 }: AlertBoxProps) {
   const styles = variantStyles[variant]
 
   return (
-    <div className={`rounded-lg border px-4 py-3 text-sm ${styles.container} ${className}`}>
+    <div 
+      className={`rounded-lg border px-4 py-3 text-sm ${styles.container} ${className}`}
+      data-testid={dataTestId}
+    >
       {title && (
         <h4 className={`mb-1 font-semibold ${styles.title}`}>
           {title}

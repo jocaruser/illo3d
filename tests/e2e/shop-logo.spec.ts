@@ -10,7 +10,7 @@ test.describe('Shop logo', () => {
     })
 
     // Logo image should be visible in the header
-    const logoImage = page.locator('header img[alt=""]').first()
+    const logoImage = page.getByTestId('shop-logo')
     await expect(logoImage).toBeVisible()
 
     // Logo should have the correct attributes
@@ -28,7 +28,7 @@ test.describe('Shop logo', () => {
       timeout: 20000,
     })
 
-    const logoImage = page.locator('header img[alt=""]').first()
+    const logoImage = page.getByTestId('shop-logo')
     const illo3dText = page.locator('header').getByText('illo3d')
 
     await expect(logoImage).toBeVisible()
@@ -65,8 +65,8 @@ test.describe('Shop logo', () => {
       })
 
       // Should not have a logo image in the header
-      const logoImages = page.locator('header img[alt=""]')
-      await expect(logoImages).toHaveCount(0)
+      const logoImage = page.getByTestId('shop-logo')
+      await expect(logoImage).not.toBeVisible()
 
       // But should still have the illo3d text
       await expect(page.locator('header').getByText('illo3d')).toBeVisible()
@@ -95,7 +95,7 @@ test.describe('Shop logo', () => {
       timeout: 20000,
     })
 
-    const logoImage = page.locator('header img[alt=""]').first()
+    const logoImage = page.getByTestId('shop-logo')
     await expect(logoImage).toBeVisible()
 
     // Verify the image loaded by checking naturalWidth > 0

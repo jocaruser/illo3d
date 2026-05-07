@@ -323,7 +323,7 @@ export function ExpenseTransactionDetailPage() {
         </section>
 
         {showLotSumMismatch ? (
-          <AlertBox variant="warning" title={t('expenseTransactionDetail.lotSumMismatchTitle')}>
+          <AlertBox variant="warning" title={t('expenseTransactionDetail.lotSumMismatchTitle')} data-testid="expense-detail-lot-sum-mismatch">
             {t('expenseTransactionDetail.lotSumMismatch', {
               sumLots: sumLotsDisplay,
               absTxn: absTxnDisplay,

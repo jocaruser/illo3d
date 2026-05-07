@@ -241,6 +241,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     src={shopLogoUrl}
                     alt=""
                     aria-hidden="true"
+                    data-testid="shop-logo"
                     className="h-8 w-auto"
                     style={{ filter: 'brightness(0) saturate(100%) invert(34%) sepia(82%) saturate(2148%) hue-rotate(205deg) brightness(96%) contrast(93%)' }}
                     onError={() => setLogoError(true)}
