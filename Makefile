@@ -57,7 +57,7 @@ preview:
 
 # ============ DEPENDENCIES ============
 install:
-	$(APP) pnpm install || ($(APP) pnpm approve-builds && $(APP) pnpm install)
+	$(APP) pnpm install
 
 add:
 	$(APP) pnpm add $(PKG)
