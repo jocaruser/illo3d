@@ -4,8 +4,6 @@ import { useTranslation } from 'react-i18next'
 import type { Client, Job, Piece } from '@/types/money'
 import { jobTotalSortValue } from '@/utils/jobPiecePricing'
 import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
-import { jobDueDateGradient } from '@/utils/jobDueDateGradient'
-import { Combobox } from './Combobox'
 import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildJobSearchBlob } from '@/lib/listTable/searchBlobs'
@@ -30,12 +28,12 @@ function jobComparable(
       return clientName(clients, job.client_id).toLowerCase()
     case 'description':
       return (job.description.trim() || job.id).toLowerCase()
-    case 'status':
-      return job.status
+    case 'completed':
+      return job.completed ?? ''
     case 'price':
       return jobTotalSortValue(job.id, pieces)
     case 'due_date':
-      return jobDueDateGradient(job.created_at).days
+      return job.due_date ?? ''
     case 'created_at':
       return job.created_at
     default:
@@ -53,10 +51,8 @@ interface JobsTableProps {
   tagTitleByJobId?: ReadonlyMap<string, string>
   /** Space-joined tag names per job id (for fuzzy search). */
   tagSearchLineByJobId?: ReadonlyMap<string, string>
-  onStatusSelect: (job: Job, nextStatus: Job['status']) => void
   onEdit: (job: Job) => void
   onArchive: (job: Job) => void
-  statusUpdatingId: string | null
 }
 
 export function JobsTable({
@@ -66,10 +62,8 @@ export function JobsTable({
   query = '',
   tagTitleByJobId,
   tagSearchLineByJobId,
-  onStatusSelect,
   onEdit,
   onArchive,
-  statusUpdatingId,
 }: JobsTableProps) {
   const { t } = useTranslation()
   const [sortKey, setSortKey] = useState<string>('created_at')
@@ -80,11 +74,10 @@ export function JobsTable({
       filterRowsBySearchQuery(jobs, query, (job) =>
         buildJobSearchBlob(job, {
           clientName: clientName(clients, job.client_id),
-          statusLabel: t(`jobs.status.${job.status}`),
           tagNamesSearchLine: tagSearchLineByJobId?.get(job.id),
         })
       ),
-    [jobs, query, clients, t, tagSearchLineByJobId]
+    [jobs, query, clients, tagSearchLineByJobId]
   )
 
   const displayed = useMemo(
@@ -152,13 +145,13 @@ export function JobsTable({
                 {t('jobs.colClient')}
               </SortableColumnHeader>
               <SortableColumnHeader
-                columnKey="status"
+                columnKey="completed"
                 sortKey={sortKey}
                 sortDir={sortDir}
                 onSortChange={onSortChange}
-                ariaLabel={sortAria(t('jobs.colStatus'), 'status')}
+                ariaLabel={sortAria(t('jobs.colCompleted'), 'completed')}
               >
-                {t('jobs.colStatus')}
+                {t('jobs.colCompleted')}
               </SortableColumnHeader>
               <SortableColumnHeader
                 columnKey="price"
@@ -177,9 +170,9 @@ export function JobsTable({
                 sortDir={sortDir}
                 onSortChange={onSortChange}
                 thClassName="hidden lg:table-cell"
-                ariaLabel={sortAria(t('jobs.widgetDueDate'), 'due_date')}
+                ariaLabel={sortAria(t('jobs.colDueDate'), 'due_date')}
               >
-                {t('jobs.widgetDueDate')}
+                {t('jobs.colDueDate')}
               </SortableColumnHeader>
               <SortableColumnHeader
                 columnKey="created_at"
@@ -191,11 +184,8 @@ export function JobsTable({
               >
                 {t('jobs.colCreated')}
               </SortableColumnHeader>
-              <th
-                scope="col"
-                className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted"
-              >
-                {t('jobs.actions')}
+              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-text-muted">
+                {t('jobs.colActions')}
               </th>
             </tr>
           </thead>
@@ -244,17 +234,15 @@ export function JobsTable({
                     </Link>
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-text">
-                    <Combobox
-                      items={['draft', 'in_progress', 'delivered', 'paid', 'cancelled'] as const}
-                      value={job.status}
-                      onChange={(key) => onStatusSelect(job, key as Job['status'])}
-                      getKey={(s) => s}
-                      getLabel={(s) => t(`jobs.status.${s}`)}
-                      disabled={statusUpdatingId === job.id}
-                      id={`job-status-${job.id}`}
-                      ariaLabel={t('jobs.statusFieldAria', { id: job.id })}
-                      searchable={false}
-                    />
+                    {job.completed ? (
+                      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                        {t('jobs.completed')}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                        {t('jobs.active')}
+                      </span>
+                    )}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-text lg:table-cell">
                     <JobPricingTotalDisplay
@@ -264,14 +252,7 @@ export function JobsTable({
                     />
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm lg:table-cell">
-                    {(() => {
-                      const due = jobDueDateGradient(job.created_at)
-                      return (
-                        <span className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${due.bgClass} ${due.textClass}`}>
-                          {due.label}
-                        </span>
-                      )
-                    })()}
+                    {job.due_date ? job.due_date : '-'}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-text lg:table-cell">
                     {job.created_at}

@@ -4,7 +4,6 @@ import type {
   ClientNoteSeverity,
   CrmNote,
   Job,
-  JobStatus,
   Tag,
   TagLink,
   Transaction,
@@ -52,7 +51,7 @@ export type ClientActivityEntry =
       tieId: string
       jobId: string
       jobDescription: string
-      status: JobStatus
+      completed?: string
     }
   | {
       kind: 'income'
@@ -189,7 +188,7 @@ export function buildClientActivityTimeline(
       tieId: job.id,
       jobId: job.id,
       jobDescription: jobLabel(job),
-      status: job.status,
+      completed: job.completed,
     })
   }
 

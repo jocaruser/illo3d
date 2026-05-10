@@ -23,10 +23,9 @@ describe('money types', () => {
       id: 'j001',
       client_id: 'c001',
       description: 'Test job',
-      status: 'draft',
       created_at: '2026-02-28',
     }
-    expect(job.status).toBe('draft')
+    expect(job.description).toBe('Test job')
   })
 
   it('Transaction has required fields', () => {

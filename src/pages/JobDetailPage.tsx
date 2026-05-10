@@ -23,11 +23,12 @@ import { updatePieceStatus } from '@/services/piece/updatePieceStatus'
 import { updatePiecePrice } from '@/services/piece/updatePiecePrice'
 import { updatePieceUnits } from '@/services/piece/updatePieceUnits'
 import { updatePieceName } from '@/services/piece/updatePieceName'
+import { updatePieceBoardOrder } from '@/services/piece/updatePieceBoardOrder'
 import { updatePieceItem } from '@/services/piece/updatePieceItem'
 import { deletePieceItem } from '@/services/piece/deletePieceItem'
 import { createPieceItem, DUPLICATE_PIECE_ITEM_INVENTORY } from '@/services/piece/createPieceItem'
-import { useJobStatusFlow } from '@/hooks/useJobStatusFlow'
-import { Combobox } from '@/components/Combobox'
+import { useJobCompleteFlow } from '@/hooks/useJobCompleteFlow'
+import { useShopMetadata } from '@/hooks/useShopMetadata'
 import type {
   Inventory,
   Job,
@@ -60,7 +61,10 @@ function clientName(
   return c?.name ?? clientId
 }
 
-function isConsumingPieceStatus(s: PieceStatus): boolean {
+function isConsumingPieceStatus(s: PieceStatus, completedStatusLabel?: string): boolean {
+  if (completedStatusLabel) {
+    return s === completedStatusLabel
+  }
   return s === 'done' || s === 'failed'
 }
 
@@ -114,11 +118,15 @@ export function JobDetailPage() {
   } = useWorkbookEntities()
 
   const {
-    handleStatusSelect: handleJobStatusSelect,
-    statusError: jobStatusError,
-    statusUpdatingId: jobStatusUpdatingId,
-    statusDialogs: jobStatusDialogs,
-  } = useJobStatusFlow(spreadsheetId)
+    handleCompleteClick,
+    completeError,
+    completingId,
+    completeDialogs,
+  } = useJobCompleteFlow(spreadsheetId)
+
+  const { data: metadata } = useShopMetadata()
+  const kanbanColumns = metadata?.kanbanColumns
+  const completedStatusLabel = metadata?.completedStatusLabel
 
   const jobNotes = useMemo((): JobNote[] => {
     const list = crmNotes
@@ -179,7 +187,7 @@ export function JobDetailPage() {
   const overallRiskFactor = useMemo(
     () =>
       job ? jobOverallRiskFactor(pieces, pieceItems, inventory) : null,
-    [pieces, pieceItems, inventory]
+    [job, pieces, pieceItems, inventory]
   )
 
   const [createOpen, setCreateOpen] = useState(false)
@@ -201,6 +209,8 @@ export function JobDetailPage() {
   const [pieceStatusUpdatingId, setPieceStatusUpdatingId] = useState<
     string | null
   >(null)
+  const [editingDueDate, setEditingDueDate] = useState(false)
+  const [dueDateInput, setDueDateInput] = useState('')
 
   useEffect(() => {
     if (workbookStatus !== 'ready' || !job) return
@@ -287,8 +297,8 @@ export function JobDetailPage() {
     setLineRequirementMessage(null)
 
     const old = piece.status
-    if (isConsumingPieceStatus(next)) {
-      if (!isConsumingPieceStatus(old)) {
+    if (isConsumingPieceStatus(next, completedStatusLabel)) {
+      if (!isConsumingPieceStatus(old, completedStatusLabel)) {
         const lines = linesForPieceId(pieceItems, piece.id)
         if (lines.length === 0) {
           setLineRequirementMessage(t('pieces.statusNeedsLines'))
@@ -313,7 +323,7 @@ export function JobDetailPage() {
       return
     }
 
-    if (next === 'pending' && isConsumingPieceStatus(old)) {
+    if (next === 'pending' && isConsumingPieceStatus(old, completedStatusLabel)) {
       setRestoreInventory(true)
       setPieceStatusFlow({
         piece,
@@ -372,18 +382,19 @@ export function JobDetailPage() {
         },
         {
           label: t('jobs.widgetStatus'),
-          value: (
-            <Combobox
-              items={['draft', 'in_progress', 'delivered', 'paid', 'cancelled'] as const}
-              value={job.status}
-              onChange={(key) => {
-                void handleJobStatusSelect(job, key as Job['status'])
-              }}
-              getKey={(s) => s}
-              getLabel={(s) => t(`jobs.status.${s}`)}
-              disabled={jobStatusUpdatingId === job.id}
-              searchable={false}
-            />
+          value: job.completed ? (
+            <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+              {t('jobs.completed')}
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => void handleCompleteClick(job)}
+              disabled={completingId === job.id}
+              className="btn-primary text-xs"
+            >
+              {t('jobs.complete')}
+            </button>
           ),
         },
         {
@@ -411,7 +422,50 @@ export function JobDetailPage() {
         },
         {
           label: t('jobs.widgetDueDate'),
-          value: dueDate?.label ?? '—',
+          value: editingDueDate ? (
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={dueDateInput}
+                onChange={(e) => setDueDateInput(e.target.value)}
+                className="rounded border border-border px-2 py-1 text-sm"
+                autoFocus
+              />
+              <button
+                onClick={async () => {
+                  if (!spreadsheetId || !job) return
+                  await handleUpdateJob(job.id, { 
+                    description: job.description,
+                    client_id: job.client_id,
+                    due_date: dueDateInput || undefined 
+                  })
+                  setEditingDueDate(false)
+                }}
+                className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
+              >
+                {t('common.save')}
+              </button>
+              <button
+                onClick={() => {
+                  setDueDateInput(job?.due_date || '')
+                  setEditingDueDate(false)
+                }}
+                className="rounded border border-border px-2 py-1 text-xs hover:bg-surface"
+              >
+                {t('common.cancel')}
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => {
+                setDueDateInput(job?.due_date || '')
+                setEditingDueDate(true)
+              }}
+              className="hover:underline"
+            >
+              {dueDate?.label ?? '—'}
+            </button>
+          ),
           bgClass: dueDate?.bgClass,
           textClass: dueDate?.textClass,
         },
@@ -514,12 +568,12 @@ export function JobDetailPage() {
             </JobWidgetGrid>
           </div>
 
-          {jobStatusError ? (
+          {completeError ? (
             <div
               className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3 text-sm text-red-900 dark:text-red-200"
               role="alert"
             >
-              {jobStatusError}
+              {completeError}
             </div>
           ) : null}
 
@@ -643,6 +697,23 @@ export function JobDetailPage() {
               if (trim === cur) return
               await updatePieceName(spreadsheetId, pieceId, trim)
             }}
+            onPieceBoardOrderCommit={async (pieceId, raw) => {
+              if (!spreadsheetId) return
+              const trim = raw.trim()
+              let v: number | undefined
+              if (trim === '') v = undefined
+              else {
+                const n = parseInt(trim, 10)
+                if (Number.isNaN(n) || n < 0) return
+                v = n
+              }
+              const cur = pieces.find((p) => p.id === pieceId)?.board_order
+              const same =
+                (v === undefined && cur === undefined) ||
+                (v !== undefined && cur !== undefined && cur === v)
+              if (same) return
+              await updatePieceBoardOrder(spreadsheetId, pieceId, v)
+            }}
             onPieceItemQuantityCommit={async (pieceItemId, raw) => {
               if (!spreadsheetId) return
               const trim = raw.trim()
@@ -676,6 +747,7 @@ export function JobDetailPage() {
             }}
             statusUpdatingId={pieceStatusUpdatingId}
             hideJobColumn
+            kanbanColumns={kanbanColumns}
           />
         </div>
       )}
@@ -811,7 +883,7 @@ export function JobDetailPage() {
         ) : null}
       </ConfirmDialog>
 
-      {jobStatusDialogs}
+      {completeDialogs}
     </div>
   )
 }

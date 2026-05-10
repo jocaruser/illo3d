@@ -7,9 +7,7 @@ function isActiveJob(j: Job): boolean {
   return j.archived !== 'true' && j.deleted !== 'true'
 }
 
-function isDraftOrInProgress(status: Job['status']): boolean {
-  return status === 'draft' || status === 'in_progress'
-}
+
 
 /**
  * Sums expected benefit (line revenue minus material at avg lot cost) for
@@ -24,7 +22,7 @@ export function dashboardExpectedBenefitTotal(
 ): number {
   let sum = 0
   for (const job of jobs) {
-    if (!isActiveJob(job) || !isDraftOrInProgress(job.status)) continue
+    if (!isActiveJob(job) || job.completed) continue
     const list = countingPiecesForJob(job.id, pieces)
     for (const piece of list) {
       const units = pieceUnitsResolved(piece)
@@ -52,7 +50,7 @@ export function dashboardExpectedBenefitHasQualifyingPiece(
   lots: Lot[],
 ): boolean {
   for (const job of jobs) {
-    if (!isActiveJob(job) || !isDraftOrInProgress(job.status)) continue
+    if (!isActiveJob(job) || job.completed) continue
     const list = countingPiecesForJob(job.id, pieces)
     for (const piece of list) {
       const units = pieceUnitsResolved(piece)

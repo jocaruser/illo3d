@@ -13,7 +13,6 @@ import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import type { Job } from '@/types/money'
 import type { UpdateJobPayload } from '@/services/job/updateJob'
-import { useJobStatusFlow } from '@/hooks/useJobStatusFlow'
 import { isActiveRow } from '@/lib/entityFilters'
 
 export function JobsPage() {
@@ -57,12 +56,6 @@ export function JobsPage() {
   const [archiveTarget, setArchiveTarget] = useState<Job | null>(null)
   const [archiveError, setArchiveError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
-  const {
-    handleStatusSelect,
-    statusError,
-    statusUpdatingId,
-    statusDialogs,
-  } = useJobStatusFlow(spreadsheetId)
 
   const jobPopupOpen = popupOpen || editingJob !== null
 
@@ -98,12 +91,6 @@ export function JobsPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8" aria-busy={workbookStatus !== 'ready'}>
-      {statusError && (
-        <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3" role="alert">
-          <p className="text-sm font-medium text-red-800 dark:text-red-200">{statusError}</p>
-        </div>
-      )}
-
       {workbookStatus === 'ready' && (
         <>
           <ListTablePageHeader
@@ -138,10 +125,6 @@ export function JobsPage() {
             clients={clients}
             tagTitleByJobId={tagTitleByJobId}
             tagSearchLineByJobId={tagSearchLineByJobId}
-            statusUpdatingId={statusUpdatingId}
-            onStatusSelect={(job, next) => {
-              void handleStatusSelect(job, next)
-            }}
             onEdit={(job) => setEditingJob(job)}
             onArchive={(job) => {
               setArchiveError(null)
@@ -181,8 +164,6 @@ export function JobsPage() {
           <p className="text-sm text-danger">{archiveError}</p>
         ) : null}
       </ConfirmDialog>
-
-      {statusDialogs}
     </div>
   )
 }

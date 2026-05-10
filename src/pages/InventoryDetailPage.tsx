@@ -25,6 +25,8 @@ import { buildInventoryConsumptionRows } from '@/lib/inventoryDetail/consumption
 import { toast } from '@/lib/toast'
 import { isActiveRow, isActiveLot } from '@/lib/entityFilters'
 import type { Inventory, Lot, Transaction } from '@/types/money'
+import { ColourPicker } from '@/components/ColourSwatch'
+import { updateInventoryColour } from '@/services/inventory/updateInventoryColour'
 
 function parseQtyCurrentInput(raw: string): number | null {
   const trimmed = raw.trim().replace(',', '.')
@@ -84,6 +86,9 @@ export function InventoryDetailPage() {
   const [warnRed, setWarnRed] = useState('0')
   const [thresholdSaveBusy, setThresholdSaveBusy] = useState(false)
 
+  const [colour, setColour] = useState('')
+  const [colourSaveBusy, setColourSaveBusy] = useState(false)
+
   const [lotQuantityInputs, setLotQuantityInputs] = useState<Record<string, string>>({})
   const [lotAmountInputs, setLotAmountInputs] = useState<Record<string, string>>({})
   const [lotSaveBusyId, setLotSaveBusyId] = useState<string | null>(null)
@@ -100,6 +105,7 @@ export function InventoryDetailPage() {
         ? String(item.qty_current)
         : String(Math.round(item.qty_current * 100) / 100),
     )
+    setColour(item.colour ?? '')
   }, [item])
 
   const lotsSignature = useMemo(
@@ -154,6 +160,20 @@ export function InventoryDetailPage() {
       )
     } finally {
       setThresholdSaveBusy(false)
+    }
+  }
+
+  const onSaveColour = async () => {
+    if (!spreadsheetId || !item) return
+    setColourSaveBusy(true)
+    try {
+      await updateInventoryColour(spreadsheetId, item.id, colour || undefined)
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : t('inventoryDetail.saveError'),
+      )
+    } finally {
+      setColourSaveBusy(false)
     }
   }
 
@@ -213,9 +233,10 @@ export function InventoryDetailPage() {
     }
   }
 
-  const thresholdEditor =
+  const editorSection =
     item != null ? (
-      <div className="space-y-4 border-t border-border pt-4">
+      <div className="space-y-6">
+        <div className="space-y-4 border-t border-border pt-4">
         <p className="text-sm font-semibold text-text">
           {t('inventoryDetail.qtyHeading')}
         </p>
@@ -291,7 +312,31 @@ export function InventoryDetailPage() {
             : t('inventoryDetail.saveThresholds')}
         </button>
       </div>
-    ) : null
+      <div className="space-y-4 border-t border-border pt-4">
+        <p className="text-sm font-semibold text-text">
+          {t('inventory.colourWidget')}
+        </p>
+        <div className="flex flex-wrap items-end gap-3">
+          <FormGroup>
+            <ColourPicker
+              value={colour}
+              onChange={setColour}
+              disabled={colourSaveBusy}
+            />
+          </FormGroup>
+          <button
+            type="button"
+            data-testid="inventory-detail-save-colour"
+            disabled={colourSaveBusy}
+            onClick={() => void onSaveColour()}
+            className="btn-primary disabled:opacity-50"
+          >
+            {colourSaveBusy ? t('inventoryDetail.saving') : t('inventoryDetail.saveColour')}
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null
 
   const txnById = useMemo(() => {
     const m = new Map<string, Transaction>()
@@ -334,7 +379,7 @@ export function InventoryDetailPage() {
               setArchiveTarget(item)
             }}
             hideEditButton
-            belowFields={thresholdEditor}
+            belowFields={editorSection}
           >
             <div className="space-y-8">
               <InventoryLotsTable

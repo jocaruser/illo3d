@@ -1,43 +1,27 @@
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { Inventory, Job, JobStatus, Lot, Piece, PieceItem } from '@/types/money'
-import { compareJobsForKanban } from '@/utils/kanbanJobSort'
+import type { Job, Piece } from '@/types/money'
+import type { KanbanColumn as KanbanColumnType } from '@/types/shop'
 import { KanbanColumn } from './KanbanColumn'
 import { endKanbanJobDrag } from './kanbanDnd'
 import { isActiveRow } from '@/lib/entityFilters'
 
-const STATUSES: JobStatus[] = [
-  'draft',
-  'in_progress',
-  'delivered',
-  'paid',
-  'cancelled',
-]
-
 interface KanbanBoardProps {
+  columns: KanbanColumnType[]
   jobs: Job[]
   pieces: Piece[]
-  pieceItems: PieceItem[]
-  inventory: Inventory[]
-  lots: Lot[]
   clientsById: Map<string, string>
-  onJobMoveToStatus: (
-    job: Job,
-    nextStatus: JobStatus,
-    insertBeforeId: string | null,
-  ) => void
-  statusUpdatingId: string | null
+  onPieceMove: (pieceId: string, newStatus: string, insertBeforeId?: string | null) => void
+  updatingPieceId: string | null
 }
 
 export function KanbanBoard({
+  columns,
   jobs,
   pieces,
-  pieceItems,
-  inventory,
-  lots,
   clientsById,
-  onJobMoveToStatus,
-  statusUpdatingId,
+  onPieceMove,
+  updatingPieceId,
 }: KanbanBoardProps) {
   const { t } = useTranslation()
 
@@ -47,68 +31,73 @@ export function KanbanBoard({
     return () => document.removeEventListener('dragend', clear, true)
   }, [])
 
-  const byStatus = useMemo(() => {
-    const map = new Map<JobStatus, Job[]>()
-    for (const s of STATUSES) {
-      map.set(s, [])
-    }
+  // Create job lookup map for enrichment
+  const jobMap = useMemo(() => {
+    const map = new Map<string, Job>()
     for (const job of jobs) {
-      if (!isActiveRow(job)) continue
-      const list = map.get(job.status)
-      if (list) list.push(job)
-    }
-    for (const s of STATUSES) {
-      map.get(s)!.sort(compareJobsForKanban)
+      if (isActiveRow(job)) {
+        map.set(job.id, job)
+      }
     }
     return map
   }, [jobs])
 
-  const titleForStatus = (s: JobStatus): string => {
-    switch (s) {
-      case 'draft':
-        return t('dashboard.kanban.draft')
-      case 'in_progress':
-        return t('dashboard.kanban.inProgress')
-      case 'delivered':
-        return t('dashboard.kanban.delivered')
-      case 'paid':
-        return t('dashboard.kanban.paid')
-      case 'cancelled':
-        return t('dashboard.kanban.cancelled')
-      default:
-        return s
+  // Group pieces by status
+  const piecesByColumn = useMemo(() => {
+    const map = new Map<string, Piece[]>()
+    
+    // Initialize all columns with empty arrays
+    for (const col of columns) {
+      map.set(col.name, [])
     }
-  }
+    
+    // Assign pieces to columns
+    for (const piece of pieces) {
+      if (!isActiveRow(piece)) continue
+      
+      const status = piece.status || (columns[0]?.name ?? '')
+      const columnPieces = map.get(status)
+      if (columnPieces) {
+        columnPieces.push(piece)
+      } else if (columns.length > 0) {
+        // If piece has unknown status, put in first column
+        map.get(columns[0]!.name)?.push(piece)
+      }
+    }
+    
+    // Sort pieces within each column by board_order, then created_at
+    for (const columnPieces of map.values()) {
+      columnPieces.sort((a, b) => {
+        const orderA = a.board_order ?? Infinity
+        const orderB = b.board_order ?? Infinity
+        if (orderA !== orderB) return orderA - orderB
+        return b.created_at.localeCompare(a.created_at)
+      })
+    }
+    
+    return map
+  }, [pieces, columns])
 
-  const statusOptions = STATUSES.map((s) => ({ value: s, label: titleForStatus(s) }))
-
-  const handleDrop = (
-    jobId: string,
-    targetStatus: JobStatus,
-    insertBeforeId: string | null,
-  ) => {
-    const job = jobs.find((j) => j.id === jobId && isActiveRow(j))
-    if (!job) return
-    onJobMoveToStatus(job, targetStatus, insertBeforeId)
+  if (columns.length === 0) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-text-muted">{t('kanban.noColumnsConfigured')}</p>
+      </div>
+    )
   }
 
   return (
-    <div className="overflow-x-auto pb-2">
-      <div className="flex min-w-min items-stretch gap-3">
-        {STATUSES.map((status) => (
+    <div className="overflow-x-auto pb-2 h-full">
+      <div className="flex min-w-min items-stretch gap-3 h-full">
+        {columns.map((column) => (
           <KanbanColumn
-            key={status}
-            status={status}
-            jobs={byStatus.get(status) ?? []}
-            pieces={pieces}
-            pieceItems={pieceItems}
-            inventory={inventory}
-            lots={lots}
+            key={column.name}
+            column={column}
+            pieces={piecesByColumn.get(column.name) ?? []}
+            jobs={jobMap}
             clientsById={clientsById}
-            columnTitle={titleForStatus(status)}
-            onDropJob={handleDrop}
-            statusUpdatingId={statusUpdatingId}
-            statusOptions={statusOptions}
+            onDropPiece={onPieceMove}
+            updatingPieceId={updatingPieceId}
           />
         ))}
       </div>

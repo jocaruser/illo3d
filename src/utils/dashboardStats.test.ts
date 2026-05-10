@@ -10,7 +10,7 @@ const baseJob = (overrides: Partial<Job>): Job => ({
   id: 'J1',
   client_id: 'C1',
   description: 'x',
-  status: 'draft',
+  
   created_at: '2025-01-01',
   ...overrides,
 })
@@ -20,20 +20,12 @@ describe('countActiveJobs', () => {
     expect(countActiveJobs([])).toBe(0)
   })
 
-  it('counts draft and in_progress only', () => {
+  it('counts active incomplete jobs only', () => {
     const jobs: Job[] = [
-      baseJob({ id: '1', status: 'draft' }),
-      baseJob({ id: '2', status: 'in_progress' }),
-      baseJob({ id: '3', status: 'delivered' }),
-      baseJob({ id: '4', status: 'paid' }),
-    ]
-    expect(countActiveJobs(jobs)).toBe(2)
-  })
-
-  it('excludes archived jobs', () => {
-    const jobs: Job[] = [
-      baseJob({ id: '1', status: 'draft', archived: 'true' }),
-      baseJob({ id: '2', status: 'draft' }),
+      baseJob({ id: '1' }),
+      baseJob({ id: '2', completed: '2025-01-02' }),
+      baseJob({ id: '3', archived: 'true' }),
+      baseJob({ id: '4', deleted: 'true' }),
     ]
     expect(countActiveJobs(jobs)).toBe(1)
   })

@@ -1,4 +1,5 @@
 import { useCallback, useId, useMemo, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 export interface ComboboxProps<T> {
@@ -7,6 +8,7 @@ export interface ComboboxProps<T> {
   onChange: (key: string) => void
   getKey: (item: T) => string
   getLabel: (item: T) => string
+  renderItem?: (item: T) => ReactNode
   searchable?: boolean
   creatable?: boolean
   onCreateItem?: (input: string) => Promise<void>
@@ -30,6 +32,7 @@ export function Combobox<T>({
   onChange,
   getKey,
   getLabel,
+  renderItem,
   searchable = true,
   creatable = false,
   onCreateItem,
@@ -197,7 +200,7 @@ export function Combobox<T>({
               </li>
             )
           ) : (
-            filtered.map(({ key, label }, idx) => (
+            filtered.map(({ key, label, item }, idx) => (
               <li
                 key={key}
                 id={`${baseId}-option-${key}`}
@@ -212,7 +215,7 @@ export function Combobox<T>({
                 onMouseEnter={() => setActiveIdx(idx)}
                 onClick={() => handleSelect(key)}
               >
-                {label}
+                {renderItem ? renderItem(item) : label}
               </li>
             ))
           )}

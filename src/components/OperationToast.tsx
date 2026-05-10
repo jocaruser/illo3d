@@ -83,7 +83,7 @@ export function OperationToast() {
       toast.dismiss('operation-toast')
       toastIdRef.current = null
     }
-  }, [operation, phase, current, total, sheetName, message])
+  }, [operation, phase, current, total, sheetName, message, blocking])
 
   return null
 }

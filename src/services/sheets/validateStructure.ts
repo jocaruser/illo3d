@@ -23,10 +23,13 @@ export async function validateStructure(
     const headers = await repository.getHeaderRow(spreadsheetId, sheetName)
     const expectedHeaders = SHEET_HEADERS[sheetName as SheetName]
 
-    if (headers.length < expectedHeaders.length) {
+    // Check that we have at least the expected headers at their expected positions
+    // Extra columns beyond expected length are tolerated (v2.0.0+ allows custom columns)
+    const minLength = expectedHeaders.length
+    if (headers.length < minLength) {
       errors.push({
         sheet: sheetName,
-        message: `Expected headers: ${expectedHeaders.join(', ')}`,
+        message: `Expected at least ${minLength} headers, got ${headers.length}. Expected: ${expectedHeaders.join(', ')}`,
       })
       continue
     }

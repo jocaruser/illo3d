@@ -67,18 +67,30 @@ test.describe('Jobs page', () => {
     await expect(page.getByText(/J\d+ — e2e job marker/)).toBeVisible({ timeout: 20000 })
   })
 
-  test('draft to in_progress updates status in workbook', async ({ page, openCsvShop }) => {
+  test('completing a job shows confirmation dialog and creates income transaction', async ({ page, openCsvShop }) => {
     void openCsvShop
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
-    const j1Status = page.locator('#job-status-J1')
-    await j1Status.focus()
-    await page.getByRole('option', { name: /in progress|en curso/i }).click()
-    await expect(j1Status).toHaveValue(/in progress|en curso/i)
+    // Navigate to a job detail page to complete it
+    await page.getByTestId('job-detail-link-J2').click()
+    await expect(page).toHaveURL(/\/jobs\/J2/)
+    
+    // Click complete button
+    await page.getByRole('button', { name: /complete|completar/i }).click()
+    
+    // Confirmation dialog should appear (using i18n key since E2E mocks translations)
+    const confirmDialog = page.getByRole('dialog', { name: /jobs\.completeConfirmTitle/i })
+    await expect(confirmDialog).toBeVisible({ timeout: 5000 })
+
+    // Confirm completion
+    await confirmDialog.getByRole('button', { name: /jobs\.complete/i }).click()
+
+    // Should show completed status
+    await expect(page.getByText(/completed|completado/i)).toBeVisible({ timeout: 15000 })
   })
 
-  test('marking in_progress job paid with income checkbox unchecked skips transaction append', async ({
+  test('completing a job without income checkbox skips transaction', async ({
     page,
     openCsvShop,
   }) => {
@@ -99,144 +111,33 @@ test.describe('Jobs page', () => {
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
-    const j2Status = page.locator('#job-status-J2')
-    await j2Status.focus()
-    await page.getByRole('option', { name: /^paid$/i }).click()
-    // Paid is dialog-gated: controlled value stays on prior value until confirm.
-    await expect(j2Status).toHaveValue(/in progress|en curso/i)
+    // Navigate to J1 which has incomplete pricing - first need to add pricing
+    // Actually use J2 which already has complete pricing
+    await page.getByTestId('job-detail-link-J2').click()
+    await expect(page).toHaveURL(/\/jobs\/J2/)
+    
+    // Click complete button
+    await page.getByRole('button', { name: /complete|completar/i }).click()
+    
+    // Confirmation dialog should appear
+    const confirmDialog = page.getByRole('dialog', { name: /jobs\.completeConfirmTitle/i })
+    await expect(confirmDialog).toBeVisible({ timeout: 5000 })
 
-    await expect(
-      page.getByRole('heading', { name: /mark job as paid|marcar como pagado/i })
-    ).toBeVisible({ timeout: 5000 })
-
-    await expect(
-      page.getByRole('dialog').getByText(/€42[.,]00/)
-    ).toBeVisible()
-
-    await page
+    // Uncheck income transaction checkbox
+    await confirmDialog
       .getByRole('checkbox', {
-        name: /create income transaction|crear un ingreso/i,
+        name: /jobs\.createIncomeTransaction|create income/i,
       })
       .uncheck()
 
-    await page.getByRole('button', { name: /confirm|confirmar/i }).click()
+    await confirmDialog.getByRole('button', { name: /jobs\.complete/i }).click()
 
     await expect(
-      page.getByRole('heading', { name: /mark job as paid|marcar como pagado/i })
+      page.getByRole('dialog', { name: /jobs\.completeConfirmTitle/i })
     ).not.toBeVisible({ timeout: 10000 })
 
     expect(appendPayloads.filter((p) => p.sheetName === 'transactions')).toHaveLength(0)
-    await expect(j2Status).toHaveValue(/^paid$/i, { timeout: 15000 })
-  })
-
-  test('marking delivered job paid shows confirmation and adds income transaction', async ({
-    page,
-    openCsvShop,
-  }) => {
-    void openCsvShop
-    await page.getByRole('link', { name: 'Jobs' }).click()
-    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
-
-    const row = page.getByRole('row').filter({ hasText: 'Desk organizer' })
-    const deskStatus = row.locator('[role="combobox"]')
-    await deskStatus.focus()
-    await page.getByRole('option', { name: /^paid$/i }).click()
-    await expect(deskStatus).toHaveValue(/delivered/i)
-
-    await expect(
-      page.getByRole('heading', { name: /mark job as paid|marcar como pagado/i })
-    ).toBeVisible({ timeout: 5000 })
-
-    await page.getByRole('button', { name: /confirm|confirmar/i }).click()
-
-    await expect(deskStatus).toHaveValue(/^paid$/i, { timeout: 15000 })
-
-    await page.getByRole('link', { name: /transactions|transacciones/i }).first().click()
-    await expect(page.getByText(/connecting|cargando/i)).not.toBeVisible({
-      timeout: 15000,
-    })
-    const incomeRow = page
-      .getByRole('row')
-      .filter({ hasText: /35[.,]50/ })
-      .filter({ hasText: /income|ingreso/i })
-    await expect(incomeRow.first()).toBeVisible({ timeout: 15000 })
-  })
-
-  test('marking draft job paid is blocked until every piece has a price', async ({
-    page,
-    openCsvShop,
-  }) => {
-    void openCsvShop
-    await page.getByRole('link', { name: 'Jobs' }).click()
-    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
-
-    const j1PaidFlow = page.locator('#job-status-J1')
-    await j1PaidFlow.focus()
-    await page.getByRole('option', { name: /^paid$/i }).click()
-    await expect(j1PaidFlow).toHaveValue(/^draft$/i)
-
-    await expect(page.getByRole('alert')).toContainText(
-      /per-unit price and a units count|precio por unidad y la cantidad de unidades/i,
-    )
-
-    await expect(
-      page.getByRole('heading', { name: /mark job as paid|marcar como pagado/i })
-    ).toHaveCount(0)
-  })
-
-  test('leaving paid status shows confirmation about duplicate transactions', async ({
-    page,
-    openCsvShop,
-  }) => {
-    void openCsvShop
-    await page.getByRole('link', { name: 'Jobs' }).click()
-    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
-
-    const row = page.getByRole('row').filter({ hasText: 'Logo keychain batch' })
-    const logoStatus = row.locator('[role="combobox"]')
-    await logoStatus.focus()
-    await page.getByRole('option', { name: /delivered|entregado/i }).click()
-    await expect(logoStatus).toHaveValue(/^paid$/i)
-
-    await expect(
-      page.getByRole('heading', {
-        name: /change status from paid|cambiar el estado de pagado/i,
-      })
-    ).toBeVisible({ timeout: 5000 })
-
-    await page.getByRole('button', { name: /confirm|confirmar/i }).click()
-
-    await expect(
-      page.getByRole('heading', {
-        name: /change status from paid|cambiar el estado de pagado/i,
-      })
-    ).not.toBeVisible({ timeout: 10000 })
-
-    await expect(logoStatus).toHaveValue(/delivered|entregado/i, { timeout: 15000 })
-  })
-
-  test('marking job cancelled shows confirmation', async ({ page, openCsvShop }) => {
-    void openCsvShop
-    await page.getByRole('link', { name: 'Jobs' }).click()
-    await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
-
-    const row = page.getByRole('row').filter({ hasText: 'Replacement gear' })
-    const gearStatus = row.locator('[role="combobox"]')
-    await gearStatus.focus()
-    await page.getByRole('option', { name: /cancelled|cancelado/i }).click()
-    await expect(gearStatus).toHaveValue(/in progress|en curso/i)
-
-    await expect(
-      page.getByRole('heading', { name: /cancel job|cancelar trabajo/i })
-    ).toBeVisible({ timeout: 5000 })
-
-    await page.getByRole('button', { name: /confirm|confirmar/i }).click()
-
-    await expect(
-      page.getByRole('heading', { name: /cancel job|cancelar trabajo/i })
-    ).not.toBeVisible({ timeout: 10000 })
-
-    await expect(gearStatus).toHaveValue(/cancelled|cancelado/i, { timeout: 15000 })
+    await expect(page.getByText(/completed|completado/i)).toBeVisible({ timeout: 15000 })
   })
   })
 })

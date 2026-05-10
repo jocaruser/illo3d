@@ -9,7 +9,7 @@ describe('createJob', () => {
     useWorkbookStore.getState().reset()
   })
 
-  it('appends job with J1 id and draft status', async () => {
+  it('appends job with J1 id', async () => {
     resetAndSeedWorkbook({})
 
     await createJob('spreadsheet-1', {
@@ -23,7 +23,6 @@ describe('createJob', () => {
       id: 'J1',
       client_id: 'CL1',
       description: 'Test print',
-      status: 'draft',
     })
     expect(jobs[0].price).toBeUndefined()
     expect(jobs[0].created_at).toMatch(/^\d{4}-\d{2}-\d{2}T/)
@@ -36,18 +35,14 @@ describe('createJob', () => {
           id: 'J1',
           client_id: 'CL1',
           description: 'a',
-          status: 'draft',
           price: '',
-          board_order: '',
           created_at: '2025-01-01',
         },
         {
           id: 'J2',
           client_id: 'CL1',
           description: 'b',
-          status: 'draft',
           price: '',
-          board_order: '',
           created_at: '2025-01-02',
         },
       ]),

@@ -22,7 +22,9 @@
   },
   "common": {
     "loading": "Loading...",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "save": "Save",
+    "cancel": "Cancel"
   },
   "toast": {
     "saveSuccess": "Saved successfully",
@@ -38,9 +40,52 @@
     "sortedAscending": "{{column}}, sorted ascending",
     "sortedDescending": "{{column}}, sorted descending"
   },
+  "history": {
+    "title": "History",
+    "empty": "No history entries yet.",
+    "notFound": "History entry not found.",
+    "searchPlaceholder": "Search by entity type, ID, or user...",
+    "colEntityType": "Type",
+    "colEntityId": "Entity ID",
+    "colChangedAt": "When",
+    "colChangedBy": "Who",
+    "colAction": "Action",
+    "viewDetails": "View",
+    "detailTitle": "History Entry",
+    "backToList": "Back to history",
+    "entityType": "Entity Type",
+    "entityId": "Entity ID",
+    "changedAt": "Changed At",
+    "changedBy": "Changed By",
+    "field": "Field",
+    "before": "Before",
+    "after": "After",
+    "noChanges": "No changes detected.",
+    "rawBefore": "Raw Before",
+    "rawAfter": "Raw After"
+  },
+  "kanban": {
+    "noColumnsConfigured": "No kanban columns configured",
+    "configureInMetadata": "Configure kanbanColumns in your shop metadata to enable the kanban view.",
+    "emptyColumn": "No pieces",
+    "groupedJob": "{{count}} pieces",
+    "viewAll": "View all"
+  },
+  "calendar": {
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "noDueDate": "No due date",
+    "previousDay": "Previous week",
+    "nextDay": "Next week",
+    "upcomingDays": "Upcoming",
+    "noUpcomingPieces": "No pieces scheduled for the next days."
+  },
   "page": {
     "dashboard": "Dashboard",
-    "transactions": "Transactions"
+    "transactions": "Transactions",
+    "calendar": "Calendar"
   },
   "errors": {
     "googleSession": "Your Google session expired. Try signing in with Google again, then retry.",
@@ -70,16 +115,10 @@
     "recentEmpty": "No entries yet.",
     "recentTransactions": "Recent transactions",
     "kanban": {
-      "draft": "Draft",
-      "inProgress": "In progress",
-      "delivered": "Delivered",
-      "paid": "Paid",
-      "cancelled": "Cancelled",
       "empty": "No jobs",
       "viewAll": "View all jobs",
       "jobSingular": "job",
-      "jobPlural": "jobs",
-      "moveToColumn": "Move to column"
+      "jobPlural": "jobs"
     },
     "inventory": {
       "alerts": "Stock alerts",
@@ -96,6 +135,7 @@
     "pieces": "Pieces",
     "transactions": "Transactions",
     "inventory": "Inventory",
+    "history": "History",
     "toggleMenu": "Toggle menu"
   },
   "globalSearch": {
@@ -263,7 +303,10 @@
     "qtyCurrent": "Qty (current)",
     "avgUnitCost": "Avg unit cost",
     "createdAt": "Created",
-    "empty": "No inventory items yet. Record a purchase with “Add to inventory” to create items.",
+    "colour": "Colour",
+    "photo": "Photo",
+    "colourWidget": "Colour",
+    "empty": "No inventory items yet. Record a purchase with \"Add to inventory\" to create items.",
     "linkLabel": "Inventory",
     "expenseColumn": "Inventory",
     "type": {
@@ -318,6 +361,7 @@
     "saveQty": "Save quantity",
     "qtyInvalid": "Enter a non-negative whole number for current quantity.",
     "qtySaveError": "Could not save quantity.",
+    "saveColour": "Save colour",
     "lotActions": "Actions",
     "saveLot": "Save lot",
     "lotQuantityInvalid": "Enter a positive quantity for this lot.",
@@ -363,6 +407,8 @@
     "colJob": "Job",
     "colName": "Name",
     "colUnits": "Units",
+    "colBoardOrder": "Order",
+    "complete": "Complete",
     "colPrice": "Price",
     "colPricePerUnit": "Price / unit",
     "colLineTotal": "Line total",

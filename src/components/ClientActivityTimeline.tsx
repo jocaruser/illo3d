@@ -170,9 +170,9 @@ function ActivityRowBody({
             </Link>
           </p>
           <p className="mt-0.5 text-xs text-text-muted">
-            {t('clientDetail.activity.statusLine', {
-              status: t(`jobs.status.${entry.status}`),
-            })}
+            {entry.completed
+              ? t('jobs.completed')
+              : t('jobs.active')}
           </p>
         </div>
       )

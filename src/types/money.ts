@@ -1,3 +1,4 @@
+/** @deprecated JobStatus removed in v2.0.0 - jobs no longer have status, use 'completed' date instead */
 export type JobStatus =
   | 'draft'
   | 'in_progress'
@@ -5,7 +6,8 @@ export type JobStatus =
   | 'paid'
   | 'cancelled'
 
-export type PieceStatus = 'pending' | 'done' | 'failed'
+/** Piece status is now a free-form string defined by shop metadata (kanbanColumns) */
+export type PieceStatus = string
 
 /** Categories used on expense-type transactions and the purchase form. */
 export type PurchaseCategory =
@@ -102,10 +104,11 @@ export interface Job {
   id: string
   client_id: string
   description: string
-  status: JobStatus
   price?: number
-  /** Kanban column ordering (optional in sheet; lower sorts first). */
-  board_order?: number
+  /** Due date for the job (ISO date string). */
+  due_date?: string
+  /** Completed date - set when job is marked complete (ISO date string). */
+  completed?: string
   created_at: string
   archived?: string
   deleted?: string
@@ -115,11 +118,14 @@ export interface Piece {
   id: string
   job_id: string
   name: string
+  /** Free-form status from shop metadata kanbanColumns. */
   status: PieceStatus
   /** Currency per single manufactured unit (not line total). */
   price?: number
   /** Count of identical units in this line; unset until the user sets it. */
   units?: number
+  /** Kanban column ordering (optional in sheet; lower sorts first). */
+  board_order?: number
   created_at: string
   archived?: string
   deleted?: string
@@ -138,6 +144,10 @@ export interface Inventory {
   id: string
   type: InventoryType
   name: string
+  /** Hex color code for filament swatch (e.g., "#FF0000"). */
+  colour?: string
+  /** Path or URL to photo (forward-looking, no UI yet). */
+  photo?: string
   qty_current: number
   warn_yellow: number
   warn_orange: number
@@ -173,4 +183,17 @@ export interface Transaction {
   notes?: string
   archived?: string
   deleted?: string
+}
+
+/** Audit trail entry for any entity mutation. No lifecycle columns. */
+export interface History {
+  id: string
+  entity_type: string
+  entity_id: string
+  /** JSON string of the full row before mutation, or null for creates. */
+  raw_data_before: string | null
+  /** JSON string of the full row after mutation, or null for hard-deletes. */
+  raw_data_after: string | null
+  changed_at: string
+  changed_by: string
 }

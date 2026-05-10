@@ -8,6 +8,7 @@ import type { Inventory, PieceItem } from '@/types/money'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
 import { Combobox } from './Combobox'
+import { ColourSwatch } from './ColourSwatch'
 
 interface CreatePieceItemPopupProps {
   isOpen: boolean
@@ -48,7 +49,7 @@ export function CreatePieceItemPopup({
     setQuantity('')
     setError(null)
     setFieldErrors({})
-  }, [isOpen])
+  }, [isOpen, inventoryId])
 
 
 
@@ -135,6 +136,24 @@ export function CreatePieceItemPopup({
                   id: inv.id,
                   qty: inv.qty_current,
                 })}
+            renderItem={(inv) => (
+              <div className="flex items-center gap-2">
+                <ColourSwatch colour={inv.colour} size="sm" />
+                <span>
+                  {inv.type === 'filament'
+                    ? t('pieces.inventoryOptionFilament', {
+                        name: inv.name,
+                        id: inv.id,
+                        qty: inv.qty_current,
+                      })
+                    : t('pieces.inventoryOptionUnits', {
+                        name: inv.name,
+                        id: inv.id,
+                        qty: inv.qty_current,
+                      })}
+                </span>
+              </div>
+            )}
             disabled={loading || sortedInventory.length === 0}
             id="piece-item-inventory"
             placeholder={t('pieces.searchInventory')}

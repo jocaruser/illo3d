@@ -9,6 +9,7 @@ import { filterRowsBySearchQuery } from '@/lib/listTable/fuzzyFilter'
 import { sortRowsByColumn, type SortDirection } from '@/lib/listTable/sortDiscovery'
 import { buildInventorySearchBlob } from '@/lib/listTable/searchBlobs'
 import { SortableColumnHeader } from '@/components/list-table/SortableColumnHeader'
+import { ColourSwatch } from '@/components/ColourSwatch'
 
 function qtyThresholdHighlightClass(item: Inventory): string {
   const q = item.qty_current
@@ -195,7 +196,10 @@ export function InventoryTable({ items, query = '', lots }: InventoryTableProps)
                       </Link>
                     </td>
                     <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-text">
-                      {item.name}
+                      <div className="flex items-center gap-2">
+                        <ColourSwatch colour={item.colour} size="sm" />
+                        {item.name}
+                      </div>
                     </td>
                     <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-text sm:table-cell">
                       {t(`inventory.type.${item.type}`)}

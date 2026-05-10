@@ -1,6 +1,7 @@
 import { Fragment, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { Inventory, Job, Lot, Piece, PieceItem } from '@/types/money'
+import type { KanbanColumn } from '@/types/shop'
 import { piecePriceIsSet } from '@/utils/jobPiecePricing'
 import { computePieceSuggestedPrice } from '@/utils/jobSuggestedPrice'
 import { materialCostForPieceItemLine } from '@/utils/pieceItemMaterialCost'
@@ -62,7 +63,6 @@ function pieceComparable(
   key: string,
   ctx: {
     jobLabel: string
-    statusLabel: string
     pieceItems: PieceItem[]
     inventory: Inventory[]
     lots: Lot[]
@@ -131,12 +131,14 @@ interface PiecesTableProps {
   onPiecePriceCommit: (pieceId: string, raw: string) => Promise<void>
   onPieceUnitsCommit: (pieceId: string, raw: string) => Promise<void>
   onPieceNameCommit: (pieceId: string, raw: string) => Promise<void>
+  onPieceBoardOrderCommit: (pieceId: string, raw: string) => Promise<void>
   onPieceItemQuantityCommit: (pieceItemId: string, raw: string) => Promise<void>
   onPieceItemInventoryCommit: (pieceItemId: string, inventoryId: string) => Promise<void>
   onPieceItemDelete: (pieceItemId: string) => Promise<void>
   onAddPieceItem: (pieceId: string) => Promise<void>
   statusUpdatingId?: string | null
   hideJobColumn?: boolean
+  kanbanColumns?: KanbanColumn[]
 }
 
 export function PiecesTable({
@@ -153,15 +155,17 @@ export function PiecesTable({
   onPiecePriceCommit,
   onPieceUnitsCommit,
   onPieceNameCommit,
+  onPieceBoardOrderCommit,
   onPieceItemQuantityCommit,
   onPieceItemInventoryCommit,
   onPieceItemDelete,
   onAddPieceItem,
   statusUpdatingId = null,
   hideJobColumn = false,
+  kanbanColumns,
 }: PiecesTableProps) {
   const { t } = useTranslation()
-  const colCount = hideJobColumn ? 10 : 11
+  const colCount = hideJobColumn ? 11 : 12
 
   const [sortKey, setSortKey] = useState<string | null>(null)
   const [sortDir, setSortDir] = useState<SortDirection>('asc')
@@ -187,10 +191,9 @@ export function PiecesTable({
       filterRowsBySearchQuery(pieces, query, (piece) =>
         buildPieceSearchBlob(piece, {
           jobLabel: jobLabel(jobs, piece.job_id),
-          statusLabel: t(`pieces.status.${piece.status}`),
         })
       ),
-    [pieces, query, jobs, t]
+    [pieces, query, jobs]
   )
 
   const displayed = useMemo(() => {
@@ -205,13 +208,12 @@ export function PiecesTable({
       (piece, key) =>
         pieceComparable(piece, key, {
           jobLabel: jobLabel(jobs, piece.job_id),
-          statusLabel: t(`pieces.status.${piece.status}`),
           pieceItems,
           inventory,
           lots,
         })
     )
-  }, [filtered, sortKey, sortDir, jobs, t, pieceItems, inventory, lots])
+  }, [filtered, sortKey, sortDir, jobs, pieceItems, inventory, lots])
 
 
 
@@ -285,6 +287,16 @@ export function PiecesTable({
                 ariaLabel={sortAria(t('pieces.colUnits'), 'units')}
               >
                 {t('pieces.colUnits')}
+              </SortableColumnHeader>
+              <SortableColumnHeader
+                columnKey="board_order"
+                sortKey={sortKey}
+                sortDir={sortDir}
+                onSortChange={onSortChange}
+                thClassName="hidden md:table-cell"
+                ariaLabel={sortAria(t('pieces.colBoardOrder'), 'board_order')}
+              >
+                {t('pieces.colBoardOrder')}
               </SortableColumnHeader>
               <SortableColumnHeader
                 columnKey="price"
@@ -447,6 +459,26 @@ export function PiecesTable({
                         />
                       </td>
                       <td className="hidden px-2 py-3 text-sm md:table-cell">
+                        <input
+                          type="number"
+                          min={0}
+                          step={1}
+                          data-testid={`piece-board-order-${piece.id}`}
+                          key={`${piece.id}-bo-${piece.board_order ?? 'x'}`}
+                          defaultValue={
+                            piece.board_order === undefined
+                              ? ''
+                              : String(piece.board_order)
+                          }
+                          disabled={!spreadsheetId}
+                          onBlur={(e) => {
+                            void onPieceBoardOrderCommit(piece.id, e.target.value)
+                          }}
+                          className="w-16 rounded border border-border px-2 py-1 text-right text-text disabled:bg-gray-100 dark:bg-gray-800"
+                          aria-label={t('pieces.colBoardOrder')}
+                        />
+                      </td>
+                      <td className="hidden px-2 py-3 text-sm md:table-cell">
                         <div className="flex flex-col items-end gap-1">
                           <input
                             type="number"
@@ -557,18 +589,47 @@ export function PiecesTable({
                         })()}
                       </td>
                       <td className="whitespace-nowrap px-4 py-3 text-sm text-text">
-                        <Combobox
-                          items={['pending', 'done', 'failed'] as const}
-                          value={piece.status}
-                          onChange={(key) => onStatusChange(piece, key as Piece['status'])}
-                          getKey={(s) => s}
-                          getLabel={(s) => t(`pieces.status.${s}`)}
-                          disabled={statusUpdatingId === piece.id}
-                          id={`piece-status-${piece.id}`}
-                          testId={`piece-status-${piece.id}`}
-                          ariaLabel={t('pieces.statusFieldAria', { id: piece.id })}
-                          searchable={false}
-                        />
+                        <div className="flex items-center gap-2">
+                          {kanbanColumns && kanbanColumns.length > 0 ? (
+                            <Combobox
+                              items={kanbanColumns}
+                              value={piece.status}
+                              onChange={(key) => onStatusChange(piece, key as Piece['status'])}
+                              getKey={(col) => col.name}
+                              getLabel={(col) => col.name}
+                              disabled={statusUpdatingId === piece.id}
+                              id={`piece-status-${piece.id}`}
+                              testId={`piece-status-${piece.id}`}
+                              ariaLabel={t('pieces.statusFieldAria', { id: piece.id })}
+                              searchable={false}
+                            />
+                          ) : (
+                            <Combobox
+                              items={['pending', 'done', 'failed'] as const}
+                              value={piece.status}
+                              onChange={(key) => onStatusChange(piece, key as Piece['status'])}
+                              getKey={(s) => s}
+                              getLabel={(s) => t(`pieces.status.${s}`)}
+                              disabled={statusUpdatingId === piece.id}
+                              id={`piece-status-${piece.id}`}
+                              testId={`piece-status-${piece.id}`}
+                              ariaLabel={t('pieces.statusFieldAria', { id: piece.id })}
+                              searchable={false}
+                            />
+                          )}
+                          {/* Complete button shown when no kanbanColumns and piece is pending */}
+                          {(!kanbanColumns || kanbanColumns.length === 0) && piece.status === 'pending' && (
+                            <button
+                              type="button"
+                              onClick={() => onStatusChange(piece, 'done')}
+                              disabled={statusUpdatingId === piece.id}
+                              className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700 disabled:opacity-50"
+                              data-testid={`piece-complete-${piece.id}`}
+                            >
+                              {t('pieces.complete')}
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="hidden whitespace-nowrap px-4 py-3 text-sm text-text lg:table-cell">
                         {piece.created_at}

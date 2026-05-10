@@ -224,7 +224,7 @@ export function ProfileMenu() {
                 className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${
                   language === 'en'
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-surface-elevated dark:text-gray-300 dark:hover:bg-gray-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-surface-elevated dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                 } disabled:cursor-not-allowed`}
               >
                 English
@@ -236,7 +236,7 @@ export function ProfileMenu() {
                 className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${
                   language === 'es'
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-surface-elevated dark:text-gray-300 dark:hover:bg-gray-600'
+                    : 'bg-gray-100 text-gray-700 hover:bg-surface-elevated dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                 } disabled:cursor-not-allowed`}
               >
                 Español
@@ -251,7 +251,7 @@ export function ProfileMenu() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="flex w-full items-center justify-between rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-surface-elevated dark:text-gray-300 dark:hover:bg-gray-600"
+              className="flex w-full items-center justify-between rounded-md bg-gray-100 px-3 py-2 text-sm text-gray-700 hover:bg-surface-elevated dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
             >
               <span>
                 {theme === 'light'
@@ -294,13 +294,14 @@ export function ProfileMenu() {
               >
                 {t('profileMenu.editMetadata')}
               </button>
-              <button
-                type="button"
-                disabled
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-400"
+              <a
+                href="https://github.com/jocaruser/illo3d/releases"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full rounded-md border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700 hover:bg-surface-elevated dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
               >
                 {t('profileMenu.changelog')}
-              </button>
+              </a>
             </div>
           </div>
 

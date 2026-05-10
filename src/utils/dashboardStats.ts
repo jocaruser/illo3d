@@ -7,8 +7,7 @@ function isActiveJob(j: Job): boolean {
 export function countActiveJobs(jobs: Job[]): number {
   return jobs.filter(
     (j) =>
-      isActiveJob(j) &&
-      (j.status === 'draft' || j.status === 'in_progress'),
+      isActiveJob(j) && !j.completed,
   ).length
 }
 

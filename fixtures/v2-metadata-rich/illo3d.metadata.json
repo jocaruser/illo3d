@@ -1,0 +1,20 @@
+{
+  "app": "illo3d",
+  "version": "2.0.0",
+  "spreadsheetId": "csv-fixture-v2-metadata-rich",
+  "createdAt": "2025-01-01T00:00:00.000Z",
+  "createdBy": "dev@illo3d.local",
+  "logo": "logo.svg",
+  "kanbanColumns": [
+    { "name": "To Do", "color": "#3B82F6" },
+    { "name": "In Progress", "color": "#F59E0B" },
+    { "name": "Review", "color": "#8B5CF6" },
+    { "name": "Done", "color": "#10B981" }
+  ],
+  "completedStatusLabel": "Finished",
+  "defaultDueDate": 7,
+  "homepageViews": [
+    { "type": "kanban", "column": "In Progress", "days": 30 },
+    { "type": "calendar", "column": "Done", "days": 14 }
+  ]
+}

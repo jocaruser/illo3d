@@ -55,10 +55,13 @@ describe('CreateJobPopup', () => {
     fireEvent.click(screen.getByRole('button', { name: 'jobs.submit' }))
 
     await waitFor(() => expect(mockCreateJob).toHaveBeenCalled())
-    expect(mockCreateJob).toHaveBeenCalledWith('s1', {
-      client_id: 'CL1',
-      description: 'New print',
-    })
+    expect(mockCreateJob).toHaveBeenCalledWith(
+      's1',
+      expect.objectContaining({
+        client_id: 'CL1',
+        description: 'New print',
+      })
+    )
     expect(onSuccess).toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
   })
@@ -76,7 +79,6 @@ describe('CreateJobPopup', () => {
           id: 'J9',
           client_id: 'CL1',
           description: 'Old',
-          status: 'draft',
           price: 12,
           created_at: '2025-01-01',
         }}
@@ -92,10 +94,14 @@ describe('CreateJobPopup', () => {
     fireEvent.click(screen.getByRole('button', { name: 'jobs.save' }))
 
     await waitFor(() => expect(mockUpdateJob).toHaveBeenCalled())
-    expect(mockUpdateJob).toHaveBeenCalledWith('s1', 'J9', {
-      client_id: 'CL1',
-      description: 'Updated desc',
-    })
+    expect(mockUpdateJob).toHaveBeenCalledWith(
+      's1',
+      'J9',
+      expect.objectContaining({
+        client_id: 'CL1',
+        description: 'Updated desc',
+      })
+    )
     expect(onSuccess).toHaveBeenCalled()
   })
 })

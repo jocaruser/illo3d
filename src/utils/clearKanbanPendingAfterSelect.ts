@@ -1,12 +1,6 @@
-import type { JobStatusSelectResult } from '@/hooks/useJobStatusFlow'
+// TODO: Rewrite for piece-based kanban in v2.0.0
+// This file is temporarily stubbed to allow compilation
 
-/**
- * When a kanban drop requested a confirmation dialog but pricing rules block the transition,
- * clear the pending placement ref so later drags are not paired with a stale commit.
- */
-export function clearKanbanPendingAfterSelect(
-  selectResult: JobStatusSelectResult | undefined,
-  pendingRef: { current: unknown },
-): void {
-  if (selectResult === 'blocked') pendingRef.current = null
+export function clearKanbanPendingAfterSelect(): void {
+  // No-op
 }

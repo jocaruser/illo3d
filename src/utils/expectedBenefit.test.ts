@@ -31,7 +31,7 @@ describe('dashboardExpectedBenefit', () => {
         id: 'J1',
         client_id: 'CL1',
         description: 'Job',
-        status: 'draft',
+        
         created_at: '2025-01-01',
       },
     ]
@@ -78,7 +78,7 @@ describe('dashboardExpectedBenefit', () => {
         id: 'J1',
         client_id: 'CL1',
         description: 'Job',
-        status: 'draft',
+        
         created_at: '2025-01-01',
       },
     ]

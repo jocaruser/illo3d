@@ -20,8 +20,8 @@ function embeddedJobComparable(
       return job.id.toLowerCase()
     case 'description':
       return (job.description.trim() || job.id).toLowerCase()
-    case 'status':
-      return job.status
+    case 'completed':
+      return job.completed ?? ''
     case 'price':
       return jobTotalSortValue(job.id, pieces)
     case 'created_at':
@@ -55,10 +55,9 @@ export function ClientJobsDiscoveryTable({
       filterRowsBySearchQuery(jobs, query, (job) =>
         buildJobSearchBlob(job, {
           clientName,
-          statusLabel: t(`jobs.status.${job.status}`),
         })
       ),
-    [jobs, query, clientName, t]
+    [jobs, query, clientName]
   )
 
   const displayed = useMemo(
@@ -116,13 +115,13 @@ export function ClientJobsDiscoveryTable({
                 {t('jobs.colDescription')}
               </SortableColumnHeader>
               <SortableColumnHeader
-                columnKey="status"
+                columnKey="completed"
                 sortKey={sortKey}
                 sortDir={sortDir}
                 onSortChange={onSortChange}
-                ariaLabel={sortAria(t('jobs.colStatus'), 'status')}
+                ariaLabel={sortAria(t('jobs.colCompleted'), 'completed')}
               >
-                {t('jobs.colStatus')}
+                {t('jobs.colCompleted')}
               </SortableColumnHeader>
               <SortableColumnHeader
                 columnKey="price"
@@ -173,7 +172,15 @@ export function ClientJobsDiscoveryTable({
                     {job.description.trim() || job.id}
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-sm text-text">
-                    {t(`jobs.status.${job.status}`)}
+                    {job.completed ? (
+                      <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                        {t('jobs.completed')}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+                        {t('jobs.active')}
+                      </span>
+                    )}
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-right text-sm text-text lg:table-cell">
                     <JobPricingTotalDisplay

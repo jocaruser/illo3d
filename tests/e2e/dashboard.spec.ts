@@ -1,7 +1,7 @@
 import { test, expect } from './fixtures'
 
 test.describe('Dashboard', () => {
-  test('landing page shows kanban, balance stat, and dashboard nav active', async ({
+  test('landing page shows dashboard, balance stat, and dashboard nav active', async ({
     page,
     openCsvShop,
   }) => {
@@ -12,25 +12,10 @@ test.describe('Dashboard', () => {
       timeout: 10000,
     })
 
-    await expect(
-      page.getByRole('heading', { name: /jobs|trabajos/i }).first(),
-    ).toBeVisible()
-
-    await expect(page.getByRole('heading', { name: /draft|borrador/i })).toBeVisible()
+    // Dashboard now shows stats view by default
+    await expect(page.getByText('Active jobs', { exact: true })).toBeVisible()
 
     await expect(page.locator('a[href="#/transactions"]').first()).toBeVisible()
-
-    await expect(
-      page.getByRole('heading', { name: /recent transactions|transacciones recientes/i }),
-    ).toBeVisible()
-    await expect(
-      page.getByRole('heading', { name: /recent spending|gastos recientes/i }),
-    ).toHaveCount(0)
-
-    const jobConceptLink = page.getByTestId('transaction-concept-job-link-T13')
-    await expect(jobConceptLink).toBeVisible()
-    await jobConceptLink.click()
-    await expect(page).toHaveURL(/\/jobs\/J4/)
 
     await page.goto('/#/dashboard', { waitUntil: 'load' })
     await expect(page).toHaveURL(/\/dashboard/)

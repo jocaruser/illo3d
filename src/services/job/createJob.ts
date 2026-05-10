@@ -1,13 +1,13 @@
 import { appendDataRow } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
-import { matrixToJobs } from '@/lib/workbook/workbookEntities'
-import { compareJobsForKanban } from '@/utils/kanbanJobSort'
-import { nextNumericId } from '@/utils/id'
 import { useWorkbookStore } from '@/stores/workbookStore'
+import { nextNumericId } from '@/utils/id'
+import { matrixToJobs } from '@/lib/workbook/workbookEntities'
 
 export interface CreateJobPayload {
   client_id: string
   description: string
+  due_date?: string
 }
 
 export async function createJob(
@@ -15,29 +15,19 @@ export async function createJob(
   payload: CreateJobPayload
 ): Promise<string> {
   void spreadsheetId
-  const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
-  const jobId = nextNumericId(
-    'J',
-    jobs.map((j) => j.id).filter((id): id is string => id != null),
-  )
+  const existingJobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
+  const existingIds = existingJobs.map((j) => j.id)
+  const jobId = nextNumericId('J', existingIds)
   const createdAt = new Date().toISOString()
-  const draftColumn = jobs
-    .filter((j) => j.status === 'draft')
-    .sort(compareJobsForKanban)
-  const maxOrder = draftColumn.reduce(
-    (m, j) => Math.max(m, j.board_order ?? 0),
-    0,
-  )
-  const boardOrder = maxOrder + 1000
 
   patchWorkbookTab('jobs', (m) =>
     appendDataRow('jobs', m, {
       id: jobId,
       client_id: payload.client_id,
       description: payload.description,
-      status: 'draft',
       price: '',
-      board_order: boardOrder,
+      due_date: payload.due_date ?? '',
+      completed: '',
       created_at: createdAt,
       archived: '',
       deleted: '',

@@ -7,6 +7,7 @@ import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
 import { toast } from '@/lib/toast'
 import { Combobox } from './Combobox'
+import { ColourSwatch } from './ColourSwatch'
 
 const STOCK_CATEGORIES: PurchaseCategory[] = ['filament', 'consumable', 'equipment']
 const ALL_CATEGORIES: PurchaseCategory[] = [
@@ -386,7 +387,7 @@ export function CreatePurchasePopup({
                     <Combobox
                       items={activeInventoryIds.map(id => {
                         const inv = allInventory.find((x) => x.id === id)
-                        return { id, name: inv ? `${inv.name} (${id})` : id }
+                        return { id, name: inv ? `${inv.name} (${id})` : id, colour: inv?.colour }
                       })}
                       value={line.inventoryId}
                       onChange={(key) => {
@@ -400,6 +401,12 @@ export function CreatePurchasePopup({
                       }}
                       getKey={(item) => item.id}
                       getLabel={(item) => item.name}
+                      renderItem={(item) => (
+                        <div className="flex items-center gap-2">
+                          <ColourSwatch colour={item.colour} size="sm" />
+                          <span>{item.name}</span>
+                        </div>
+                      )}
                       searchable
                       placeholder={t('purchase.searchInventory')}
                     />

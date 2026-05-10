@@ -22,12 +22,10 @@ describe('JobsTable', () => {
   it('renders actions column and calls onEdit and onArchive', () => {
     const onEdit = vi.fn()
     const onArchive = vi.fn()
-    const onStatusSelect = vi.fn()
     const job = {
       id: 'J1',
       client_id: 'CL1',
       description: 'Widget',
-      status: 'draft' as const,
       created_at: '2025-01-01',
     }
     render(
@@ -36,58 +34,65 @@ describe('JobsTable', () => {
           jobs={[job]}
           pieces={[]}
           clients={[{ id: 'CL1', name: 'Acme', created_at: '2025-01-01' }]}
-          onStatusSelect={onStatusSelect}
           onEdit={onEdit}
           onArchive={onArchive}
-          statusUpdatingId={null}
         />
       </MemoryRouter>
     )
 
-    expect(screen.getByText('jobs.actions')).toBeInTheDocument()
+    expect(screen.getByText('jobs.colActions')).toBeInTheDocument()
     expect(screen.getByTestId('job-client-link-J1')).toHaveAttribute(
       'href',
       '/clients/CL1'
     )
+
     fireEvent.click(screen.getByTestId('job-edit-J1'))
-    fireEvent.click(screen.getByTestId('job-archive-J1'))
     expect(onEdit).toHaveBeenCalledWith(job)
+
+    fireEvent.click(screen.getByTestId('job-archive-J1'))
     expect(onArchive).toHaveBeenCalledWith(job)
   })
 
-  it('shows tag tooltip on job id hover when tags are provided', async () => {
+  it('shows tag tooltip when tagTitleByJobId is provided', async () => {
     const user = userEvent.setup()
-    const onEdit = vi.fn()
-    const onArchive = vi.fn()
-    const onStatusSelect = vi.fn()
     const job = {
       id: 'J1',
       client_id: 'CL1',
       description: 'Widget',
-      status: 'draft' as const,
       created_at: '2025-01-01',
     }
-    const tagTitle = new Map([['J1', 'Vip, Partner']])
+    const tagTitleByJobId = new Map([['J1', 'urgent, printed']])
     render(
       <MemoryRouter>
         <JobsTable
           jobs={[job]}
           pieces={[]}
           clients={[{ id: 'CL1', name: 'Acme', created_at: '2025-01-01' }]}
-          tagTitleByJobId={tagTitle}
-          onStatusSelect={onStatusSelect}
-          onEdit={onEdit}
-          onArchive={onArchive}
-          statusUpdatingId={null}
+          tagTitleByJobId={tagTitleByJobId}
+          onEdit={vi.fn()}
+          onArchive={vi.fn()}
         />
       </MemoryRouter>
     )
 
-    const descriptionCell = screen.getByTestId('job-description-tooltip-J1')
-    await user.hover(descriptionCell)
-    const tip = screen.getByRole('tooltip')
-    expect(tip).toHaveAttribute('aria-label', 'Tags: Vip, Partner')
-    expect(tip).toHaveTextContent('Vip')
-    expect(tip).toHaveTextContent('Partner')
+    const description = screen.getByTestId('job-description-tooltip-J1')
+    await user.hover(description)
+    expect(await screen.findByText('urgent')).toBeInTheDocument()
+    expect(await screen.findByText('printed')).toBeInTheDocument()
+  })
+
+  it('renders empty state when no jobs', () => {
+    render(
+      <MemoryRouter>
+        <JobsTable
+          jobs={[]}
+          pieces={[]}
+          clients={[]}
+          onEdit={vi.fn()}
+          onArchive={vi.fn()}
+        />
+      </MemoryRouter>
+    )
+    expect(screen.getByText('jobs.empty')).toBeInTheDocument()
   })
 })

@@ -1,15 +1,6 @@
 import { getSheetsRepository } from './repository'
-import type { Piece, PieceStatus } from '@/types/money'
+import type { Piece } from '@/types/money'
 import type { SheetName } from './config'
-
-const PIECE_STATUSES: PieceStatus[] = ['pending', 'done', 'failed']
-
-function parsePieceStatus(value: unknown): PieceStatus {
-  if (typeof value === 'string' && PIECE_STATUSES.includes(value as PieceStatus)) {
-    return value as PieceStatus
-  }
-  return 'pending'
-}
 
 function parsePieceUnits(raw: unknown): number | undefined {
   if (raw === undefined || raw === null || raw === '') return undefined
@@ -17,6 +8,14 @@ function parsePieceUnits(raw: unknown): number | undefined {
     typeof raw === 'string' ? parseInt(raw, 10) : Math.trunc(Number(raw))
   if (!Number.isFinite(n) || n < 1) return undefined
   return n
+}
+
+function parseBoardOrder(raw: unknown): number | undefined {
+  if (raw === undefined || raw === null || raw === '') return undefined
+  const n =
+    typeof raw === 'string' ? parseFloat(raw) : Number(raw)
+  if (!Number.isFinite(n)) return undefined
+  return Math.trunc(n)
 }
 
 export function parsePieceRow(r: Piece): Piece {
@@ -28,11 +27,12 @@ export function parsePieceRow(r: Piece): Piece {
     price = Number.isNaN(n) ? undefined : n
   }
   const units = parsePieceUnits((r as unknown as Record<string, unknown>).units)
+  const board_order = parseBoardOrder((r as unknown as Record<string, unknown>).board_order)
   return {
     ...r,
-    status: parsePieceStatus(r.status),
     price,
     units,
+    board_order,
   }
 }
 

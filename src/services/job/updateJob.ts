@@ -8,6 +8,7 @@ import type { Job } from '@/types/money'
 export interface UpdateJobPayload {
   description: string
   client_id: string
+  due_date?: string
 }
 
 export async function updateJob(
@@ -25,6 +26,7 @@ export async function updateJob(
     ...existing,
     description: payload.description.trim(),
     client_id: payload.client_id,
+    due_date: payload.due_date,
   }
 
   patchWorkbookTab('jobs', (m) =>

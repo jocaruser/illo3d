@@ -297,7 +297,7 @@ describe('ProfileMenu', () => {
     })
   })
 
-  it('shows disabled Edit metadata.json and Changelog buttons', async () => {
+  it('shows disabled Edit metadata.json button and enabled Changelog link', async () => {
     useAuthStore.setState({
       user: { name: 'Test User', email: 'test@example.com', picture: undefined },
       isAuthenticated: true,
@@ -307,9 +307,11 @@ describe('ProfileMenu', () => {
     fireEvent.click(button)
     await waitFor(() => {
       const editBtn = screen.getByText('profileMenu.editMetadata')
-      const changelogBtn = screen.getByText('profileMenu.changelog')
+      const changelogLink = screen.getByText('profileMenu.changelog')
       expect(editBtn).toBeDisabled()
-      expect(changelogBtn).toBeDisabled()
+      expect(changelogLink).not.toBeDisabled()
+      expect(changelogLink).toHaveAttribute('href', 'https://github.com/jocaruser/illo3d/releases')
+      expect(changelogLink).toHaveAttribute('target', '_blank')
     })
   })
 })

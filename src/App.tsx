@@ -36,6 +36,8 @@ import { JobsPage } from './pages/JobsPage'
 import { JobDetailPage } from './pages/JobDetailPage'
 import { ClientDetailPage } from './pages/ClientDetailPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { HistoryPage } from './pages/HistoryPage'
+import { HistoryDetailPage } from './pages/HistoryDetailPage'
 import { useAuthStore } from './stores/authStore'
 import { useShopStore } from './stores/shopStore'
 import { useBackendStore } from './stores/backendStore'
@@ -224,6 +226,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </NavLink>
       <NavLink to="/inventory" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
         {t('nav.inventory')}
+      </NavLink>
+      <NavLink to="/history" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
+        {t('nav.history', 'History')}
       </NavLink>
     </>
   )
@@ -480,6 +485,26 @@ function AppShell() {
               <Layout>
                 <ProtectedRoute>
                   <InventoryDetailPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route
+            path="/history"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <HistoryPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route
+            path="/history/:historyId"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <HistoryDetailPage />
                 </ProtectedRoute>
               </Layout>
             }

@@ -1,0 +1,8 @@
+id,job_id,name,status,price,units,board_order,created_at,archived,deleted
+P1,J1,Phone case top shell,To Do,,,1,2025-02-05T09:00:00.000Z,,
+P2,J1,Phone case bottom shell,To Do,,,2,2025-02-05T09:30:00.000Z,,
+P3,J2,Drive gear,Done,42,1,3,2025-02-06T10:00:00.000Z,,
+P4,J1,Camera mount arm,To Do,,,1,2025-02-07T08:00:00.000Z,,
+P5,J1,LED diffuser ring,Review,,,2,2025-02-07T08:15:00.000Z,,
+P6,J3,Pen holder,To Do,35.5,1,4,2025-02-08T09:00:00.000Z,,
+P7,J4,Logo keychain batch piece,Done,12,150,5,2025-02-04T13:00:00.000Z,,

@@ -1,6 +1,7 @@
 import type {
   Client,
   CrmNote,
+  History,
   Inventory,
   Job,
   Piece,
@@ -32,7 +33,6 @@ export function buildJobSearchBlob(
   job: Job,
   ctx: {
     clientName: string
-    statusLabel: string
     /** Space-joined tag names for fuzzy search (same pool as clients). */
     tagNamesSearchLine?: string
   }
@@ -42,8 +42,8 @@ export function buildJobSearchBlob(
     job.client_id,
     ctx.clientName,
     job.description,
-    job.status,
-    ctx.statusLabel,
+    job.due_date,
+    job.completed,
     job.created_at,
     ...moneySearchFragments(job.price),
     ctx.tagNamesSearchLine,
@@ -90,7 +90,7 @@ export function buildInventorySearchBlob(
 
 export function buildPieceSearchBlob(
   piece: Piece,
-  ctx: { statusLabel: string; jobLabel: string }
+  ctx: { jobLabel: string }
 ): string {
   return joinSearchParts([
     piece.id,
@@ -98,7 +98,6 @@ export function buildPieceSearchBlob(
     ctx.jobLabel,
     piece.name,
     piece.status,
-    ctx.statusLabel,
     piece.units != null ? String(piece.units) : '',
     piece.created_at,
   ])
@@ -122,4 +121,14 @@ export function buildCrmNoteSearchBlob(
 
 export function buildTagSearchBlob(tag: Tag): string {
   return joinSearchParts([tag.id, tag.name, tag.created_at])
+}
+
+export function buildHistorySearchBlob(history: History): string {
+  return joinSearchParts([
+    history.id,
+    history.entity_type,
+    history.entity_id,
+    history.changed_by,
+    history.changed_at,
+  ])
 }

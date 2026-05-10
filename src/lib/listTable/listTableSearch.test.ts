@@ -99,12 +99,11 @@ describe('buildJobSearchBlob', () => {
       id: 'J1',
       client_id: 'cli-zzz',
       description: 'Part',
-      status: 'draft',
+      
       created_at: '2026-01-01',
     }
     const blob = buildJobSearchBlob(job, {
       clientName: 'Acme',
-      statusLabel: 'Draft',
     })
     expect(blob).toContain('cli-zzz')
     expect(blob).toContain('Acme')
@@ -115,12 +114,11 @@ describe('buildJobSearchBlob', () => {
       id: 'J1',
       client_id: 'CL1',
       description: 'Part',
-      status: 'draft',
+      
       created_at: '2026-01-01',
     }
     const blob = buildJobSearchBlob(job, {
       clientName: 'Acme',
-      statusLabel: 'Draft',
       tagNamesSearchLine: 'Vip Partner',
     })
     expect(blob).toContain('Vip')
@@ -139,7 +137,6 @@ describe('buildPieceSearchBlob', () => {
     }
     const blob = buildPieceSearchBlob(piece, {
       jobLabel: 'job-7 — x',
-      statusLabel: 'Pending',
     })
     expect(blob).toContain('job-7')
   })

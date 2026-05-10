@@ -11,6 +11,7 @@ export const SHEET_NAMES = [
   'inventory',
   'lots',
   'transactions',
+  'history',
 ] as const
 
 export type SheetName = (typeof SHEET_NAMES)[number]
@@ -54,9 +55,9 @@ export const SHEET_HEADERS: Record<SheetName, readonly string[]> = {
     'id',
     'client_id',
     'description',
-    'status',
     'price',
-    'board_order',
+    'due_date',
+    'completed',
     'created_at',
     ...LIFECYCLE_COLUMNS,
   ],
@@ -67,6 +68,7 @@ export const SHEET_HEADERS: Record<SheetName, readonly string[]> = {
     'status',
     'price',
     'units',
+    'board_order',
     'created_at',
     ...LIFECYCLE_COLUMNS,
   ],
@@ -81,6 +83,8 @@ export const SHEET_HEADERS: Record<SheetName, readonly string[]> = {
     'id',
     'type',
     'name',
+    'colour',
+    'photo',
     'qty_current',
     'warn_yellow',
     'warn_orange',
@@ -109,5 +113,14 @@ export const SHEET_HEADERS: Record<SheetName, readonly string[]> = {
     'client_id',
     'notes',
     ...LIFECYCLE_COLUMNS,
+  ],
+  history: [
+    'id',
+    'entity_type',
+    'entity_id',
+    'raw_data_before',
+    'raw_data_after',
+    'changed_at',
+    'changed_by',
   ],
 }

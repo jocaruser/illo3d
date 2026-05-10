@@ -8,9 +8,7 @@ const jobRow = {
   id: 'J1',
   client_id: 'CL1',
   description: 'Old',
-  status: 'draft',
   price: '10',
-  board_order: '',
   created_at: '2025-01-01',
 }
 
@@ -33,7 +31,6 @@ describe('updateJob', () => {
       id: 'J1',
       client_id: 'CL2',
       description: 'New desc',
-      status: 'draft',
       price: 10,
       created_at: '2025-01-01',
     })

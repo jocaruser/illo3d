@@ -5,7 +5,7 @@ import type { Inventory, Job, Lot, Piece, PieceItem, Transaction } from '@/types
 function job(partial: Partial<Job> & Pick<Job, 'id' | 'client_id'>): Job {
   return {
     description: 'd',
-    status: 'draft',
+    
     created_at: '2025-01-01',
     ...partial,
   }
@@ -51,9 +51,9 @@ describe('computeClientDetailMetrics', () => {
 
   it('outstanding sums non-paid non-cancelled job prices', () => {
     const jobs: Job[] = [
-      job({ id: 'J1', client_id: 'CL1', status: 'draft' }),
-      job({ id: 'J2', client_id: 'CL1', status: 'paid', price: 99 }),
-      job({ id: 'J3', client_id: 'CL1', status: 'cancelled', price: 5 }),
+      job({ id: 'J1', client_id: 'CL1' }),
+      job({ id: 'J2', client_id: 'CL1', price: 99 }),
+      job({ id: 'J3', client_id: 'CL1', price: 5 }),
     ]
     const pieces = [
       {
@@ -81,9 +81,9 @@ describe('computeClientDetailMetrics', () => {
 
   it('average job price excludes cancelled and missing price', () => {
     const jobs: Job[] = [
-      job({ id: 'J1', client_id: 'CL1', status: 'delivered' }),
-      job({ id: 'J2', client_id: 'CL1', status: 'cancelled', price: 100 }),
-      job({ id: 'J3', client_id: 'CL1', status: 'draft' }),
+      job({ id: 'J1', client_id: 'CL1' }),
+      job({ id: 'J2', client_id: 'CL1', price: 100 }),
+      job({ id: 'J3', client_id: 'CL1' }),
     ]
     const pieces = [
       {
@@ -110,7 +110,7 @@ describe('computeClientDetailMetrics', () => {
 
   it('materials sums done piece consumption with unit cost', () => {
     const jobs: Job[] = [
-      job({ id: 'J1', client_id: 'CL1', status: 'paid', price: 0 }),
+      job({ id: 'J1', client_id: 'CL1',  price: 0 }),
     ]
     const pieces: Piece[] = [
       {

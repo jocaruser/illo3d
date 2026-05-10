@@ -26,7 +26,7 @@ describe('buildInventoryConsumptionRows', () => {
         id: 'J1',
         client_id: 'CL1',
         description: 'Big job',
-        status: 'paid',
+        
         created_at: '2025-02-01',
       },
     ]

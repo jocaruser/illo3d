@@ -1,13 +1,9 @@
 import { Fragment, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { Inventory, Job, JobStatus, Lot, Piece, PieceItem } from '@/types/money'
-import { ColoredNumber } from '@/components/ColoredNumber'
-import { JobPricingTotalDisplay } from '@/components/JobPricingTotalDisplay'
+import type { Job, Piece } from '@/types/money'
+import type { KanbanColumn as KanbanColumnType } from '@/types/shop'
 import { jobDueDateGradient } from '@/utils/jobDueDateGradient'
-import { jobMaterialCost } from '@/utils/jobMaterialCost'
-import { jobPricingState } from '@/utils/jobPiecePricing'
-import { formatCurrency } from '@/utils/money'
 import {
   KANBAN_JOB_DRAG_MIME,
   beginKanbanJobDrag,
@@ -16,36 +12,23 @@ import {
   isKanbanJobDragEvent,
 } from './kanbanDnd'
 
-const CANCELLED_CAP = 10
-
 interface KanbanColumnProps {
-  status: JobStatus
-  jobs: Job[]
+  column: KanbanColumnType
   pieces: Piece[]
-  pieceItems: PieceItem[]
-  inventory: Inventory[]
-  lots: Lot[]
+  jobs: Map<string, Job>
   clientsById: Map<string, string>
-  columnTitle: string
-  onDropJob: (
-    jobId: string,
-    targetStatus: JobStatus,
-    insertBeforeId: string | null,
-  ) => void
-  statusUpdatingId: string | null
-  statusOptions: { value: string; label: string }[]
+  onDropPiece: (pieceId: string, newStatus: string, insertBeforeId?: string | null) => void
+  updatingPieceId: string | null
 }
 
 function KanbanDropGap({
   insertBeforeId,
-  status,
-  onDropJob,
+  onDrop,
   className = '',
   children,
 }: {
   insertBeforeId: string | null
-  status: JobStatus
-  onDropJob: KanbanColumnProps['onDropJob']
+  onDrop: (pieceId: string, insertBeforeId: string | null) => void
   className?: string
   children?: ReactNode
 }) {
@@ -53,7 +36,7 @@ function KanbanDropGap({
 
   return (
     <div
-      className={`rounded transition-colors ${over ? 'bg-blue-100/60' : 'bg-transparent'} ${className}`}
+      className={`rounded transition-colors ${over ? 'bg-blue-100/60 dark:bg-blue-900/40' : 'bg-transparent'} ${className}`}
       onDragEnter={(e) => {
         if (!isKanbanJobDragEvent(e)) return
         e.preventDefault()
@@ -80,7 +63,7 @@ function KanbanDropGap({
           getKanbanJobDragId() ||
           ''
         endKanbanJobDrag()
-        if (id) onDropJob(id.trim(), status, insertBeforeId)
+        if (id) onDrop(id.trim(), insertBeforeId)
       }}
     >
       {children}
@@ -89,37 +72,38 @@ function KanbanDropGap({
 }
 
 export function KanbanColumn({
-  status,
-  jobs,
+  column,
   pieces,
-  pieceItems,
-  inventory,
-  lots,
+  jobs,
   clientsById,
-  columnTitle,
-  onDropJob,
-  statusUpdatingId,
-  statusOptions,
+  onDropPiece,
+  updatingPieceId,
 }: KanbanColumnProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const [columnDragOver, setColumnDragOver] = useState(false)
   const suppressClickAfterDragRef = useRef(false)
 
-  const isCancelled = status === 'cancelled'
-  const orderedJobs = jobs
-  const visibleJobs = isCancelled ? orderedJobs.slice(0, CANCELLED_CAP) : orderedJobs
-  const showViewAll = isCancelled && orderedJobs.length > CANCELLED_CAP
+  const showViewAll = pieces.length > 10
+  const visiblePieces = showViewAll ? pieces.slice(0, 10) : pieces
+
+  const handleDrop = (pieceId: string, insertBeforeId: string | null) => {
+    onDropPiece(pieceId, column.name, insertBeforeId)
+  }
 
   return (
-    <div className="flex h-full min-h-[min(28rem,50vh)] w-64 shrink-0 flex-col rounded-lg border border-border bg-surface">
-      <div className="border-b border-border px-3 py-2">
-        <h3 className="text-sm font-semibold text-text">{columnTitle}</h3>
+    <div className="flex h-full min-h-[min(28rem,50vh)] w-72 shrink-0 flex-col rounded-lg border border-border bg-surface">
+      {/* Header with column color */}
+      <div 
+        className="border-b border-border px-3 py-2"
+        style={{ borderTop: `3px solid ${column.color}` }}
+      >
+        <h3 className="text-sm font-semibold text-text">{column.name}</h3>
         <p className="text-xs text-text-muted/60">
-          {orderedJobs.length}{' '}
-          {orderedJobs.length === 1
-            ? t('dashboard.kanban.jobSingular')
-            : t('dashboard.kanban.jobPlural')}
+          {pieces.length}{' '}
+          {pieces.length === 1
+            ? t('dashboard.kanban.pieceSingular', 'piece')
+            : t('dashboard.kanban.piecePlural', 'pieces')}
         </p>
       </div>
       <div
@@ -143,11 +127,10 @@ export function KanbanColumn({
         }}
       >
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-2">
-          {orderedJobs.length === 0 ? (
+          {pieces.length === 0 ? (
             <KanbanDropGap
               insertBeforeId={null}
-              status={status}
-              onDropJob={onDropJob}
+              onDrop={handleDrop}
               className="flex min-h-[12rem] flex-1 flex-col items-center justify-center px-1"
             >
               <p className="pointer-events-none text-center text-sm text-text-muted">
@@ -157,39 +140,29 @@ export function KanbanColumn({
           ) : (
             <>
               <KanbanDropGap
-                insertBeforeId={orderedJobs[0]?.id ?? null}
-                status={status}
-                onDropJob={onDropJob}
+                insertBeforeId={pieces[0]?.id ?? null}
+                onDrop={handleDrop}
                 className="min-h-[10px] shrink-0"
               />
-              {visibleJobs.map((job, idx) => {
-                const due = jobDueDateGradient(job.created_at)
-                const pricing = jobPricingState(job.id, pieces)
-                const piecesForJob = pieces.filter((p) => p.job_id === job.id)
-                const material = jobMaterialCost(
-                  piecesForJob,
-                  pieceItems,
-                  inventory,
-                  lots,
-                )
-                const benefit =
-                  pricing.kind === 'complete'
-                    ? pricing.total - material
-                    : null
+              {visiblePieces.map((piece, idx) => {
+                const job = jobs.get(piece.job_id)
+                const clientName = job ? clientsById.get(job.client_id) : ''
+                const due = job ? jobDueDateGradient(job.created_at) : null
+                
                 return (
-                <Fragment key={job.id}>
+                <Fragment key={piece.id}>
                   <div
-                    data-testid={`kanban-drag-${job.id}`}
-                    draggable={statusUpdatingId !== job.id}
+                    data-testid={`kanban-drag-${piece.id}`}
+                    draggable={updatingPieceId !== piece.id}
                     onDragStart={(e) => {
-                      if (statusUpdatingId === job.id) {
+                      if (updatingPieceId === piece.id) {
                         e.preventDefault()
                         return
                       }
                       suppressClickAfterDragRef.current = true
-                      beginKanbanJobDrag(job.id)
-                      e.dataTransfer.setData(KANBAN_JOB_DRAG_MIME, job.id)
-                      e.dataTransfer.setData('text/plain', job.id)
+                      beginKanbanJobDrag(piece.id)
+                      e.dataTransfer.setData(KANBAN_JOB_DRAG_MIME, piece.id)
+                      e.dataTransfer.setData('text/plain', piece.id)
                       e.dataTransfer.effectAllowed = 'move'
                     }}
                     onDragEnd={() => {
@@ -199,16 +172,14 @@ export function KanbanColumn({
                       }, 0)
                     }}
                     className={`overflow-hidden rounded-md border border-border bg-surface-elevated shadow-sm hover:border-blue-300 hover:shadow ${
-                      statusUpdatingId === job.id ? 'opacity-60' : ''
-                    } ${statusUpdatingId === job.id ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
+                      updatingPieceId === piece.id ? 'opacity-60' : ''
+                    } ${updatingPieceId === piece.id ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'}`}
                   >
                     <div className="flex">
-                      {due.days >= 3 && (
+                      {/* Due date gradient indicator */}
+                      {due && due.days >= 3 && (
                         <div
-                          className={`w-1 shrink-0 ${due.bgClass.replace('bg-', 'bg-').replace('dark:bg-', 'dark:bg-')}`}
-                          style={{
-                            backgroundColor: undefined,
-                          }}
+                          className={`w-1 shrink-0 ${due.bgClass}`}
                           aria-hidden="true"
                         />
                       )}
@@ -218,66 +189,50 @@ export function KanbanColumn({
                         className="min-w-0 flex-1 p-3 hover:bg-surface/50 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-400"
                         onClick={() => {
                           if (suppressClickAfterDragRef.current) return
-                          navigate(`/jobs/${job.id}`)
+                          navigate(`/jobs/${piece.job_id}`)
                         }}
                         onKeyDown={(e) => {
                           if (e.key !== 'Enter' && e.key !== ' ') return
                           e.preventDefault()
                           if (suppressClickAfterDragRef.current) return
-                          navigate(`/jobs/${job.id}`)
+                          navigate(`/jobs/${piece.job_id}`)
                         }}
                       >
+                        {/* Piece name */}
                         <p className="line-clamp-2 text-sm font-medium text-text">
-                          {job.description}
+                          {piece.name || `Piece ${piece.id}`}
                         </p>
-                        <p className="mt-1 truncate text-xs text-text-muted">
-                          {clientsById.get(job.client_id) ?? ''}
-                        </p>
-                        <div className="mt-1 flex items-center gap-1">
-                          <JobPricingTotalDisplay
-                            jobId={job.id}
-                            pieces={pieces}
-                            t={t}
-                            size="compact"
-                          />
-                          {benefit !== null && (
-                            <ColoredNumber
-                              value={benefit}
-                              className="text-xs tabular-nums"
-                            >
-                              {`(${formatCurrency(benefit)})`}
-                            </ColoredNumber>
-                          )}
-                        </div>
-                        <select
-                          className="sr-only focus:not-sr-only focus:mt-1 focus:w-full focus:rounded focus:border focus:border-gray-300 focus:bg-white focus:px-1 focus:py-0.5 focus:text-xs dark:focus:border-gray-600 dark:focus:bg-gray-800 dark:focus:text-gray-200"
-                          aria-label={t('dashboard.kanban.moveToColumn')}
-                          value={status}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => {
-                            const next = e.target.value as JobStatus
-                            if (next !== status) onDropJob(job.id, next, null)
-                          }}
-                        >
-                          {statusOptions.map((opt) => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
+                        {/* Job description */}
+                        {job && (
+                          <p className="mt-0.5 truncate text-xs text-text-muted">
+                            {job.description}
+                          </p>
+                        )}
+                        {/* Client name */}
+                        {clientName && (
+                          <p className="truncate text-xs text-text-muted/70">
+                            {clientName}
+                          </p>
+                        )}
+                        {/* Units count */}
+                        {piece.units && piece.units > 1 && (
+                          <p className="mt-1 text-xs text-text-muted">
+                            ×{piece.units} units
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
-                  {idx === visibleJobs.length - 1 ? (
+                  {idx === visiblePieces.length - 1 ? (
                     <KanbanDropGap
                       insertBeforeId={null}
-                      status={status}
-                      onDropJob={onDropJob}
+                      onDrop={handleDrop}
                       className="min-h-[12px] shrink-0 grow basis-8"
                     />
                   ) : (
                     <KanbanDropGap
-                      insertBeforeId={orderedJobs[idx + 1]?.id ?? null}
-                      status={status}
-                      onDropJob={onDropJob}
+                      insertBeforeId={pieces[idx + 1]?.id ?? null}
+                      onDrop={handleDrop}
                       className="min-h-[10px] shrink-0"
                     />
                   )}

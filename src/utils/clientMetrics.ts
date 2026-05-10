@@ -40,7 +40,7 @@ export function computeClientDetailMetrics(
 
   let outstandingJobs = 0
   for (const j of clientJobs) {
-    if (j.status === 'paid' || j.status === 'cancelled') continue
+    if (j.completed || j.archived === 'true' || j.deleted === 'true') continue
     const st = jobPricingState(j.id, pieces)
     if (st.kind === 'complete') outstandingJobs += st.total
   }
@@ -49,7 +49,7 @@ export function computeClientDetailMetrics(
 
   const totalsForAverage: number[] = []
   for (const j of clientJobs) {
-    if (j.status === 'cancelled') continue
+    if (j.archived === 'true' || j.deleted === 'true') continue
     const st = jobPricingState(j.id, pieces)
     if (st.kind === 'complete') totalsForAverage.push(st.total)
   }

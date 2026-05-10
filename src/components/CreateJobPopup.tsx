@@ -8,6 +8,20 @@ import { toast } from '@/lib/toast'
 import { DialogShell } from './DialogShell'
 import { RequiredIndicator } from './RequiredIndicator'
 import { Combobox } from './Combobox'
+import { useShopMetadata } from '@/hooks/useShopMetadata'
+
+function formatDateForInput(date: Date): string {
+  return date.toISOString().split('T')[0] ?? ''
+}
+
+function getDefaultDueDate(defaultDueDateDays: number | string | undefined): string {
+  const date = new Date()
+  const days = typeof defaultDueDateDays === 'string' ? parseInt(defaultDueDateDays, 10) : defaultDueDateDays
+  if (days && days > 0) {
+    date.setDate(date.getDate() + days)
+  }
+  return formatDateForInput(date)
+}
 
 interface CreateJobPopupProps {
   isOpen: boolean
@@ -35,8 +49,10 @@ export function CreateJobPopup({
   onUpdateJob,
 }: CreateJobPopupProps) {
   const { t } = useTranslation()
+  const { data: metadata } = useShopMetadata()
   const [clientId, setClientId] = useState('')
   const [description, setDescription] = useState('')
+  const [dueDate, setDueDate] = useState('')
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
@@ -45,15 +61,18 @@ export function CreateJobPopup({
     if (initialJob) {
       setClientId(initialJob.client_id)
       setDescription(initialJob.description)
+      setDueDate(initialJob.due_date ?? '')
     } else if (presetClientId) {
       setClientId(presetClientId)
       setDescription('')
+      setDueDate(getDefaultDueDate(metadata?.defaultDueDate))
     } else {
       setClientId('')
       setDescription('')
+      setDueDate(getDefaultDueDate(metadata?.defaultDueDate))
     }
     setFieldErrors({})
-  }, [isOpen, initialJob, clients, presetClientId])
+  }, [isOpen, initialJob, clients, presetClientId, metadata?.defaultDueDate])
 
   const selectedClient = clients.find((c) => c.id === clientId)
 
@@ -74,6 +93,7 @@ export function CreateJobPopup({
         const payload: UpdateJobPayload = {
           client_id: clientId,
           description: description.trim(),
+          due_date: dueDate || undefined,
         }
         if (onUpdateJob) {
           await onUpdateJob(initialJob.id, payload)
@@ -85,6 +105,7 @@ export function CreateJobPopup({
         const newJobId = await createJob(spreadsheetId, {
           client_id: clientId,
           description: description.trim(),
+          due_date: dueDate || undefined,
         })
         onSuccess(newJobId)
       }
@@ -160,6 +181,22 @@ export function CreateJobPopup({
               {fieldErrors.description}
             </p>
           )}
+        </div>
+        <div>
+          <label
+            htmlFor="job-due-date"
+            className="mb-1 block text-sm font-medium text-text"
+          >
+            {t('jobs.dueDate', 'Due date')}
+          </label>
+          <input
+            id="job-due-date"
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            disabled={loading}
+            className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
+          />
         </div>
         <div className="flex gap-3 pt-2">
           <button

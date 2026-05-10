@@ -1,73 +1,37 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
+import { useShopMetadata } from '@/hooks/useShopMetadata'
 import { CreatePurchasePopup } from '@/components/CreatePurchasePopup'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
-import { useJobStatusFlow } from '@/hooks/useJobStatusFlow'
-import { StatCard } from '@/components/StatCard'
 import { KanbanBoard } from '@/components/dashboard/KanbanBoard'
+import { CalendarView } from '@/components/dashboard/CalendarView'
 import { InventoryAlerts } from '@/components/dashboard/InventoryAlerts'
 import { RecentList, type RecentListItem } from '@/components/dashboard/RecentList'
-import { ExpectedBenefitCard } from '@/components/dashboard/ExpectedBenefitCard'
+import { StatCard } from '@/components/StatCard'
 import { calculateBalance, formatCurrency } from '@/utils/money'
 import {
-  countActiveJobs,
   revenueThisMonth,
   countPiecesCompletedThisWeek,
 } from '@/utils/dashboardStats'
-import type { JobStatus } from '@/types/money'
-import {
-  applyKanbanBoardOrderAfterStatusCommit,
-  applyKanbanDrop,
-} from '@/services/job/applyKanbanDrop'
-import { clearKanbanPendingAfterSelect } from '@/utils/clearKanbanPendingAfterSelect'
 import {
   buildExpenseLotLinkMaps,
   getTransactionConceptLink,
 } from '@/lib/money/transactionConceptLink'
 import { isActiveRow } from '@/lib/entityFilters'
+import { updatePieceStatus } from '@/services/piece/updatePieceStatus'
 
-type PendingKanbanPlacement = {
-  fromStatus: JobStatus
-  targetStatus: JobStatus
-  jobId: string
-  insertBeforeId: string | null
-}
+type ViewType = 'kanban' | 'calendar'
 
 export function DashboardPage() {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const [purchasePopupOpen, setPurchasePopupOpen] = useState(false)
   const [jobPopupOpen, setJobPopupOpen] = useState(false)
-  const {
-    spreadsheetId,
-    workbookStatus,
-  } = useWorkbookConnection()
-  const pendingKanbanPlacementRef = useRef<PendingKanbanPlacement | null>(null)
-  const {
-    handleStatusSelect,
-    statusError,
-    statusUpdatingId,
-    statusDialogs,
-  } = useJobStatusFlow(spreadsheetId, {
-    afterStatusCommit: (job) => {
-      const p = pendingKanbanPlacementRef.current
-      if (!p || p.jobId !== job.id) return
-      applyKanbanBoardOrderAfterStatusCommit(
-        p.fromStatus,
-        p.targetStatus,
-        job.id,
-        p.insertBeforeId,
-      )
-      pendingKanbanPlacementRef.current = null
-    },
-    onStatusFlowCancelled: () => {
-      pendingKanbanPlacementRef.current = null
-    },
-    onStatusCommitError: () => {
-      pendingKanbanPlacementRef.current = null
-    },
-  })
+  const { spreadsheetId, workbookStatus } = useWorkbookConnection()
+  const { data: metadata } = useShopMetadata()
 
   const {
     jobs,
@@ -75,7 +39,6 @@ export function DashboardPage() {
     transactions: allTransactions,
     inventory,
     pieces,
-    pieceItems,
     lots,
   } = useWorkbookEntities()
 
@@ -84,30 +47,78 @@ export function DashboardPage() {
     [allTransactions],
   )
 
-  const { expenseTxnIdsWithLots } = useMemo(
-    () => buildExpenseLotLinkMaps(lots),
-    [lots],
-  )
-
-  const clientsById = useMemo(() => {
-    const m = new Map<string, string>()
-    for (const c of clients) {
-      if (c.archived === 'true' || c.deleted === 'true') continue
-      m.set(c.id, c.name)
-    }
-    return m
-  }, [clients])
-
   const balance = useMemo(
     () => calculateBalance(transactions.map((tx) => tx.amount)),
     [transactions],
   )
 
-  const activeJobCount = useMemo(() => countActiveJobs(jobs), [jobs])
+  const activeJobCount = useMemo(
+    () => jobs.filter((j) => !j.completed && isActiveRow(j)).length,
+    [jobs]
+  )
   const monthRevenue = useMemo(() => revenueThisMonth(transactions), [transactions])
   const piecesWeek = useMemo(
     () => countPiecesCompletedThisWeek(pieces),
     [pieces],
+  )
+
+  // Build clientsById map for kanban
+  const clientsById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const client of clients) {
+      if (isActiveRow(client) && client.name) {
+        map.set(client.id, client.name)
+      }
+    }
+    return map
+  }, [clients])
+
+  // Get kanban columns from metadata
+  const kanbanColumns = metadata?.kanbanColumns ?? []
+
+  // View tabs (kanban/calendar)
+  const [activeView, setActiveView] = useState<ViewType>('kanban')
+  
+  const viewTabs = useMemo(() => {
+    return [
+      { id: 'kanban' as const, label: t('dashboard.kanban.title', 'Kanban') },
+      { id: 'calendar' as const, label: t('page.calendar') },
+    ]
+  }, [t])
+
+  // Piece updating state
+  const [updatingPieceId, setUpdatingPieceId] = useState<string | null>(null)
+
+  // Handle piece status moves and reordering
+  const handlePieceMove = async (pieceId: string, newStatus: string, insertBeforeId?: string | null) => {
+    if (!spreadsheetId) return
+    
+    const piece = pieces.find(p => p.id === pieceId)
+    if (!piece) return
+    
+    // If same status and no reordering target, do nothing
+    if (piece.status === newStatus && insertBeforeId === undefined) return
+    
+    setUpdatingPieceId(pieceId)
+    try {
+      // If status changed, update status
+      if (piece.status !== newStatus) {
+        await updatePieceStatus(spreadsheetId, piece, newStatus)
+      }
+      
+      // TODO: If insertBeforeId is provided, calculate and update board_order
+      // For now, just refresh data
+      queryClient.invalidateQueries({ queryKey: ['workbook-entities', spreadsheetId] })
+    } catch (err) {
+      console.error('Failed to update piece:', err)
+    } finally {
+      setUpdatingPieceId(null)
+    }
+  }
+
+  const { expenseTxnIdsWithLots } = useMemo(
+    () => buildExpenseLotLinkMaps(lots),
+    [lots],
   )
 
   const recentTransactionRows: RecentListItem[] = useMemo(
@@ -125,38 +136,63 @@ export function DashboardPage() {
     [transactions, expenseTxnIdsWithLots],
   )
 
+  const renderViewContent = () => {
+    switch (activeView) {
+      case 'kanban':
+        return (
+          <KanbanBoard
+            columns={kanbanColumns}
+            jobs={jobs.filter(isActiveRow)}
+            pieces={pieces.filter(isActiveRow)}
+            clientsById={clientsById}
+            onPieceMove={handlePieceMove}
+            updatingPieceId={updatingPieceId}
+          />
+        )
+      case 'calendar':
+        return <CalendarView />
+      default:
+        return (
+          <KanbanBoard
+            columns={kanbanColumns}
+            jobs={jobs.filter(isActiveRow)}
+            pieces={pieces.filter(isActiveRow)}
+            clientsById={clientsById}
+            onPieceMove={handlePieceMove}
+            updatingPieceId={updatingPieceId}
+          />
+        )
+    }
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h2 className="mb-6 text-2xl font-bold text-text">
-        {t('page.dashboard')}
-      </h2>
-
-
-      {statusError && (
-        <div className="mb-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950 px-4 py-3" role="alert">
-          <p className="text-sm font-medium text-red-800 dark:text-red-200">{statusError}</p>
+      {/* Header with actions */}
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <h2 className="text-2xl font-bold text-text">
+          {t('page.dashboard')}
+        </h2>
+        <div className="flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => setPurchasePopupOpen(true)}
+            className="btn-primary"
+          >
+            {t('purchase.recordButton')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setJobPopupOpen(true)}
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+          >
+            {t('dashboard.addJob')}
+          </button>
         </div>
-      )}
+      </div>
 
+      {/* Stats Widgets - Always visible */}
       {workbookStatus === 'ready' && (
         <>
-          <div className="mb-4 flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => setPurchasePopupOpen(true)}
-              className="btn-primary"
-            >
-              {t('purchase.recordButton')}
-            </button>
-            <button
-              type="button"
-              onClick={() => setJobPopupOpen(true)}
-              className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
-            >
-              {t('dashboard.addJob')}
-            </button>
-          </div>
-
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               label={t('dashboard.balance')}
@@ -179,55 +215,31 @@ export function DashboardPage() {
             />
           </div>
 
-          <div className="mb-6">
-            <ExpectedBenefitCard
-              jobs={jobs}
-              pieces={pieces}
-              pieceItems={pieceItems}
-              inventory={inventory}
-              lots={lots}
-            />
+          {/* View Tabs */}
+          <div className="mb-6 border-b border-border">
+            <div className="flex gap-1">
+              {viewTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveView(tab.id)}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    activeView === tab.id
+                      ? 'border-blue-600 text-blue-600'
+                      : 'border-transparent text-text-muted hover:text-text'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <section className="mb-8">
-            <h3 className="mb-3 text-lg font-semibold text-text">
-              {t('nav.jobs')}
-            </h3>
-            <KanbanBoard
-              jobs={jobs}
-              pieces={pieces}
-              pieceItems={pieceItems}
-              inventory={inventory}
-              lots={lots}
-              clientsById={clientsById}
-              onJobMoveToStatus={(job, next, insertBeforeId) => {
-                if (!spreadsheetId) return
-                void (async () => {
-                  const result = await applyKanbanDrop(
-                    spreadsheetId,
-                    job.id,
-                    next,
-                    insertBeforeId,
-                  )
-                  if (result === 'needs-dialog') {
-                    pendingKanbanPlacementRef.current = {
-                      fromStatus: job.status,
-                      targetStatus: next,
-                      jobId: job.id,
-                      insertBeforeId,
-                    }
-                    const selectResult = await handleStatusSelect(job, next)
-                    clearKanbanPendingAfterSelect(
-                      selectResult,
-                      pendingKanbanPlacementRef,
-                    )
-                  }
-                })()
-              }}
-              statusUpdatingId={statusUpdatingId}
-            />
-          </section>
+          {/* View Content (kanban/calendar) */}
+          <div className="h-[500px] mb-6">
+            {renderViewContent()}
+          </div>
 
+          {/* Bottom Widgets */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <InventoryAlerts items={inventory} />
             <RecentList
@@ -252,7 +264,6 @@ export function DashboardPage() {
         spreadsheetId={spreadsheetId}
         clients={clients}
       />
-      {statusDialogs}
     </div>
   )
 }

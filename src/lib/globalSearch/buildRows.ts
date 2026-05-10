@@ -120,7 +120,6 @@ export function buildGlobalSearchRows(
     rows.push({
       blob: buildJobSearchBlob(job, {
         clientName: clientName(clients, job.client_id),
-        statusLabel: t(`jobs.status.${job.status}`),
         tagNamesSearchLine: byJobId.get(job.id),
       }),
       hit: {
@@ -137,7 +136,6 @@ export function buildGlobalSearchRows(
     rows.push({
       blob: buildPieceSearchBlob(piece, {
         jobLabel: jobLabel(jobs, piece.job_id),
-        statusLabel: t(`pieces.status.${piece.status}`),
       }),
       hit: {
         kind: 'piece',

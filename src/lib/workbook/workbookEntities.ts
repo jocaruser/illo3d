@@ -6,6 +6,7 @@ import type {
   Client,
   CrmNote,
   CrmNoteEntityType,
+  History,
   Inventory,
   Job,
   Lot,
@@ -210,4 +211,11 @@ export function matrixToTagLinks(matrix: string[][] | undefined): TagLink[] {
     out.push(link)
   }
   return out
+}
+
+export function matrixToHistory(matrix: string[][] | undefined): History[] {
+  const raw = matrixToObjects<History>('history', matrix)
+  return raw
+    .filter((r) => r.id)
+    .sort((a, b) => (b.changed_at > a.changed_at ? 1 : -1))
 }
