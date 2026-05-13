@@ -1,7 +1,7 @@
 import type { Lot } from '@/types/money'
 
 function isActiveLot(l: Lot): boolean {
-  return l.archived !== 'true' && l.deleted !== 'true'
+  return String(l.archived).toLowerCase() !== 'true' && String(l.deleted).toLowerCase() !== 'true'
 }
 
 /** Weighted average unit cost from lots (Σ amount / Σ quantity). Excludes qty ≤ 0 and inactive lots. */

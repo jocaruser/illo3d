@@ -1,7 +1,7 @@
 export function isActiveRow(row: { archived?: string; deleted?: string }): boolean {
-  return row.archived !== 'true' && row.deleted !== 'true'
+  return String(row.archived).toLowerCase() !== 'true' && String(row.deleted).toLowerCase() !== 'true'
 }
 
 export function isActiveLot(lot: { archived?: string; deleted?: string }): boolean {
-  return lot.archived !== 'true' && lot.deleted !== 'true'
+  return String(lot.archived).toLowerCase() !== 'true' && String(lot.deleted).toLowerCase() !== 'true'
 }

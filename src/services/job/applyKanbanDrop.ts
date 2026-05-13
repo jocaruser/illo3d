@@ -120,7 +120,7 @@ export async function applyKanbanDrop(
 ): Promise<'ok' | 'needs-dialog'> {
   const jobs = matrixToJobs(useWorkbookStore.getState().tabs.jobs)
   const job = jobs.find((j) => j.id === draggedId)
-  if (!job || job.archived === 'true' || job.deleted === 'true') return 'ok'
+  if (!job || String(job.archived).toLowerCase() === 'true' || String(job.deleted).toLowerCase() === 'true') return 'ok'
 
   if (job.status === targetStatus) {
     patchKanbanBoardOrdersAfterDrop(

@@ -15,7 +15,7 @@ export interface MaterialsSummaryRow {
 }
 
 function isActive(row: { archived?: string; deleted?: string }): boolean {
-  return row.archived !== 'true' && row.deleted !== 'true'
+  return String(row.archived).toLowerCase() !== 'true' && String(row.deleted).toLowerCase() !== 'true'
 }
 
 /** Build aggregated materials summary rows for a job. */
@@ -67,7 +67,7 @@ export function buildMaterialsSummary(
 
     const invLots = lots.filter(
       (l) =>
-        l.inventory_id === inv.id && l.archived !== 'true' && l.deleted !== 'true',
+        l.inventory_id === inv.id && String(l.archived).toLowerCase() !== 'true' && String(l.deleted).toLowerCase() !== 'true',
     )
     const avgCost = computeAvgUnitCost(invLots)
     const estimatedCost =

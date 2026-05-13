@@ -8,7 +8,7 @@ Define archive and soft-delete semantics for workbook rows: `archived` and `dele
 
 ### Requirement: Entity rows carry archive and soft-delete flags
 
-Every first-class entity tab (clients, jobs, pieces, inventory, expenses, transactions, crm_notes, tags, tag_links, piece_items) SHALL include two lifecycle columns: `archived` and `deleted`. Both columns SHALL be string-valued (`"true"` or empty/absent). The columns SHALL be appended to `SHEET_HEADERS` for each tab. `validateStructure` SHALL require these columns in compliant workbooks.
+Every first-class entity tab (clients, jobs, pieces, inventory, expenses, transactions, crm_notes, tags, tag_links, piece_items) SHALL include two lifecycle columns: `archived` and `deleted`. Both columns SHALL be string-valued (`"true"` or empty/absent). Comparison against these columns SHALL be **case-insensitive** — the values `"true"`, `"TRUE"`, `"True"`, etc. SHALL all be treated as the active lifecycle flag. The columns SHALL be appended to `SHEET_HEADERS` for each tab. `validateStructure` SHALL require these columns in compliant workbooks.
 
 #### Scenario: New workbook includes lifecycle columns
 
@@ -24,7 +24,7 @@ Every first-class entity tab (clients, jobs, pieces, inventory, expenses, transa
 
 ### Requirement: Archived entities are read-only and hidden from discovery
 
-An entity with `archived` set to `"true"` SHALL be **read-only** in the UI (no edit, no further mutations except soft-delete or un-archive). Archived entities SHALL be **excluded** from global search results and from **main list views** (e.g. `/clients`, `/jobs`). Direct navigation to the entity's detail route SHALL still work and display the entity in read-only mode.
+An entity with `archived` set to `"true"` (case-insensitive) SHALL be **read-only** in the UI (no edit, no further mutations except soft-delete or un-archive). Archived entities SHALL be **excluded** from global search results and from **main list views** (e.g. `/clients`, `/jobs`). Direct navigation to the entity's detail route SHALL still work and display the entity in read-only mode.
 
 **Exception -- parent detail pages:** When a parent entity's detail page includes an embedded table of children (e.g. client detail shows a jobs table), **archived children SHALL still appear** in that embedded table but rendered with **strikethrough styling** to visually indicate their archived state. This allows the user to see the full history of a parent's children without navigating away. Archived children in embedded tables SHALL remain **read-only** (no Edit action) but MAY offer an **Un-archive** action. Soft-deleted children SHALL also appear with strikethrough styling but show their name as **"Deleted entity"** (i18n).
 
@@ -78,7 +78,7 @@ Inbound references from other entities (links, breadcrumbs, joined labels) to an
 
 ### Requirement: Soft-deleted entities return not-found on own detail route
 
-An entity with `deleted` set to `"true"` SHALL have all archive behaviors (read-only, hidden from search and lists) **and additionally**: navigating to the entity's own detail route SHALL render a **not-found** state (SPA 404). Inbound references from other entities (links, breadcrumbs, labels) SHALL display **"Deleted entity"** (i18n key) instead of the entity's name.
+An entity with `deleted` set to `"true"` (case-insensitive) SHALL have all archive behaviors (read-only, hidden from search and lists) **and additionally**: navigating to the entity's own detail route SHALL render a **not-found** state (SPA 404). Inbound references from other entities (links, breadcrumbs, labels) SHALL display **"Deleted entity"** (i18n key) instead of the entity's name.
 
 #### Scenario: Soft-deleted job detail shows not-found
 

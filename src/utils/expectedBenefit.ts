@@ -4,7 +4,7 @@ import { computePieceSuggestedPrice } from '@/utils/jobSuggestedPrice'
 import { pieceUnitsResolved } from '@/utils/pieceEffectiveInventory'
 
 function isActiveJob(j: Job): boolean {
-  return j.archived !== 'true' && j.deleted !== 'true'
+  return String(j.archived).toLowerCase() !== 'true' && String(j.deleted).toLowerCase() !== 'true'
 }
 
 function isDraftOrInProgress(status: Job['status']): boolean {

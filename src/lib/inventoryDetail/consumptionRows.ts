@@ -11,7 +11,7 @@ export interface InventoryConsumptionRow {
 }
 
 function isActiveRow(archived?: string, deleted?: string): boolean {
-  return archived !== 'true' && deleted !== 'true'
+  return String(archived).toLowerCase() !== 'true' && String(deleted).toLowerCase() !== 'true'
 }
 
 export function buildInventoryConsumptionRows(

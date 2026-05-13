@@ -21,7 +21,7 @@ export function effectiveNeedByInventory(
   const m = new Map<string, number>()
   if (u == null) return m
   for (const line of lines) {
-    if (line.archived === 'true' || line.deleted === 'true') continue
+    if (String(line.archived).toLowerCase() === 'true' || String(line.deleted).toLowerCase() === 'true') continue
     const q =
       typeof line.quantity === 'number' ? line.quantity : Number(line.quantity)
     if (!Number.isFinite(q)) continue

@@ -3,7 +3,7 @@ import { computeAvgUnitCost } from '@/utils/avgUnitCost'
 import { pieceUnitsResolved } from '@/utils/pieceEffectiveInventory'
 
 function isActiveItem(item: PieceItem): boolean {
-  return item.archived !== 'true' && item.deleted !== 'true'
+  return String(item.archived).toLowerCase() !== 'true' && String(item.deleted).toLowerCase() !== 'true'
 }
 
 /** Sum of piece_item.quantity × piece.units × avg_unit_cost for all active piece items of a job. */
@@ -24,7 +24,7 @@ export function jobMaterialCost(
     const inv = inventoryRows.find((i) => i.id === item.inventory_id)
     if (!inv) continue
     const invLots = lots.filter(
-      (l) => l.inventory_id === inv.id && l.archived !== 'true' && l.deleted !== 'true',
+      (l) => l.inventory_id === inv.id && String(l.archived).toLowerCase() !== 'true' && String(l.deleted).toLowerCase() !== 'true',
     )
     const unit = computeAvgUnitCost(invLots)
     if (unit == null) continue

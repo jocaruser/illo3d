@@ -7,7 +7,7 @@ export function countingPiecesForJob(
   pieces: Piece[] | undefined,
 ): Piece[] {
   return (pieces ?? []).filter(
-    (p) => p.job_id === jobId && p.deleted !== 'true',
+    (p) => p.job_id === jobId && String(p.deleted).toLowerCase() !== 'true',
   )
 }
 

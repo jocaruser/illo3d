@@ -2,7 +2,7 @@ import type { Inventory, Piece, PieceItem } from '@/types/money'
 import { pieceUnitsResolved } from '@/utils/pieceEffectiveInventory'
 
 function isActiveItem(item: PieceItem): boolean {
-  return item.archived !== 'true' && item.deleted !== 'true'
+  return String(item.archived).toLowerCase() !== 'true' && String(item.deleted).toLowerCase() !== 'true'
 }
 
 /** Sum of piece_item.quantity × piece.units for filament-type inventories. */
