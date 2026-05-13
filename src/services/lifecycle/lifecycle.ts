@@ -195,8 +195,8 @@ export function archiveInventory(inventoryId: string): void {
   lotsM = cloneMatrix(lotsM)
   for (let i = 1; i < lotsM.length; i++) {
     if ((lotsM[i][invCol] ?? '').trim() !== inventoryId.trim()) continue
-    const arch = (lotsM[i][archCol] ?? '').trim() === 'true'
-    const del = (lotsM[i][delCol] ?? '').trim() === 'true'
+    const arch = (lotsM[i][archCol] ?? '').trim().toLowerCase() === 'true'
+    const del = (lotsM[i][delCol] ?? '').trim().toLowerCase() === 'true'
     if (arch || del) continue
     lotsM = setLifecycleField(lotsM, i, 'lots', 'archived', 'true')
   }

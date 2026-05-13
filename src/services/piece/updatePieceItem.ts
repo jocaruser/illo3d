@@ -26,8 +26,8 @@ export async function updatePieceItem(
         r.id !== pieceItemId &&
         r.piece_id === existing.piece_id &&
         r.inventory_id === updates.inventory_id &&
-        r.archived !== 'true' &&
-        r.deleted !== 'true',
+        String(r.archived).toLowerCase() !== 'true' &&
+        String(r.deleted).toLowerCase() !== 'true',
     )
     if (duplicate) {
       throw new Error(DUPLICATE_PIECE_ITEM_INVENTORY)

@@ -12,7 +12,7 @@ export function buildExpenseLotLinkMaps(lots: Lot[]): {
   const expenseTxnIdsWithLots = new Set<string>()
   const inventoryIdByExpenseTxnId = new Map<string, string>()
   for (const l of lots) {
-    if (l.archived === 'true' || l.deleted === 'true') continue
+    if (String(l.archived).toLowerCase() === 'true' || String(l.deleted).toLowerCase() === 'true') continue
     expenseTxnIdsWithLots.add(l.transaction_id)
     if (!inventoryIdByExpenseTxnId.has(l.transaction_id)) {
       inventoryIdByExpenseTxnId.set(l.transaction_id, l.inventory_id)

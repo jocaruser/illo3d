@@ -1,7 +1,7 @@
 import type { Job, Piece, Transaction } from '@/types/money'
 
 function isActiveJob(j: Job): boolean {
-  return j.archived !== 'true' && j.deleted !== 'true'
+  return String(j.archived).toLowerCase() !== 'true' && String(j.deleted).toLowerCase() !== 'true'
 }
 
 export function countActiveJobs(jobs: Job[]): number {
@@ -17,7 +17,7 @@ function transactionMonthKey(dateStr: string): string {
 }
 
 function isActiveTransaction(t: Transaction): boolean {
-  return t.archived !== 'true' && t.deleted !== 'true'
+  return String(t.archived).toLowerCase() !== 'true' && String(t.deleted).toLowerCase() !== 'true'
 }
 
 export function revenueThisMonth(
@@ -36,7 +36,7 @@ export function revenueThisMonth(
 }
 
 function isActivePiece(p: Piece): boolean {
-  return p.archived !== 'true' && p.deleted !== 'true'
+  return String(p.archived).toLowerCase() !== 'true' && String(p.deleted).toLowerCase() !== 'true'
 }
 
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000

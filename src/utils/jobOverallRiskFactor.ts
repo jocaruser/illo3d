@@ -3,7 +3,7 @@ import { pieceUnitsResolved } from '@/utils/pieceEffectiveInventory'
 import { jobMinimumRedos } from '@/utils/jobRedos'
 
 function isActiveItem(item: PieceItem): boolean {
-  return item.archived !== 'true' && item.deleted !== 'true'
+  return String(item.archived).toLowerCase() !== 'true' && String(item.deleted).toLowerCase() !== 'true'
 }
 
 /** Compute the overall risk factor for a job (minimum redos across filament items). */
