@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   HashRouter,
   Routes,
@@ -104,6 +104,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
     backend === 'local-csv' ? localDirectoryHandle : null
   )
   const [logoError, setLogoError] = useState(false)
+  const latestShopLogoUrlRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    latestShopLogoUrlRef.current = shopLogoUrl
+    setLogoError(false)
+  }, [shopLogoUrl])
 
   const [refreshConfirmOpen, setRefreshConfirmOpen] = useState(false)
   const [saveBusy, setSaveBusy] = useState(false)
@@ -244,7 +250,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     data-testid="shop-logo"
                     className="h-8 w-auto"
                     style={{ filter: 'brightness(0) saturate(100%) invert(34%) sepia(82%) saturate(2148%) hue-rotate(205deg) brightness(96%) contrast(93%)' }}
-                    onError={() => setLogoError(true)}
+                    onError={(event) => {
+                      if (event.currentTarget.currentSrc === latestShopLogoUrlRef.current) {
+                        setLogoError(true)
+                      }
+                    }}
                   />
                 )}
                 <span>illo3d</span>
