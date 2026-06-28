@@ -42,7 +42,8 @@ export async function mockDirectoryPicker(
         return {
           async getFile(): Promise<File> {
             const body = store[rel] ?? ''
-            return new File([body], rel, { type: 'text/plain' })
+            const type = rel.endsWith('.svg') ? 'image/svg+xml' : 'text/plain'
+            return new File([body], rel, { type })
           },
           async createWritable(options?: { keepExistingData?: boolean }) {
             let position = 0
@@ -91,6 +92,14 @@ export async function mockDirectoryPicker(
         storage[f] = await res.text()
       }
 
+      const metadata = JSON.parse(storage['illo3d.metadata.json'] ?? '{}') as { logo?: unknown }
+      if (typeof metadata.logo === 'string' && !(metadata.logo in storage)) {
+        const res = await fetch(`/fixtures/${scen}/${metadata.logo}`)
+        if (res.ok) {
+          storage[metadata.logo] = await res.text()
+        }
+      }
+
       const rootName = `e2e-shop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
       const handle = memDirHandle(rootName, storage) as unknown as FileSystemDirectoryHandle
 
@@ -119,7 +128,8 @@ export async function mockDirectoryPicker(
       return {
         async getFile(): Promise<File> {
           const body = store[rel] ?? ''
-          return new File([body], rel, { type: 'text/plain' })
+          const type = rel.endsWith('.svg') ? 'image/svg+xml' : 'text/plain'
+          return new File([body], rel, { type })
         },
         async createWritable(options?: { keepExistingData?: boolean }) {
           let position = 0
