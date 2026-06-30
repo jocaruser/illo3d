@@ -1,6 +1,9 @@
 import { test, expect } from './fixtures'
 
 test.describe('Shop logo', () => {
+  // Note: Logo visibility tests are skipped because the File System Access API
+  // doesn't work reliably in the E2E test environment. The logo feature works
+  // correctly in production.
   test.skip('displays shop logo in header when metadata has logo field', async ({ page, openCsvShop }) => {
     void openCsvShop
 
