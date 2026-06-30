@@ -9,6 +9,10 @@ updates:
       - dependency-name: "*"
         update-types:
           - "version-update:semver-major"
+    groups:
+      npm-packages:
+        patterns:
+          - "*"
 
   - package-ecosystem: docker
     directory: /

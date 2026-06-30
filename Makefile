@@ -1,4 +1,4 @@
-.PHONY: init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
+.PHONY: init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
 
 APP = docker compose exec app
 E2E_VITE_PORT ?= 5174
@@ -33,18 +33,7 @@ clean:
 # Saves WIP (tracked + untracked), switches to main, rebases on origin, then reapplies WIP if a stash was created.
 # If `git stash pop` reports conflicts, resolve them in the working tree; the stash entry is consumed.
 sync-main:
-	@STASHED=0; \
-	if git stash push -u -m "sync-main: WIP before checkout/pull --rebase"; then \
-		STASHED=1; \
-	else \
-		ec=$$?; \
-		if [ $$ec -ne 1 ]; then exit $$ec; fi; \
-	fi; \
-	git checkout main; \
-	git pull --rebase; \
-	if [ $$STASHED -eq 1 ]; then \
-		git stash pop; \
-	fi
+	git checkout main && git pull --rebase --autostash
 
 # ============ DEVELOPMENT ============
 dev:
@@ -68,12 +57,15 @@ add-dev:
 
 # ============ QUALITY ============
 # Local quality gate: build, lint, unit tests, and e2e tests. Use before finishing any code change.
-quality-gate: build lint test e2e-test
+quality-gate: build lint react-doctor test e2e-test
 	@echo ""
-	@echo "✅ Quality gate passed (build, lint, unit tests, e2e tests)"
+	@echo "✅ Quality gate passed (build, lint, react-doctor, unit tests, e2e tests)"
 
 lint:
 	$(APP) pnpm lint
+
+react-doctor:
+	$(APP) pnpm exec react-doctor . --offline --diff main --fail-on warning
 
 format:
 	$(APP) pnpm format
