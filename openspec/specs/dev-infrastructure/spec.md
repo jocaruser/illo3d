@@ -339,18 +339,26 @@ The repository SHALL include a `.github/dependabot.yml` file that configures aut
 - **WHEN** the only available update for a dependency is a semver-major version increase
 - **THEN** Dependabot does not open a pull request for that bump
 
-### Requirement: Auto-merge runs after CI quality passes
+### Requirement: Auto-merge runs after CI quality passes with dependabot exemption
 
-The repository SHALL run an `auto-merge` job as part of `.github/workflows/ci.yml`: after the `quality` job succeeds, that job SHALL approve the pull request and enable merge-commit auto-merge via GitHub, for pull requests that are not drafts and whose head branch lives in the same repository (not a fork).
+The repository SHALL run an `auto-merge` job as part of `.github/workflows/ci.yml`: after the quality jobs succeed, that job SHALL enable merge-commit auto-merge via GitHub for pull requests that are not drafts and whose head branch lives in the same repository (not a fork). The job SHALL approve the pull request ONLY when the PR author is `dependabot[bot]`. For all other authors, the job SHALL NOT approve the PR and SHALL rely on branch protection to enforce human review.
 
-#### Scenario: PR is auto-approved and merge-enabled after green CI
+The repository SHALL have branch protection on `main` requiring at least one approved review, with `dependabot[bot]` exempted from that requirement so its auto-approved PRs can merge.
 
-- **WHEN** an eligible pull request exists and the `quality` job completes successfully
+#### Scenario: Dependabot PR is auto-approved and merged after green CI
+
+- **WHEN** a pull request authored by `dependabot[bot]` exists and is not a draft, is from the same repository, and all CI quality jobs pass
 - **THEN** the `auto-merge` job approves the PR and enables auto-merge
+
+#### Scenario: Non-dependabot PR waits for human approval
+
+- **WHEN** a pull request authored by a user other than `dependabot[bot]` exists and is not a draft, is from the same repository, and all CI quality jobs pass
+- **THEN** the `auto-merge` job enables auto-merge but does NOT approve the PR
+- **AND** auto-merge waits for a human to approve the PR before merging
 
 #### Scenario: Failed quality blocks auto-merge
 
-- **WHEN** an eligible pull request exists and the `quality` job fails
+- **WHEN** an eligible pull request exists and any CI quality job fails
 - **THEN** the `auto-merge` job does not run
 
 #### Scenario: Draft pull requests skip auto-merge
@@ -360,7 +368,7 @@ The repository SHALL run an `auto-merge` job as part of `.github/workflows/ci.ym
 
 #### Scenario: Fork pull requests skip auto-merge
 
-- **WHEN** a pull request’s head branch is on a fork (different repository than the base)
+- **WHEN** a pull request's head branch is on a fork (different repository than the base)
 - **THEN** the `auto-merge` job does not run
 
 ## E2E coverage

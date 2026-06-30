@@ -108,6 +108,10 @@ The next push to `main` will trigger the deploy workflow.
 - **E2E tests:** `make e2e-test` (Playwright; uses Dev Login and isolated fixture root — does not modify `public/fixtures/`). Every PR runs this in GitHub Actions; run it locally when changing flows Playwright covers or when reproducing a CI e2e failure.
 - **Local quality gate:** `make quality-gate` — **build**, **lint**, and **unit tests** only (fast feedback). CI still runs **e2e** after unit tests.
 
+### Branch protection
+
+The `main` branch requires **1 approved review** before merging. `dependabot[bot]` is exempted — its pull requests are auto-approved by CI and merge automatically once all quality checks pass. These settings are configured in **GitHub → Settings → Branches**.
+
 ## Tech stack summary
 
 - **UI:** React, TypeScript, Vite, Tailwind CSS, react-router-dom, react-i18next  
