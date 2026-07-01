@@ -199,7 +199,8 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - name: Approve pull request
+      - name: Approve dependabot pull request
+        if: github.event.pull_request.user.login == 'dependabot[bot]'
         run: gh pr review --approve "$PR_URL"
         env:
           PR_URL: ${{ github.event.pull_request.html_url }}
