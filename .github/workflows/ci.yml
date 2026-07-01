@@ -48,7 +48,51 @@ jobs:
         run: make lint
 
   # ============================================================
-  # JOB 2: Unit Tests (Fast feedback - only needs source files)
+  # JOB 2: React Doctor (Code quality scanner)
+  # ============================================================
+  react-doctor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Build app image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          load: true
+          tags: illo3d-app:latest
+          cache-from: type=gha
+          no-cache: true
+
+      - name: Start app container
+        run: docker compose up -d --no-build app
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Allow git in container (CI owner mismatch)
+        run: docker compose exec app git config --global --add safe.directory /app
+
+      - name: React Doctor
+        run: make react-doctor
+
+  # ============================================================
+  # JOB 3: Unit Tests (Fast feedback - only needs source files)
   # ============================================================
   unit-test:
     runs-on: ubuntu-latest
@@ -87,7 +131,7 @@ jobs:
         run: make test
 
   # ============================================================
-  # JOB 3: Build (TypeScript + Vite compilation)
+  # JOB 4: Build (TypeScript + Vite compilation)
   # ============================================================
   build:
     runs-on: ubuntu-latest
@@ -133,7 +177,7 @@ jobs:
           retention-days: 1
 
   # ============================================================
-  # JOB 4: E2E Tests (Requires built app + playwright image)
+  # JOB 5: E2E Tests (Requires built app + playwright image)
   # ============================================================
   e2e-test:
     runs-on: ubuntu-latest
@@ -193,7 +237,7 @@ jobs:
   # ============================================================
   auto-merge:
     runs-on: ubuntu-latest
-    needs: [lint, unit-test, build, e2e-test]
+    needs: [lint, react-doctor, unit-test, build, e2e-test]
     if: ${{ !github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository }}
     permissions:
       contents: write

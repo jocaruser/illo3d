@@ -65,7 +65,7 @@ lint:
 	$(APP) pnpm lint
 
 react-doctor:
-	$(APP) pnpm exec react-doctor . --offline --diff main --fail-on warning
+	$(APP) sh -c 'git fetch origin main:refs/heads/main && pnpm exec react-doctor . --offline --scope changed --base main --blocking warning'
 
 format:
 	$(APP) pnpm format
