@@ -234,6 +234,33 @@ ESLint SHALL report zero errors and zero warnings when running `make lint`. All 
 - **WHEN** developer runs `make lint`
 - **THEN** ESLint exits with code 0 and reports 0 problems
 
+### Requirement: react-doctor quality gate reports zero warnings on changed files
+
+The quality gate SHALL run `react-doctor` with `--offline --scope changed --base origin/main --blocking warning` to scan React code for security, performance, and architecture issues. The tool SHALL only report issues in files that differ from the base branch. Any warnings or errors in changed files SHALL cause the quality gate to fail.
+
+#### Scenario: react-doctor passes on clean PR
+
+- **WHEN** a developer runs `make quality-gate` (or `make react-doctor`) on a branch with no react-doctor violations in changed files
+- **THEN** react-doctor exits with code 0 and produces no warning or error output
+
+#### Scenario: react-doctor fails on new violations
+
+- **WHEN** a developer introduces a react-doctor-violating pattern (e.g. missing key prop, dangerous dangerouslySetInnerHTML, useEffect missing deps) in a changed file
+- **THEN** `make react-doctor` exits with a non-zero exit code
+- **AND** the output lists the file path and the violation details
+
+#### Scenario: react-doctor runs in CI on pull requests
+
+- **WHEN** a pull request is opened or updated targeting `main`
+- **THEN** the CI workflow runs `make react-doctor` as a dedicated step
+- **AND** the workflow fails if react-doctor reports any warnings or errors
+
+#### Scenario: Pre-existing violations do not block the gate
+
+- **WHEN** a file has pre-existing react-doctor violations that were introduced before the current branch
+- **THEN** `make react-doctor --scope changed --base origin/main` does not report those violations
+- **AND** the developer can merge without fixing legacy issues
+
 ### Requirement: All tests pass
 
 The full test suite SHALL pass when running `make test`. Stale tests MUST be updated to match current component behavior. For changes touching business logic, services, hooks, or testable UI behavior, developers and agents SHOULD add or extend Vitest coverage on affected paths so defects surface in unit tests rather than only in CI e2e.
@@ -282,17 +309,17 @@ A Cursor rule SHALL exist that instructs AI agents to run `make quality-gate` (b
 
 ### Requirement: CI workflow runs build, lint, and unit tests on pull requests
 
-A GitHub Actions workflow SHALL exist at `.github/workflows/ci.yml` that triggers on pull requests targeting `main`. The workflow SHALL build the Docker image for the `app` service (from the repository `Dockerfile`), start only the `app` container, install dependencies, and run `make build`, `make lint`, and `make test` in sequence. The workflow SHALL also build the Docker image for Playwright (from the repository `Dockerfile.playwright`, with BuildKit layer caching consistent with existing CI cache strategy) and run `make e2e-test`. All steps MUST pass for the workflow to report success.
+A GitHub Actions workflow SHALL exist at `.github/workflows/ci.yml` that triggers on pull requests targeting `main`. The workflow SHALL build the Docker image for the `app` service (from the repository `Dockerfile`), start only the `app` container, install dependencies, and run `make build`, `make lint`, `make react-doctor`, and `make test` in sequence. The workflow SHALL also build the Docker image for Playwright (from the repository `Dockerfile.playwright`, with BuildKit layer caching consistent with existing CI cache strategy) and run `make e2e-test`. All steps MUST pass for the workflow to report success.
 
 #### Scenario: PR triggers CI
 
 - **WHEN** a developer opens or updates a pull request targeting `main`
 - **THEN** the CI workflow starts automatically
 
-#### Scenario: CI runs build, lint, unit tests, and e2e
+#### Scenario: CI runs build, lint, react-doctor, unit tests, and e2e
 
 - **WHEN** the CI workflow executes
-- **THEN** it runs `make build`, `make lint`, and `make test` in sequence inside the `app` Docker context as today
+- **THEN** it runs `make build`, `make lint`, `make react-doctor`, and `make test` in sequence inside the `app` Docker context as today
 - **AND** it builds the Playwright image and runs `make e2e-test` successfully
 - **AND** the workflow succeeds only if every step exits with code 0
 
