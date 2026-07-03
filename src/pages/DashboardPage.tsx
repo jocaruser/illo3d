@@ -5,6 +5,7 @@ import { useWorkbookConnection } from '@/hooks/useWorkbookConnection'
 import { CreatePurchasePopup } from '@/components/CreatePurchasePopup'
 import { CreateJobPopup } from '@/components/CreateJobPopup'
 import { useJobStatusFlow } from '@/hooks/useJobStatusFlow'
+import { useShopMetadata } from '@/hooks/useShopMetadata'
 import { StatCard } from '@/components/StatCard'
 import { KanbanBoard } from '@/components/dashboard/KanbanBoard'
 import { InventoryAlerts } from '@/components/dashboard/InventoryAlerts'
@@ -78,6 +79,8 @@ export function DashboardPage() {
     pieceItems,
     lots,
   } = useWorkbookEntities()
+
+  const { data: metadata } = useShopMetadata()
 
   const transactions = useMemo(
     () => allTransactions.filter(isActiveRow),
@@ -200,6 +203,7 @@ export function DashboardPage() {
               inventory={inventory}
               lots={lots}
               clientsById={clientsById}
+              kanbanStaleDays={metadata?.kanban?.autoCardsHideAfterXDays}
               onJobMoveToStatus={(job, next, insertBeforeId) => {
                 if (!spreadsheetId) return
                 void (async () => {

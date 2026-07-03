@@ -35,7 +35,7 @@ function jobComparable(
     case 'price':
       return jobTotalSortValue(job.id, pieces)
     case 'due_date':
-      return jobDueDateGradient(job.created_at).days
+      return jobDueDateGradient(job).days
     case 'created_at':
       return job.created_at
     default:
@@ -265,7 +265,7 @@ export function JobsTable({
                   </td>
                   <td className="hidden whitespace-nowrap px-4 py-3 text-sm lg:table-cell">
                     {(() => {
-                      const due = jobDueDateGradient(job.created_at)
+                      const due = jobDueDateGradient(job)
                       return (
                         <span className={`inline-flex rounded px-2 py-0.5 text-xs font-medium ${due.bgClass} ${due.textClass}`}>
                           {due.label}

@@ -1,3 +1,6 @@
+import type { Job } from '@/types/money'
+import { jobDueDate, daysSinceDueDate } from './jobDueDate'
+
 export interface DueDateGradient {
   days: number
   label: string
@@ -5,11 +8,9 @@ export interface DueDateGradient {
   textClass: string
 }
 
-export function jobDueDateGradient(createdAt: string): DueDateGradient {
-  const created = new Date(createdAt)
-  const now = new Date()
-  const diffMs = now.getTime() - created.getTime()
-  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+export function jobDueDateGradient(job: Job): DueDateGradient {
+  const days = daysSinceDueDate(job)
+  void jobDueDate(job)
 
   if (days >= 7) {
     return {

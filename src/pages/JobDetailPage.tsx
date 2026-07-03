@@ -164,7 +164,7 @@ export function JobDetailPage() {
   )
 
   const dueDate = useMemo(
-    () => (job ? jobDueDateGradient(job.created_at) : null),
+    () => (job ? jobDueDateGradient(job) : null),
     [job]
   )
 
