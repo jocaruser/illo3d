@@ -14,4 +14,7 @@ export interface ShopMetadata {
   iconsrc?: string
   userName?: string
   logo?: string
+  kanban?: {
+    autoCardsHideAfterXDays?: number
+  }
 }

@@ -5,6 +5,7 @@ import { compareJobsForKanban } from '@/utils/kanbanJobSort'
 import { KanbanColumn } from './KanbanColumn'
 import { endKanbanJobDrag } from './kanbanDnd'
 import { isActiveRow } from '@/lib/entityFilters'
+import { shouldHideJobOnKanban } from '@/utils/jobKanbanVisibility'
 
 const STATUSES: JobStatus[] = [
   'draft',
@@ -27,6 +28,7 @@ interface KanbanBoardProps {
     insertBeforeId: string | null,
   ) => void
   statusUpdatingId: string | null
+  kanbanStaleDays?: number
 }
 
 export function KanbanBoard({
@@ -38,6 +40,7 @@ export function KanbanBoard({
   clientsById,
   onJobMoveToStatus,
   statusUpdatingId,
+  kanbanStaleDays,
 }: KanbanBoardProps) {
   const { t } = useTranslation()
 
@@ -54,6 +57,7 @@ export function KanbanBoard({
     }
     for (const job of jobs) {
       if (!isActiveRow(job)) continue
+      if (shouldHideJobOnKanban(job, kanbanStaleDays)) continue
       const list = map.get(job.status)
       if (list) list.push(job)
     }
@@ -61,7 +65,7 @@ export function KanbanBoard({
       map.get(s)!.sort(compareJobsForKanban)
     }
     return map
-  }, [jobs])
+  }, [jobs, kanbanStaleDays])
 
   const titleForStatus = (s: JobStatus): string => {
     switch (s) {

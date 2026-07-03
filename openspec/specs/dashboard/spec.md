@@ -34,7 +34,7 @@ The system SHALL provide a `/dashboard` route protected by the same authenticati
 
 ### Requirement: Jobs kanban on dashboard
 
-The system SHALL display a kanban board on the dashboard with one column per `JobStatus` value (`draft`, `in_progress`, `delivered`, `paid`, `cancelled`). Each card SHALL show the job description, client name, and price (when set). **When** counting-piece pricing for the job is **complete** (same completeness rules as elsewhere: every non-deleted counting piece has set `price` and resolvable `units`), the card SHALL show the formatted **total revenue once** and, beside it in parentheses, **benefit** equal to **total revenue minus estimated material cost** for that job only, using the same formulas as the job detail page: total revenue from derived piece pricing; material cost as the sum over that job’s active `piece_item` lines of `quantity × units × avg_unit_cost` (avg unit cost from lots per **inventory-display** rules). The parenthetical amount SHALL NOT repeat the total revenue (it SHALL represent benefit, not a second copy of the total). **When** pricing is incomplete, the card SHALL show the incomplete pricing affordance only and SHALL NOT show a parenthetical benefit. Cards SHALL link to `/jobs/:id`. The `cancelled` column SHALL display at most 10 cards with a link to `/jobs` to view all. Archived and deleted jobs SHALL be excluded. The kanban SHALL provide a **keyboard-accessible alternative** to drag-and-drop: each card SHALL expose a control (e.g. a labelled `<select>`) that allows keyboard users to move the card to any available status column without relying on pointer events.
+The system SHALL display a kanban board on the dashboard with one column per `JobStatus` value (`draft`, `in_progress`, `delivered`, `paid`, `cancelled`). Each card SHALL show the job description, client name, and price (when set). **When** counting-piece pricing for the job is **complete** (same completeness rules as elsewhere: every non-deleted counting piece has set `price` and resolvable `units`), the card SHALL show the formatted **total revenue once** and, beside it in parentheses, **benefit** equal to **total revenue minus estimated material cost** for that job only, using the same formulas as the job detail page: total revenue from derived piece pricing; material cost as the sum over that job's active `piece_item` lines of `quantity × units × avg_unit_cost` (avg unit cost from lots per **inventory-display** rules). The parenthetical amount SHALL NOT repeat the total revenue (it SHALL represent benefit, not a second copy of the total). **When** pricing is incomplete, the card SHALL show the incomplete pricing affordance only and SHALL NOT show a parenthetical benefit. Cards SHALL link to `/jobs/:id`. Archived and deleted jobs SHALL be excluded. Jobs with status `paid` or `cancelled` whose effective due date is more than `kanbanStaleDays` days in the past SHALL be excluded from the kanban. The stale threshold SHALL come from shop metadata (`illo3d.metadata.json` field `kanban.autoCardsHideAfterXDays`) and SHALL default to 5 days when absent. The kanban SHALL provide a **keyboard-accessible alternative** to drag-and-drop: each card SHALL expose a control (e.g. a labelled `<select>`) that allows keyboard users to move the card to any available status column without relying on pointer events.
 
 #### Scenario: Kanban shows all status columns
 
@@ -52,10 +52,28 @@ The system SHALL display a kanban board on the dashboard with one column per `Jo
 - **AND** selects a different status column
 - **THEN** the job is moved to the selected column through the same flow as drag-and-drop (including any confirmation dialogs)
 
-#### Scenario: Cancelled column is capped at 10 cards
+#### Scenario: Stale paid jobs are excluded from kanban
 
-- **WHEN** more than 10 cancelled jobs exist
-- **THEN** only 10 are shown in the kanban column with a link to view all at `/jobs`
+- **WHEN** a job has status `paid` and its effective due date is 7 days ago
+- **AND** the kanban stale threshold is 5 days
+- **THEN** the job is not shown in the kanban
+
+#### Scenario: Recent paid jobs remain visible
+
+- **WHEN** a job has status `paid` and its effective due date is 3 days ago
+- **AND** the kanban stale threshold is 5 days
+- **THEN** the job appears in the paid column
+
+#### Scenario: Stale cancelled jobs are excluded from kanban
+
+- **WHEN** a job has status `cancelled` and its effective due date is 8 days ago
+- **AND** the kanban stale threshold is 5 days
+- **THEN** the job is not shown in the kanban
+
+#### Scenario: Delivered jobs are never excluded by age
+
+- **WHEN** a job has status `delivered` and its effective due date is 30 days ago
+- **THEN** the job appears in the delivered column
 
 #### Scenario: Empty column shows placeholder
 

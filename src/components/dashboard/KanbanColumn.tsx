@@ -1,5 +1,5 @@
 import { Fragment, useRef, useState, type ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { Inventory, Job, JobStatus, Lot, Piece, PieceItem } from '@/types/money'
 import { ColoredNumber } from '@/components/ColoredNumber'
@@ -15,8 +15,6 @@ import {
   getKanbanJobDragId,
   isKanbanJobDragEvent,
 } from './kanbanDnd'
-
-const CANCELLED_CAP = 10
 
 interface KanbanColumnProps {
   status: JobStatus
@@ -106,10 +104,7 @@ export function KanbanColumn({
   const [columnDragOver, setColumnDragOver] = useState(false)
   const suppressClickAfterDragRef = useRef(false)
 
-  const isCancelled = status === 'cancelled'
   const orderedJobs = jobs
-  const visibleJobs = isCancelled ? orderedJobs.slice(0, CANCELLED_CAP) : orderedJobs
-  const showViewAll = isCancelled && orderedJobs.length > CANCELLED_CAP
 
   return (
     <div className="flex h-full min-h-[min(28rem,50vh)] w-64 shrink-0 flex-col rounded-lg border border-border bg-surface">
@@ -162,8 +157,8 @@ export function KanbanColumn({
                 onDropJob={onDropJob}
                 className="min-h-[10px] shrink-0"
               />
-              {visibleJobs.map((job, idx) => {
-                const due = jobDueDateGradient(job.created_at)
+              {orderedJobs.map((job, idx) => {
+                const due = jobDueDateGradient(job)
                 const pricing = jobPricingState(job.id, pieces)
                 const piecesForJob = pieces.filter((p) => p.job_id === job.id)
                 const material = jobMaterialCost(
@@ -266,7 +261,7 @@ export function KanbanColumn({
                       </div>
                     </div>
                   </div>
-                  {idx === visibleJobs.length - 1 ? (
+                  {idx === orderedJobs.length - 1 ? (
                     <KanbanDropGap
                       insertBeforeId={null}
                       status={status}
@@ -285,14 +280,6 @@ export function KanbanColumn({
               )})}
             </>
           )}
-          {showViewAll ? (
-            <Link
-              to="/jobs"
-              className="mt-1 block shrink-0 rounded-md border border-dashed border-border px-3 py-2 text-center text-sm font-medium text-primary hover:bg-surface-elevated"
-            >
-              {t('dashboard.kanban.viewAll')}
-            </Link>
-          ) : null}
         </div>
       </div>
     </div>
