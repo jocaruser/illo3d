@@ -42,6 +42,12 @@ When fixing a confirmed bug or regression, follow the TDD workflow:
 - GitHub MCP tools may fail with authentication errors in this environment; `gh` uses local git credentials and works reliably.
 - Use `gh pr create`, `gh repo`, `gh issue`, etc. as needed.
 
+### 8. Document User-Facing Changes in the Changelog
+- For every PR that changes user-facing behavior, add or update an entry in the changelog.
+- Create or update `changelog/v<version>.md` for the version being released (matching `APP_VERSION` in `src/config/version.ts`).
+- The release workflow uses `changelog/v<version>.md` as the GitHub release body when present; otherwise it falls back to the auto-generated PR list.
+- See `CHANGELOG.md` for the index of all releases.
+
 ## Project Structure
 - `src/` — React + TypeScript frontend
 - `tests/e2e/` — Playwright E2E tests (Chromium only, `workers: 1`, serial where needed)

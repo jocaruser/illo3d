@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Extract current version
         id: current
@@ -30,8 +32,37 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create GitHub Release
+      - name: Detect changelog file and previous tag
         if: steps.check.outputs.exists == 'false'
+        id: changelog
+        run: |
+          VERSION="${{ steps.current.outputs.version }}"
+          FILE="changelog/v${VERSION}.md"
+          if [ -f "$FILE" ]; then
+            echo "has_changelog=true" >> $GITHUB_OUTPUT
+            echo "file=$FILE" >> $GITHUB_OUTPUT
+          else
+            echo "has_changelog=false" >> $GITHUB_OUTPUT
+          fi
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 || true)
+          echo "previous_tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release from changelog
+        if: steps.check.outputs.exists == 'false' && steps.changelog.outputs.has_changelog == 'true'
+        run: |
+          {
+            cat "${{ steps.changelog.outputs.file }}"
+            echo ""
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.changelog.outputs.previous_tag }}...v${{ steps.current.outputs.version }}"
+          } > /tmp/release-notes.md
+          gh release create "v${{ steps.current.outputs.version }}" \
+            --title "v${{ steps.current.outputs.version }}" \
+            --notes-file /tmp/release-notes.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release with generated notes
+        if: steps.check.outputs.exists == 'false' && steps.changelog.outputs.has_changelog != 'true'
         run: |
           gh release create "v${{ steps.current.outputs.version }}" \
             --title "v${{ steps.current.outputs.version }}" \
