@@ -11,6 +11,8 @@
  *
  * Usage:
  *   node scripts/migrate-v2-audit-log.mjs <path-to-fixture-folder>
+ *
+ * For a spreadsheet-based manual conversion, see migrate-v2-formulas.md.
  */
 import fs from 'node:fs'
 import path from 'node:path'
