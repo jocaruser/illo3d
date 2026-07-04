@@ -228,6 +228,22 @@ jobs:
       - name: Install dependencies
         run: make install
 
+      - name: Start dev server in background
+        run: |
+          docker compose exec -d app pnpm dev --host
+          # Wait for dev server to be ready
+          for i in {1..60}; do
+            if docker compose exec app wget -q -O- http://127.0.0.1:5173/ >/dev/null 2>&1; then
+              echo "Dev server is ready"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "Dev server failed to start"
+              exit 1
+            fi
+            sleep 1
+          done
+
       - name: E2E tests
         run: make e2e-test
 

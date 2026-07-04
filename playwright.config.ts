@@ -17,7 +17,7 @@
  */
 import { defineConfig, devices } from '@playwright/test'
 
-const e2ePort = 5174
+const e2ePort = 5173
 const e2eOrigin = `http://127.0.0.1:${e2ePort}`
 
 export default defineConfig({

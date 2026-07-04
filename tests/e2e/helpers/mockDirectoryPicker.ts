@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test'
 import { SHEET_NAMES } from '../../../src/services/sheets/config'
+import fs from 'node:fs'
+import path from 'node:path'
 
 function fixtureFileList(): string[] {
   return ['illo3d.metadata.json', ...SHEET_NAMES.map((s) => `${s}.csv`)]
@@ -7,10 +9,10 @@ function fixtureFileList(): string[] {
 
 /**
  * Replaces `showDirectoryPicker` on the live page with a handle backed by in-memory files
- * loaded from `/fixtures/<scenario>/` (served by the e2e Vite server).
+ * loaded from `/fixtures/<scenario>/` (served via Playwright route interception from `.e2e-fixtures/`).
  *
  * Playwright's Chromium often has no `navigator.storage` (OPFS) on non-localhost HTTP
- * origins (e.g. `http://web:5174` in Docker), so we do not use OPFS here.
+ * origins (e.g. `http://web:5173` in Docker), so we do not use OPFS here.
  *
  * To survive `page.goto()` navigations within the same test, fixture data is stored in
  * `localStorage` and an init script recreates the mock handle on every page load.
@@ -21,6 +23,27 @@ export async function mockDirectoryPicker(
   mode: 'with-metadata' | 'empty'
 ): Promise<void> {
   const files = mode === 'empty' ? [] : fixtureFileList()
+
+  await page.route('**/fixtures/**', async (route) => {
+    const url = route.request().url()
+    const relativePath = url.replace(/^.*\/fixtures\//, '')
+    const fixturesRoot = path.resolve(process.cwd(), '.e2e-fixtures')
+    const filePath = path.resolve(fixturesRoot, relativePath)
+
+    if (!filePath.startsWith(fixturesRoot + path.sep) && filePath !== fixturesRoot) {
+      await route.fulfill({ status: 403 })
+      return
+    }
+
+    try {
+      const content = await fs.promises.readFile(filePath)
+      const ext = path.extname(filePath)
+      const contentType = ext === '.json' ? 'application/json' : 'text/csv; charset=utf-8'
+      await route.fulfill({ status: 200, contentType, body: content })
+    } catch {
+      await route.fulfill({ status: 404 })
+    }
+  })
 
   // Fetch fixture files and persist them in localStorage so they survive navigations.
   await page.evaluate(

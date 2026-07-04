@@ -69,7 +69,7 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 | `make lint` | ESLint |
 | `make format` | Prettier (write) |
 | `make test` | Vitest unit tests |
-| `make e2e-test` | Playwright e2e (dedicated Vite on port 5174, ephemeral fixtures); also runs in GitHub CI on PRs |
+| `make e2e-test` | Playwright e2e (uses dev server on port 5173, ephemeral fixtures via route interception); requires `make dev` running first; also runs in GitHub CI on PRs |
 | `make quality-gate` | **`build` → `lint` → `test`** — local/agent check before finishing a change (fast; no e2e) |
 
 ### Data / fixtures

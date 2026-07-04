@@ -87,22 +87,27 @@ The Makefile SHALL provide a `restore-fixtures` target that copies all golden fi
 - **THEN** each run produces the same result
 - **AND** `public/fixtures/` matches `fixtures/` exactly after each run
 
-### Requirement: E2E tests use dedicated Vite server with ephemeral fixtures
+### Requirement: E2E tests reuse dev server with Playwright fixture serving
 
-The e2e test infrastructure SHALL start a dedicated Vite dev server for e2e tests, separate from the developer's `make dev` server. This server SHALL serve fixtures from an ephemeral directory (e.g. `.e2e-fixtures/`), not from `public/fixtures/`. The server SHALL run on a different port (e.g. 5174) to avoid conflicts with the dev server.
+The e2e test infrastructure SHALL reuse the developer's `make dev` server (port 5173) for e2e tests. Fixture files SHALL be served via Playwright route interception from the ephemeral `.e2e-fixtures/` directory, not from `public/fixtures/`. The Makefile `e2e-test` target SHALL NOT start a separate Vite dev server. The target SHALL ensure the dev server is running, copy fixtures to `.e2e-fixtures/`, run Playwright against the dev server, and clean up `.e2e-fixtures/` afterward.
 
-#### Scenario: E2E server starts with ephemeral fixture directory
+#### Scenario: E2E tests use dev server with route-intercepted fixtures
 
 - **WHEN** `make e2e-test` runs
-- **THEN** a Vite dev server starts with `VITE_FIXTURES_ROOT` pointing to the ephemeral directory
-- **AND** the server listens on a port different from the dev server
-- **AND** the server serves fixture files from the ephemeral directory
+- **THEN** the dev server on port 5173 is used (no separate Vite instance is started)
+- **AND** Playwright intercepts `/fixtures/**` requests and serves files from `.e2e-fixtures/`
+- **AND** the dev server's `public/fixtures/` directory is not modified
 
 #### Scenario: E2E server does not affect dev server
 
 - **WHEN** e2e tests run while `make dev` is also running
 - **THEN** the dev server at port 5173 continues serving `public/fixtures/` unchanged
-- **AND** the e2e server operates independently on its own port
+- **AND** Playwright route interception only affects the test browser, not the dev server
+
+#### Scenario: Dev server must be running before e2e tests
+
+- **WHEN** `make e2e-test` runs and the dev server is not running
+- **THEN** the Makefile SHALL report an error instructing the developer to run `make dev` first
 
 ### Requirement: E2E specs restore fixtures before each test
 
@@ -548,12 +553,12 @@ The system SHALL have Playwright coverage that verifies the Expenses list view s
 
 ### Requirement: E2E tests run via Makefile and pass in CI before merge
 
-The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL start a dedicated Vite server with ephemeral fixtures, run Playwright against it, and clean up afterward. The target SHALL NOT modify `public/fixtures/`. The local `make quality-gate` target SHALL NOT run `make e2e-test`. Before a change merges to `main`, GitHub Actions CI SHALL execute `make e2e-test` as part of the pull request workflow and that step SHALL exit with code 0. Developers and agents MAY run `make e2e-test` locally when validating Playwright-covered behavior.
+The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL reuse the dev server on port 5173, use Playwright route interception to serve ephemeral fixtures from `.e2e-fixtures/`, run Playwright against the dev server, and clean up afterward. The target SHALL NOT modify `public/fixtures/`. The local `make quality-gate` target SHALL NOT run `make e2e-test`. Before a change merges to `main`, GitHub Actions CI SHALL execute `make e2e-test` as part of the pull request workflow and that step SHALL exit with code 0. Developers and agents MAY run `make e2e-test` locally when validating Playwright-covered behavior.
 
 #### Scenario: E2E tests run via Makefile
 
 - **WHEN** developer runs `make e2e-test`
-- **THEN** Playwright executes all e2e spec files against the dedicated e2e server
+- **THEN** Playwright executes all e2e spec files against the dev server
 - **AND** reports results
 
 #### Scenario: E2E passes when run locally
