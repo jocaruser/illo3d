@@ -1,4 +1,5 @@
 import type { SheetName } from '@/services/sheets/config'
+import type { AuditEntityName } from '@/types/money'
 import {
   cloneMatrix,
   ensureMatrix,
@@ -6,6 +7,15 @@ import {
   headerIndex,
 } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import {
+  auditArchive,
+  auditSoftDelete,
+  auditUnarchive,
+} from '@/services/audit/auditEventEmitter'
+import {
+  getCurrentNotesForEntity,
+  getCurrentTagLinksForEntity,
+} from '@/services/audit/reconstruct'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
 function setLifecycleField(
@@ -25,6 +35,50 @@ function setLifecycleField(
   return m
 }
 
+function rowToObject(
+  matrix: string[][],
+  rowIdx: number
+): Record<string, unknown> {
+  const headers = matrix[0]
+  const row = matrix[rowIdx]
+  const obj: Record<string, unknown> = {}
+  headers.forEach((h, i) => {
+    const v = row[i]
+    if (v !== undefined && v !== null && v !== '') {
+      obj[h] = v
+    }
+  })
+  return obj
+}
+
+function sheetNameToEntityName(sheetName: SheetName): AuditEntityName {
+  switch (sheetName) {
+    case 'clients':
+      return 'client'
+    case 'jobs':
+      return 'job'
+    case 'pieces':
+      return 'piece'
+    case 'piece_items':
+      return 'piece_item'
+    case 'inventory':
+      return 'inventory'
+    case 'lots':
+      return 'lot'
+    case 'transactions':
+      return 'transaction'
+    case 'tags':
+      return 'tag'
+    default:
+      throw new Error(`Unsupported sheet name for audit: ${sheetName}`)
+  }
+}
+
+interface CascadeContext {
+  parentEntityName: AuditEntityName
+  parentEntityId: string
+}
+
 export function unArchiveEntity(
   sheetName: SheetName,
   rowId: string
@@ -32,96 +86,125 @@ export function unArchiveEntity(
   patchWorkbookTab(sheetName, (m) => {
     const i = findDataRowIndexById(m, sheetName, rowId)
     if (i === -1) throw new Error(`${sheetName} row ${rowId} not found`)
-    return setLifecycleField(m, i, sheetName, 'archived', '')
+    const before = rowToObject(m, i)
+    const next = setLifecycleField(m, i, sheetName, 'archived', '')
+    const after = rowToObject(next, i)
+    auditUnarchive(sheetNameToEntityName(sheetName), rowId, before, after)
+    return next
   })
 }
 
 export function softDeleteEntity(
   sheetName: SheetName,
-  rowId: string
+  rowId: string,
+  context?: CascadeContext
 ): void {
   patchWorkbookTab(sheetName, (m) => {
     const i = findDataRowIndexById(m, sheetName, rowId)
     if (i === -1) throw new Error(`${sheetName} row ${rowId} not found`)
-    return setLifecycleField(m, i, sheetName, 'deleted', 'true')
+    const before = rowToObject(m, i)
+    const next = setLifecycleField(m, i, sheetName, 'deleted', 'true')
+    const after = rowToObject(next, i)
+    auditSoftDelete(
+      sheetNameToEntityName(sheetName),
+      rowId,
+      before,
+      after,
+      context
+    )
+    return next
   })
 }
 
-function archiveCrmNotesForEntity(entityType: string, entityId: string): void {
-  const tabs = useWorkbookStore.getState().tabs
-  let m = ensureMatrix(tabs, 'crm_notes')
-  const et = headerIndex('crm_notes', 'entity_type')
-  const eid = headerIndex('crm_notes', 'entity_id')
-  m = cloneMatrix(m)
-  for (let i = 1; i < m.length; i++) {
-    if (
-      (m[i][et] ?? '').trim() === entityType.trim() &&
-      (m[i][eid] ?? '').trim() === entityId.trim()
-    ) {
-      m = setLifecycleField(m, i, 'crm_notes', 'archived', 'true')
-    }
-  }
-  useWorkbookStore.getState().mutateTab('crm_notes', m)
+function archiveEntity(
+  sheetName: SheetName,
+  rowId: string,
+  context?: CascadeContext
+): void {
+  patchWorkbookTab(sheetName, (m) => {
+    const i = findDataRowIndexById(m, sheetName, rowId)
+    if (i === -1) throw new Error(`${sheetName} row ${rowId} not found`)
+    const before = rowToObject(m, i)
+    const next = setLifecycleField(m, i, sheetName, 'archived', 'true')
+    const after = rowToObject(next, i)
+    auditArchive(
+      sheetNameToEntityName(sheetName),
+      rowId,
+      before,
+      after,
+      context
+    )
+    return next
+  })
 }
 
-function archiveTagLinks(entityType: string, entityId: string): void {
-  const tabs = useWorkbookStore.getState().tabs
-  let m = ensureMatrix(tabs, 'tag_links')
-  const et = headerIndex('tag_links', 'entity_type')
-  const eid = headerIndex('tag_links', 'entity_id')
-  m = cloneMatrix(m)
-  for (let i = 1; i < m.length; i++) {
-    if (
-      (m[i][et] ?? '').trim() === entityType.trim() &&
-      (m[i][eid] ?? '').trim() === entityId.trim()
-    ) {
-      m = setLifecycleField(m, i, 'tag_links', 'archived', 'true')
-    }
+function archiveCrmNotesForEntity(
+  entityType: 'client' | 'job',
+  entityId: string,
+  context: CascadeContext
+): void {
+  const notes = getCurrentNotesForEntity(entityType, entityId)
+  for (const note of notes) {
+    if (note.archived || note.deleted) continue
+    const before = { ...note }
+    const after = { ...note, archived: 'true' }
+    auditArchive('crm_note', note.id, before, after, context)
   }
-  useWorkbookStore.getState().mutateTab('tag_links', m)
 }
 
-function softDeleteCrmNotesForEntity(entityType: string, entityId: string): void {
-  const tabs = useWorkbookStore.getState().tabs
-  let m = ensureMatrix(tabs, 'crm_notes')
-  const et = headerIndex('crm_notes', 'entity_type')
-  const eid = headerIndex('crm_notes', 'entity_id')
-  m = cloneMatrix(m)
-  for (let i = 1; i < m.length; i++) {
-    if (
-      (m[i][et] ?? '').trim() === entityType.trim() &&
-      (m[i][eid] ?? '').trim() === entityId.trim()
-    ) {
-      m = setLifecycleField(m, i, 'crm_notes', 'deleted', 'true')
-    }
+function archiveTagLinksForEntity(
+  entityType: 'client' | 'job',
+  entityId: string,
+  context: CascadeContext
+): void {
+  const links = getCurrentTagLinksForEntity(entityType, entityId)
+  for (const link of links) {
+    if (link.archived || link.deleted) continue
+    const before = { ...link }
+    const after = { ...link, archived: 'true' }
+    auditArchive('tag_link', link.id, before, after, context)
   }
-  useWorkbookStore.getState().mutateTab('crm_notes', m)
 }
 
-function softDeleteTagLinks(entityType: string, entityId: string): void {
-  const tabs = useWorkbookStore.getState().tabs
-  let m = ensureMatrix(tabs, 'tag_links')
-  const et = headerIndex('tag_links', 'entity_type')
-  const eid = headerIndex('tag_links', 'entity_id')
-  m = cloneMatrix(m)
-  for (let i = 1; i < m.length; i++) {
-    if (
-      (m[i][et] ?? '').trim() === entityType.trim() &&
-      (m[i][eid] ?? '').trim() === entityId.trim()
-    ) {
-      m = setLifecycleField(m, i, 'tag_links', 'deleted', 'true')
-    }
+function softDeleteCrmNotesForEntity(
+  entityType: 'client' | 'job',
+  entityId: string,
+  context: CascadeContext
+): void {
+  const notes = getCurrentNotesForEntity(entityType, entityId)
+  for (const note of notes) {
+    if (note.deleted) continue
+    const before = { ...note }
+    const after = { ...note, deleted: 'true' }
+    auditSoftDelete('crm_note', note.id, before, after, context)
   }
-  useWorkbookStore.getState().mutateTab('tag_links', m)
+}
+
+function softDeleteTagLinksForEntity(
+  entityType: 'client' | 'job',
+  entityId: string,
+  context: CascadeContext
+): void {
+  const links = getCurrentTagLinksForEntity(entityType, entityId)
+  for (const link of links) {
+    if (link.deleted) continue
+    const before = { ...link }
+    const after = { ...link, deleted: 'true' }
+    auditSoftDelete('tag_link', link.id, before, after, context)
+  }
 }
 
 /** Archive a job and cascade to pieces, piece_items, notes, tag links. */
-export function archiveJob(jobId: string): void {
-  patchWorkbookTab('jobs', (m) => {
-    const i = findDataRowIndexById(m, 'jobs', jobId)
-    if (i === -1) throw new Error(`Job ${jobId} not found`)
-    return setLifecycleField(m, i, 'jobs', 'archived', 'true')
-  })
+export function archiveJob(
+  jobId: string,
+  context?: CascadeContext
+): void {
+  const jobContext: CascadeContext = context ?? {
+    parentEntityName: 'job',
+    parentEntityId: jobId,
+  }
+
+  archiveEntity('jobs', jobId, context)
 
   const tabs = useWorkbookStore.getState().tabs
   let pieces = ensureMatrix(tabs, 'pieces')
@@ -131,9 +214,14 @@ export function archiveJob(jobId: string): void {
   const pieceIds: string[] = []
   for (let i = 1; i < pieces.length; i++) {
     if ((pieces[i][pj] ?? '').trim() === jobId.trim()) {
+      const before = rowToObject(pieces, i)
       pieces = setLifecycleField(pieces, i, 'pieces', 'archived', 'true')
-      const p = (pieces[i][pid] ?? '').trim()
-      if (p) pieceIds.push(p)
+      const after = rowToObject(pieces, i)
+      const pieceId = (pieces[i][pid] ?? '').trim()
+      if (pieceId) {
+        pieceIds.push(pieceId)
+        auditArchive('piece', pieceId, before, after, jobContext)
+      }
     }
   }
   useWorkbookStore.getState().mutateTab('pieces', pieces)
@@ -142,26 +230,36 @@ export function archiveJob(jobId: string): void {
   const pp = headerIndex('piece_items', 'piece_id')
   pieceItems = cloneMatrix(pieceItems)
   for (let i = 1; i < pieceItems.length; i++) {
-    if (pieceIds.includes((pieceItems[i][pp] ?? '').trim())) {
+    const pieceId = (pieceItems[i][pp] ?? '').trim()
+    if (pieceIds.includes(pieceId)) {
+      const before = rowToObject(pieceItems, i)
       pieceItems = setLifecycleField(pieceItems, i, 'piece_items', 'archived', 'true')
+      const itemId = (pieceItems[i][headerIndex('piece_items', 'id')] ?? '').trim()
+      if (itemId) {
+        auditArchive('piece_item', itemId, before, rowToObject(pieceItems, i), {
+          parentEntityName: 'piece',
+          parentEntityId: pieceId,
+        })
+      }
     }
   }
   useWorkbookStore.getState().mutateTab('piece_items', pieceItems)
 
-  archiveCrmNotesForEntity('job', jobId)
-  archiveTagLinks('job', jobId)
+  archiveCrmNotesForEntity('job', jobId, jobContext)
+  archiveTagLinksForEntity('job', jobId, jobContext)
 }
 
 /** Archive client and cascade jobs (and their subtrees) plus client-scoped notes/links. */
 export function archiveClient(clientId: string): void {
-  patchWorkbookTab('clients', (m) => {
-    const i = findDataRowIndexById(m, 'clients', clientId)
-    if (i === -1) throw new Error(`Client ${clientId} not found`)
-    return setLifecycleField(m, i, 'clients', 'archived', 'true')
-  })
+  const clientContext: CascadeContext = {
+    parentEntityName: 'client',
+    parentEntityId: clientId,
+  }
 
-  archiveCrmNotesForEntity('client', clientId)
-  archiveTagLinks('client', clientId)
+  archiveEntity('clients', clientId)
+
+  archiveCrmNotesForEntity('client', clientId, clientContext)
+  archiveTagLinksForEntity('client', clientId, clientContext)
 
   const tabs = useWorkbookStore.getState().tabs
   const jobs = ensureMatrix(tabs, 'jobs')
@@ -175,17 +273,18 @@ export function archiveClient(clientId: string): void {
     }
   }
   for (const j of jobIds) {
-    archiveJob(j)
+    archiveJob(j, clientContext)
   }
 }
 
 /** Archive an inventory row and all active lots for that inventory id. */
 export function archiveInventory(inventoryId: string): void {
-  patchWorkbookTab('inventory', (m) => {
-    const i = findDataRowIndexById(m, 'inventory', inventoryId)
-    if (i === -1) throw new Error(`Inventory ${inventoryId} not found`)
-    return setLifecycleField(m, i, 'inventory', 'archived', 'true')
-  })
+  const inventoryContext: CascadeContext = {
+    parentEntityName: 'inventory',
+    parentEntityId: inventoryId,
+  }
+
+  archiveEntity('inventory', inventoryId)
 
   const tabs = useWorkbookStore.getState().tabs
   let lotsM = ensureMatrix(tabs, 'lots')
@@ -198,20 +297,27 @@ export function archiveInventory(inventoryId: string): void {
     const arch = (lotsM[i][archCol] ?? '').trim().toLowerCase() === 'true'
     const del = (lotsM[i][delCol] ?? '').trim().toLowerCase() === 'true'
     if (arch || del) continue
+    const before = rowToObject(lotsM, i)
     lotsM = setLifecycleField(lotsM, i, 'lots', 'archived', 'true')
+    const after = rowToObject(lotsM, i)
+    const lotId = (lotsM[i][headerIndex('lots', 'id')] ?? '').trim()
+    if (lotId) {
+      auditArchive('lot', lotId, before, after, inventoryContext)
+    }
   }
   useWorkbookStore.getState().mutateTab('lots', lotsM)
 }
 
 export function softDeleteClient(clientId: string): void {
-  patchWorkbookTab('clients', (m) => {
-    const i = findDataRowIndexById(m, 'clients', clientId)
-    if (i === -1) throw new Error(`Client ${clientId} not found`)
-    return setLifecycleField(m, i, 'clients', 'deleted', 'true')
-  })
+  const clientContext: CascadeContext = {
+    parentEntityName: 'client',
+    parentEntityId: clientId,
+  }
 
-  softDeleteCrmNotesForEntity('client', clientId)
-  softDeleteTagLinks('client', clientId)
+  softDeleteEntity('clients', clientId)
+
+  softDeleteCrmNotesForEntity('client', clientId, clientContext)
+  softDeleteTagLinksForEntity('client', clientId, clientContext)
 
   const tabs = useWorkbookStore.getState().tabs
   const jobs = ensureMatrix(tabs, 'jobs')
@@ -225,16 +331,20 @@ export function softDeleteClient(clientId: string): void {
     }
   }
   for (const j of jobIds) {
-    softDeleteJob(j)
+    softDeleteJob(j, clientContext)
   }
 }
 
-export function softDeleteJob(jobId: string): void {
-  patchWorkbookTab('jobs', (m) => {
-    const i = findDataRowIndexById(m, 'jobs', jobId)
-    if (i === -1) throw new Error(`Job ${jobId} not found`)
-    return setLifecycleField(m, i, 'jobs', 'deleted', 'true')
-  })
+export function softDeleteJob(
+  jobId: string,
+  context?: CascadeContext
+): void {
+  const jobContext: CascadeContext = context ?? {
+    parentEntityName: 'job',
+    parentEntityId: jobId,
+  }
+
+  softDeleteEntity('jobs', jobId, context)
 
   const tabs = useWorkbookStore.getState().tabs
   let pieces = ensureMatrix(tabs, 'pieces')
@@ -244,9 +354,14 @@ export function softDeleteJob(jobId: string): void {
   const pieceIds: string[] = []
   for (let i = 1; i < pieces.length; i++) {
     if ((pieces[i][pj] ?? '').trim() === jobId.trim()) {
+      const before = rowToObject(pieces, i)
       pieces = setLifecycleField(pieces, i, 'pieces', 'deleted', 'true')
-      const p = (pieces[i][pid] ?? '').trim()
-      if (p) pieceIds.push(p)
+      const after = rowToObject(pieces, i)
+      const pieceId = (pieces[i][pid] ?? '').trim()
+      if (pieceId) {
+        pieceIds.push(pieceId)
+        auditSoftDelete('piece', pieceId, before, after, jobContext)
+      }
     }
   }
   useWorkbookStore.getState().mutateTab('pieces', pieces)
@@ -255,12 +370,21 @@ export function softDeleteJob(jobId: string): void {
   const pp = headerIndex('piece_items', 'piece_id')
   pieceItems = cloneMatrix(pieceItems)
   for (let i = 1; i < pieceItems.length; i++) {
-    if (pieceIds.includes((pieceItems[i][pp] ?? '').trim())) {
+    const pieceId = (pieceItems[i][pp] ?? '').trim()
+    if (pieceIds.includes(pieceId)) {
+      const before = rowToObject(pieceItems, i)
       pieceItems = setLifecycleField(pieceItems, i, 'piece_items', 'deleted', 'true')
+      const itemId = (pieceItems[i][headerIndex('piece_items', 'id')] ?? '').trim()
+      if (itemId) {
+        auditSoftDelete('piece_item', itemId, before, rowToObject(pieceItems, i), {
+          parentEntityName: 'piece',
+          parentEntityId: pieceId,
+        })
+      }
     }
   }
   useWorkbookStore.getState().mutateTab('piece_items', pieceItems)
 
-  softDeleteCrmNotesForEntity('job', jobId)
-  softDeleteTagLinks('job', jobId)
+  softDeleteCrmNotesForEntity('job', jobId, jobContext)
+  softDeleteTagLinksForEntity('job', jobId, jobContext)
 }

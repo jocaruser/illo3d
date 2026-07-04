@@ -1,6 +1,7 @@
 import { updateDataRowById } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToLots } from '@/lib/workbook/workbookEntities'
+import { auditUpdate } from '@/services/audit/auditEventEmitter'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
 export function parseLotPurchaseAmountInput(raw: string): number | null {
@@ -49,4 +50,5 @@ export async function updateLotFields(
   }
 
   patchWorkbookTab('lots', (m) => updateDataRowById('lots', m, lotId, row))
+  auditUpdate('lot', lotId, existing, row)
 }

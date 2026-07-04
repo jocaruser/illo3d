@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   createPieceItem,
@@ -29,43 +29,38 @@ export function CreatePieceItemPopup({
   pieceItems,
 }: CreatePieceItemPopupProps) {
   const { t } = useTranslation()
-  const [inventoryId, setInventoryId] = useState('')
-  const [quantity, setQuantity] = useState('')
+  const [form, setForm] = useState({ inventoryId: '', quantity: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const sortedInventory = useMemo(
-    () => [...inventory].sort((a, b) => a.name.localeCompare(b.name)),
+    () => inventory.toSorted((a, b) => a.name.localeCompare(b.name)),
     [inventory]
   )
 
-  useEffect(() => {
-    if (!isOpen) {
-      if (inventoryId) setInventoryId('')
-      return
-    }
-    setQuantity('')
+  const handleClose = () => {
+    setForm({ inventoryId: '', quantity: '' })
     setError(null)
     setFieldErrors({})
-  }, [isOpen])
-
-
+    onClose()
+  }
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {}
-    if (!inventoryId) errs.inventory = t('pieces.validation.inventoryRequired')
-    const q = parseFloat(quantity)
-    if (!quantity.trim()) errs.quantity = t('pieces.validation.required')
+    if (!form.inventoryId)
+      errs.inventory = t('pieces.validation.inventoryRequired')
+    const q = parseFloat(form.quantity)
+    if (!form.quantity.trim()) errs.quantity = t('pieces.validation.required')
     else if (Number.isNaN(q) || q <= 0)
       errs.quantity = t('pieces.validation.quantityPositive')
     if (
       pieceId &&
-      inventoryId &&
+      form.inventoryId &&
       pieceItems.some(
         (r) =>
           r.piece_id === pieceId &&
-          r.inventory_id === inventoryId &&
+          r.inventory_id === form.inventoryId &&
           r.archived !== 'true' &&
           r.deleted !== 'true',
       )
@@ -84,11 +79,11 @@ export function CreatePieceItemPopup({
     try {
       await createPieceItem(spreadsheetId, {
         piece_id: pieceId,
-        inventory_id: inventoryId,
-        quantity: parseFloat(quantity),
+        inventory_id: form.inventoryId,
+        quantity: parseFloat(form.quantity),
       })
       onSuccess()
-      onClose()
+      handleClose()
     } catch (err) {
       if (
         err instanceof Error &&
@@ -106,7 +101,7 @@ export function CreatePieceItemPopup({
   if (!pieceId) return null
 
   return (
-    <DialogShell isOpen={isOpen} onClose={onClose} title={t('pieces.addLineTitle')}>
+    <DialogShell isOpen={isOpen} onClose={handleClose} title={t('pieces.addLineTitle')}>
       <p className="mb-4 text-sm text-text-muted">
         {t('pieces.addLineForPiece', { id: pieceId })}
       </p>
@@ -121,8 +116,8 @@ export function CreatePieceItemPopup({
           </label>
           <Combobox
             items={sortedInventory}
-            value={inventoryId}
-            onChange={(key) => setInventoryId(key)}
+            value={form.inventoryId}
+            onChange={(key) => setForm((prev) => ({ ...prev, inventoryId: key }))}
             getKey={(inv) => inv.id}
             getLabel={(inv) => inv.type === 'filament'
               ? t('pieces.inventoryOptionFilament', {
@@ -159,8 +154,8 @@ export function CreatePieceItemPopup({
             type="number"
             step="any"
             min="0"
-            value={quantity}
-            onChange={(e) => setQuantity(e.target.value)}
+            value={form.quantity}
+            onChange={(e) => setForm((prev) => ({ ...prev, quantity: e.target.value }))}
             disabled={loading}
             aria-required="true"
             className="w-full rounded-lg border border-border px-3 py-2 text-text focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary disabled:bg-gray-100 dark:bg-gray-800"
@@ -175,7 +170,7 @@ export function CreatePieceItemPopup({
         <div className="flex gap-3 pt-2">
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={loading}
             className="rounded-lg border border-border px-4 py-2 text-text hover:bg-surface disabled:opacity-50"
           >

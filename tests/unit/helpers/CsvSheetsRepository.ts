@@ -5,6 +5,7 @@ import {
   type SheetName,
 } from '@/services/sheets/config'
 import { normalizeSheetMatrixFromCsvLines } from '@/services/sheets/sheetMatrix'
+import { parseCsvLine } from '@/services/sheets/csvParse'
 import { sanitizeFixtureFolderId } from './csvFixtureUtils'
 
 const DEFAULT_FIXTURE_FOLDER = 'happy-path'
@@ -34,10 +35,6 @@ export class CsvSheetsRepository implements SheetsRepository {
     return response.text()
   }
 
-  /**
-   * Parse simple CSV. Limitation: uses split(',') — does not handle quoted values
-   * containing commas (e.g. "Acme, Inc."). Current fixtures avoid embedded commas.
-   */
   private parseCsv<T extends object>(
     csvText: string,
     headers: readonly string[]
@@ -46,7 +43,7 @@ export class CsvSheetsRepository implements SheetsRepository {
     if (lines.length < 2) return []
     const dataRows = lines.slice(1).filter((line) => line.trim() !== '')
     return dataRows.map((line) => {
-      const values = line.split(',')
+      const values = parseCsvLine(line)
       const obj = {} as T
       headers.forEach((header, i) => {
         const value = values[i]
@@ -95,7 +92,7 @@ export class CsvSheetsRepository implements SheetsRepository {
     const folder = this.folderFromSpreadsheetId(spreadsheetId)
     const csvText = await this.fetchCsv(sheetName, folder)
     const firstLine = csvText.trim().split(/\r?\n/)[0] || ''
-    return firstLine.split(',').map((h) => h.trim())
+    return parseCsvLine(firstLine).map((h) => h.trim())
   }
 
   async appendRows(
@@ -218,6 +215,10 @@ export class CsvSheetsRepository implements SheetsRepository {
   ): Promise<Partial<Record<SheetName, number>>> {
     void spreadsheetId
     return {}
+  }
+
+  onAuditEvent(): () => void {
+    return () => {}
   }
 
   async createSpreadsheet(): Promise<string> {

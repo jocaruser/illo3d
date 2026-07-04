@@ -1,6 +1,7 @@
 import { getBackend } from '@/config/csvBackend'
 import { useBackendStore } from '@/stores/backendStore'
 import { LocalSheetsRepository } from '@/services/local/LocalSheetsRepository'
+import type { AuditEvent } from '@/services/audit/auditEvent'
 import { sheetsFetch } from './client'
 import {
   SPREADSHEET_NAME,
@@ -10,6 +11,8 @@ import {
 } from './config'
 import type { ValidationError } from './validateStructure'
 import { normalizeSheetMatrixFromApi } from './sheetMatrix'
+
+export type AuditEventHandler = (event: AuditEvent) => void
 
 export interface SheetsRepository {
   readRows<T extends object>(
@@ -56,6 +59,12 @@ export interface SheetsRepository {
   getSheetIdMap(
     spreadsheetId: string
   ): Promise<Partial<Record<SheetName, number>>>
+  /**
+   * Subscribe to audit events emitted by the repository layer.
+   * Used for ORM extraction; current service functions emit through
+   * `auditEventEmitter` which appends to the in-memory workbook store.
+   */
+  onAuditEvent(handler: AuditEventHandler): () => void
 }
 
 function rowToObject<T extends object>(
@@ -79,7 +88,30 @@ function objectToRow(
   return headers.map((h) => obj[h] ?? '')
 }
 
+class AuditEventSubscription {
+  private handlers: AuditEventHandler[] = []
+
+  subscribe(handler: AuditEventHandler): () => void {
+    this.handlers.push(handler)
+    return () => {
+      const i = this.handlers.indexOf(handler)
+      if (i !== -1) this.handlers.splice(i, 1)
+    }
+  }
+
+  emit(event: AuditEvent): void {
+    for (const h of this.handlers) {
+      try {
+        h(event)
+      } catch {
+        // ignore handler errors to prevent audit failures breaking mutations
+      }
+    }
+  }
+}
+
 export class GoogleSheetsRepository implements SheetsRepository {
+  private auditEvents = new AuditEventSubscription()
   private async getSheetNumericId(
     spreadsheetId: string,
     sheetTitle: string
@@ -325,6 +357,10 @@ export class GoogleSheetsRepository implements SheetsRepository {
       }
     }
     return map
+  }
+
+  onAuditEvent(handler: AuditEventHandler): () => void {
+    return this.auditEvents.subscribe(handler)
   }
 
   async createSpreadsheet(): Promise<string> {

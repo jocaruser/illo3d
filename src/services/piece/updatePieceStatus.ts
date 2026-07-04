@@ -5,6 +5,7 @@ import {
   matrixToPieceItems,
   matrixToPieces,
 } from '@/lib/workbook/workbookEntities'
+import { auditUpdate } from '@/services/audit/auditEventEmitter'
 import { useWorkbookStore } from '@/stores/workbookStore'
 import type { Inventory, Piece, PieceItem, PieceStatus } from '@/types/money'
 import { effectiveNeedByInventory } from '@/utils/pieceEffectiveInventory'
@@ -139,9 +140,11 @@ export async function updatePieceStatus(
     for (const inventoryId of needByLot.keys()) {
       const inv = working.get(inventoryId)
       if (!inv) continue
+      const before = inventoryList.find((i) => i.id === inventoryId) as Inventory
       patchWorkbookTab('inventory', (m) =>
         updateDataRowById('inventory', m, inventoryId, sheetRowFromInventory(inv)),
       )
+      auditUpdate('inventory', inventoryId, before, inv)
     }
   }
 
@@ -156,16 +159,20 @@ export async function updatePieceStatus(
     for (const inventoryId of needByLot.keys()) {
       const inv = working.get(inventoryId)
       if (!inv) continue
+      const before = inventoryList.find((i) => i.id === inventoryId) as Inventory
       patchWorkbookTab('inventory', (m) =>
         updateDataRowById('inventory', m, inventoryId, sheetRowFromInventory(inv)),
       )
+      auditUpdate('inventory', inventoryId, before, inv)
     }
   }
 
   const nextPiece: Piece = { ...piece, status: newStatus }
+  const pieceRow = sheetRowFromPiece(nextPiece)
   patchWorkbookTab('pieces', (m) =>
-    updateDataRowById('pieces', m, piece.id, sheetRowFromPiece(nextPiece)),
+    updateDataRowById('pieces', m, piece.id, pieceRow),
   )
+  auditUpdate('piece', piece.id, piece, nextPiece)
 
   return { ok: true }
 }

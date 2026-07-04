@@ -8,7 +8,7 @@ Define archive and soft-delete semantics for workbook rows: `archived` and `dele
 
 ### Requirement: Entity rows carry archive and soft-delete flags
 
-Every first-class entity tab (clients, jobs, pieces, inventory, expenses, transactions, crm_notes, tags, tag_links, piece_items) SHALL include two lifecycle columns: `archived` and `deleted`. Both columns SHALL be string-valued (`"true"` or empty/absent). Comparison against these columns SHALL be **case-insensitive** — the values `"true"`, `"TRUE"`, `"True"`, etc. SHALL all be treated as the active lifecycle flag. The columns SHALL be appended to `SHEET_HEADERS` for each tab. `validateStructure` SHALL require these columns in compliant workbooks.
+Every first-class entity tab (clients, jobs, pieces, inventory, transactions, tags, piece_items) SHALL include two lifecycle columns: `archived` and `deleted`. Both columns SHALL be string-valued (`"true"` or empty/absent). Comparison against these columns SHALL be **case-insensitive** — the values `"true"`, `"TRUE"`, `"True"`, etc. SHALL all be treated as the active lifecycle flag. The columns SHALL be appended to `SHEET_HEADERS` for each tab. `validateStructure` SHALL require these columns in compliant workbooks. The `crm_notes` and `tag_links` tabs are no longer present; notes and tag links are stored as events in `audit_log`.
 
 #### Scenario: New workbook includes lifecycle columns
 
@@ -147,13 +147,13 @@ The soft-delete action SHALL be available **only on the entity detail page** of 
 
 ### Requirement: Cascade archive and soft-delete to children
 
-Archiving or soft-deleting a parent entity SHALL cascade the same status to its children. The parent-child relationships are: client -> jobs; job -> pieces, piece_items, crm_notes (entity_type=job), tag_links (entity_type=job); piece -> piece_items. Cascaded children follow the same visibility rules as directly archived/deleted entities. **Un-archiving a parent does NOT un-archive children** -- each child must be restored individually.
+Archiving or soft-deleting a parent entity SHALL cascade the same status to its children. The parent-child relationships are: client -> jobs; job -> pieces, piece_items; piece -> piece_items. Cascaded children follow the same visibility rules as directly archived/deleted entities. **Un-archiving a parent does NOT un-archive children** -- each child must be restored individually. Each cascade operation SHALL emit an audit event with `parent_entity_name` and `parent_entity_id` set to the entity that triggered the cascade.
 
 #### Scenario: Archiving a client cascades to jobs
 
 - **WHEN** the user archives a client
 - **THEN** all jobs with `client_id` matching that client are also archived
-- **AND** each job's children (pieces, piece_items, notes, tag_links) are also archived
+- **AND** each job's children (pieces, piece_items) are also archived
 
 #### Scenario: Soft-deleting a job cascades to pieces
 
@@ -166,6 +166,12 @@ Archiving or soft-deleting a parent entity SHALL cascade the same status to its 
 - **WHEN** the user un-archives a client
 - **THEN** the client becomes active
 - **AND** its jobs remain archived until individually un-archived
+
+#### Scenario: All lifecycle actions emit audit events
+
+- **WHEN** any archive, unarchive, soft-delete, or restore operation occurs
+- **THEN** an audit event is emitted with the appropriate action
+- **AND** `before_json` and `after_json` contain the full entity state
 
 ### Requirement: Lifecycle flags persist via snapshot Save
 

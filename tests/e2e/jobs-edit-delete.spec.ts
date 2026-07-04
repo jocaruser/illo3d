@@ -23,7 +23,7 @@ test.describe('Job edit and delete', () => {
       timeout: 15000,
     })
 
-    const before = await readMockCsv(page, 'crm_notes.csv')
+    const before = await readMockCsv(page, 'audit_log.csv')
     expect(before).toContain('e2e-cascade-delete-note-marker')
     await expect(page.getByRole('row', { name: /E2E disposable job/i })).toBeVisible()
     await page.getByTestId('job-archive-J5').click()
@@ -31,7 +31,7 @@ test.describe('Job edit and delete', () => {
       .getByRole('dialog', {
         name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
       })
-      .getByRole('button', { name: /archive|archivar/i })
+      .getByRole('button', { name: /Archive|archivar/i })
       .click()
     await expect(
       page.getByRole('heading', {
@@ -45,11 +45,12 @@ test.describe('Job edit and delete', () => {
       timeout: 20000,
     })
 
-    const after = await readMockCsv(page, 'crm_notes.csv')
-    const jn5Line = after.split(/\r?\n/).find((line) => line.startsWith('JN5,'))
-    expect(jn5Line).toBeDefined()
-    expect(jn5Line).toContain('e2e-cascade-delete-note-marker')
-    expect(jn5Line).toMatch(/,true(,|$)/)
+    const after = await readMockCsv(page, 'audit_log.csv')
+    const jn5ArchiveLine = after.split(/\r?\n/).find((line) =>
+      line.includes('archive') && line.includes('JN5')
+    )
+    expect(jn5ArchiveLine).toBeDefined()
+    expect(jn5ArchiveLine).toContain('e2e-cascade-delete-note-marker')
     expect(after).toContain('JN1')
   })
 

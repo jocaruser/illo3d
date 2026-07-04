@@ -1,19 +1,14 @@
-import {
-  findLastDataRowIndexById,
-  removeDataRowAt,
-} from '@/lib/workbook/matrixOps'
-import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import { auditDelete } from '@/services/audit/auditEventEmitter'
+import { getNoteById } from '@/services/audit/reconstruct'
 
 export async function deleteJobNote(
   spreadsheetId: string,
   noteId: string,
 ): Promise<void> {
   void spreadsheetId
-  patchWorkbookTab('crm_notes', (m) => {
-    const i = findLastDataRowIndexById(m, 'crm_notes', noteId)
-    if (i === -1) {
-      throw new Error(`Job note ${noteId} not found`)
-    }
-    return removeDataRowAt(m, i)
-  })
+  const existing = getNoteById(noteId)
+  if (!existing) {
+    throw new Error(`Job note ${noteId} not found`)
+  }
+  auditDelete('crm_note', noteId, existing)
 }

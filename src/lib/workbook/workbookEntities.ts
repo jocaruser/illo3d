@@ -1,19 +1,14 @@
 import { SHEET_HEADERS, type SheetName } from '@/services/sheets/config'
-import { parseClientNoteSeverity } from '@/services/clientNote/severity'
 import { parseJobRow } from '@/services/sheets/jobs'
 import { parsePieceRow } from '@/services/sheets/pieces'
 import type {
   Client,
-  CrmNote,
-  CrmNoteEntityType,
   Inventory,
   Job,
   Lot,
   Piece,
   PieceItem,
   Tag,
-  TagEntityType,
-  TagLink,
   Transaction,
 } from '@/types/money'
 
@@ -55,41 +50,6 @@ export function matrixToPieces(matrix: string[][] | undefined): Piece[] {
     .filter((r) => r.id)
     .map((r) => parsePieceRow(r))
     .sort((a, b) => (b.created_at > a.created_at ? 1 : -1))
-}
-
-function parseCrmNoteEntityType(raw: string | undefined): CrmNoteEntityType | null {
-  const t = raw?.trim()
-  if (t === 'client' || t === 'job') return t
-  return null
-}
-
-export function matrixToCrmNotes(matrix: string[][] | undefined): CrmNote[] {
-  const raw = matrixToObjects<Record<string, string>>('crm_notes', matrix)
-  const byId = new Map<string, CrmNote>()
-  for (const r of raw) {
-    const entityType = parseCrmNoteEntityType(r.entity_type)
-    if (!entityType || !r.id?.trim() || !r.entity_id?.trim()) continue
-    const severity = parseClientNoteSeverity(r.severity)
-    if (!severity) continue
-    const note: CrmNote = {
-      id: r.id.trim(),
-      entity_type: entityType,
-      entity_id: r.entity_id.trim(),
-      body: r.body?.trim() ?? '',
-      referenced_entity_ids: r.referenced_entity_ids?.trim() ?? '',
-      severity,
-      created_at: r.created_at?.trim() ?? '',
-    }
-    if (r.archived) note.archived = r.archived
-    if (r.deleted) note.deleted = r.deleted
-    const prev = byId.get(note.id)
-    if (!prev || note.created_at >= prev.created_at) {
-      byId.set(note.id, note)
-    }
-  }
-  return Array.from(byId.values()).sort((a, b) =>
-    b.created_at > a.created_at ? 1 : -1
-  )
 }
 
 export function matrixToTransactions(
@@ -164,12 +124,6 @@ export function matrixToTags(matrix: string[][] | undefined): Tag[] {
   return raw.filter((r) => r.id?.trim() && r.name?.trim())
 }
 
-function parseTagLinkEntityType(raw: string | undefined): TagEntityType | null {
-  const s = raw?.trim()
-  if (s === 'client' || s === 'job') return s
-  return null
-}
-
 function parsePieceItemQty(value: unknown): number {
   if (typeof value === 'number') return value
   if (typeof value === 'string') return parseFloat(value)
@@ -191,23 +145,4 @@ export function matrixToPieceItems(matrix: string[][] | undefined): PieceItem[] 
     })
 }
 
-export function matrixToTagLinks(matrix: string[][] | undefined): TagLink[] {
-  const raw = matrixToObjects<Record<string, string>>('tag_links', matrix)
-  const out: TagLink[] = []
-  for (const r of raw) {
-    if (!r.id?.trim() || !r.tag_id?.trim()) continue
-    const entity_type = parseTagLinkEntityType(r.entity_type)
-    if (!entity_type || !r.entity_id?.trim()) continue
-    const link: TagLink = {
-      id: r.id.trim(),
-      tag_id: r.tag_id.trim(),
-      entity_type,
-      entity_id: r.entity_id.trim(),
-      created_at: r.created_at?.trim() ?? '',
-    }
-    if (r.archived) link.archived = r.archived
-    if (r.deleted) link.deleted = r.deleted
-    out.push(link)
-  }
-  return out
-}
+

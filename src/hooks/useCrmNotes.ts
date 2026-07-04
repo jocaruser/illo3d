@@ -3,7 +3,7 @@ import { fetchCrmNotes } from '@/services/crmNote/fetchCrmNotes'
 
 export function useCrmNotes(spreadsheetId: string | null) {
   return useQuery({
-    queryKey: ['crm_notes', spreadsheetId],
+    queryKey: ['audit_log', 'crm_notes', spreadsheetId],
     queryFn: () => fetchCrmNotes(spreadsheetId!),
     enabled: !!spreadsheetId,
   })

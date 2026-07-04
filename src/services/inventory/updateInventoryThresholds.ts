@@ -1,6 +1,7 @@
 import { updateDataRowById } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToInventory } from '@/lib/workbook/workbookEntities'
+import { auditUpdate } from '@/services/audit/auditEventEmitter'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
 export interface UpdateInventoryThresholdsPayload {
@@ -41,4 +42,5 @@ export async function updateInventoryThresholds(
   patchWorkbookTab('inventory', (m) =>
     updateDataRowById('inventory', m, inventoryId, row),
   )
+  auditUpdate('inventory', inventoryId, existing, row)
 }

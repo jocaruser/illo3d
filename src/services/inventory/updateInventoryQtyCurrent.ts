@@ -1,6 +1,7 @@
 import { updateDataRowById } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToInventory } from '@/lib/workbook/workbookEntities'
+import { auditUpdate } from '@/services/audit/auditEventEmitter'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
 function clampQtyCurrent(n: number): number {
@@ -35,4 +36,5 @@ export async function updateInventoryQtyCurrent(
   patchWorkbookTab('inventory', (m) =>
     updateDataRowById('inventory', m, inventoryId, row),
   )
+  auditUpdate('inventory', inventoryId, existing, row)
 }

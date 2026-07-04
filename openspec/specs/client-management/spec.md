@@ -140,7 +140,7 @@ The system SHALL require confirmation before archiving a client. The UI SHALL us
 - **WHEN** user confirms archiving a client
 - **THEN** the client is archived in the workbook store
 - **AND** all jobs for that client are archived
-- **AND** each job's children (pieces, piece_items, notes, tag_links) are archived
+- **AND** each job's children (pieces, piece_items) are archived
 
 ### Requirement: updateClient service operates in memory
 

@@ -47,7 +47,7 @@ describe('ClientsPage', () => {
           ['CL1', 'Test Co', '', '', '', '', '', '', '2025-01-01', '', ''],
         ],
         tags: [[...SHEET_HEADERS.tags]],
-        tag_links: [[...SHEET_HEADERS.tag_links]],
+        audit_log: [[...SHEET_HEADERS.audit_log]],
       },
     })
   })
@@ -68,7 +68,7 @@ describe('ClientsPage', () => {
       tabs: {
         clients: [[...SHEET_HEADERS.clients]],
         tags: [[...SHEET_HEADERS.tags]],
-        tag_links: [[...SHEET_HEADERS.tag_links]],
+        audit_log: [[...SHEET_HEADERS.audit_log]],
       },
     })
 

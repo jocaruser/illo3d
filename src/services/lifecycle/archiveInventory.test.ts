@@ -95,6 +95,6 @@ describe('archiveInventory', () => {
 
   it('throws when inventory missing', () => {
     resetAndSeedWorkbook({})
-    expect(() => archiveInventory('INV9')).toThrow('Inventory INV9 not found')
+    expect(() => archiveInventory('INV9')).toThrow('inventory row INV9 not found')
   })
 })

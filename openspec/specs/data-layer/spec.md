@@ -238,12 +238,12 @@ The E2E test suite SHALL include tests for the Google Drive wizard path: creatin
 
 ### Requirement: Spreadsheet is created on first use
 
-The system SHALL create a Google Spreadsheet named `illo3d-data` when the user creates a new shop via the setup wizard. The spreadsheet SHALL contain empty sheets with headers for: clients, crm_notes, tags, tag_links, jobs, pieces, piece_items, inventory, lots, transactions. The spreadsheet SHALL be moved into the shop's Drive folder after creation.
+The system SHALL create a Google Spreadsheet named `illo3d-data` when the user creates a new shop via the setup wizard. The spreadsheet SHALL contain empty sheets with headers for: clients, tags, jobs, pieces, piece_items, inventory, lots, transactions, audit_log. The spreadsheet SHALL be moved into the shop's Drive folder after creation.
 
 #### Scenario: New shop creates spreadsheet in folder
 
 - **WHEN** the user creates a new shop via the wizard
-- **THEN** system creates the spreadsheet with all required sheets and headers (including lots, excluding expenses)
+- **THEN** system creates the spreadsheet with all required sheets and headers (including lots and audit_log; excluding crm_notes, tag_links, and expenses)
 - **AND** moves the spreadsheet into the shop's Drive folder
 
 #### Scenario: Existing shop connects to its spreadsheet
@@ -354,16 +354,17 @@ The system SHALL provide a `SheetsRepository` interface with `readRows`, `append
 
 ### Requirement: SHEET_HEADERS include lifecycle columns
 
-`SHEET_HEADERS` for every tab in `SHEET_NAMES` SHALL include `archived` and `deleted` as the last two columns. `SHEET_NAMES` SHALL be: `clients`, `crm_notes`, `tags`, `tag_links`, `jobs`, `pieces`, `piece_items`, `inventory`, `lots`, `transactions`. The `expenses` entry SHALL NOT be present. **`SHEET_HEADERS.pieces` SHALL include a `price` column** (optional numeric field in the sheet, empty when unset) **before** `created_at`. `validateStructure` SHALL require these columns when checking header rows.
+`SHEET_HEADERS` for every tab in `SHEET_NAMES` except `audit_log` SHALL include `archived` and `deleted` as the last two columns. `SHEET_NAMES` SHALL be: `clients`, `tags`, `jobs`, `pieces`, `piece_items`, `inventory`, `lots`, `transactions`, `audit_log`. The `expenses`, `crm_notes`, and `tag_links` entries SHALL NOT be present. **`SHEET_HEADERS.pieces` SHALL include a `price` column** (optional numeric field in the sheet, empty when unset) **before** `created_at`. `validateStructure` SHALL require these columns when checking header rows.
 
 #### Scenario: SHEET_NAMES lists correct tabs
 
 - **WHEN** `SHEET_NAMES` is accessed
-- **THEN** it contains `lots` and does NOT contain `expenses`
+- **THEN** it contains `lots` and `audit_log`
+- **AND** it does NOT contain `expenses`, `crm_notes`, or `tag_links`
 
 #### Scenario: Headers include lifecycle columns
 
-- **WHEN** `SHEET_HEADERS` is accessed for any tab
+- **WHEN** `SHEET_HEADERS` is accessed for any tab except `audit_log`
 - **THEN** the array ends with `'archived', 'deleted'`
 
 #### Scenario: Validation rejects missing lifecycle columns
@@ -457,7 +458,7 @@ The system SHALL provide a `CsvSheetsRepository` implementation that reads from 
 
 ### Requirement: LocalSheetsRepository implements SheetsRepository via File System Access API
 
-The system SHALL provide a `LocalSheetsRepository` that implements SheetsRepository using a `FileSystemDirectoryHandle`. It SHALL read and write CSV files (one per sheet) in the directory. `createSpreadsheet` SHALL create the metadata file and CSV files with headers for all sheets (including `lots`, excluding `expenses`, and including extended `clients` headers per `SHEET_HEADERS`). This implementation SHALL be used when the user creates or opens a Local CSV shop via the directory picker.
+The system SHALL provide a `LocalSheetsRepository` that implements SheetsRepository using a `FileSystemDirectoryHandle`. It SHALL read and write CSV files (one per sheet) in the directory. `createSpreadsheet` SHALL create the metadata file and CSV files with headers for all sheets (including `lots` and `audit_log`; excluding `expenses`, `crm_notes`, and `tag_links`; and including extended `clients` headers per `SHEET_HEADERS`). This implementation SHALL be used when the user creates or opens a Local CSV shop via the directory picker.
 
 #### Scenario: LocalSheetsRepository reads rows from CSV files
 
@@ -468,8 +469,8 @@ The system SHALL provide a `LocalSheetsRepository` that implements SheetsReposit
 #### Scenario: LocalSheetsRepository creates new shop
 
 - **WHEN** LocalSheetsRepository.createSpreadsheet is called
-- **THEN** it creates `illo3d.metadata.json` and CSV files for all sheets (with header rows including `lots.csv`)
-- **AND** does NOT create `expenses.csv`
+- **THEN** it creates `illo3d.metadata.json` and CSV files for all sheets (with header rows including `lots.csv` and `audit_log.csv`)
+- **AND** does NOT create `expenses.csv`, `crm_notes.csv`, or `tag_links.csv`
 - **AND** returns an identifier for the shop (e.g. directory handle reference)
 
 #### Scenario: LocalSheetsRepository appends rows
@@ -534,19 +535,20 @@ The dev working copy SHALL live at `public/fixtures/` (gitignored). The app read
 - **AND** CsvSheetsRepository reads from `/fixtures/<folder-name>/` for that folder only
 - **AND** different scenarios (missingcolumn, happy-path, empty) are separate folders
 
-### Requirement: tags, tag_links, and crm_notes are first-class sheets
+### Requirement: tags and audit_log are first-class sheets
 
-The system SHALL treat `tags`, `tag_links`, and `crm_notes` as required sheets for workbooks that use the current application schema version, with headers exactly as defined in `SHEET_HEADERS`. Golden fixture folders SHALL include `tags.csv`, `tag_links.csv`, and `crm_notes.csv` with header rows only or sample rows as needed for tests.
+The system SHALL treat `tags` and `audit_log` as required sheets for workbooks that use the current application schema version, with headers exactly as defined in `SHEET_HEADERS`. CRM notes and tag links SHALL be persisted as immutable events inside `audit_log` (`crm_note` and `tag_link` entities). Golden fixture folders SHALL include `tags.csv` and `audit_log.csv` with header rows only or sample rows as needed for tests.
 
-#### Scenario: Fixture folder includes tag sheets
-
-- **WHEN** a golden fixture folder exists under `fixtures/`
-- **THEN** it contains `tags.csv` and `tag_links.csv` with headers matching `SHEET_HEADERS`
-
-#### Scenario: Fixture folder includes crm_notes
+#### Scenario: Fixture folder includes tag sheet
 
 - **WHEN** a golden fixture folder exists under `fixtures/`
-- **THEN** it contains `crm_notes.csv` with headers matching `SHEET_HEADERS.crm_notes`
+- **THEN** it contains `tags.csv` with headers matching `SHEET_HEADERS`
+
+#### Scenario: Fixture folder includes audit_log
+
+- **WHEN** a golden fixture folder exists under `fixtures/`
+- **THEN** it contains `audit_log.csv` with headers matching `SHEET_HEADERS.audit_log`
+- **AND** note and tag-link history is reconstructible from its rows
 
 ### Requirement: clients sheet includes extended nullable columns
 

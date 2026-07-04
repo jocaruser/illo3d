@@ -2,46 +2,37 @@
 
 ## Purpose
 
-Per-client CRM view at `/clients/:clientId`: spreadsheet-backed client header (including extended CRM fields where present), identity editing, ledger- and job-derived metrics, unified `crm_notes` sheet with multi-note CRM behavior for client-scoped rows, severities, mention linkify in bodies, and prominence UI, an **Activity** timeline merging notes, jobs, income, and tags, jobs list with links and client-scoped job creation, breadcrumbs and nav active state, and fixture coverage for notes and income-linked metrics.
+Per-client CRM view at `/clients/:clientId`: spreadsheet-backed client header (including extended CRM fields where present), identity editing, ledger- and job-derived metrics, unified `crm_note` events in the `audit_log` with multi-note CRM behavior for client-scoped rows, severities, mention linkify in bodies, and prominence UI, an **Activity** timeline merging notes, jobs, income, and tags, jobs list with links and client-scoped job creation, breadcrumbs and nav active state, and fixture coverage for notes and income-linked metrics.
 
 ## Requirements
 
-### Requirement: crm_notes sheet and CrmNote persistence for client scope
+### Requirement: CRM notes persisted as audit events for client scope
 
-The system SHALL persist CRM notes for clients and jobs in a single `crm_notes` sheet with header columns in order: `id`, `entity_type`, `entity_id`, `body`, `referenced_entity_ids`, `severity`, `created_at`. Client-scoped rows SHALL use `entity_type` `client` and `entity_id` equal to the client's id (`CL…`). Note ids for notes created from the client-note flow SHALL use an auto-incrementing `CN` prefix (CN1, CN2, …). Note ids for notes created from the job-note flow SHALL use an auto-incrementing `JN` prefix (JN1, JN2, …). The `severity` field SHALL be one of: `info`, `danger`, `warning`, `success`, `primary`, `secondary`. The `body` SHALL be plain text and MAY contain `@PREFIXid` mentions per application grammar. The `referenced_entity_ids` SHALL store a space-separated list of canonical entity ids (e.g. `CL2 JB4`) with no `@` characters, MAY be empty, and SHALL be treated as derived from `body` on create/update. The application type `ClientNote` (client-scoped view) SHALL mirror client-scoped fields for UI and services.
+The system SHALL persist CRM notes for clients and jobs as `crm_note` events in the unified `audit_log` sheet. Each event SHALL include: `id`, `entity_type`, `entity_id`, `body`, `referenced_entity_ids`, `severity`, `created_at`. Client-scoped events SHALL use `entity_type` `client` and `entity_id` equal to the client's id (`CL…`). Note ids for notes created from the client-note flow SHALL use an auto-incrementing `CN` prefix (CN1, CN2, …). Note ids for notes created from the job-note flow SHALL use an auto-incrementing `JN` prefix (JN1, JN2, …). The `severity` field SHALL be one of: `info`, `danger`, `warning`, `success`, `primary`, `secondary`. The `body` SHALL be plain text and MAY contain `@PREFIXid` mentions per application grammar. The `referenced_entity_ids` SHALL store a space-separated list of canonical entity ids (e.g. `CL2 JB4`) with no `@` characters, MAY be empty, and SHALL be treated as derived from `body` on create/update. The application type `ClientNote` (client-scoped view) SHALL mirror client-scoped fields for UI and services.
 
-#### Scenario: Client note row structure
+#### Scenario: Client note event structure
 
-- **WHEN** a client-scoped CRM note is stored in the sheet
-- **THEN** it includes id, entity_type `client`, entity_id, body, referenced_entity_ids, severity, and created_at
+- **WHEN** a client-scoped CRM note is stored in the audit log
+- **THEN** the event includes id, entity_type `client`, entity_id, body, referenced_entity_ids, severity, and created_at
 
 #### Scenario: Severity is restricted
 
 - **WHEN** a note is created or updated with an invalid severity value
-- **THEN** the operation is rejected with a user-visible or logged validation error and no row is written
-
-### Requirement: crm_notes included in spreadsheet config and validation
-
-The system SHALL register `crm_notes` in the same sheet registry used for other tabs (`SHEET_NAMES`, `SHEET_HEADERS`). New spreadsheets created by the app SHALL include the `crm_notes` tab with the header row. `validateStructure` SHALL treat a missing or malformed `crm_notes` tab like other required sheets.
-
-#### Scenario: New spreadsheet includes crm_notes
-
-- **WHEN** the app creates a new spreadsheet
-- **THEN** the workbook contains a `crm_notes` sheet with the expected headers
+- **THEN** the operation is rejected with a user-visible or logged validation error and no audit entry is written
 
 ### Requirement: CRM notes domain services and hook
 
-The system SHALL provide `fetchCrmNotes(spreadsheetId)` reading all CRM note rows across entities, filtering invalid rows, and returning `CrmNote` objects. The system SHALL provide `createClientNote`, `updateClientNote`, and `deleteClientNote` services that append, update, or delete client-scoped rows in `crm_notes` via `SheetsRepository` using the same row-index patterns as other entities. On create and update, the services SHALL compute `referenced_entity_ids` from `body` and persist it alongside `body`. The system SHALL provide `useCrmNotes(spreadsheetId)` using TanStack Query with key `['crm_notes', spreadsheetId]` and the same enabled/null pattern as `useClients`. Client detail MAY use `fetchClientNotes` as an adapter that filters `fetchCrmNotes` to client-scoped rows with the `ClientNote` shape.
+The system SHALL provide `fetchCrmNotes(spreadsheetId)` reconstructing all CRM notes from `audit_log` events, filtering invalid rows, and returning `CrmNote` objects. The system SHALL provide `createClientNote`, `updateClientNote`, and `deleteClientNote` services that emit client-scoped `crm_note` audit events. On create and update, the services SHALL compute `referenced_entity_ids` from `body` and persist it alongside `body`. The system SHALL provide `useCrmNotes(spreadsheetId)` using TanStack Query with key `['audit_log', 'crm_notes', spreadsheetId]` and the same enabled/null pattern as `useClients`. Client detail MAY use `fetchClientNotes` as an adapter that filters reconstructed notes to client-scoped rows with the `ClientNote` shape.
 
 #### Scenario: Hook loads notes when connected
 
 - **WHEN** client detail mounts with a valid spreadsheet id
 - **THEN** CRM notes data for the workbook is available to the page (via `useCrmNotes` or equivalent)
 
-#### Scenario: Create appends CN-prefixed client row
+#### Scenario: Create emits CN-prefixed client audit event
 
 - **WHEN** createClientNote is called with client id and body
-- **THEN** a new `crm_notes` row is appended with generated CN id, entity_type `client`, current ISO created_at, and referenced_entity_ids consistent with body
+- **THEN** a new `crm_note` audit event is emitted with generated CN id, entity_type `client`, current ISO created_at, and referenced_entity_ids consistent with body
 
 ### Requirement: Client detail route and access control
 
@@ -108,12 +99,12 @@ Below the header, the system SHALL display a metrics strip with at least: **Paid
 
 ### Requirement: Client notes UI and severity prominence
 
-The system SHALL render a notes section with inline add, per-row edit, per-row delete, plain `body` input, and severity selector. Notes SHALL be filtered to `crm_notes` rows where `entity_type` is `client` and `entity_id` matches the page’s client. When displaying note bodies (list, previews, or read-only states), the system SHALL render `@PREFIXid` tokens using the shared linkify behavior with entity-name labels when available and safe fallbacks otherwise. When any visible note has `severity` other than `info` or `secondary`, the page SHALL also render a **severity strip** (badges or alerts) above or beside the list so important notes remain obvious without relying on tabs alone.
+The system SHALL render a notes section with inline add, per-row edit, per-row delete, plain `body` input, and severity selector. Notes SHALL be reconstructed from `crm_note` audit events where `entity_type` is `client` and `entity_id` matches the page’s client. When displaying note bodies (list, previews, or read-only states), the system SHALL render `@PREFIXid` tokens using the shared linkify behavior with entity-name labels when available and safe fallbacks otherwise. When any visible note has `severity` other than `info` or `secondary`, the page SHALL also render a **severity strip** (badges or alerts) above or beside the list so important notes remain obvious without relying on tabs alone.
 
 #### Scenario: User adds a note inline
 
 - **WHEN** user enters body and severity and saves a new note
-- **THEN** a `crm_notes` row is created for that client and the list updates
+- **THEN** a `crm_note` audit event is created for that client and the list updates
 - **AND** referenced_entity_ids matches mentions parsed from body
 
 #### Scenario: Danger note is prominent
@@ -162,14 +153,14 @@ All new user-visible strings on the client detail page (metrics labels, notes se
 - **WHEN** client detail renders
 - **THEN** Paid (ledger) and Outstanding (jobs) strings come from i18n keys
 
-### Requirement: Happy-path fixtures include crm_notes and sample income
+### Requirement: Happy-path fixtures include audit_log and sample income
 
-The happy-path fixture data SHALL include a `crm_notes.csv` whose header row matches `SHEET_HEADERS.crm_notes` and SHALL include at least one client-scoped row for an existing client with a non-empty `referenced_entity_ids` when the body contains mentions. The folder SHALL extend `transactions.csv` (and jobs if needed) so at least one income row has `client_id` matching a fixture client for metric testing.
+The happy-path fixture data SHALL include an `audit_log.csv` whose header row matches `SHEET_HEADERS.audit_log` and SHALL include at least one `crm_note` event scoped to an existing client with a non-empty `referenced_entity_ids` when the body contains mentions. The folder SHALL extend `transactions.csv` (and jobs if needed) so at least one income row has `client_id` matching a fixture client for metric testing.
 
 #### Scenario: Fixture has client CRM note
 
 - **WHEN** tests load happy-path fixtures
-- **THEN** crm_notes contains at least one valid client-scoped row linked to a fixture client
+- **THEN** audit_log contains at least one valid `crm_note` event scoped to a fixture client
 
 ### Requirement: Client activity timeline section
 
@@ -189,17 +180,17 @@ The client detail page SHALL render an **Activity** section (title SHALL be i18n
 
 The timeline SHALL include entries derived only from the following sources, scoped to the viewed client and **active** rows (the same `archived` / `deleted` string semantics as `excludeArchivedDeleted`: exclude when value is `"true"`):
 
-1. **Client CRM notes** — `crm_notes` with `entity_type` `client` and `entity_id` equal to `:clientId`; event time SHALL be `created_at`.
-2. **Job CRM notes** — `crm_notes` with `entity_type` `job` and `entity_id` equal to a job id whose `client_id` is `:clientId`; event time SHALL be `created_at`.
+1. **Client CRM notes** — `crm_note` events in `audit_log` with `entity_type` `client` and `entity_id` equal to `:clientId`; event time SHALL be `created_at`.
+2. **Job CRM notes** — `crm_note` events in `audit_log` with `entity_type` `job` and `entity_id` equal to a job id whose `client_id` is `:clientId`; event time SHALL be `created_at`.
 3. **Job created** — one entry per qualifying job with `client_id` equal to `:clientId`; event time SHALL be `jobs.created_at`; the row SHALL link to `/jobs/:jobId` and MAY surface the job’s **current** `status` as secondary text (i18n).
 4. **Income transactions** — `transactions` with `type` `income` and `client_id` equal to `:clientId`; event time SHALL be derived from `date`; the row SHALL show amount and concept and SHALL deep-link when `ref_type` and `ref_id` resolve to an in-app entity route consistent with existing money-tracking link behavior.
-5. **Client tag links** — `tag_links` with `entity_type` `client` and `entity_id` equal to `:clientId`; event time SHALL be `created_at`; the row SHALL show the tag’s display name when the tag row resolves, with a non-crashing fallback when it does not.
+5. **Client tag links** — `tag_link` events in `audit_log` with `entity_type` `client` and `entity_id` equal to `:clientId`; event time SHALL be `created_at`; the row SHALL show the tag’s display name when the tag row resolves, with a non-crashing fallback when it does not.
 
 The timeline SHALL NOT synthesize job status **change** history, piece lifecycle events, or purchase/expense rows that are not client-scoped.
 
 #### Scenario: Job note from another client is excluded
 
-- **WHEN** a `crm_notes` row exists for `entity_type` `job` and a job whose `client_id` differs from `:clientId`
+- **WHEN** a `crm_note` event exists for `entity_type` `job` and a job whose `client_id` differs from `:clientId`
 - **THEN** that note does not appear on this client’s timeline
 
 #### Scenario: Archived job excluded
@@ -247,3 +238,11 @@ The happy-path fixtures SHALL be extended so at least one client has a **non-emp
 
 - **WHEN** tests load happy-path fixtures
 - **THEN** at least one client qualifies for a multi-entry timeline without ad-hoc test-only sheet injection
+
+## REMOVED Requirements
+
+### Requirement: crm_notes as a first-class sheet
+
+**Reason**: CRM notes are now stored as immutable `crm_note` events in the `audit_log` sheet.
+
+**Migration**: Existing `crm_notes` data is migrated to `audit_log` as create events during the v2.0.0 migration.

@@ -47,9 +47,8 @@ describe('CsvSheetsRepository', () => {
     const names = await repo.getSheetNames('csv-fixture-happy-path')
     expect(names).toContain('transactions')
     expect(names).toContain('clients')
-    expect(names).toContain('crm_notes')
     expect(names).toContain('tags')
-    expect(names).toContain('tag_links')
+    expect(names).toContain('audit_log')
     expect(names).toContain('lots')
   })
 
@@ -210,9 +209,7 @@ describe('CsvSheetsRepository', () => {
     )
   })
 
-  it('does not parse quoted commas: split(",") treats "Acme, Inc." as two columns', async () => {
-    // Fixtures must not use embedded commas inside quoted values.
-    // See public/fixtures/README.md for the fixture convention.
+  it('parses quoted commas correctly', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       text: () =>
@@ -222,10 +219,9 @@ describe('CsvSheetsRepository', () => {
     const repo = new CsvSheetsRepository('happy-path')
     const rows = await repo.readRows('csv-fixture-happy-path', 'clients')
 
-    // With split(','), "Acme, Inc." becomes two values: '"Acme' and ' Inc."'
     expect(rows[0]).toMatchObject({
       id: 'c1',
-      name: '"Acme', // First column only; " Inc."' goes to next header
+      name: 'Acme, Inc.',
     })
   })
 })

@@ -12,36 +12,6 @@ Table clients {
   deleted varchar
 }
 
-Table crm_notes {
-  id varchar [pk]
-  entity_type varchar [not null, note: 'client | job']
-  entity_id varchar [not null]
-  body varchar [not null]
-  referenced_entity_ids varchar
-  severity varchar [note: 'info | danger | warning | success | primary | secondary']
-  created_at varchar [not null]
-  archived varchar
-  deleted varchar
-}
-
-Table tags {
-  id varchar [pk]
-  name varchar [not null]
-  created_at varchar [not null]
-  archived varchar
-  deleted varchar
-}
-
-Table tag_links {
-  id varchar [pk]
-  tag_id varchar [not null, ref: > tags.id]
-  entity_type varchar [not null, note: 'client | job']
-  entity_id varchar [not null]
-  created_at varchar [not null]
-  archived varchar
-  deleted varchar
-}
-
 Table jobs {
   id varchar [pk]
   client_id varchar [not null, ref: > clients.id]
@@ -114,6 +84,27 @@ Table transactions {
   deleted varchar
 }
 
+Table tags {
+  id varchar [pk]
+  name varchar [not null]
+  created_at varchar [not null]
+  archived varchar
+  deleted varchar
+}
+
+Table audit_log {
+  id varchar [pk, note: 'unique audit entry id']
+  timestamp varchar [not null, note: 'ISO 8601 timestamp']
+  actor varchar [not null, note: 'user email or "local"']
+  entity_name varchar [not null, note: 'client | job | piece | piece_item | inventory | lot | transaction | tag | tag_link | crm_note']
+  entity_id varchar [not null, note: 'id of the affected row']
+  action varchar [not null, note: 'create | update | delete | archive | unarchive | soft_delete | restore']
+  before_json varchar [note: 'full row state before mutation, null for create']
+  after_json varchar [note: 'full row state after mutation, null for delete']
+  parent_entity_name varchar [note: 'entity type that triggered this cascade, null for root operations']
+  parent_entity_id varchar [note: 'entity id that triggered this cascade, null for root operations']
+}
+
 Ref: jobs.client_id > clients.id
 Ref: pieces.job_id > jobs.id
 Ref: piece_items.piece_id > pieces.id
@@ -121,4 +112,3 @@ Ref: piece_items.inventory_id > inventory.id
 Ref: lots.inventory_id > inventory.id
 Ref: lots.transaction_id > transactions.id
 Ref: transactions.client_id > clients.id
-Ref: tag_links.tag_id > tags.id

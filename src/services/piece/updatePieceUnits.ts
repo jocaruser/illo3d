@@ -1,6 +1,7 @@
 import { updateDataRowById } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToPieces } from '@/lib/workbook/workbookEntities'
+import { auditUpdate } from '@/services/audit/auditEventEmitter'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
 export async function updatePieceUnits(
@@ -15,9 +16,18 @@ export async function updatePieceUnits(
     throw new Error(`Piece ${pieceId} not found`)
   }
 
-  patchWorkbookTab('pieces', (m) =>
-    updateDataRowById('pieces', m, pieceId, {
-      units: units === undefined ? '' : units,
-    }),
-  )
+  const row = {
+    id: existing.id,
+    job_id: existing.job_id,
+    name: existing.name,
+    status: existing.status,
+    price: existing.price ?? '',
+    units: units === undefined ? '' : units,
+    created_at: existing.created_at,
+    archived: existing.archived ?? '',
+    deleted: existing.deleted ?? '',
+  }
+
+  patchWorkbookTab('pieces', (m) => updateDataRowById('pieces', m, pieceId, row))
+  auditUpdate('piece', pieceId, existing, row)
 }

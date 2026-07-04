@@ -1,18 +1,20 @@
-import { useId, useMemo, useState, useEffect, useRef } from 'react'
+import { useId, useMemo, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useShopStore } from '@/stores/shopStore'
 import { useWorkbookStore } from '@/stores/workbookStore'
 import {
   matrixToClients,
-  matrixToCrmNotes,
   matrixToInventory,
   matrixToJobs,
   matrixToPieces,
-  matrixToTagLinks,
   matrixToTags,
   matrixToTransactions,
 } from '@/lib/workbook/workbookEntities'
+import {
+  getAllCurrentNotes,
+  getAllCurrentTagLinks,
+} from '@/services/audit/reconstruct'
 import { excludeArchivedDeleted } from '@/lib/globalSearch/activeEntities'
 import { buildGlobalSearchRows } from '@/lib/globalSearch/buildRows'
 import { selectGlobalSearchResults } from '@/lib/globalSearch/selectResults'
@@ -23,7 +25,6 @@ export function GlobalHeaderSearch() {
   const navigate = useNavigate()
   const listboxId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
-  const blurTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const spreadsheetId = useShopStore((s) => s.activeShop?.spreadsheetId ?? null)
   const workbookReady = useWorkbookStore((s) => s.status === 'ready')
@@ -43,11 +44,11 @@ export function GlobalHeaderSearch() {
       clients: excludeArchivedDeleted(matrixToClients(tabs.clients)),
       jobs: excludeArchivedDeleted(matrixToJobs(tabs.jobs)),
       pieces: excludeArchivedDeleted(matrixToPieces(tabs.pieces)),
-      crmNotes: excludeArchivedDeleted(matrixToCrmNotes(tabs.crm_notes)),
+      crmNotes: excludeArchivedDeleted(getAllCurrentNotes()),
       transactions: excludeArchivedDeleted(matrixToTransactions(tabs.transactions)),
       inventory: excludeArchivedDeleted(matrixToInventory(tabs.inventory)),
       tags: excludeArchivedDeleted(matrixToTags(tabs.tags)),
-      tagLinks: excludeArchivedDeleted(matrixToTagLinks(tabs.tag_links)),
+      tagLinks: excludeArchivedDeleted(getAllCurrentTagLinks()),
     }),
     [tabs],
   )
@@ -92,35 +93,19 @@ export function GlobalHeaderSearch() {
 
   const showPanel = open && trimmed.length >= 2
 
-  useEffect(() => {
-    return () => {
-      if (blurTimeout.current) {
-        clearTimeout(blurTimeout.current)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    setActiveIdx(-1)
-  }, [query])
-
   const go = (hit: GlobalSearchHit) => {
     navigate(hit.navigateTo)
     setOpen(false)
   }
 
-  const handleBlurContainer = () => {
-    blurTimeout.current = setTimeout(() => {
-      if (!containerRef.current?.contains(document.activeElement)) {
-        setOpen(false)
-      }
-    }, 150)
+  const handleQueryChange = (value: string) => {
+    setQuery(value)
+    setActiveIdx(-1)
   }
 
-  const handleFocusContainer = () => {
-    if (blurTimeout.current) {
-      clearTimeout(blurTimeout.current)
-      blurTimeout.current = null
+  const handleBlurContainer = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+      setOpen(false)
     }
   }
 
@@ -133,20 +118,17 @@ export function GlobalHeaderSearch() {
       ref={containerRef}
       className="relative w-full"
       onBlurCapture={handleBlurContainer}
-      onFocusCapture={handleFocusContainer}
     >
       <input
         id={`${listboxId}-input`}
         type="search"
-        role="combobox"
-        aria-expanded={showPanel}
         aria-controls={listboxId}
         aria-autocomplete="list"
         aria-activedescendant={activeIdx >= 0 && results[activeIdx] ? `${listboxId}-option-${results[activeIdx].kind}-${results[activeIdx].id}` : undefined}
         data-testid="global-header-search"
         value={query}
         onChange={(e) => {
-          setQuery(e.target.value)
+          handleQueryChange(e.target.value)
           setOpen(true)
         }}
         onFocus={() => {
@@ -181,23 +163,22 @@ export function GlobalHeaderSearch() {
         className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
       />
       {showPanel ? (
-        <ul
+        <div
           id={listboxId}
           data-testid="global-search-listbox"
-          role="listbox"
           aria-label={t('globalSearch.listLabel')}
           className="absolute z-50 mt-1 max-h-80 w-full overflow-auto rounded-lg border border-border bg-surface-elevated py-1 shadow-lg"
         >
           {results.length === 0 ? (
-            <li
+            <div
               role="presentation"
               className="px-3 py-2 text-sm text-text-muted/60"
             >
               {t('globalSearch.noResults')}
-            </li>
+            </div>
           ) : (
             results.map((hit, idx) => (
-              <li key={`${hit.kind}-${hit.id}`} role="presentation">
+              <div key={`${hit.kind}-${hit.id}`} role="presentation">
                 <button
                   id={`${listboxId}-option-${hit.kind}-${hit.id}`}
                   type="button"
@@ -221,10 +202,10 @@ export function GlobalHeaderSearch() {
                     </span>
                   ) : null}
                 </button>
-              </li>
+              </div>
             ))
           )}
-        </ul>
+        </div>
       ) : null}
     </div>
   )
