@@ -230,7 +230,7 @@ jobs:
 
       - name: Start dev server in background
         run: |
-          docker compose exec -d app pnpm dev --host
+          docker compose exec -d app sh -c 'VITE_E2E=true pnpm dev --host'
           # Wait for dev server to be ready
           for i in {1..60}; do
             if docker compose exec app wget -q -O- http://127.0.0.1:5173/ >/dev/null 2>&1; then
