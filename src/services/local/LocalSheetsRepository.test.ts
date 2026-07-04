@@ -93,9 +93,8 @@ describe('LocalSheetsRepository', () => {
 
     expect(names).toContain('transactions')
     expect(names).toContain('clients')
-    expect(names).toContain('crm_notes')
     expect(names).toContain('tags')
-    expect(names).toContain('tag_links')
+    expect(names).toContain('audit_log')
     expect(names).toContain('lots')
   })
 

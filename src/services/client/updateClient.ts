@@ -1,6 +1,7 @@
 import { updateDataRowById } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToClients } from '@/lib/workbook/workbookEntities'
+import { auditUpdate } from '@/services/audit/auditEventEmitter'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
 export interface UpdateClientPayload {
@@ -41,4 +42,5 @@ export async function updateClient(
   patchWorkbookTab('clients', (m) =>
     updateDataRowById('clients', m, clientId, row),
   )
+  auditUpdate('client', clientId, existing, row)
 }

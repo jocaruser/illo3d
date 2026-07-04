@@ -1,6 +1,7 @@
 import { appendDataRow } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToClients } from '@/lib/workbook/workbookEntities'
+import { auditCreate } from '@/services/audit/auditEventEmitter'
 import { nextNumericId } from '@/utils/id'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
@@ -44,5 +45,6 @@ export async function createClient(
   }
 
   patchWorkbookTab('clients', (m) => appendDataRow('clients', m, row))
+  auditCreate('client', clientId, row)
   return clientId
 }

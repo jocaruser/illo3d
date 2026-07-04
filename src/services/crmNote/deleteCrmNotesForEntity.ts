@@ -1,22 +1,16 @@
-import { headerIndex } from '@/lib/workbook/matrixOps'
-import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import { auditDelete } from '@/services/audit/auditEventEmitter'
+import { getCurrentNotesForEntity } from '@/services/audit/reconstruct'
+import type { CrmNoteEntityType } from '@/types/money'
 
 export async function deleteCrmNotesForEntity(
   spreadsheetId: string,
-  entityType: string,
+  entityType: CrmNoteEntityType,
   entityId: string
 ): Promise<void> {
   void spreadsheetId
-  const typeKey = entityType.trim()
-  const idKey = entityId.trim()
-  patchWorkbookTab('crm_notes', (m) => {
-    const et = headerIndex('crm_notes', 'entity_type')
-    const eid = headerIndex('crm_notes', 'entity_id')
-    return m.filter(
-      (row, i) =>
-        i === 0 ||
-        (row[et] ?? '').trim() !== typeKey ||
-        (row[eid] ?? '').trim() !== idKey,
-    )
-  })
+  const notes = getCurrentNotesForEntity(entityType, entityId)
+  for (const note of notes) {
+    if (note.deleted) continue
+    auditDelete('crm_note', note.id, note)
+  }
 }

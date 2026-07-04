@@ -1,6 +1,7 @@
 import { appendDataRow } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToJobs } from '@/lib/workbook/workbookEntities'
+import { auditCreate } from '@/services/audit/auditEventEmitter'
 import { compareJobsForKanban } from '@/utils/kanbanJobSort'
 import { nextNumericId } from '@/utils/id'
 import { useWorkbookStore } from '@/stores/workbookStore'
@@ -30,18 +31,19 @@ export async function createJob(
   )
   const boardOrder = maxOrder + 1000
 
-  patchWorkbookTab('jobs', (m) =>
-    appendDataRow('jobs', m, {
-      id: jobId,
-      client_id: payload.client_id,
-      description: payload.description,
-      status: 'draft',
-      price: '',
-      board_order: boardOrder,
-      created_at: createdAt,
-      archived: '',
-      deleted: '',
-    }),
-  )
+  const row = {
+    id: jobId,
+    client_id: payload.client_id,
+    description: payload.description,
+    status: 'draft',
+    price: '',
+    board_order: boardOrder,
+    created_at: createdAt,
+    archived: '',
+    deleted: '',
+  }
+
+  patchWorkbookTab('jobs', (m) => appendDataRow('jobs', m, row))
+  auditCreate('job', jobId, row)
   return jobId
 }

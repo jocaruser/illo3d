@@ -419,7 +419,7 @@ The system SHALL provide an `updateJob(spreadsheetId, jobId, payload)` service t
 
 ### Requirement: Job archive cascades to children
 
-Archiving a job SHALL cascade archive to all its pieces, piece_items, crm_notes (entity_type=job), and tag_links (entity_type=job) in the workbook store. All operations are in-memory only.
+Archiving a job SHALL cascade archive to all its pieces and piece_items in the workbook store. All operations are in-memory only.
 
 #### Scenario: Archive job cascades
 
@@ -427,8 +427,6 @@ Archiving a job SHALL cascade archive to all its pieces, piece_items, crm_notes 
 - **THEN** the job's `archived` is set to `"true"`
 - **AND** all pieces for that job are archived
 - **AND** all piece_items for those pieces are archived
-- **AND** all crm_notes with entity_type=job and matching entity_id are archived
-- **AND** all tag_links with entity_type=job and matching entity_id are archived
 
 ### Requirement: Job detail shows archive and soft-delete actions
 

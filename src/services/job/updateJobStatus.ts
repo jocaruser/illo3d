@@ -1,6 +1,7 @@
 import { appendDataRow, updateDataRowById } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToJobs, matrixToTransactions } from '@/lib/workbook/workbookEntities'
+import { auditCreate, auditUpdate } from '@/services/audit/auditEventEmitter'
 import { jobToJobsSheetRow } from '@/services/job/jobsSheetRow'
 import { nextNumericId } from '@/utils/id'
 import { useWorkbookStore } from '@/stores/workbookStore'
@@ -37,9 +38,9 @@ export async function updateJobStatus(
     nextJob = { ...nextJob, status: 'paid' }
   }
 
-  patchWorkbookTab('jobs', (m) =>
-    updateDataRowById('jobs', m, job.id, jobToJobsSheetRow(nextJob)),
-  )
+  const jobRow = jobToJobsSheetRow(nextJob)
+  patchWorkbookTab('jobs', (m) => updateDataRowById('jobs', m, job.id, jobRow))
+  auditUpdate('job', job.id, jobToJobsSheetRow(current), jobRow)
 
   if (newStatus !== 'paid') {
     return nextJob
@@ -58,22 +59,25 @@ export async function updateJobStatus(
   )
   const today = new Date().toISOString().slice(0, 10)
 
+  const transactionRow = {
+    id: transactionId,
+    date: today,
+    type: 'income',
+    amount,
+    category: 'job',
+    concept: nextJob.description,
+    ref_type: 'job',
+    ref_id: nextJob.id,
+    client_id: nextJob.client_id ?? '',
+    notes: '',
+    archived: '',
+    deleted: '',
+  }
+
   patchWorkbookTab('transactions', (m) =>
-    appendDataRow('transactions', m, {
-      id: transactionId,
-      date: today,
-      type: 'income',
-      amount,
-      category: 'job',
-      concept: nextJob.description,
-      ref_type: 'job',
-      ref_id: nextJob.id,
-      client_id: nextJob.client_id ?? '',
-      notes: '',
-      archived: '',
-      deleted: '',
-    }),
+    appendDataRow('transactions', m, transactionRow),
   )
+  auditCreate('transaction', transactionId, transactionRow)
 
   return nextJob
 }

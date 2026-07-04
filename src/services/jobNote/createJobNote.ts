@@ -1,13 +1,10 @@
-import { appendDataRow } from '@/lib/workbook/matrixOps'
-import { patchWorkbookTab } from '@/lib/workbook/patchTab'
-import { matrixToCrmNotes } from '@/lib/workbook/workbookEntities'
+import { auditCreate, getExistingIdsForEntity } from '@/services/audit/auditEventEmitter'
 import { nextNumericId } from '@/utils/id'
 import { assertClientNoteSeverity } from '@/services/clientNote/severity'
 import {
   formatReferencedEntityIdsCell,
   parseMentionEntityIdsFromText,
 } from '@/utils/mentionTokens'
-import { useWorkbookStore } from '@/stores/workbookStore'
 
 export interface CreateJobNotePayload {
   job_id: string
@@ -20,10 +17,9 @@ export async function createJobNote(
   payload: CreateJobNotePayload,
 ): Promise<void> {
   void spreadsheetId
-  const existing = matrixToCrmNotes(useWorkbookStore.getState().tabs.crm_notes)
   const noteId = nextNumericId(
     'JN',
-    existing.map((r) => r.id).filter((id): id is string => id != null),
+    getExistingIdsForEntity('crm_note', 'JN'),
   )
   const severity = assertClientNoteSeverity(payload.severity)
   const body = payload.body.trim()
@@ -31,17 +27,15 @@ export async function createJobNote(
     parseMentionEntityIdsFromText(body),
   )
   const createdAt = new Date().toISOString()
-  patchWorkbookTab('crm_notes', (m) =>
-    appendDataRow('crm_notes', m, {
-      id: noteId,
-      entity_type: 'job',
-      entity_id: payload.job_id.trim(),
-      body,
-      referenced_entity_ids,
-      severity,
-      created_at: createdAt,
-      archived: '',
-      deleted: '',
-    }),
-  )
+  auditCreate('crm_note', noteId, {
+    id: noteId,
+    entity_type: 'job',
+    entity_id: payload.job_id.trim(),
+    body,
+    referenced_entity_ids,
+    severity,
+    created_at: createdAt,
+    archived: '',
+    deleted: '',
+  })
 }

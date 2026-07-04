@@ -1,4 +1,5 @@
 import { SHEET_HEADERS, type SheetName } from './config'
+import { parseCsvLine } from './csvParse'
 
 export function emptySheetMatrix(sheetName: SheetName): string[][] {
   return [SHEET_HEADERS[sheetName].map(String)]
@@ -39,7 +40,7 @@ export function normalizeSheetMatrixFromCsvLines(
   }
   const normalized = lines.map((line) =>
     padSheetRow(
-      line.split(',').map((v) => v.trim()),
+      parseCsvLine(line).map((v) => v.trim()),
       width
     )
   )

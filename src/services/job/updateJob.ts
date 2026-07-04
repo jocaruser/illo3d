@@ -1,6 +1,7 @@
 import { updateDataRowById } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToJobs } from '@/lib/workbook/workbookEntities'
+import { auditUpdate } from '@/services/audit/auditEventEmitter'
 import { jobToJobsSheetRow } from '@/services/job/jobsSheetRow'
 import { useWorkbookStore } from '@/stores/workbookStore'
 import type { Job } from '@/types/money'
@@ -27,7 +28,7 @@ export async function updateJob(
     client_id: payload.client_id,
   }
 
-  patchWorkbookTab('jobs', (m) =>
-    updateDataRowById('jobs', m, jobId, jobToJobsSheetRow(next)),
-  )
+  const row = jobToJobsSheetRow(next)
+  patchWorkbookTab('jobs', (m) => updateDataRowById('jobs', m, jobId, row))
+  auditUpdate('job', jobId, jobToJobsSheetRow(existing), row)
 }

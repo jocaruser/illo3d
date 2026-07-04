@@ -72,12 +72,12 @@ describe('Layout', () => {
     qc.setQueryData(['clients', sid], [])
     qc.setQueryData(['jobs', sid], [])
     qc.setQueryData(['pieces', sid], [])
-    qc.setQueryData(['crm_notes', sid], [])
+    qc.setQueryData(['audit_log', 'crm_notes', sid], [])
     qc.setQueryData(['transactions', sid], [])
     qc.setQueryData(['lots', sid], [])
     qc.setQueryData(['inventory', sid], [])
     qc.setQueryData(['tags', sid], [])
-    qc.setQueryData(['tag_links', sid], [])
+    qc.setQueryData(['audit_log', 'tag_links', sid], [])
     useAuthStore.setState({
       isAuthenticated: true,
       user: { email: 'a@b.com', name: 'Test' },

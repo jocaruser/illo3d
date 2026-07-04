@@ -64,20 +64,6 @@ export interface CrmNote {
   deleted?: string
 }
 
-export interface Client {
-  id: string
-  name: string
-  email?: string
-  phone?: string
-  notes?: string
-  preferred_contact?: string
-  lead_source?: string
-  address?: string
-  created_at: string
-  archived?: string
-  deleted?: string
-}
-
 export type TagEntityType = 'client' | 'job'
 
 export interface Tag {
@@ -93,6 +79,54 @@ export interface TagLink {
   tag_id: string
   entity_type: TagEntityType
   entity_id: string
+  created_at: string
+  archived?: string
+  deleted?: string
+}
+
+export type AuditAction =
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'archive'
+  | 'unarchive'
+  | 'soft_delete'
+  | 'restore'
+
+export type AuditEntityName =
+  | 'client'
+  | 'job'
+  | 'piece'
+  | 'piece_item'
+  | 'inventory'
+  | 'lot'
+  | 'transaction'
+  | 'tag'
+  | 'tag_link'
+  | 'crm_note'
+
+export interface AuditLogEntry {
+  id: string
+  timestamp: string
+  actor: string
+  entity_name: AuditEntityName
+  entity_id: string
+  action: AuditAction
+  before_json: string | null
+  after_json: string | null
+  parent_entity_name: AuditEntityName | null
+  parent_entity_id: string | null
+}
+
+export interface Client {
+  id: string
+  name: string
+  email?: string
+  phone?: string
+  notes?: string
+  preferred_contact?: string
+  lead_source?: string
+  address?: string
   created_at: string
   archived?: string
   deleted?: string

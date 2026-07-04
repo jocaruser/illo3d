@@ -1,6 +1,7 @@
 import { appendDataRow } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToPieces } from '@/lib/workbook/workbookEntities'
+import { auditCreate } from '@/services/audit/auditEventEmitter'
 import { nextNumericId } from '@/utils/id'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
@@ -27,17 +28,18 @@ export async function createPiece(
       ? payload.price
       : ''
 
-  patchWorkbookTab('pieces', (m) =>
-    appendDataRow('pieces', m, {
-      id: pieceId,
-      job_id: payload.job_id,
-      name: payload.name.trim(),
-      status: 'pending',
-      price: priceCell,
-      units: '',
-      created_at: createdAt,
-      archived: '',
-      deleted: '',
-    }),
-  )
+  const row = {
+    id: pieceId,
+    job_id: payload.job_id,
+    name: payload.name.trim(),
+    status: 'pending',
+    price: priceCell,
+    units: '',
+    created_at: createdAt,
+    archived: '',
+    deleted: '',
+  }
+
+  patchWorkbookTab('pieces', (m) => appendDataRow('pieces', m, row))
+  auditCreate('piece', pieceId, row)
 }

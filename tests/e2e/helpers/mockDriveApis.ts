@@ -138,7 +138,7 @@ export async function mockDriveApis(
   options: DriveApisMockOptions = {},
 ): Promise<void> {
   const pasteMode: PasteFolderMockMode = options.pasteFolderMode ?? 'off'
-  const metadataVersion = pasteMode === 'bad_version' ? '2.0.0' : '1.0.0'
+  const metadataVersion = pasteMode === 'bad_version' ? '1.0.0' : '2.0.0'
 
   await page.route(
     (url: URL) => {

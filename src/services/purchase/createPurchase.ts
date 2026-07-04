@@ -5,6 +5,7 @@ import {
   matrixToLots,
   matrixToTransactions,
 } from '@/lib/workbook/workbookEntities'
+import { auditCreate, auditUpdate } from '@/services/audit/auditEventEmitter'
 import { nextNumericId } from '@/utils/id'
 import { useWorkbookStore } from '@/stores/workbookStore'
 import type { InventoryType, PurchaseCategory } from '@/types/money'
@@ -68,22 +69,25 @@ export async function createPurchase(
   const trimmedNotes = payload.notes?.trim() ?? ''
   const concept = trimmedNotes !== '' ? trimmedNotes : payload.category
 
+  const transactionRow = {
+    id: transactionId,
+    date: payload.date,
+    type: 'expense',
+    amount: -Math.abs(total),
+    category: payload.category,
+    concept,
+    ref_type: '',
+    ref_id: '',
+    client_id: '',
+    notes: payload.notes ?? '',
+    archived: '',
+    deleted: '',
+  }
+
   patchWorkbookTab('transactions', (m) =>
-    appendDataRow('transactions', m, {
-      id: transactionId,
-      date: payload.date,
-      type: 'expense',
-      amount: -Math.abs(total),
-      category: payload.category,
-      concept,
-      ref_type: '',
-      ref_id: '',
-      client_id: '',
-      notes: payload.notes ?? '',
-      archived: '',
-      deleted: '',
-    }),
+    appendDataRow('transactions', m, transactionRow),
   )
+  auditCreate('transaction', transactionId, transactionRow)
 
   if (!payload.addToInventory) return transactionId
 
@@ -98,36 +102,38 @@ export async function createPurchase(
           (r) => r.id,
         ),
       )
+      const inventoryRow = {
+        id: inventoryId,
+        type: line.type,
+        name: line.name.trim(),
+        qty_current: line.quantity,
+        warn_yellow: 0,
+        warn_orange: 0,
+        warn_red: 0,
+        created_at: now,
+        archived: '',
+        deleted: '',
+      }
       patchWorkbookTab('inventory', (m) =>
-        appendDataRow('inventory', m, {
-          id: inventoryId,
-          type: line.type,
-          name: line.name.trim(),
-          qty_current: line.quantity,
-          warn_yellow: 0,
-          warn_orange: 0,
-          warn_red: 0,
-          created_at: now,
-          archived: '',
-          deleted: '',
-        }),
+        appendDataRow('inventory', m, inventoryRow),
       )
+      auditCreate('inventory', inventoryId, inventoryRow)
       const lotId = nextNumericId(
         'L',
         matrixToLots(useWorkbookStore.getState().tabs.lots).map((l) => l.id),
       )
-      patchWorkbookTab('lots', (m) =>
-        appendDataRow('lots', m, {
-          id: lotId,
-          inventory_id: inventoryId,
-          transaction_id: transactionId,
-          quantity: line.quantity,
-          amount: line.amount,
-          created_at: now,
-          archived: '',
-          deleted: '',
-        }),
-      )
+      const lotRow = {
+        id: lotId,
+        inventory_id: inventoryId,
+        transaction_id: transactionId,
+        quantity: line.quantity,
+        amount: line.amount,
+        created_at: now,
+        archived: '',
+        deleted: '',
+      }
+      patchWorkbookTab('lots', (m) => appendDataRow('lots', m, lotRow))
+      auditCreate('lot', lotId, lotRow)
       continue
     }
 
@@ -135,36 +141,38 @@ export async function createPurchase(
     const inv = invList.find((i) => i.id === line.inventoryId)
     if (!inv) throw new Error(`Inventory ${line.inventoryId} not found`)
     const nextQty = inv.qty_current + line.quantity
+    const inventoryRow = {
+      id: inv.id,
+      type: inv.type,
+      name: inv.name,
+      qty_current: nextQty,
+      warn_yellow: inv.warn_yellow,
+      warn_orange: inv.warn_orange,
+      warn_red: inv.warn_red,
+      created_at: inv.created_at,
+      archived: inv.archived ?? '',
+      deleted: inv.deleted ?? '',
+    }
     patchWorkbookTab('inventory', (m) =>
-      updateDataRowById('inventory', m, line.inventoryId, {
-        id: inv.id,
-        type: inv.type,
-        name: inv.name,
-        qty_current: nextQty,
-        warn_yellow: inv.warn_yellow,
-        warn_orange: inv.warn_orange,
-        warn_red: inv.warn_red,
-        created_at: inv.created_at,
-        archived: inv.archived ?? '',
-        deleted: inv.deleted ?? '',
-      }),
+      updateDataRowById('inventory', m, line.inventoryId, inventoryRow),
     )
+    auditUpdate('inventory', line.inventoryId, inv, inventoryRow)
     const lotId = nextNumericId(
       'L',
       matrixToLots(useWorkbookStore.getState().tabs.lots).map((l) => l.id),
     )
-    patchWorkbookTab('lots', (m) =>
-      appendDataRow('lots', m, {
-        id: lotId,
-        inventory_id: line.inventoryId,
-        transaction_id: transactionId,
-        quantity: line.quantity,
-        amount: line.amount,
-        created_at: now,
-        archived: '',
-        deleted: '',
-      }),
-    )
+    const lotRow = {
+      id: lotId,
+      inventory_id: line.inventoryId,
+      transaction_id: transactionId,
+      quantity: line.quantity,
+      amount: line.amount,
+      created_at: now,
+      archived: '',
+      deleted: '',
+    }
+    patchWorkbookTab('lots', (m) => appendDataRow('lots', m, lotRow))
+    auditCreate('lot', lotId, lotRow)
   }
   return transactionId
 }

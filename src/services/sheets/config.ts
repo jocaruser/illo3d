@@ -2,15 +2,14 @@ export const SPREADSHEET_NAME = 'illo3d-data'
 
 export const SHEET_NAMES = [
   'clients',
-  'crm_notes',
   'tags',
-  'tag_links',
   'jobs',
   'pieces',
   'piece_items',
   'inventory',
   'lots',
   'transactions',
+  'audit_log',
 ] as const
 
 export type SheetName = (typeof SHEET_NAMES)[number]
@@ -31,25 +30,7 @@ export const SHEET_HEADERS: Record<SheetName, readonly string[]> = {
     'created_at',
     ...LIFECYCLE_COLUMNS,
   ],
-  crm_notes: [
-    'id',
-    'entity_type',
-    'entity_id',
-    'body',
-    'referenced_entity_ids',
-    'severity',
-    'created_at',
-    ...LIFECYCLE_COLUMNS,
-  ],
   tags: ['id', 'name', 'created_at', ...LIFECYCLE_COLUMNS],
-  tag_links: [
-    'id',
-    'tag_id',
-    'entity_type',
-    'entity_id',
-    'created_at',
-    ...LIFECYCLE_COLUMNS,
-  ],
   jobs: [
     'id',
     'client_id',
@@ -109,5 +90,17 @@ export const SHEET_HEADERS: Record<SheetName, readonly string[]> = {
     'client_id',
     'notes',
     ...LIFECYCLE_COLUMNS,
+  ],
+  audit_log: [
+    'id',
+    'timestamp',
+    'actor',
+    'entity_name',
+    'entity_id',
+    'action',
+    'before_json',
+    'after_json',
+    'parent_entity_name',
+    'parent_entity_id',
   ],
 }

@@ -1,19 +1,14 @@
-import {
-  findDataRowIndexById,
-  removeDataRowAt,
-} from '@/lib/workbook/matrixOps'
-import { patchWorkbookTab } from '@/lib/workbook/patchTab'
+import { auditDelete } from '@/services/audit/auditEventEmitter'
+import { getTagLinkById } from '@/services/audit/reconstruct'
 
 export async function deleteTagLink(
   spreadsheetId: string,
   linkId: string
 ): Promise<void> {
   void spreadsheetId
-  patchWorkbookTab('tag_links', (m) => {
-    const i = findDataRowIndexById(m, 'tag_links', linkId)
-    if (i === -1) {
-      throw new Error(`Tag link ${linkId} not found`)
-    }
-    return removeDataRowAt(m, i)
-  })
+  const existing = getTagLinkById(linkId)
+  if (!existing) {
+    throw new Error(`Tag link ${linkId} not found`)
+  }
+  auditDelete('tag_link', linkId, existing)
 }

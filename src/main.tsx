@@ -1,4 +1,4 @@
-import { Fragment, StrictMode } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { GoogleOAuthProvider } from '@react-oauth/google'
@@ -15,18 +15,19 @@ const queryClient = new QueryClient()
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 registerGoogleOAuthClientId(googleClientId)
 
-const appTree = (
-  <GoogleOAuthProvider clientId={googleClientId}>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </GoogleOAuthProvider>
-)
+export function AppRoot() {
+  return (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </GoogleOAuthProvider>
+  )
+}
 
 // Playwright E2E uses the Vite dev server; StrictMode's dev double-mount remounts
 // the tree and can detach nodes mid-click (flaky in CI). Production builds omit it.
-const RootWrapper = import.meta.env.VITE_E2E === 'true' ? Fragment : StrictMode
-
+const isE2E = import.meta.env.VITE_E2E === 'true'
 createRoot(document.getElementById('root')!).render(
-  <RootWrapper>{appTree}</RootWrapper>,
+  isE2E ? <AppRoot /> : <StrictMode><AppRoot /></StrictMode>,
 )

@@ -2,16 +2,18 @@ import { useMemo } from 'react'
 import { useWorkbookStore } from '@/stores/workbookStore'
 import {
   matrixToClients,
-  matrixToCrmNotes,
   matrixToLots,
   matrixToInventory,
   matrixToJobs,
   matrixToPieceItems,
   matrixToPieces,
-  matrixToTagLinks,
   matrixToTags,
   matrixToTransactions,
 } from '@/lib/workbook/workbookEntities'
+import {
+  getAllCurrentNotes,
+  getAllCurrentTagLinks,
+} from '@/services/audit/reconstruct'
 
 /** Parsed entities from the in-memory workbook (single `tabs` subscription). */
 export function useWorkbookEntities() {
@@ -22,12 +24,12 @@ export function useWorkbookEntities() {
       jobs: matrixToJobs(tabs.jobs),
       pieces: matrixToPieces(tabs.pieces),
       pieceItems: matrixToPieceItems(tabs.piece_items),
-      crmNotes: matrixToCrmNotes(tabs.crm_notes),
+      crmNotes: getAllCurrentNotes(),
       transactions: matrixToTransactions(tabs.transactions),
       lots: matrixToLots(tabs.lots),
       inventory: matrixToInventory(tabs.inventory),
       tags: matrixToTags(tabs.tags),
-      tagLinks: matrixToTagLinks(tabs.tag_links),
+      tagLinks: getAllCurrentTagLinks(),
     }),
     [tabs],
   )

@@ -6,25 +6,21 @@ import { emptySheetMatrix } from '@/services/sheets/sheetMatrix'
 import { useOperationToastStore } from '@/stores/operationToastStore'
 import type {
   Client,
-  CrmNote,
   Inventory,
   Job,
   Lot,
   Piece,
   PieceItem,
   Tag,
-  TagLink,
   Transaction,
 } from '@/types/money'
 import {
   matrixToClients,
-  matrixToCrmNotes,
   matrixToLots,
   matrixToInventory,
   matrixToJobs,
   matrixToPieceItems,
   matrixToPieces,
-  matrixToTagLinks,
   matrixToTags,
   matrixToTransactions,
 } from '@/lib/workbook/workbookEntities'
@@ -205,11 +201,6 @@ export function useSnapshotPieceItems(): PieceItem[] {
   return useMemo(() => matrixToPieceItems(matrix), [matrix])
 }
 
-export function useSnapshotCrmNotes(): CrmNote[] {
-  const matrix = useWorkbookStore((s) => s.tabs.crm_notes)
-  return useMemo(() => matrixToCrmNotes(matrix), [matrix])
-}
-
 export function useSnapshotTransactions(): Transaction[] {
   const matrix = useWorkbookStore((s) => s.tabs.transactions)
   return useMemo(() => matrixToTransactions(matrix), [matrix])
@@ -230,7 +221,3 @@ export function useSnapshotTags(): Tag[] {
   return useMemo(() => matrixToTags(matrix), [matrix])
 }
 
-export function useSnapshotTagLinks(): TagLink[] {
-  const matrix = useWorkbookStore((s) => s.tabs.tag_links)
-  return useMemo(() => matrixToTagLinks(matrix), [matrix])
-}

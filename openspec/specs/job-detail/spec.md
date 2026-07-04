@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Job detail on `/jobs/:jobId`: job summary, pieces table (status, pricing, lot-based suggested price), inventory consumption on piece status changes, plus job-scoped CRM notes and tags using the unified `crm_notes` sheet and shared mention and severity patterns with client detail.
+Job detail on `/jobs/:jobId`: job summary, pieces table (status, pricing, lot-based suggested price), inventory consumption on piece status changes, plus job-scoped CRM notes and tags stored as events in the `audit_log` and shared mention and severity patterns with client detail.
 
 ## Requirements
 
@@ -80,27 +80,27 @@ When a piece status changes to `done` or `failed` and the user confirms with "De
 - **AND** the user unchecks "Restore inventory quantities"
 - **THEN** inventory.qty_current is NOT modified
 
-### Requirement: Job-scoped CRM notes in crm_notes sheet
+### Requirement: Job-scoped CRM notes in audit_log
 
-The system SHALL persist job-scoped CRM notes as rows in the unified `crm_notes` sheet with `entity_type` `job` and `entity_id` equal to the job id (`J…`). Headers SHALL match `SHEET_HEADERS.crm_notes`. Note ids for notes created from the job-note flow SHALL use an auto-incrementing `JN` prefix (JN1, JN2, …). The `severity` field SHALL use the same allowed values as client-scoped CRM notes. The `body` and `referenced_entity_ids` rules SHALL match client-scoped notes (plain text body, derived space-separated ids on save). The application type `JobNote` SHALL mirror job-scoped fields for UI and services.
+The system SHALL persist job-scoped CRM notes as `crm_note` events in the unified `audit_log` sheet with `entity_type` `job` and `entity_id` equal to the job id (`J…`). Headers SHALL match `SHEET_HEADERS.audit_log`. Note ids for notes created from the job-note flow SHALL use an auto-incrementing `JN` prefix (JN1, JN2, …). The `severity` field SHALL use the same allowed values as client-scoped CRM notes. The `body` and `referenced_entity_ids` rules SHALL match client-scoped notes (plain text body, derived space-separated ids on save). The application type `JobNote` SHALL mirror job-scoped fields for UI and services.
 
-#### Scenario: Job note row structure
+#### Scenario: Job note event structure
 
-- **WHEN** a job-scoped CRM note is stored in the sheet
-- **THEN** it includes id, entity_type `job`, entity_id, body, referenced_entity_ids, severity, and created_at
+- **WHEN** a job-scoped CRM note is stored in the audit log
+- **THEN** the `crm_note` event includes id, entity_type `job`, entity_id, body, referenced_entity_ids, severity, and created_at
 
-### Requirement: Job CRM notes registered and validated like other sheets
+### Requirement: Job CRM notes registered and validated via audit_log
 
-The system SHALL register `crm_notes` in `SHEET_NAMES` and `SHEET_HEADERS`. Golden fixtures SHALL include `crm_notes.csv` with a correct header row. `validateStructure` and new-shop creation SHALL treat `crm_notes` like other required sheets for the current schema.
+The system SHALL register `audit_log` in `SHEET_NAMES` and `SHEET_HEADERS`. Golden fixtures SHALL include `audit_log.csv` with a correct header row. `validateStructure` and new-shop creation SHALL treat `audit_log` like other required sheets for the current schema.
 
-#### Scenario: Fixture folder includes crm_notes
+#### Scenario: Fixture folder includes audit_log
 
 - **WHEN** a golden fixture folder exists under `fixtures/`
-- **THEN** it contains `crm_notes.csv` with headers matching `SHEET_HEADERS.crm_notes`
+- **THEN** it contains `audit_log.csv` with headers matching `SHEET_HEADERS.audit_log`
 
 ### Requirement: Job notes services and hook integration
 
-The system SHALL provide `fetchJobNotes`, `createJobNote`, `updateJobNote`, and `deleteJobNote` using the same repository patterns as client notes, reading and writing `crm_notes` rows scoped to `entity_type` `job`. The system SHALL provide `useCrmNotes` with query key `['crm_notes', spreadsheetId]`; job detail SHALL obtain job-scoped notes by filtering or adapting from that data or equivalent.
+The system SHALL provide `fetchJobNotes`, `createJobNote`, `updateJobNote`, and `deleteJobNote` using the same repository patterns as client notes, reading and writing `crm_note` events in `audit_log` scoped to `entity_type` `job`. The system SHALL provide `useCrmNotes` with query key `['audit_log', 'crm_notes', spreadsheetId]`; job detail SHALL obtain job-scoped notes by reconstructing them from `audit_log` events or equivalent.
 
 #### Scenario: Job detail loads notes with spreadsheet
 
@@ -114,7 +114,7 @@ On `/jobs/:jobId`, the system SHALL render a CRM notes section equivalent in beh
 #### Scenario: User adds a job note
 
 - **WHEN** user saves a new note on job detail
-- **THEN** a `crm_notes` row is created with entity_type `job`, the correct `entity_id`, and the list updates
+- **THEN** a `crm_note` audit event is created with entity_type `job`, the correct `entity_id`, and the list updates
 
 ### Requirement: Job detail tag UI
 

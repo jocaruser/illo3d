@@ -35,8 +35,8 @@ All direct (non-polymorphic) relationships between tables SHALL be declared as `
 Columns that reference different tables depending on a discriminator column (e.g., `entity_type`) SHALL NOT use `ref:` syntax. Instead, they SHALL include a `note:` describing the valid target tables.
 
 #### Scenario: Polymorphic FK is documented via note
-- **WHEN** `crm_notes.entity_id` can reference either `clients` or `jobs` based on `entity_type`
-- **THEN** the column SHALL have `note: 'client | job'` and no `ref:` annotation
+- **WHEN** `audit_log.entity_id` can reference different entity tables based on `entity_name` (e.g. `client`, `job`, `crm_note`, `tag_link`)
+- **THEN** the column SHALL have a `note:` listing the valid entity names and no `ref:` annotation
 
 ### Requirement: Column types use varchar or numeric
 All columns SHALL be typed as either `varchar` (for strings, dates, enums, booleans stored as text) or `numeric` (for quantities, prices, and counts). SQL-specific types SHALL NOT be used.

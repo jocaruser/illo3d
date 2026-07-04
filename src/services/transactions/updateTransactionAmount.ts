@@ -1,6 +1,7 @@
 import { updateDataRowById } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToTransactions } from '@/lib/workbook/workbookEntities'
+import { auditUpdate } from '@/services/audit/auditEventEmitter'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
 export function parseExpenseAmountInput(raw: string): number | null {
@@ -48,4 +49,5 @@ export async function updateTransactionAmount(
   patchWorkbookTab('transactions', (m) =>
     updateDataRowById('transactions', m, transactionId, row),
   )
+  auditUpdate('transaction', transactionId, existing, row)
 }

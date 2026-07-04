@@ -68,6 +68,7 @@ function createMockRepo(overrides: Partial<SheetsRepository> = {}): SheetsReposi
       }
     ),
     getSheetIdMap: vi.fn(async () => ({})),
+    onAuditEvent: vi.fn(() => () => {}),
     ...overrides,
   }
 }

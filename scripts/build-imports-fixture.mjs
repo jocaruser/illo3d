@@ -195,7 +195,7 @@ function main() {
 
   const meta = {
     app: 'illo3d',
-    version: '1.0.0',
+    version: '2.0.0',
     spreadsheetId: 'csv-fixture-imports',
     createdAt: '2025-01-01T00:00:00.000Z',
     createdBy: 'dev@illo3d.local',
@@ -208,8 +208,7 @@ function main() {
     'pieces.csv',
     'piece_items.csv',
     'tags.csv',
-    'tag_links.csv',
-    'crm_notes.csv',
+    'audit_log.csv',
   ]
   const hp = path.join(root, 'fixtures/happy-path')
   for (const f of copyFromHappy) {

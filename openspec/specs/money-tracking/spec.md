@@ -159,7 +159,7 @@ The system SHALL support a clients data model with fields: id (string), name (st
 
 ### Requirement: CrmNote data model is defined
 
-The system SHALL support CRM notes persisted in `crm_notes` with fields: id (string), entity_type (`client` | `job`), entity_id (string), body (string), referenced_entity_ids (string), severity (enum matching existing client-note severities), created_at (string). The `JobNote` and `ClientNote` shapes MAY be used as filtered views over `crm_notes` rows for the corresponding `entity_type`.
+The system SHALL support CRM notes persisted as `crm_note` events in `audit_log` with fields: id (string), entity_type (`client` | `job`), entity_id (string), body (string), referenced_entity_ids (string), severity (enum matching existing client-note severities), created_at (string). The `JobNote` and `ClientNote` shapes MAY be used as filtered views over reconstructed `crm_note` events for the corresponding `entity_type`.
 
 #### Scenario: Job-scoped CRM note references a job
 

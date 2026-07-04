@@ -1,6 +1,7 @@
 import { updateDataRowById } from '@/lib/workbook/matrixOps'
 import { patchWorkbookTab } from '@/lib/workbook/patchTab'
 import { matrixToPieceItems } from '@/lib/workbook/workbookEntities'
+import { auditUpdate } from '@/services/audit/auditEventEmitter'
 import { useWorkbookStore } from '@/stores/workbookStore'
 
 export const DUPLICATE_PIECE_ITEM_INVENTORY = 'DUPLICATE_PIECE_ITEM_INVENTORY'
@@ -34,10 +35,17 @@ export async function updatePieceItem(
     }
   }
 
+  const row = {
+    id: existing.id,
+    piece_id: existing.piece_id,
+    inventory_id: updates.inventory_id === undefined ? existing.inventory_id : updates.inventory_id,
+    quantity: updates.quantity === undefined ? existing.quantity : updates.quantity,
+    archived: existing.archived ?? '',
+    deleted: existing.deleted ?? '',
+  }
+
   patchWorkbookTab('piece_items', (m) =>
-    updateDataRowById('piece_items', m, pieceItemId, {
-      quantity: updates.quantity === undefined ? existing.quantity : updates.quantity,
-      inventory_id: updates.inventory_id === undefined ? existing.inventory_id : updates.inventory_id,
-    }),
+    updateDataRowById('piece_items', m, pieceItemId, row),
   )
+  auditUpdate('piece_item', pieceItemId, existing, row)
 }

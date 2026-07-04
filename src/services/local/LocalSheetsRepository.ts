@@ -3,14 +3,18 @@ import {
   SHEET_HEADERS,
   type SheetName,
 } from '@/services/sheets/config'
-import type { SheetsRepository } from '@/services/sheets/repository'
+import type { AuditEvent } from '@/services/audit/auditEvent'
+import type { AuditEventHandler, SheetsRepository } from '@/services/sheets/repository'
 import { normalizeSheetMatrixFromCsvLines } from '@/services/sheets/sheetMatrix'
+import { parseCsvLine } from '@/services/sheets/csvParse'
 import { useAuthStore } from '@/stores/authStore'
 import { useBackendStore } from '@/stores/backendStore'
 import { APP_VERSION } from '@/config/version'
 
 const METADATA_FILENAME = 'illo3d.metadata.json'
 const LOCAL_PREFIX = 'local-'
+
+type Handler = (event: AuditEvent) => void
 
 function escapeCsvValue(val: unknown): string {
   const s = String(val ?? '')
@@ -21,6 +25,8 @@ function escapeCsvValue(val: unknown): string {
 }
 
 export class LocalSheetsRepository implements SheetsRepository {
+  private auditHandlers: Handler[] = []
+
   private getHandle(): FileSystemDirectoryHandle {
     const handle = useBackendStore.getState().localDirectoryHandle
     if (!handle) throw new Error('No local directory handle set')
@@ -52,7 +58,7 @@ export class LocalSheetsRepository implements SheetsRepository {
     if (lines.length < 2) return []
     const dataRows = lines.slice(1)
     return dataRows.map((line) => {
-      const values = line.split(',').map((v) => v.trim())
+      const values = parseCsvLine(line).map((v) => v.trim())
       const obj = {} as T
       headers.forEach((header, i) => {
         const value = values[i]
@@ -74,7 +80,7 @@ export class LocalSheetsRepository implements SheetsRepository {
     const csvName = `${sheetName}.csv`
     const csvText = await this.readFile(handle, csvName)
     const firstLine = csvText.trim().split(/\r?\n/)[0] ?? ''
-    return firstLine.split(',').map((h) => h.trim())
+    return parseCsvLine(firstLine).map((h) => h.trim())
   }
 
   async appendRows(
@@ -180,6 +186,14 @@ export class LocalSheetsRepository implements SheetsRepository {
   ): Promise<Partial<Record<SheetName, number>>> {
     void spreadsheetId
     return {}
+  }
+
+  onAuditEvent(handler: AuditEventHandler): () => void {
+    this.auditHandlers.push(handler)
+    return () => {
+      const i = this.auditHandlers.indexOf(handler)
+      if (i !== -1) this.auditHandlers.splice(i, 1)
+    }
   }
 
   async createSpreadsheet(): Promise<string> {
