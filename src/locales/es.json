@@ -96,7 +96,12 @@
     "pieces": "Piezas",
     "transactions": "Transacciones",
     "inventory": "Inventario",
+    "auditLog": "Registro de auditoría",
     "toggleMenu": "Alternar menú"
+  },
+  "auditLog": {
+    "title": "Registro de auditoría",
+    "empty": "Aún no hay entradas de auditoría"
   },
   "globalSearch": {
     "placeholder": "Buscar en todo…",

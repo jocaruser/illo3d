@@ -29,3 +29,45 @@ Every fixture data set SHALL include an empty `audit_log.csv` so the tab layout 
 
 - **WHEN** listing CSV files in any fixture directory (`empty`, `happy-path`, `imports`, `kanban-stale-jobs`, `missingcolumn`)
 - **THEN** an `audit_log.csv` file exists containing exactly one header row
+
+### Requirement: Audit log page UI scaffolding exists
+
+The system SHALL provide a minimal audit log page with route, navigation, breadcrumbs, and a placeholder table. No data fetching, filters, sorting, timeline rendering, or entity resolution shall be present.
+
+#### Scenario: Route and navigation
+
+- **WHEN** the application renders the main navigation
+- **THEN** a link labeled "Audit Log" / "Registro de auditoría" navigates to `/audit-log`
+- **AND** the route `/audit-log` renders a protected page
+
+#### Scenario: Breadcrumb support
+
+- **WHEN** viewing `/audit-log`
+- **THEN** the breadcrumb shows "Home > Audit Log"
+
+#### Scenario: Page shell and placeholder table
+
+- **WHEN** viewing `/audit-log`
+- **THEN** the page title is "Audit Log"
+- **AND** a table displays the following column headers: `id`, `timestamp`, `actor`, `entity_name`, `entity_id`, `action`, `before_json`, `after_json`, `fieldsChanged`, `parent_entity_name`, `parent_entity_id`
+- **AND** the table body shows the message "No audit entries yet" / "Aún no hay entradas de auditoría"
+- **AND** a loading spinner is shown when data is loading
+
+#### Scenario: Internationalization
+
+- **WHEN** inspecting `src/locales/en.json` and `src/locales/es.json`
+- **THEN** the following keys are present:
+  - `nav.auditLog`
+  - `auditLog.title`
+  - `auditLog.empty`
+
+### Requirement: Audit log page has E2E coverage
+
+The system SHALL include end-to-end tests that verify the audit log page loads and displays the empty state.
+
+#### Scenario: E2E navigation and empty state
+
+- **WHEN** running `tests/e2e/audit-log.spec.ts`
+- **THEN** at least one test verifies navigating to `/audit-log` from the header nav
+- **AND** at least one test verifies direct navigation to `/audit-log` shows the title "Audit Log"
+- **AND** both tests assert the table is visible with the empty state message

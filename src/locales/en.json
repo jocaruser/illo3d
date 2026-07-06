@@ -96,7 +96,12 @@
     "pieces": "Pieces",
     "transactions": "Transactions",
     "inventory": "Inventory",
+    "auditLog": "Audit Log",
     "toggleMenu": "Toggle menu"
+  },
+  "auditLog": {
+    "title": "Audit Log",
+    "empty": "No audit entries yet"
   },
   "globalSearch": {
     "placeholder": "Search everything…",
