@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
 import {
@@ -9,7 +8,6 @@ import {
   DataTableHeaderCell,
   DataTableEmptyState,
 } from '@/components/DataTable'
-import { LoadingSpinner } from '@/components/LoadingSpinner'
 
 const COLUMNS = [
   'id',
@@ -23,33 +21,46 @@ const COLUMNS = [
   'fieldsChanged',
   'parent_entity_name',
   'parent_entity_id',
-]
+] as const
+
+const COLUMN_KEY: Record<(typeof COLUMNS)[number], string> = {
+  id: 'auditLog.colId',
+  timestamp: 'auditLog.colTimestamp',
+  actor: 'auditLog.colActor',
+  entity_name: 'auditLog.colEntityName',
+  entity_id: 'auditLog.colEntityId',
+  action: 'auditLog.colAction',
+  before_json: 'auditLog.colBeforeJson',
+  after_json: 'auditLog.colAfterJson',
+  fieldsChanged: 'auditLog.colFieldsChanged',
+  parent_entity_name: 'auditLog.colParentEntityName',
+  parent_entity_id: 'auditLog.colParentEntityId',
+}
 
 export function AuditLogPage() {
   const { t } = useTranslation()
-  const [loading] = useState(false)
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8">
+    <div className="mx-auto max-w-7xl px-4 py-8" data-testid="audit-log-page">
       <ListTablePageHeader title={t('auditLog.title')} />
-      {loading ? (
-        <LoadingSpinner />
-      ) : (
-        <DataTable>
-          <DataTableHead>
-            <DataTableRow>
-              {COLUMNS.map((col) => (
-                <DataTableHeaderCell key={col}>{col}</DataTableHeaderCell>
-              ))}
-            </DataTableRow>
-          </DataTableHead>
-          <DataTableBody>
-            <DataTableEmptyState colSpan={COLUMNS.length}>
+      <DataTable>
+        <DataTableHead>
+          <DataTableRow>
+            {COLUMNS.map((col) => (
+              <DataTableHeaderCell key={col}>
+                {t(COLUMN_KEY[col])}
+              </DataTableHeaderCell>
+            ))}
+          </DataTableRow>
+        </DataTableHead>
+        <DataTableBody>
+          <DataTableEmptyState colSpan={COLUMNS.length}>
+            <span data-testid="audit-log-empty-state">
               {t('auditLog.empty')}
-            </DataTableEmptyState>
-          </DataTableBody>
-        </DataTable>
-      )}
+            </span>
+          </DataTableEmptyState>
+        </DataTableBody>
+      </DataTable>
     </div>
   )
 }

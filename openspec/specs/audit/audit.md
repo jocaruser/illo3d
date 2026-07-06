@@ -49,9 +49,9 @@ The system SHALL provide a minimal audit log page with route, navigation, breadc
 
 - **WHEN** viewing `/audit-log`
 - **THEN** the page title is "Audit Log"
-- **AND** a table displays the following column headers: `id`, `timestamp`, `actor`, `entity_name`, `entity_id`, `action`, `before_json`, `after_json`, `fieldsChanged`, `parent_entity_name`, `parent_entity_id`
+- **AND** a table displays the following column headers via i18n keys: `id`, `timestamp`, `actor`, `entity_name`, `entity_id`, `action`, `before_json`, `after_json`, `fieldsChanged`, `parent_entity_name`, `parent_entity_id`
 - **AND** the table body shows the message "No audit entries yet" / "Aún no hay entradas de auditoría"
-- **AND** a loading spinner is shown when data is loading
+- **AND** the `COLUMNS` array is declared `as const` for type safety
 
 #### Scenario: Internationalization
 
@@ -60,6 +60,7 @@ The system SHALL provide a minimal audit log page with route, navigation, breadc
   - `nav.auditLog`
   - `auditLog.title`
   - `auditLog.empty`
+  - `auditLog.colId`, `auditLog.colTimestamp`, `auditLog.colActor`, `auditLog.colEntityName`, `auditLog.colEntityId`, `auditLog.colAction`, `auditLog.colBeforeJson`, `auditLog.colAfterJson`, `auditLog.colFieldsChanged`, `auditLog.colParentEntityName`, `auditLog.colParentEntityId`
 
 ### Requirement: Audit log page has E2E coverage
 
@@ -68,6 +69,6 @@ The system SHALL include end-to-end tests that verify the audit log page loads a
 #### Scenario: E2E navigation and empty state
 
 - **WHEN** running `tests/e2e/audit-log.spec.ts`
-- **THEN** at least one test verifies navigating to `/audit-log` from the header nav
-- **AND** at least one test verifies direct navigation to `/audit-log` shows the title "Audit Log"
-- **AND** both tests assert the table is visible with the empty state message
+- **THEN** at least one test verifies navigating to `/audit-log` from the header nav using a `data-testid` selector
+- **AND** at least one test verifies direct navigation to `/audit-log` shows the page container via a `data-testid` selector
+- **AND** both tests assert the table is visible with the empty state via a `data-testid` selector

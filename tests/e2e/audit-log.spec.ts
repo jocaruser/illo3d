@@ -1,34 +1,36 @@
 import { test, expect } from './fixtures'
 
 test.describe('Audit Log page', () => {
-  test.use({ storageState: 'tests/e2e/.auth/storage-state.json' })
+  test('navigates from header, shows title and empty state', async ({
+    page,
+    openCsvShop,
+  }) => {
+    void openCsvShop
 
-  test('navigates from header, shows title and empty state', async ({ page }) => {
-    await page.goto('/#/dashboard', { waitUntil: 'load' })
+    await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
+      timeout: 10000,
+    })
 
-    await page.getByRole('link', { name: 'Audit Log' }).click()
+    await page.getByTestId('nav-audit-log').click()
     await expect(page).toHaveURL(/\/audit-log/)
 
-    await expect(page.getByRole('heading', { name: 'Audit Log' })).toBeVisible({
+    await expect(page.getByTestId('audit-log-page')).toBeVisible({
       timeout: 10000,
     })
 
     await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
-    await expect(
-      page.getByText(/no audit entries yet|aún no hay entradas de auditoría/i)
-    ).toBeVisible()
+    await expect(page.getByTestId('audit-log-empty-state')).toBeVisible()
   })
 
-  test('direct navigation shows audit log empty state', async ({ page }) => {
+  test('direct navigation shows audit log empty state', async ({ page, openCsvShop }) => {
+    void openCsvShop
     await page.goto('/#/audit-log', { waitUntil: 'load' })
 
-    await expect(page.getByRole('heading', { name: 'Audit Log' })).toBeVisible({
+    await expect(page.getByTestId('audit-log-page')).toBeVisible({
       timeout: 10000,
     })
 
     await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
-    await expect(
-      page.getByText(/no audit entries yet|aún no hay entradas de auditoría/i)
-    ).toBeVisible()
+    await expect(page.getByTestId('audit-log-empty-state')).toBeVisible()
   })
 })

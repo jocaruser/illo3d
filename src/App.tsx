@@ -226,7 +226,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <NavLink to="/inventory" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
         {t('nav.inventory')}
       </NavLink>
-      <NavLink to="/audit-log" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
+      <NavLink to="/audit-log" className={navLinkClassName} data-testid="nav-audit-log" onClick={() => setMenuOpen(false)}>
         {t('nav.auditLog')}
       </NavLink>
     </>

@@ -101,7 +101,18 @@
   },
   "auditLog": {
     "title": "Registro de auditoría",
-    "empty": "Aún no hay entradas de auditoría"
+    "empty": "Aún no hay entradas de auditoría",
+    "colId": "ID",
+    "colTimestamp": "Fecha",
+    "colActor": "Actor",
+    "colEntityName": "Entidad",
+    "colEntityId": "ID Entidad",
+    "colAction": "Acción",
+    "colBeforeJson": "Antes",
+    "colAfterJson": "Después",
+    "colFieldsChanged": "Campos Modificados",
+    "colParentEntityName": "Entidad Padre",
+    "colParentEntityId": "ID Entidad Padre"
   },
   "globalSearch": {
     "placeholder": "Buscar en todo…",
