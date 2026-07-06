@@ -174,3 +174,34 @@ export interface Transaction {
   archived?: string
   deleted?: string
 }
+
+export type AuditEntityName =
+  | 'client'
+  | 'job'
+  | 'piece'
+  | 'piece_item'
+  | 'inventory'
+  | 'lot'
+  | 'transaction'
+  | 'purchase'
+  | 'tag'
+  | 'tag_link'
+  | 'crm_note'
+  | 'client_note'
+  | 'job_note'
+
+export type AuditAction = 'create' | 'update' | 'archive' | 'delete' | 'restore'
+
+export interface AuditEntry {
+  id: string
+  timestamp: string
+  actor: string
+  entity_name: AuditEntityName
+  entity_id: string
+  action: AuditAction
+  before_json: string
+  after_json: string
+  fieldsChanged: string
+  parent_entity_name?: string
+  parent_entity_id?: string
+}

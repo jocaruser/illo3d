@@ -11,6 +11,7 @@ export const SHEET_NAMES = [
   'inventory',
   'lots',
   'transactions',
+  'audit_log',
 ] as const
 
 export type SheetName = (typeof SHEET_NAMES)[number]
@@ -109,5 +110,18 @@ export const SHEET_HEADERS: Record<SheetName, readonly string[]> = {
     'client_id',
     'notes',
     ...LIFECYCLE_COLUMNS,
+  ],
+  audit_log: [
+    'id',
+    'timestamp',
+    'actor',
+    'entity_name',
+    'entity_id',
+    'action',
+    'before_json',
+    'after_json',
+    'fieldsChanged',
+    'parent_entity_name',
+    'parent_entity_id',
   ],
 }
