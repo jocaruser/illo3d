@@ -114,6 +114,20 @@ Table transactions {
   deleted varchar
 }
 
+Table audit_log {
+  id varchar [pk]
+  timestamp varchar [not null]
+  actor varchar [not null]
+  entity_name varchar [not null, note: 'client | job | piece | piece_item | inventory | lot | transaction | purchase | tag | tag_link | crm_note | client_note | job_note']
+  entity_id varchar [not null]
+  action varchar [not null, note: 'create | update | archive | delete | restore']
+  before_json varchar [not null]
+  after_json varchar [not null]
+  fieldsChanged varchar [not null]
+  parent_entity_name varchar [note: 'client | job | piece | piece_item | inventory | lot | transaction | purchase | tag | tag_link | crm_note | client_note | job_note']
+  parent_entity_id varchar
+}
+
 Ref: jobs.client_id > clients.id
 Ref: pieces.job_id > jobs.id
 Ref: piece_items.piece_id > pieces.id
