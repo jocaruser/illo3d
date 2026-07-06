@@ -33,6 +33,7 @@ import { InventoryPage } from './pages/InventoryPage'
 import { InventoryDetailPage } from './pages/InventoryDetailPage'
 import { ClientsPage } from './pages/ClientsPage'
 import { JobsPage } from './pages/JobsPage'
+import { AuditLogPage } from './pages/AuditLogPage'
 import { JobDetailPage } from './pages/JobDetailPage'
 import { ClientDetailPage } from './pages/ClientDetailPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -224,6 +225,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </NavLink>
       <NavLink to="/inventory" className={navLinkClassName} onClick={() => setMenuOpen(false)}>
         {t('nav.inventory')}
+      </NavLink>
+      <NavLink to="/audit-log" className={navLinkClassName} data-testid="nav-audit-log" onClick={() => setMenuOpen(false)}>
+        {t('nav.auditLog')}
       </NavLink>
     </>
   )
@@ -480,6 +484,16 @@ function AppShell() {
               <Layout>
                 <ProtectedRoute>
                   <InventoryDetailPage />
+                </ProtectedRoute>
+              </Layout>
+            }
+          />
+          <Route
+            path="/audit-log"
+            element={
+              <Layout>
+                <ProtectedRoute>
+                  <AuditLogPage />
                 </ProtectedRoute>
               </Layout>
             }

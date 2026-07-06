@@ -7,6 +7,7 @@ const MAIN_ROUTES = [
   '/jobs',
   '/transactions',
   '/inventory',
+  '/audit-log',
 ] as const
 
 type MainRoute = (typeof MAIN_ROUTES)[number]
@@ -21,6 +22,7 @@ const routeToNavKey: Record<MainRoute, string> = {
   '/jobs': 'nav.jobs',
   '/transactions': 'nav.transactions',
   '/inventory': 'nav.inventory',
+  '/audit-log': 'nav.auditLog',
 }
 
 const JOB_DETAIL_PATH = /^\/jobs\/([^/]+)$/

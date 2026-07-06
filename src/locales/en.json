@@ -96,7 +96,23 @@
     "pieces": "Pieces",
     "transactions": "Transactions",
     "inventory": "Inventory",
+    "auditLog": "Audit Log",
     "toggleMenu": "Toggle menu"
+  },
+  "auditLog": {
+    "title": "Audit Log",
+    "empty": "No audit entries yet",
+    "colId": "ID",
+    "colTimestamp": "Timestamp",
+    "colActor": "Actor",
+    "colEntityName": "Entity",
+    "colEntityId": "Entity ID",
+    "colAction": "Action",
+    "colBeforeJson": "Before",
+    "colAfterJson": "After",
+    "colFieldsChanged": "Fields Changed",
+    "colParentEntityName": "Parent Entity",
+    "colParentEntityId": "Parent Entity ID"
   },
   "globalSearch": {
     "placeholder": "Search everything…",
