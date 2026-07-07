@@ -1,1 +1,6 @@
 id,job_id,name,status,price,units,created_at,archived,deleted
+P1,J6,Alpha bracket,done,10.00,1,2025-06-03T11:00:00.000Z,,
+P2,J6,Beta spacer,done,20.00,1,2025-06-04T12:00:00.000Z,,
+P3,J6,Gamma clip,pending,30.00,1,2025-06-05T10:00:00.000Z,2025-06-11T11:00:00.000Z,2025-06-14T10:00:00.000Z
+P4,J6,Delta plate,pending,40.00,1,2025-06-06T11:00:00.000Z,2025-06-12T10:00:00.000Z,
+P5,J6,Epsilon gear,pending,50.00,1,2025-06-07T10:00:00.000Z,,
