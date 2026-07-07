@@ -23,63 +23,12 @@ The data layer configuration SHALL include `audit_log` as a recognized sheet nam
 
 ### Requirement: Audit log fixtures exist
 
-Every fixture data set SHALL include an `audit_log.csv` with content appropriate to its purpose.
+Every fixture data set SHALL include an empty `audit_log.csv` so the tab layout is consistent across all environments.
 
 #### Scenario: Empty fixture files
 
-- **WHEN** listing CSV files in the `empty` fixture directory
+- **WHEN** listing CSV files in any fixture directory (`empty`, `happy-path`, `imports`, `kanban-stale-jobs`, `missingcolumn`)
 - **THEN** an `audit_log.csv` file exists containing exactly one header row
-
-#### Scenario: Happy-path fixture has basic smoke data
-
-- **WHEN** reading `fixtures/happy-path/audit_log.csv`
-- **THEN** it contains exactly one header row plus at least 18 data rows
-- **AND** each row references an entity that exists in a corresponding CSV file within the same fixture directory
-- **AND** entity names use physical table names (`crm_note` for notes, `transaction` for purchases)
-
-#### Scenario: Audit-rich fixture has comprehensive coverage
-
-- **WHEN** reading `fixtures/audit-rich/audit_log.csv`
-- **THEN** every entity in the fixture has at least one corresponding audit entry
-- **AND** every auditable entity type has at least one entity whose latest audit entry is `create`
-- **AND** every auditable entity type has at least one entity whose latest audit entry is `update`
-- **AND** every auditable entity type has at least one entity whose latest audit entry is `archive`
-- **AND** every auditable entity type has at least one entity whose latest audit entry is `delete`
-- **AND** every auditable entity type has at least one entity whose latest audit entry is `restore`
-- **AND** every entity referenced in `entity_id` exists in the corresponding CSV file within the same fixture directory
-- **AND** `parent_entity_name` and `parent_entity_id` are populated for cascade entries
-- **AND** `fieldsChanged` lists all populated columns for `create` actions
-- **AND** `fieldsChanged` lists only changed columns for `update` actions
-- **AND** the timeline spans at least two distinct months
-- **AND** for every entity whose latest action is not `create`, an earlier `create` entry exists for the same `entity_id`
-
-### Requirement: Audit log fixture data is internally consistent
-
-Fixture CSV files within the same directory SHALL reference only entities that exist in sibling files.
-
-#### Scenario: No phantom references in happy-path
-
-- **WHEN** reading `fixtures/happy-path/audit_log.csv`
-- **THEN** no `entity_id` references an entity that does not exist in the corresponding fixture CSV
-- **AND** entity names match physical table names from the DBML schema
-
-#### Scenario: Cascade tracking alignment
-
-- **WHEN** reading `fixtures/audit-rich/jobs.csv`, `pieces.csv`, and `piece_items.csv`
-- **AND** reading `fixtures/audit-rich/audit_log.csv`
-- **THEN** entities with `archived` timestamps have corresponding `archive` audit entries
-- **AND** entities with `deleted` timestamps have corresponding `delete` audit entries
-- **AND** parent entities are archived/deleted before their children in chronological order
-
-### Requirement: Audit log fixtures are internally consistent
-
-Fixture CSV files within the same directory SHALL reference only entities that exist in sibling files.
-
-#### Scenario: No phantom references in happy-path
-
-- **WHEN** reading `fixtures/happy-path/audit_log.csv`
-- **THEN** no `entity_id` references an entity that does not exist in the corresponding fixture CSV
-- **AND** entity names match physical table names from the DBML schema
 
 ### Requirement: Audit log page UI scaffolding exists
 
