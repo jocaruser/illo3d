@@ -5,6 +5,7 @@ import type { SheetsRepository } from '@/services/sheets/repository'
 import { emptySheetMatrix } from '@/services/sheets/sheetMatrix'
 import { useOperationToastStore } from '@/stores/operationToastStore'
 import type {
+  AuditEntry,
   Client,
   CrmNote,
   Inventory,
@@ -17,6 +18,7 @@ import type {
   Transaction,
 } from '@/types/money'
 import {
+  matrixToAuditEntries,
   matrixToClients,
   matrixToCrmNotes,
   matrixToLots,
@@ -233,4 +235,9 @@ export function useSnapshotTags(): Tag[] {
 export function useSnapshotTagLinks(): TagLink[] {
   const matrix = useWorkbookStore((s) => s.tabs.tag_links)
   return useMemo(() => matrixToTagLinks(matrix), [matrix])
+}
+
+export function useSnapshotAuditEntries(): AuditEntry[] {
+  const matrix = useWorkbookStore((s) => s.tabs.audit_log)
+  return useMemo(() => matrixToAuditEntries(matrix), [matrix])
 }

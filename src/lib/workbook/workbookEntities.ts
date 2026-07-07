@@ -3,6 +3,7 @@ import { parseClientNoteSeverity } from '@/services/clientNote/severity'
 import { parseJobRow } from '@/services/sheets/jobs'
 import { parsePieceRow } from '@/services/sheets/pieces'
 import type {
+  AuditEntry,
   Client,
   CrmNote,
   CrmNoteEntityType,
@@ -210,4 +211,15 @@ export function matrixToTagLinks(matrix: string[][] | undefined): TagLink[] {
     out.push(link)
   }
   return out
+}
+
+export function matrixToAuditEntries(
+  matrix: string[][] | undefined
+): AuditEntry[] {
+  const raw = matrixToObjects<AuditEntry>('audit_log', matrix)
+  return raw.sort((a, b) => {
+    const byTimestamp = b.timestamp.localeCompare(a.timestamp)
+    if (byTimestamp !== 0) return byTimestamp
+    return a.id.localeCompare(b.id)
+  })
 }

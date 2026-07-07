@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
+import { useSnapshotAuditEntries } from '@/stores/workbookStore'
 import {
   DataTable,
   DataTableHead,
   DataTableBody,
   DataTableRow,
   DataTableHeaderCell,
+  DataTableCell,
   DataTableEmptyState,
 } from '@/components/DataTable'
 
@@ -39,6 +41,7 @@ const COLUMN_KEY: Record<(typeof COLUMNS)[number], string> = {
 
 export function AuditLogPage() {
   const { t } = useTranslation()
+  const entries = useSnapshotAuditEntries()
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8" data-testid="audit-log-page">
@@ -54,11 +57,30 @@ export function AuditLogPage() {
           </DataTableRow>
         </DataTableHead>
         <DataTableBody>
-          <DataTableEmptyState colSpan={COLUMNS.length}>
-            <span data-testid="audit-log-empty-state">
-              {t('auditLog.empty')}
-            </span>
-          </DataTableEmptyState>
+          {entries.length === 0 ? (
+            <DataTableEmptyState colSpan={COLUMNS.length}>
+              <span data-testid="audit-log-empty-state">
+                {t('auditLog.empty')}
+              </span>
+            </DataTableEmptyState>
+          ) : (
+            entries.map((entry, index) => {
+              const isMalformed = !entry.id || !entry.timestamp
+              return (
+                <DataTableRow
+                  key={entry.id || index}
+                  isEven={index % 2 === 0}
+                  className={isMalformed ? 'text-danger' : ''}
+                >
+                  {COLUMNS.map((col) => (
+                    <DataTableCell key={col}>
+                      {String(entry[col as keyof typeof entry] ?? '')}
+                    </DataTableCell>
+                  ))}
+                </DataTableRow>
+              )
+            })
+          )}
         </DataTableBody>
       </DataTable>
     </div>
