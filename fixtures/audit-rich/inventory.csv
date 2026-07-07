@@ -1,1 +1,2 @@
 id,type,name,qty_current,warn_yellow,warn_orange,warn_red,created_at,archived,deleted
+INV1,plastic,PLA filament,500,100,50,25,2025-07-04T10:00:00.000Z,,
