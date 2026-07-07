@@ -1,0 +1,6 @@
+id,tag_id,entity_type,entity_id,created_at,archived,deleted
+TL1,TG1,job,J1,2025-01-18T10:30:00.000Z,,
+TL2,TG2,job,J2,2025-01-22T11:30:00.000Z,,
+TL3,TG3,client,CL1,2025-02-01T09:30:00.000Z,,
+TL4,TG1,job,J4,2025-02-02T09:30:00.000Z,,
+TL5,TG4,job,J8,2025-04-14T09:00:00.000Z,,

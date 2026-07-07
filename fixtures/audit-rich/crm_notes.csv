@@ -1,0 +1,7 @@
+id,entity_type,entity_id,body,referenced_entity_ids,severity,created_at,archived,deleted
+CN1,client,CL1,Key account - prioritize all requests - updated,,danger,2025-01-16T09:30:00.000Z,,
+CN2,client,CL2,Spanish-speaking client - use @J3 notes,J3,info,2025-01-21T15:30:00.000Z,,
+CN3,client,CL3,Bulk order client - monthly billing cycle,,info,2025-02-02T09:30:00.000Z,,
+JN1,job,J1,Client requested daily progress updates,,warning,2025-01-17T10:30:00.000Z,,
+JN2,job,J3,Art show deadline is firm - no delays,@P4;@P5,danger,2025-01-23T14:00:00.000Z,,
+JN3,job,J4,Quality check passed - ready to ship,,success,2025-02-10T16:00:00.000Z,,
