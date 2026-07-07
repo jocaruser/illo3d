@@ -8,3 +8,4 @@ CL6,Job Test Client,jobs@testclient.com,+1-555-0105,Dedicated client for job fix
 CL7,Piece Test Client,pieces@testclient.com,+1-555-0106,Dedicated client for piece fixtures,,,,2025-06-01T09:00:00.000Z,,
 CL8,Piece Item Test Client,pieceitems@testclient.com,+1-555-0107,Dedicated client for piece item fixtures,,,,2025-07-01T09:00:00.000Z,,
 CL13,CRM Note Test Client,crmnotes@testclient.com,+1-555-0112,Dedicated client for crm note fixtures,,,,2025-12-01T09:00:00.000Z,,
+CL14,Tag Link Test Client,taglinks@testclient.com,+1-555-0113,Dedicated client for tag link fixtures,,,,2026-01-01T09:00:00.000Z,,
