@@ -1,0 +1,11 @@
+id,name,email,phone,notes,preferred_contact,lead_source,address,created_at,archived,deleted
+CL1,TechStart Solutions,contact@techstart.io,+1-555-0102,Key account - Q1 launch deadline,Email,Website,123 Innovation Blvd,2025-01-15T09:00:00.000Z,,
+CL2,Maria Garcia Design,maria@garciadesign.com,+1-555-0102,Preferred Spanish communication,WhatsApp,Referral,,2025-01-20T14:30:00.000Z,2025-04-02T10:00:00.000Z,2025-04-03T10:00:00.000Z
+CL3,QuickPrint Shop,orders@quickprint.net,+1-555-0103,Bulk orders monthly,Phone,Cold call,456 Commerce St,2025-02-01T10:00:00.000Z,2025-04-10T10:00:00.000Z,
+CL4,Artisan Collective,hello@artisancollective.org,,Non-profit discount applied,Email,Instagram,,2025-02-11T11:00:00.000Z,,
+CL5,Epsilon Dynamics,hello@epsilon.io,+1-555-0104,New client,,,,2025-04-01T09:00:00.000Z,,
+CL6,Job Test Client,jobs@testclient.com,+1-555-0105,Dedicated client for job fixtures,,,,2025-05-01T09:00:00.000Z,,
+CL7,Piece Test Client,pieces@testclient.com,+1-555-0106,Dedicated client for piece fixtures,,,,2025-06-01T09:00:00.000Z,,
+CL8,Piece Item Test Client,pieceitems@testclient.com,+1-555-0107,Dedicated client for piece item fixtures,,,,2025-07-01T09:00:00.000Z,,
+CL13,CRM Note Test Client,crmnotes@testclient.com,+1-555-0112,Dedicated client for crm note fixtures,,,,2025-12-01T09:00:00.000Z,,
+CL14,Tag Link Test Client,taglinks@testclient.com,+1-555-0113,Dedicated client for tag link fixtures,,,,2026-01-01T09:00:00.000Z,,

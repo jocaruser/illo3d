@@ -1,0 +1,7 @@
+id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes,archived,deleted
+T1,2025-09-03,income,175.00,Sales,Prototype sale,,,,First transaction,,
+T2,2025-09-04,expense,-30.00,Materials,Filament purchase,,,,,,
+T3,2025-09-05,expense,-40.00,Tools,Drill bit set,,,,,,2025-09-11T11:00:00.000Z,2025-09-14T10:00:00.000Z
+T4,2025-09-06,income,300.00,Sales,Bulk order payment,,,,,,2025-09-12T10:00:00.000Z,
+T5,2025-09-07,expense,-12.50,Other,Shipping label,,,,,,,
+T6,2025-11-02,income,1000.00,Materials,Lot purchase stock,,,,,,,
