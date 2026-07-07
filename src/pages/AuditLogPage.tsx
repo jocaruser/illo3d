@@ -65,7 +65,7 @@ export function AuditLogPage() {
             </DataTableEmptyState>
           ) : (
             entries.map((entry, index) => {
-              const isMalformed = !entry.id || !entry.timestamp
+              const isMalformed = entry.id == null || entry.timestamp == null
               return (
                 <DataTableRow
                   key={entry.id || index}

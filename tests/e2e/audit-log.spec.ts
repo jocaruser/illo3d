@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures'
 
-test.describe('Audit Log page', () => {
+test.describe('Audit Log page (empty)', () => {
   test('navigates from header, shows title and empty state', async ({
     page,
     openCsvShop,
@@ -32,5 +32,34 @@ test.describe('Audit Log page', () => {
 
     await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
     await expect(page.getByTestId('audit-log-empty-state')).toBeVisible()
+  })
+})
+
+test.describe('Audit Log page (with data)', () => {
+  test.use({ fixtureScenario: 'audit-rich' })
+
+  test('renders loaded audit entries sorted by timestamp desc', async ({
+    page,
+    openCsvShop,
+  }) => {
+    void openCsvShop
+
+    await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
+      timeout: 10000,
+    })
+
+    await page.getByTestId('nav-audit-log').click()
+    await expect(page).toHaveURL(/\/audit-log/)
+
+    await expect(page.getByTestId('audit-log-page')).toBeVisible({
+      timeout: 10000,
+    })
+
+    await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByTestId('audit-log-empty-state')).not.toBeVisible()
+
+    // Most recent entry from audit-rich fixture should appear first
+    const rows = page.getByRole('row')
+    await expect(rows.filter({ hasText: /AL1013/ })).toBeVisible({ timeout: 15000 })
   })
 })

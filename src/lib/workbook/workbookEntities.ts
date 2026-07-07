@@ -213,11 +213,68 @@ export function matrixToTagLinks(matrix: string[][] | undefined): TagLink[] {
   return out
 }
 
+const VALID_AUDIT_ENTITY_NAMES: readonly string[] = [
+  'client',
+  'job',
+  'piece',
+  'piece_item',
+  'inventory',
+  'lot',
+  'transaction',
+  'purchase',
+  'tag',
+  'tag_link',
+  'crm_note',
+  'client_note',
+  'job_note',
+]
+
+const VALID_AUDIT_ACTIONS: readonly string[] = [
+  'create',
+  'update',
+  'archive',
+  'delete',
+  'restore',
+]
+
 export function matrixToAuditEntries(
   matrix: string[][] | undefined
 ): AuditEntry[] {
-  const raw = matrixToObjects<AuditEntry>('audit_log', matrix)
-  return raw.sort((a, b) => {
+  const raw = matrixToObjects<Record<string, string>>('audit_log', matrix)
+  const entries: AuditEntry[] = []
+  for (const r of raw) {
+    if (
+      !r.id ||
+      !r.timestamp ||
+      !r.actor ||
+      !r.entity_name ||
+      !r.entity_id ||
+      !r.action
+    ) {
+      continue
+    }
+    if (!VALID_AUDIT_ENTITY_NAMES.includes(r.entity_name)) continue
+    if (!VALID_AUDIT_ACTIONS.includes(r.action)) continue
+    const entry: AuditEntry = {
+      id: r.id,
+      timestamp: r.timestamp,
+      actor: r.actor,
+      entity_name: r.entity_name as AuditEntry['entity_name'],
+      entity_id: r.entity_id,
+      action: r.action as AuditEntry['action'],
+      before_json: r.before_json ?? '',
+      after_json: r.after_json ?? '',
+      fieldsChanged: r.fieldsChanged ?? '',
+    }
+    if (r.parent_entity_name != null && r.parent_entity_name !== '') {
+      entry.parent_entity_name = r.parent_entity_name
+    }
+    if (r.parent_entity_id != null && r.parent_entity_id !== '') {
+      entry.parent_entity_id = r.parent_entity_id
+    }
+    entries.push(entry)
+  }
+  return entries.sort((a, b) => {
     const byTimestamp = b.timestamp.localeCompare(a.timestamp)
     if (byTimestamp !== 0) return byTimestamp
     return a.id.localeCompare(b.id)
