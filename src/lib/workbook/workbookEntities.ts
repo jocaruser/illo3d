@@ -213,55 +213,19 @@ export function matrixToTagLinks(matrix: string[][] | undefined): TagLink[] {
   return out
 }
 
-const VALID_AUDIT_ENTITY_NAMES: readonly string[] = [
-  'client',
-  'job',
-  'piece',
-  'piece_item',
-  'inventory',
-  'lot',
-  'transaction',
-  'purchase',
-  'tag',
-  'tag_link',
-  'crm_note',
-  'client_note',
-  'job_note',
-]
-
-const VALID_AUDIT_ACTIONS: readonly string[] = [
-  'create',
-  'update',
-  'archive',
-  'delete',
-  'restore',
-]
-
 export function matrixToAuditEntries(
   matrix: string[][] | undefined
 ): AuditEntry[] {
   const raw = matrixToObjects<Record<string, string>>('audit_log', matrix)
   const entries: AuditEntry[] = []
   for (const r of raw) {
-    if (
-      !r.id ||
-      !r.timestamp ||
-      !r.actor ||
-      !r.entity_name ||
-      !r.entity_id ||
-      !r.action
-    ) {
-      continue
-    }
-    if (!VALID_AUDIT_ENTITY_NAMES.includes(r.entity_name)) continue
-    if (!VALID_AUDIT_ACTIONS.includes(r.action)) continue
     const entry: AuditEntry = {
-      id: r.id,
-      timestamp: r.timestamp,
-      actor: r.actor,
-      entity_name: r.entity_name as AuditEntry['entity_name'],
-      entity_id: r.entity_id,
-      action: r.action as AuditEntry['action'],
+      id: r.id ?? '',
+      timestamp: r.timestamp ?? '',
+      actor: r.actor ?? '',
+      entity_name: (r.entity_name ?? '') as AuditEntry['entity_name'],
+      entity_id: r.entity_id ?? '',
+      action: (r.action ?? '') as AuditEntry['action'],
       before_json: r.before_json ?? '',
       after_json: r.after_json ?? '',
       fieldsChanged: r.fieldsChanged ?? '',
@@ -275,8 +239,18 @@ export function matrixToAuditEntries(
     entries.push(entry)
   }
   return entries.sort((a, b) => {
-    const byTimestamp = b.timestamp.localeCompare(a.timestamp)
-    if (byTimestamp !== 0) return byTimestamp
+    const aTime = Date.parse(a.timestamp)
+    const bTime = Date.parse(b.timestamp)
+    const aValid = !isNaN(aTime)
+    const bValid = !isNaN(bTime)
+    if (aValid && bValid) {
+      const byTimestamp = bTime - aTime
+      if (byTimestamp !== 0) return byTimestamp
+    } else if (aValid && !bValid) {
+      return -1
+    } else if (!aValid && bValid) {
+      return 1
+    }
     return a.id.localeCompare(b.id)
   })
 }

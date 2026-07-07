@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import type { AuditEntry } from '@/types/money'
 import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
 import { useSnapshotAuditEntries } from '@/stores/workbookStore'
 import {
@@ -11,7 +12,7 @@ import {
   DataTableEmptyState,
 } from '@/components/DataTable'
 
-const COLUMNS = [
+const COLUMNS: readonly (keyof AuditEntry)[] = [
   'id',
   'timestamp',
   'actor',
@@ -23,7 +24,7 @@ const COLUMNS = [
   'fieldsChanged',
   'parent_entity_name',
   'parent_entity_id',
-] as const
+]
 
 const COLUMN_KEY: Record<(typeof COLUMNS)[number], string> = {
   id: 'auditLog.colId',
@@ -65,16 +66,16 @@ export function AuditLogPage() {
             </DataTableEmptyState>
           ) : (
             entries.map((entry, index) => {
-              const isMalformed = entry.id == null || entry.timestamp == null
+              const isMalformed = !entry.id || !entry.timestamp
               return (
                 <DataTableRow
-                  key={entry.id || index}
+                  key={entry.id || `row-${index}`}
                   isEven={index % 2 === 0}
                   className={isMalformed ? 'text-danger' : ''}
                 >
                   {COLUMNS.map((col) => (
                     <DataTableCell key={col}>
-                      {String(entry[col as keyof typeof entry] ?? '')}
+                      {String(entry[col] ?? '')}
                     </DataTableCell>
                   ))}
                 </DataTableRow>

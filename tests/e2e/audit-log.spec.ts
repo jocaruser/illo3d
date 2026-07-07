@@ -7,30 +7,29 @@ test.describe('Audit Log page (empty)', () => {
   }) => {
     void openCsvShop
 
-    await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
-      timeout: 10000,
-    })
+    await expect(
+      page.getByRole('heading', { name: /dashboard|panel/i })
+    ).toBeVisible()
 
     await page.getByTestId('nav-audit-log').click()
     await expect(page).toHaveURL(/\/audit-log/)
 
-    await expect(page.getByTestId('audit-log-page')).toBeVisible({
-      timeout: 10000,
-    })
+    await expect(page.getByTestId('audit-log-page')).toBeVisible()
 
-    await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('table')).toBeVisible()
     await expect(page.getByTestId('audit-log-empty-state')).toBeVisible()
   })
 
-  test('direct navigation shows audit log empty state', async ({ page, openCsvShop }) => {
+  test('direct navigation shows audit log empty state', async ({
+    page,
+    openCsvShop,
+  }) => {
     void openCsvShop
     await page.goto('/#/audit-log', { waitUntil: 'load' })
 
-    await expect(page.getByTestId('audit-log-page')).toBeVisible({
-      timeout: 10000,
-    })
+    await expect(page.getByTestId('audit-log-page')).toBeVisible()
 
-    await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('table')).toBeVisible()
     await expect(page.getByTestId('audit-log-empty-state')).toBeVisible()
   })
 })
@@ -44,22 +43,20 @@ test.describe('Audit Log page (with data)', () => {
   }) => {
     void openCsvShop
 
-    await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
-      timeout: 10000,
-    })
+    await expect(
+      page.getByRole('heading', { name: /dashboard|panel/i })
+    ).toBeVisible()
 
     await page.getByTestId('nav-audit-log').click()
     await expect(page).toHaveURL(/\/audit-log/)
 
-    await expect(page.getByTestId('audit-log-page')).toBeVisible({
-      timeout: 10000,
-    })
+    await expect(page.getByTestId('audit-log-page')).toBeVisible()
 
-    await expect(page.getByRole('table')).toBeVisible({ timeout: 15000 })
+    await expect(page.getByRole('table')).toBeVisible()
     await expect(page.getByTestId('audit-log-empty-state')).not.toBeVisible()
 
-    // Most recent entry from audit-rich fixture should appear first
-    const rows = page.getByRole('row')
-    await expect(rows.filter({ hasText: /AL1013/ })).toBeVisible({ timeout: 15000 })
+    // Most recent entry from audit-rich fixture (AL1013) should appear first
+    const firstDataRow = page.locator('tbody tr').first()
+    await expect(firstDataRow).toContainText('AL1013')
   })
 })

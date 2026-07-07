@@ -86,7 +86,7 @@ describe('matrixToAuditEntries', () => {
     expect(entries.map((e) => e.id)).toEqual(['AL001', 'AL002', 'AL003'])
   })
 
-  it('skips malformed rows missing required fields', () => {
+  it('includes malformed rows with missing fields defaulted to empty string', () => {
     const matrix = matrixWithRows('audit_log', [
       {
         id: 'AL001',
@@ -143,11 +143,16 @@ describe('matrixToAuditEntries', () => {
     ])
 
     const entries = matrixToAuditEntries(matrix)
-    expect(entries).toHaveLength(2)
-    expect(entries.map((e) => e.id)).toEqual(['AL004', 'AL001'])
+    expect(entries).toHaveLength(4)
+    expect(entries[0].id).toBe('AL004')
+    expect(entries[1].id).toBe('')
+    expect(entries[1].timestamp).toBe('2025-01-16T09:00:00.000Z')
+    expect(entries[2].id).toBe('AL001')
+    expect(entries[3].id).toBe('AL003')
+    expect(entries[3].timestamp).toBe('')
   })
 
-  it('skips rows with invalid entity_name or action', () => {
+  it('includes rows with invalid entity_name or action', () => {
     const matrix = matrixWithRows('audit_log', [
       {
         id: 'AL001',
@@ -191,8 +196,12 @@ describe('matrixToAuditEntries', () => {
     ])
 
     const entries = matrixToAuditEntries(matrix)
-    expect(entries).toHaveLength(1)
-    expect(entries[0].id).toBe('AL001')
+    expect(entries).toHaveLength(3)
+    expect(entries[0].id).toBe('AL003')
+    expect(entries[1].id).toBe('AL002')
+    expect(entries[2].id).toBe('AL001')
+    expect(entries[1].entity_name).toBe('invalid_entity')
+    expect(entries[0].action).toBe('invalid_action')
   })
 
   it('preserves parent_entity_name and parent_entity_id when present', () => {
