@@ -1,9 +1,0 @@
-id,piece_id,inventory_id,quantity,archived,deleted
-PI1,P1,INV1,10,,
-PI2,P1,INV2,2,,
-PI3,P2,INV1,4,,
-PI4,P3,INV3,100,,
-PI5,P4,INV1,1,,
-PI6,P6,INV2,50,,
-PI7,P7,INV3,200,,
-PI8,P8,INV1,2,,

@@ -1,6 +1,0 @@
-id,type,name,qty_current,warn_yellow,warn_orange,warn_red,created_at,archived,deleted
-INV1,filament,PLA White,450,100,50,20,2025-01-10T08:00:00.000Z,,
-INV2,filament,PETG Black,280,80,40,15,2025-01-12T09:00:00.000Z,,
-INV3,consumable,Printer nozzles,15,10,5,2,2025-01-14T10:00:00.000Z,,
-INV4,equipment,Ender 3 Pro,1,0,0,0,2025-04-02T09:00:00.000Z,,
-INV5,consumable,Isopropyl alcohol,450,100,50,20,2025-04-03T09:00:00.000Z,,
