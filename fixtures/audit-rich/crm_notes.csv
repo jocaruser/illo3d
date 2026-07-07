@@ -1,1 +1,6 @@
 id,entity_type,entity_id,body,referenced_entity_ids,severity,created_at,archived,deleted
+CN6,client,CL13,Initial contact note - resolved,,info,2025-12-03T11:00:00.000Z,,
+CN7,client,CL13,Follow-up required - urgent,,warning,2025-12-04T10:00:00.000Z,,
+CN8,job,J12,Job specs confirmed,,info,2025-12-05T11:00:00.000Z,2025-12-11T11:00:00.000Z,2025-12-14T10:00:00.000Z
+CN9,job,J12,Priority flag,,warning,2025-12-06T10:00:00.000Z,2025-12-12T10:00:00.000Z,
+CN10,client,CL13,Billing address updated,,info,2025-12-07T11:00:00.000Z,,
