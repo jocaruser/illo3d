@@ -36,7 +36,6 @@ Every fixture data set SHALL include an `audit_log.csv` with content appropriate
 - **THEN** it contains exactly one header row plus at least 18 data rows
 - **AND** each row references an entity that exists in a corresponding CSV file within the same fixture directory
 - **AND** entity names use physical table names (`crm_note` for notes, `transaction` for purchases)
-- **AND** every entity in the fixture has at least one corresponding audit entry
 
 #### Scenario: Audit-rich fixture has comprehensive coverage
 
@@ -72,15 +71,15 @@ Fixture CSV files within the same directory SHALL reference only entities that e
 - **AND** entities with `deleted` timestamps have corresponding `delete` audit entries
 - **AND** parent entities are archived/deleted before their children in chronological order
 
-### Requirement: Audit log E2E tests use appropriate fixtures
+### Requirement: Audit log fixtures are internally consistent
 
-The E2E test suite SHALL use fixture scenarios that match the test intent.
+Fixture CSV files within the same directory SHALL reference only entities that exist in sibling files.
 
-#### Scenario: Empty-state test isolation
+#### Scenario: No phantom references in happy-path
 
-- **WHEN** reading `tests/e2e/audit-log.spec.ts`
-- **THEN** the empty-state tests use the `empty` fixture scenario
-- **AND** populated-state tests use the `audit-rich` fixture scenario
+- **WHEN** reading `fixtures/happy-path/audit_log.csv`
+- **THEN** no `entity_id` references an entity that does not exist in the corresponding fixture CSV
+- **AND** entity names match physical table names from the DBML schema
 
 ### Requirement: Audit log page UI scaffolding exists
 

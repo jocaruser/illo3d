@@ -1,6 +1,6 @@
 id,name,created_at,archived,deleted
 TG1,urgent-priority,2025-01-18T10:00:00.000Z,,
-TG2,rush,2025-01-22T11:00:00.000Z,,
+TG2,rush-priority,2025-01-22T11:00:00.000Z,,
 TG3,premium,2025-02-01T09:00:00.000Z,,
 TG4,review,2025-04-10T09:00:00.000Z,,
 TG5,deprecated,2025-04-11T09:00:00.000Z,2025-04-12T09:00:00.000Z,2025-04-13T09:00:00.000Z
