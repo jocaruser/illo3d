@@ -78,7 +78,11 @@ export function AuditLogPage() {
                 <DataTableRow
                   key={entry.id || `row-${index}`}
                   isEven={index % 2 === 0}
-                  className={isMalformed ? '!bg-red-100 hover:!bg-red-200 text-danger' : ''}
+                  className={
+                    isMalformed
+                      ? '!bg-red-50 dark:!bg-red-950 text-red-900 dark:text-red-200'
+                      : ''
+                  }
                 >
                   {COLUMNS.map((col) => (
                     <DataTableCell key={col}>
