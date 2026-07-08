@@ -77,18 +77,17 @@ test.describe('Audit Log page (with data)', () => {
     )
     expect(al1015Index).toBeLessThan(al1014Index)
 
-    // Malformed rows are rendered with text-danger styling
-    await expect(
-      al1015Row
-    ).toHaveClass(/text-danger/)
+    // Malformed rows have red background and danger text
+    await expect(al1015Row).toHaveClass(/bg-red-100/)
+    await expect(al1015Row).toHaveClass(/text-danger/)
     await expect(
       page.locator('tbody tr').filter({ hasText: /MALFORMED_1/ }).first()
-    ).toHaveClass(/text-danger/)
+    ).toHaveClass(/bg-red-100/)
     await expect(
       page.locator('tbody tr').filter({ hasText: /MALFORMED_2/ }).first()
-    ).toHaveClass(/text-danger/)
+    ).toHaveClass(/bg-red-100/)
 
-    // Valid row AL1014 has no danger styling
-    await expect(al1014Row).not.toHaveClass(/text-danger/)
+    // Valid row AL1014 has no red background
+    await expect(al1014Row).not.toHaveClass(/bg-red-100/)
   })
 })
