@@ -55,8 +55,8 @@ test.describe('Audit Log page (with data)', () => {
     await expect(page.getByRole('table')).toBeVisible()
     await expect(page.getByTestId('audit-log-empty-state')).not.toBeVisible()
 
-    // Most recent entry from audit-rich fixture (AL1013) should appear first
+    // Most recent entry from audit-rich fixture (AL1014) should appear first
     const firstDataRow = page.locator('tbody tr').first()
-    await expect(firstDataRow).toContainText('AL1013')
+    await expect(firstDataRow).toContainText('AL1014')
   })
 })
