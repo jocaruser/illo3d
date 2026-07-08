@@ -55,8 +55,14 @@ test.describe('Audit Log page (with data)', () => {
     await expect(page.getByRole('table')).toBeVisible()
     await expect(page.getByTestId('audit-log-empty-state')).not.toBeVisible()
 
-    // Most recent entry from audit-rich fixture (AL1014) should appear first
+    // Most recent valid entry from audit-rich fixture (AL1014) should appear first
     const firstDataRow = page.locator('tbody tr').first()
     await expect(firstDataRow).toContainText('AL1014')
+
+    // Malformed rows are also rendered (not silently discarded)
+    const rows = page.getByRole('row')
+    await expect(rows.filter({ hasText: /MALFORMED_1/ })).toBeVisible()
+    await expect(rows.filter({ hasText: /MALFORMED_2/ })).toBeVisible()
+    await expect(rows.filter({ hasText: /AL1015/ })).toBeVisible()
   })
 })
