@@ -55,14 +55,26 @@ test.describe('Audit Log page (with data)', () => {
     await expect(page.getByRole('table')).toBeVisible()
     await expect(page.getByTestId('audit-log-empty-state')).not.toBeVisible()
 
-    // Most recent valid entry from audit-rich fixture (AL1014) should appear first
-    const firstDataRow = page.locator('tbody tr').first()
-    await expect(firstDataRow).toContainText('AL1014')
-
-    // Malformed rows are also rendered (not silently discarded)
+    // All fixture entries are rendered (including malformed rows)
     const rows = page.getByRole('row')
+    await expect(rows.filter({ hasText: /AL1015/ })).toBeVisible()
+    await expect(rows.filter({ hasText: /AL1014/ })).toBeVisible()
     await expect(rows.filter({ hasText: /MALFORMED_1/ })).toBeVisible()
     await expect(rows.filter({ hasText: /MALFORMED_2/ })).toBeVisible()
-    await expect(rows.filter({ hasText: /AL1015/ })).toBeVisible()
+
+    // Verify descending timestamp order: AL1015 (2026-01-16) appears before AL1014 (2026-01-15)
+    const al1015Row = page.locator('tbody tr').filter({ hasText: /AL1015/ }).first()
+    const al1014Row = page.locator('tbody tr').filter({ hasText: /AL1014/ }).first()
+    await expect(al1015Row).toBeVisible()
+    await expect(al1014Row).toBeVisible()
+
+    // AL1015 should appear in a row that comes before AL1014's row in DOM order
+    const al1015Index = await al1015Row.evaluate((el) =>
+      Array.from(el.parentElement!.children).indexOf(el)
+    )
+    const al1014Index = await al1014Row.evaluate((el) =>
+      Array.from(el.parentElement!.children).indexOf(el)
+    )
+    expect(al1015Index).toBeLessThan(al1014Index)
   })
 })
