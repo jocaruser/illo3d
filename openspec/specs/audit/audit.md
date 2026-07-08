@@ -72,3 +72,42 @@ The system SHALL include end-to-end tests that verify the audit log page loads a
 - **THEN** at least one test verifies navigating to `/audit-log` from the header nav using a `data-testid` selector
 - **AND** at least one test verifies direct navigation to `/audit-log` shows the page container via a `data-testid` selector
 - **AND** both tests assert the table is visible with the empty state via a `data-testid` selector
+
+### Requirement: Audit entries are parsed from sheet matrix
+
+The system SHALL provide a parser that converts the `audit_log` sheet matrix into typed `AuditEntry` objects.
+
+#### Scenario: Parser includes all rows and sorts
+
+- **WHEN** inspecting `src/lib/workbook/workbookEntities.ts`
+- **THEN** a `matrixToAuditEntries()` function exists
+- **AND** it includes every data row from the matrix (does not silently discard malformed rows)
+- **AND** it returns entries sorted by `timestamp` descending, then by `id` ascending as tiebreaker
+
+### Requirement: Audit entries are exposed via workbook store hook
+
+The system SHALL provide a Zustand selector hook that exposes parsed audit entries from the in-memory workbook.
+
+#### Scenario: Hook exists and selects audit_log tab
+
+- **WHEN** inspecting `src/stores/workbookStore.ts`
+- **THEN** a `useSnapshotAuditEntries()` hook exists
+- **AND** it uses `useMemo` with `matrixToAuditEntries`
+- **AND** it subscribes only to `s.tabs.audit_log`
+
+### Requirement: Audit log page renders loaded entries
+
+The audit log page SHALL display audit entry data in its table when the `audit_log` sheet contains rows.
+
+#### Scenario: Table shows rows with raw data
+
+- **WHEN** viewing `/audit-log` with a workbook that contains audit entries
+- **THEN** the table body renders one row per `AuditEntry`
+- **AND** each cell displays the raw CSV value for its column
+- **AND** rows are ordered newest-first by timestamp, then by `id` ascending
+- **AND** rows with missing `id` or `timestamp` are rendered with error formatting (e.g., `text-danger` styling)
+
+#### Scenario: Empty state persists when no entries
+
+- **WHEN** viewing `/audit-log` with an empty `audit_log` sheet
+- **THEN** the table body shows the message "No audit entries yet" / "Aún no hay entradas de auditoría"

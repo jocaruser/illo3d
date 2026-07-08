@@ -3,6 +3,7 @@ import { parseClientNoteSeverity } from '@/services/clientNote/severity'
 import { parseJobRow } from '@/services/sheets/jobs'
 import { parsePieceRow } from '@/services/sheets/pieces'
 import type {
+  AuditEntry,
   Client,
   CrmNote,
   CrmNoteEntityType,
@@ -210,4 +211,46 @@ export function matrixToTagLinks(matrix: string[][] | undefined): TagLink[] {
     out.push(link)
   }
   return out
+}
+
+export function matrixToAuditEntries(
+  matrix: string[][] | undefined
+): AuditEntry[] {
+  const raw = matrixToObjects<Record<string, string>>('audit_log', matrix)
+  const entries: AuditEntry[] = []
+  for (const r of raw) {
+    const entry: AuditEntry = {
+      id: r.id ?? '',
+      timestamp: r.timestamp ?? '',
+      actor: r.actor ?? '',
+      entity_name: (r.entity_name ?? '') as AuditEntry['entity_name'],
+      entity_id: r.entity_id ?? '',
+      action: (r.action ?? '') as AuditEntry['action'],
+      before_json: r.before_json ?? '',
+      after_json: r.after_json ?? '',
+      fieldsChanged: r.fieldsChanged ?? '',
+    }
+    if (r.parent_entity_name != null && r.parent_entity_name !== '') {
+      entry.parent_entity_name = r.parent_entity_name
+    }
+    if (r.parent_entity_id != null && r.parent_entity_id !== '') {
+      entry.parent_entity_id = r.parent_entity_id
+    }
+    entries.push(entry)
+  }
+  return entries.sort((a, b) => {
+    const aTime = Date.parse(a.timestamp)
+    const bTime = Date.parse(b.timestamp)
+    const aValid = !isNaN(aTime)
+    const bValid = !isNaN(bTime)
+    if (aValid && bValid) {
+      const byTimestamp = bTime - aTime
+      if (byTimestamp !== 0) return byTimestamp
+    } else if (aValid && !bValid) {
+      return -1
+    } else if (!aValid && bValid) {
+      return 1
+    }
+    return a.id.localeCompare(b.id)
+  })
 }

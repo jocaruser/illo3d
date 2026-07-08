@@ -175,22 +175,33 @@ export interface Transaction {
   deleted?: string
 }
 
-export type AuditEntityName =
-  | 'client'
-  | 'job'
-  | 'piece'
-  | 'piece_item'
-  | 'inventory'
-  | 'lot'
-  | 'transaction'
-  | 'purchase'
-  | 'tag'
-  | 'tag_link'
-  | 'crm_note'
-  | 'client_note'
-  | 'job_note'
+export const AUDIT_ENTITY_NAMES = [
+  'client',
+  'job',
+  'piece',
+  'piece_item',
+  'inventory',
+  'lot',
+  'transaction',
+  'purchase',
+  'tag',
+  'tag_link',
+  'crm_note',
+  'client_note',
+  'job_note',
+] as const
 
-export type AuditAction = 'create' | 'update' | 'archive' | 'delete' | 'restore'
+export type AuditEntityName = (typeof AUDIT_ENTITY_NAMES)[number]
+
+export const AUDIT_ACTIONS = [
+  'create',
+  'update',
+  'archive',
+  'delete',
+  'restore',
+] as const
+
+export type AuditAction = (typeof AUDIT_ACTIONS)[number]
 
 export interface AuditEntry {
   id: string
