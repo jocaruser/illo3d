@@ -204,6 +204,37 @@ describe('matrixToAuditEntries', () => {
     expect(entries[0].action).toBe('invalid_action')
   })
 
+  it('includes short rows with missing columns defaulted to empty string', () => {
+    const matrix = matrixWithRows('audit_log', [
+      {
+        id: 'AL001',
+        timestamp: '2025-01-15T09:00:00.000Z',
+        actor: 'local',
+        entity_name: 'client',
+        entity_id: 'CL1',
+        action: 'create',
+        before_json: '',
+        after_json: '{}',
+        fieldsChanged: 'id;name',
+        parent_entity_name: '',
+        parent_entity_id: '',
+      },
+      {
+        id: 'AL002',
+        timestamp: '2025-01-16T09:00:00.000Z',
+        actor: 'local',
+      },
+    ])
+
+    const entries = matrixToAuditEntries(matrix)
+    expect(entries).toHaveLength(2)
+    expect(entries[0].id).toBe('AL002')
+    expect(entries[0].entity_name).toBe('')
+    expect(entries[0].entity_id).toBe('')
+    expect(entries[0].action).toBe('')
+    expect(entries[1].id).toBe('AL001')
+  })
+
   it('preserves parent_entity_name and parent_entity_id when present', () => {
     const matrix = matrixWithRows('audit_log', [
       {
