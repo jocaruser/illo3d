@@ -224,4 +224,45 @@ test.describe('Audit Log page (with data)', () => {
     await expect(cells.nth(4).locator('time')).toHaveAttribute('dateTime', '2026-01-09T11:00:00.000Z')
     await expect(cells.nth(5)).toHaveText('')
   })
+
+  test('cascade archive entries show parent chain to root job', async ({ page, openCsvShop }) => {
+    void openCsvShop
+    await page.goto('/#/audit-log', { waitUntil: 'load' })
+    await expect(page.getByTestId('audit-log-page')).toBeVisible()
+
+    // AL1208: Job J14 archive (root of cascade) — no parent entity
+    const archiveJobRow = page.locator('tbody tr').filter({ hasText: /AL1208/ }).first()
+    await expect(archiveJobRow).toBeVisible()
+    await expect(archiveJobRow.locator('span').filter({ hasText: /ARCHIVE/ })).toHaveClass(/bg-danger\/15/)
+    await expect(archiveJobRow.locator('a').filter({ hasText: /Cascade draft job/ })).toBeVisible()
+    await expect(archiveJobRow.locator('a').filter({ hasText: /Cascade draft job/ })).toHaveAttribute('href', '#/jobs/J14')
+
+    // AL1209: Piece P7 archive with parent_entity=job J14
+    const archivePieceRow = page.locator('tbody tr').filter({ hasText: /AL1209/ }).first()
+    await expect(archivePieceRow).toBeVisible()
+    await expect(archivePieceRow.locator('span').filter({ hasText: /ARCHIVE/ })).toHaveClass(/bg-danger\/15/)
+    await expect(archivePieceRow.locator('a').filter({ hasText: /Cascade draft piece/ })).toBeVisible()
+    await expect(archivePieceRow.locator('a').filter({ hasText: /Cascade draft piece/ })).toHaveAttribute('href', '#/jobs/J14')
+    const p9ParentLink = archivePieceRow.locator('a').filter({ hasText: /Cascade draft job/ })
+    await expect(p9ParentLink).toBeVisible()
+    await expect(p9ParentLink).toHaveAttribute('href', '#/jobs/J14')
+
+    // AL1210: Piece item PI6 archive with parent_entity=job J14
+    const archivePi6Row = page.locator('tbody tr').filter({ hasText: /AL1210/ }).first()
+    await expect(archivePi6Row).toBeVisible()
+    await expect(archivePi6Row.locator('span').filter({ hasText: /ARCHIVE/ })).toHaveClass(/bg-danger\/15/)
+    await expect(archivePi6Row.locator('a').filter({ hasText: /Item for Cascade draft piece/ })).toBeVisible()
+    const pi6ParentLink = archivePi6Row.locator('a').filter({ hasText: /Cascade draft job/ })
+    await expect(pi6ParentLink).toBeVisible()
+    await expect(pi6ParentLink).toHaveAttribute('href', '#/jobs/J14')
+
+    // AL1211: Piece item PI7 archive with parent_entity=job J14
+    const archivePi7Row = page.locator('tbody tr').filter({ hasText: /AL1211/ }).first()
+    await expect(archivePi7Row).toBeVisible()
+    await expect(archivePi7Row.locator('span').filter({ hasText: /ARCHIVE/ })).toHaveClass(/bg-danger\/15/)
+    await expect(archivePi7Row.locator('a').filter({ hasText: /Item for Cascade draft piece/ })).toBeVisible()
+    const pi7ParentLink = archivePi7Row.locator('a').filter({ hasText: /Cascade draft job/ })
+    await expect(pi7ParentLink).toBeVisible()
+    await expect(pi7ParentLink).toHaveAttribute('href', '#/jobs/J14')
+  })
 })
