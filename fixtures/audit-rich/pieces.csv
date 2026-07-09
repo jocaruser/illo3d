@@ -5,3 +5,5 @@ P3,J6,Gamma clip,pending,30.00,1,2025-06-05T10:00:00.000Z,2025-06-11T11:00:00.00
 P4,J6,Delta plate,pending,40.00,1,2025-06-06T11:00:00.000Z,2025-06-12T10:00:00.000Z,
 P5,J6,Epsilon gear,pending,50.00,1,2025-06-07T10:00:00.000Z,,
 P6,J7,Zeta housing,pending,25.00,1,2025-07-03T11:00:00.000Z,,
+P7,J14,Cascade draft piece,pending,100.00,2,2026-03-04T10:00:00.000Z,2026-03-10T11:00:00.000Z,
+P8,J15,Cascade completed piece,done,250.00,1,2026-03-05T10:00:00.000Z,,
