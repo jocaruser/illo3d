@@ -71,6 +71,23 @@ describe('LocalSheetsRepository', () => {
     })
   })
 
+  it('readRows parses quoted commas correctly', async () => {
+    const csv =
+      'id,name,archived,deleted\n' +
+      'c1,"Acme, Inc.",,'
+    const handle = createMockHandle({ 'clients.csv': csv })
+    useBackendStore.setState({ localDirectoryHandle: handle })
+
+    const repo = new LocalSheetsRepository()
+    const rows = await repo.readRows('local-test-shop', 'clients')
+
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({
+      id: 'c1',
+      name: 'Acme, Inc.',
+    })
+  })
+
   it('readRows returns empty array when CSV has only headers', async () => {
     const handle = createMockHandle({
       'transactions.csv':

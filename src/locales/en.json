@@ -105,14 +105,9 @@
     "colId": "ID",
     "colTimestamp": "Timestamp",
     "colActor": "Actor",
-    "colEntityName": "Entity",
-    "colEntityId": "Entity ID",
+    "colEntity": "Entity",
     "colAction": "Action",
-    "colBeforeJson": "Before",
-    "colAfterJson": "After",
-    "colFieldsChanged": "Fields Changed",
-    "colParentEntityName": "Parent Entity",
-    "colParentEntityId": "Parent Entity ID"
+    "colParentEntity": "Parent Entity"
   },
   "globalSearch": {
     "placeholder": "Search everything…",

@@ -4,7 +4,7 @@ import {
   type SheetName,
 } from '@/services/sheets/config'
 import type { SheetsRepository } from '@/services/sheets/repository'
-import { normalizeSheetMatrixFromCsvLines } from '@/services/sheets/sheetMatrix'
+import { normalizeSheetMatrixFromCsvLines, parseCsvLine } from '@/services/sheets/sheetMatrix'
 import { useAuthStore } from '@/stores/authStore'
 import { useBackendStore } from '@/stores/backendStore'
 import { APP_VERSION } from '@/config/version'
@@ -52,7 +52,7 @@ export class LocalSheetsRepository implements SheetsRepository {
     if (lines.length < 2) return []
     const dataRows = lines.slice(1)
     return dataRows.map((line) => {
-      const values = line.split(',').map((v) => v.trim())
+      const values = parseCsvLine(line)
       const obj = {} as T
       headers.forEach((header, i) => {
         const value = values[i]
@@ -74,7 +74,7 @@ export class LocalSheetsRepository implements SheetsRepository {
     const csvName = `${sheetName}.csv`
     const csvText = await this.readFile(handle, csvName)
     const firstLine = csvText.trim().split(/\r?\n/)[0] ?? ''
-    return firstLine.split(',').map((h) => h.trim())
+    return parseCsvLine(firstLine)
   }
 
   async appendRows(
