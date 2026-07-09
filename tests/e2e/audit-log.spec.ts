@@ -190,10 +190,11 @@ test.describe('Audit Log page (with data)', () => {
     const cellCount = await cells.count()
     expect(cellCount).toBe(6)
 
-    // Verify expected cell content
+    // Verify expected cell content (new column order: id, actor, action, entity, timestamp, parent)
     await expect(cells.nth(0)).toHaveText('AL111')
+    await expect(cells.nth(2)).toContainText('UPDATE')
     await expect(cells.nth(3)).toHaveText('TechStart Solutions')
-    await expect(cells.nth(4)).toContainText('UPDATE')
+    await expect(cells.nth(4).locator('time')).toHaveAttribute('dateTime', '2025-03-02T10:00:00.000Z')
     await expect(cells.nth(5)).toHaveText('')
   })
 
@@ -216,9 +217,11 @@ test.describe('Audit Log page (with data)', () => {
     const cellCount = await cells.count()
     expect(cellCount).toBe(6)
 
+    // Verify expected cell content (new column order: id, actor, action, entity, timestamp, parent)
     await expect(cells.nth(0)).toHaveText('AL1008')
+    await expect(cells.nth(2)).toContainText('UPDATE')
     await expect(cells.nth(3)).toHaveText('TL4')
-    await expect(cells.nth(4)).toContainText('UPDATE')
+    await expect(cells.nth(4).locator('time')).toHaveAttribute('dateTime', '2026-01-09T11:00:00.000Z')
     await expect(cells.nth(5)).toHaveText('')
   })
 })
