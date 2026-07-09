@@ -1,6 +1,6 @@
 id,date,type,amount,category,concept,ref_type,ref_id,client_id,notes,archived,deleted
 TR6,2025-01-25,income,1000.00,sale,Custom frame deposit,job,J16,C16,Deposit for J16,,
-TR7,2025-02-20,income,500.00,sale,Workshop deposit,job,J18,C17,Deposit for J18,true,
+TR7,2025-02-20,income,500.00,sale,Workshop deposit,job,J18,C17,Deposit for J18,2025-06-16T09:00:00Z,
 TR8,2025-01-10,expense,450.00,materials,Wood and hardware purchase,,,,,Bulk order of oak and screws,,
-TR9,2025-03-20,income,300.00,sale,Ceramic vase payment,job,J19,C18,Full payment for J19,,true
+TR9,2025-03-20,income,300.00,sale,Ceramic vase payment,job,J19,C18,Full payment for J19,,2025-06-20T18:00:00Z
 TR10,2025-02-05,expense,150.00,equipment,Tool rental,,,,,Sander and drill rental,,

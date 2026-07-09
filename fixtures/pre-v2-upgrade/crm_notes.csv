@@ -1,6 +1,6 @@
 id,entity_type,entity_id,body,referenced_entity_ids,severity,created_at,archived,deleted
 N6,client,C16,Prefers email communication for all orders,,info,2025-01-15T10:00:00Z,,
 N7,job,J16,Client requested matte finish on frame,,info,2025-01-20T09:30:00Z,,
-N8,client,C17,Workshop partnership terms agreed - 15% discount,,info,2025-02-01T11:00:00Z,true,
-N9,job,J18,Sign installation requires city permit,,warning,2025-02-16T09:00:00Z,,true
+N8,client,C17,Workshop partnership terms agreed - 15% discount,,info,2025-02-01T11:00:00Z,2025-06-16T10:00:00Z,
+N9,job,J18,Sign installation requires city permit,,warning,2025-02-16T09:00:00Z,,2025-06-20T17:30:00Z
 N10,client,C16,Follow up on potential bulk framing order for March,,info,2025-03-01T14:00:00Z,,
