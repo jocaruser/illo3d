@@ -9,3 +9,4 @@ CL7,Piece Test Client,pieces@testclient.com,+1-555-0106,Dedicated client for pie
 CL8,Piece Item Test Client,pieceitems@testclient.com,+1-555-0107,Dedicated client for piece item fixtures,,,,2025-07-01T09:00:00.000Z,,
 CL13,CRM Note Test Client,crmnotes@testclient.com,+1-555-0112,Dedicated client for crm note fixtures,,,,2025-12-01T09:00:00.000Z,,
 CL14,Tag Link Test Client,taglinks@testclient.com,+1-555-0113,Dedicated client for tag link fixtures,,,,2026-01-01T09:00:00.000Z,,
+CL15,Cascade Archive Test Client,cascade@testclient.com,+1-555-0115,Dedicated client for cascade archive fixtures,,,,2026-03-01T09:00:00.000Z,,
