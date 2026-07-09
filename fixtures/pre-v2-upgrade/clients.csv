@@ -1,0 +1,4 @@
+id,name,email,phone,notes,preferred_contact,lead_source,address,created_at,archived,deleted
+C16,Artisan Studio,contact@artisanstudio.com,555-0100,Regular client for custom framing,email,referral,123 Main St,2025-01-15T09:00:00Z,,
+C17,Beta Workshop,bw@betaworkshop.com,555-0101,Workshop partner - occasional orders,phone,website,456 Oak Ave,2025-02-01T10:30:00Z,true,
+C18,Gamma Craft,gc@gamma.craft,555-0102,,email,walk-in,789 Pine Rd,2025-03-10T14:00:00Z,,true

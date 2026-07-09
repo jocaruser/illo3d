@@ -1,0 +1,6 @@
+id,client_id,description,status,price,board_order,created_at,archived,deleted
+J16,C16,Custom oak frame for large print,draft,250.00,1,2025-01-20T09:00:00Z,,
+J17,C16,Wooden sculpture - abstract form,draft,800.00,2,2025-02-10T11:00:00Z,true,
+J18,C17,Metal sign - storefront,active,350.00,1,2025-02-15T08:30:00Z,,
+J19,C18,Ceramic vase set of 3,draft,150.00,1,2025-03-15T10:00:00Z,,true
+J20,C16,Glass painting restoration,draft,600.00,3,2025-04-01T13:00:00Z,,

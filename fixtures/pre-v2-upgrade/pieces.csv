@@ -1,0 +1,7 @@
+id,job_id,name,status,price,units,created_at,archived,deleted
+P9,J16,Frame - Large,draft,120.00,1,2025-01-21T09:00:00Z,,
+P10,J16,Frame - Small,draft,80.00,1,2025-01-21T09:30:00Z,,
+P11,J17,Sculpture Base,draft,400.00,1,2025-02-11T10:00:00Z,true,
+P12,J18,Sign Panel - Front,draft,200.00,1,2025-02-16T08:00:00Z,,true
+P13,J19,Vase Body,draft,40.00,3,2025-03-16T10:00:00Z,,true
+P14,J20,Canvas Preparation,draft,150.00,1,2025-04-02T09:00:00Z,,

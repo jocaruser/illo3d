@@ -1,0 +1,4 @@
+id,inventory_id,transaction_id,quantity,amount,created_at,archived,deleted
+L6,I6,TR8,100,450.00,2025-01-10T09:00:00Z,,
+L7,I7,TR8,20,200.00,2025-01-12T10:00:00Z,,
+L8,I8,TR8,500,0.00,2025-01-10T09:30:00Z,true,

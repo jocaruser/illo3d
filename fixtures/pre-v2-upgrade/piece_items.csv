@@ -1,0 +1,7 @@
+id,piece_id,inventory_id,quantity,archived,deleted
+PI9,P9,I6,2,,
+PI10,P9,I7,1,,
+PI11,P10,I6,1,,
+PI12,P11,I8,3,true,
+PI13,P12,I7,1,,true
+PI14,P14,I6,1,,
