@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import type { AuditEntry, AuditEntityName } from '@/types/money'
 import { ListTablePageHeader } from '@/components/list-table/ListTablePageHeader'
+import { RelativeTime } from '@/components/RelativeTime'
 import { useSnapshotAuditEntries } from '@/stores/workbookStore'
 import { useWorkbookEntities } from '@/hooks/useWorkbookEntities'
 import {
@@ -16,19 +17,19 @@ import {
 
 const COLUMNS = [
   'id',
-  'timestamp',
   'actor',
-  'entity_name',
   'action',
+  'entity_name',
+  'timestamp',
   'parent_entity_name',
 ] as const
 
 const COLUMN_KEY: Record<(typeof COLUMNS)[number], string> = {
   id: 'auditLog.colId',
-  timestamp: 'auditLog.colTimestamp',
   actor: 'auditLog.colActor',
-  entity_name: 'auditLog.colEntity',
   action: 'auditLog.colAction',
+  entity_name: 'auditLog.colEntity',
+  timestamp: 'auditLog.colTimestamp',
   parent_entity_name: 'auditLog.colParentEntity',
 }
 
@@ -224,11 +225,24 @@ export function AuditLogPage() {
       <DataTable>
         <DataTableHead>
           <DataTableRow>
-            {COLUMNS.map((col) => (
-              <DataTableHeaderCell key={col}>
-                {t(COLUMN_KEY[col])}
-              </DataTableHeaderCell>
-            ))}
+            <DataTableHeaderCell className="max-w-[100px] whitespace-nowrap">
+              {t(COLUMN_KEY.id)}
+            </DataTableHeaderCell>
+            <DataTableHeaderCell className="whitespace-nowrap">
+              {t(COLUMN_KEY.actor)}
+            </DataTableHeaderCell>
+            <DataTableHeaderCell className="whitespace-nowrap">
+              {t(COLUMN_KEY.action)}
+            </DataTableHeaderCell>
+            <DataTableHeaderCell className="max-w-xs">
+              {t(COLUMN_KEY.entity_name)}
+            </DataTableHeaderCell>
+            <DataTableHeaderCell className="whitespace-nowrap">
+              {t(COLUMN_KEY.timestamp)}
+            </DataTableHeaderCell>
+            <DataTableHeaderCell className="max-w-xs">
+              {t(COLUMN_KEY.parent_entity_name)}
+            </DataTableHeaderCell>
           </DataTableRow>
         </DataTableHead>
         <DataTableBody>
@@ -266,10 +280,20 @@ export function AuditLogPage() {
                       : ''
                   }
                 >
-                  <DataTableCell>{entry.id}</DataTableCell>
-                  <DataTableCell>{entry.timestamp}</DataTableCell>
-                  <DataTableCell>{entry.actor}</DataTableCell>
-                  <DataTableCell>
+                  <DataTableCell className="max-w-[100px] whitespace-nowrap truncate">
+                    {entry.id}
+                  </DataTableCell>
+                  <DataTableCell className="whitespace-nowrap">
+                    {entry.actor}
+                  </DataTableCell>
+                  <DataTableCell className="whitespace-nowrap">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${actionPillClass(entry.action)}`}
+                    >
+                      {entry.action.toUpperCase()}
+                    </span>
+                  </DataTableCell>
+                  <DataTableCell className="max-w-xs truncate">
                     {entityDisplay.href ? (
                       <Link
                         to={entityDisplay.href}
@@ -281,14 +305,10 @@ export function AuditLogPage() {
                       entityDisplay.name
                     )}
                   </DataTableCell>
-                  <DataTableCell>
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${actionPillClass(entry.action)}`}
-                    >
-                      {entry.action.toUpperCase()}
-                    </span>
+                  <DataTableCell className="whitespace-nowrap">
+                    <RelativeTime timestamp={entry.timestamp} />
                   </DataTableCell>
-                  <DataTableCell>
+                  <DataTableCell className="max-w-xs truncate">
                     {parentDisplay ? (
                       parentDisplay.href ? (
                         <Link

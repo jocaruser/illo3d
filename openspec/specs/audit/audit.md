@@ -38,7 +38,7 @@ The audit log page SHALL replace the raw `entity_name` and `entity_id` columns w
 
 - **WHEN** the audit table renders an entry for entity type `client` with ID `CL1`
 - **AND** client `CL1` exists in the current workbook with name "TechStart Solutions"
-- **THEN** the Entity cell displays "TechStart Solutions"
+- **THEN** the Entity cell (column index 3) displays "TechStart Solutions"
 - **AND** the text is a link to `/clients/CL1`
 
 #### Scenario: Resolved entity via JSON fallback
@@ -46,14 +46,14 @@ The audit log page SHALL replace the raw `entity_name` and `entity_id` columns w
 - **WHEN** the audit table renders an entry for entity type `client` with ID `CL4`
 - **AND** client `CL4` is deleted from the current workbook
 - **AND** the entry's `after_json` contains `{"name":"Artisan Collective"}`
-- **THEN** the Entity cell displays "Artisan Collective"
+- **THEN** the Entity cell (column index 3) displays "Artisan Collective"
 - **AND** the text is a link to `/clients/CL4`
 
 #### Scenario: Unresolvable entity
 
 - **WHEN** the audit table renders an entry for entity type `tag_link` with ID `TL3`
 - **AND** `tag_link` has no name field and no detail page
-- **THEN** the Entity cell displays the raw ID `TL3` with no link
+- **THEN** the Entity cell (column index 3) displays the raw ID `TL3` with no link
 
 ## Requirements
 
@@ -138,9 +138,12 @@ The audit log page SHALL display audit entry data in its table when the `audit_l
 
 - **WHEN** viewing `/audit-log` with a workbook that contains audit entries
 - **THEN** the table body renders one row per `AuditEntry`
-- **AND** each row displays: `id`, `timestamp`, `actor`, resolved entity name (or raw ID), action pill, resolved parent entity name (or raw ID/empty)
+- **AND** each row displays in this column order: `id`, `actor`, action pill, resolved entity name (or raw ID), relative timestamp (with absolute tooltip), resolved parent entity name (or raw ID/empty)
 - **AND** rows are ordered newest-first by timestamp, then by `id` ascending
 - **AND** rows with missing `id` or `timestamp` are rendered with error formatting (e.g., `text-danger` styling)
+- **AND** the id column has a maximum width of 100px and does not wrap
+- **AND** the entity_name and parent_entity_name columns truncate with ellipsis when content exceeds the column width
+- **AND** the action and timestamp columns do not wrap
 
 #### Scenario: Empty state persists when no entries
 
