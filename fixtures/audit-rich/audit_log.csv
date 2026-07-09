@@ -144,3 +144,4 @@ AL1014,2026-01-15T11:00:00.000Z,local,tag_link,TL3,restore,"{""id"":""TL3"",""ta
 ,2025-01-01T00:00:00.000Z,local,client,MALFORMED_1,create,,,,,,
 MALFORMED_2,,local,client,MALFORMED_2,create,,,,,,
 AL1015,2026-01-16T10:00:00.000Z,local
+AL1016,2026-01-17T10:00:00.000Z,local,piece,P1,update,"{""status"":""done""}","{""status"":""pending""}",status,job,J6

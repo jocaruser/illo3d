@@ -210,9 +210,7 @@ describe('CsvSheetsRepository', () => {
     )
   })
 
-  it('does not parse quoted commas: split(",") treats "Acme, Inc." as two columns', async () => {
-    // Fixtures must not use embedded commas inside quoted values.
-    // See public/fixtures/README.md for the fixture convention.
+  it('parses quoted commas correctly (e.g. "Acme, Inc.")', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
       text: () =>
@@ -222,10 +220,9 @@ describe('CsvSheetsRepository', () => {
     const repo = new CsvSheetsRepository('happy-path')
     const rows = await repo.readRows('csv-fixture-happy-path', 'clients')
 
-    // With split(','), "Acme, Inc." becomes two values: '"Acme' and ' Inc."'
     expect(rows[0]).toMatchObject({
       id: 'c1',
-      name: '"Acme', // First column only; " Inc."' goes to next header
+      name: 'Acme, Inc.',
     })
   })
 })

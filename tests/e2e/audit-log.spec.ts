@@ -90,4 +90,135 @@ test.describe('Audit Log page (with data)', () => {
     // Valid row AL1014 has no red background
     await expect(al1014Row).not.toHaveClass(/bg-red-50/)
   })
+
+  test('renders action pills with correct colors', async ({ page, openCsvShop }) => {
+    void openCsvShop
+    await page.goto('/#/audit-log', { waitUntil: 'load' })
+    await expect(page.getByTestId('audit-log-page')).toBeVisible()
+
+    // Create action → green pill
+    const createRow = page.locator('tbody tr').filter({ hasText: /AL001/ }).first()
+    const createPill = createRow.locator('span').filter({ hasText: /CREATE/ })
+    await expect(createPill).toHaveClass(/bg-success\/15/)
+    await expect(createPill).toHaveClass(/text-success/)
+
+    // Update action → blue pill
+    const updateRow = page.locator('tbody tr').filter({ hasText: /AL111/ }).first()
+    const updatePill = updateRow.locator('span').filter({ hasText: /UPDATE/ })
+    await expect(updatePill).toHaveClass(/bg-primary\/15/)
+    await expect(updatePill).toHaveClass(/text-primary/)
+
+    // Archive action → red pill
+    const archiveRow = page.locator('tbody tr').filter({ hasText: /AL075/ }).first()
+    const archivePill = archiveRow.locator('span').filter({ hasText: /ARCHIVE/ })
+    await expect(archivePill).toHaveClass(/bg-danger\/15/)
+    await expect(archivePill).toHaveClass(/text-danger/)
+
+    // Delete action → red pill
+    const deleteRow = page.locator('tbody tr').filter({ hasText: /AL079/ }).first()
+    const deletePill = deleteRow.locator('span').filter({ hasText: /DELETE/ })
+    await expect(deletePill).toHaveClass(/bg-danger\/15/)
+    await expect(deletePill).toHaveClass(/text-danger/)
+
+    // Restore action → green pill
+    const restoreRow = page.locator('tbody tr').filter({ hasText: /AL083/ }).first()
+    const restorePill = restoreRow.locator('span').filter({ hasText: /RESTORE/ })
+    await expect(restorePill).toHaveClass(/bg-success\/15/)
+    await expect(restorePill).toHaveClass(/text-success/)
+  })
+
+  test('renders entity names as clickable links with correct routes', async ({
+    page,
+    openCsvShop,
+  }) => {
+    void openCsvShop
+    await page.goto('/#/audit-log', { waitUntil: 'load' })
+    await expect(page.getByTestId('audit-log-page')).toBeVisible()
+
+    // Client entity link
+    const clientRow = page.locator('tbody tr').filter({ hasText: /AL001/ }).first()
+    const clientLink = clientRow.locator('a').filter({ hasText: /TechStart Solutions/ })
+    await expect(clientLink).toBeVisible()
+    await expect(clientLink).toHaveAttribute('href', '#/clients/CL1')
+
+    // Job entity link
+    const jobRow = page.locator('tbody tr').filter({ hasText: /AL200/ }).first()
+    const jobLink = jobRow.locator('a').filter({ hasText: /Prototype batch/ })
+    await expect(jobLink).toBeVisible()
+    await expect(jobLink).toHaveAttribute('href', '#/jobs/J1')
+
+    // Piece entity links to parent job
+    const pieceRow = page.locator('tbody tr').filter({ hasText: /AL302/ }).first()
+    const pieceLink = pieceRow.locator('a').filter({ hasText: /Alpha bracket/ })
+    await expect(pieceLink).toBeVisible()
+    await expect(pieceLink).toHaveAttribute('href', '#/jobs/J6')
+
+    // Tag link (no detail page) shows raw ID with no <a>
+    const tagLinkRow = page.locator('tbody tr').filter({ hasText: /AL702/ }).first()
+    await expect(tagLinkRow.locator('a').filter({ hasText: /VIP/ })).not.toBeVisible()
+    await expect(tagLinkRow).toContainText('VIP')
+  })
+
+  test('renders parent entity link for test row', async ({ page, openCsvShop }) => {
+    void openCsvShop
+    await page.goto('/#/audit-log', { waitUntil: 'load' })
+    await expect(page.getByTestId('audit-log-page')).toBeVisible()
+
+    const parentRow = page.locator('tbody tr').filter({ hasText: /AL1016/ }).first()
+    const parentLink = parentRow.locator('a').filter({ hasText: /Piece test job/ })
+    await expect(parentLink).toBeVisible()
+    await expect(parentLink).toHaveAttribute('href', '#/jobs/J6')
+  })
+
+  test('renders empty parent entity cell when no parent data', async ({ page, openCsvShop }) => {
+    void openCsvShop
+    await page.goto('/#/audit-log', { waitUntil: 'load' })
+    await expect(page.getByTestId('audit-log-page')).toBeVisible()
+
+    // AL111 is a client update with empty parent_entity_name and parent_entity_id
+    // Its before/after JSON have no commas, so CSV parsing is correct
+    const row = page
+      .locator('tbody tr')
+      .filter({
+        has: page.locator('td').filter({ hasText: /^AL111$/ }),
+      })
+      .first()
+    await expect(row).toBeVisible()
+
+    // Count cells and verify the 6th cell (Parent Entity, 0-indexed = 5) is empty
+    const cells = row.locator('td')
+    const cellCount = await cells.count()
+    expect(cellCount).toBe(6)
+
+    // Verify expected cell content
+    await expect(cells.nth(0)).toHaveText('AL111')
+    await expect(cells.nth(3)).toHaveText('TechStart Solutions')
+    await expect(cells.nth(4)).toContainText('UPDATE')
+    await expect(cells.nth(5)).toHaveText('')
+  })
+
+  test('renders empty parent entity cell for AL1008 (row with JSON commas)', async ({ page, openCsvShop }) => {
+    void openCsvShop
+    await page.goto('/#/audit-log', { waitUntil: 'load' })
+    await expect(page.getByTestId('audit-log-page')).toBeVisible()
+
+    // AL1008 is a tag_link update with commas inside its quoted JSON before/after fields.
+    // Naive split(',') would break the row and shift parent cells out of place.
+    const row = page
+      .locator('tbody tr')
+      .filter({
+        has: page.locator('td').filter({ hasText: /^AL1008$/ }),
+      })
+      .first()
+    await expect(row).toBeVisible()
+
+    const cells = row.locator('td')
+    const cellCount = await cells.count()
+    expect(cellCount).toBe(6)
+
+    await expect(cells.nth(0)).toHaveText('AL1008')
+    await expect(cells.nth(3)).toHaveText('TL4')
+    await expect(cells.nth(4)).toContainText('UPDATE')
+    await expect(cells.nth(5)).toHaveText('')
+  })
 })

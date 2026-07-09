@@ -27,6 +27,42 @@ export function normalizeSheetMatrixFromApi(
   return [canonicalHeader, ...dataRows]
 }
 
+export function parseCsvLine(line: string): string[] {
+  const result: string[] = []
+  let current = ''
+  let inQuotes = false
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i]
+    const nextChar = line[i + 1]
+
+    if (inQuotes) {
+      if (char === '"') {
+        if (nextChar === '"') {
+          current += '"'
+          i++ // skip escaped quote
+        } else {
+          inQuotes = false
+        }
+      } else {
+        current += char
+      }
+    } else {
+      if (char === '"') {
+        inQuotes = true
+      } else if (char === ',') {
+        result.push(current.trim())
+        current = ''
+      } else {
+        current += char
+      }
+    }
+  }
+
+  result.push(current.trim())
+  return result
+}
+
 export function normalizeSheetMatrixFromCsvLines(
   sheetName: SheetName,
   lines: string[]
@@ -39,7 +75,7 @@ export function normalizeSheetMatrixFromCsvLines(
   }
   const normalized = lines.map((line) =>
     padSheetRow(
-      line.split(',').map((v) => v.trim()),
+      parseCsvLine(line),
       width
     )
   )
