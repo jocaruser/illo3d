@@ -50,7 +50,7 @@ test.describe('Google Drive setup wizard', () => {
     ).toBeVisible({ timeout: 10000 })
   })
 
-  test('paste folder ID shows error on metadata version mismatch', async ({ page }) => {
+  test('paste folder ID shows migration wizard modal on version mismatch', async ({ page }) => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'bad_version' })
     await page.goto('/#/dashboard', { waitUntil: 'load' })
@@ -58,8 +58,15 @@ test.describe('Google Drive setup wizard', () => {
     await page.locator('#wizard-folder-id').fill('oldVersionFolder')
     await page.getByTestId('wizard-google-open-by-id').click()
     await expect(
-      page.getByText(/different app version|otra versión de la app/i),
+      page.getByText(/Migration Wizard|Asistente de migración/i),
     ).toBeVisible({ timeout: 10000 })
+    await expect(
+      page.getByTestId('wizard-migration-continue'),
+    ).toBeDisabled()
+    await page.getByTestId('wizard-migration-logout').click()
+    await expect(
+      page.getByTestId('wizard-local-folder'),
+    ).toBeVisible({ timeout: 5000 })
   })
 
   test('paste folder ID shows error when sheet headers fail validation', async ({ page }) => {

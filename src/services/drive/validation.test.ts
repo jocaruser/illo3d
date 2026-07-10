@@ -39,10 +39,11 @@ describe('validateShopFolder', () => {
     if (!result.ok) expect(result.error).toBe('not_shop')
   })
 
-  it('returns version error when major version differs', async () => {
+  it('returns version error with shop and app version when major version differs', async () => {
+    const shopVersion = `${parseMajor(APP_VERSION) + 1}.0.0`
     mockReadMetadata.mockResolvedValue({
       app: 'illo3d',
-      version: `${parseMajor(APP_VERSION) + 1}.0.0`,
+      version: shopVersion,
       spreadsheetId: 'sheet-1',
       createdAt: '2026-01-01',
       createdBy: 'user@example.com',
@@ -51,7 +52,13 @@ describe('validateShopFolder', () => {
     const result = await validateShopFolder('folder-1')
 
     expect(result.ok).toBe(false)
-    if (!result.ok) expect(result.error).toBe('version')
+    if (!result.ok) {
+      expect(result.error).toBe('version')
+      if (result.error === 'version') {
+        expect(result.shopVersion).toBe(shopVersion)
+        expect(result.appVersion).toBe(APP_VERSION)
+      }
+    }
   })
 
   it('returns structure error when sheet layout validation fails', async () => {
@@ -69,8 +76,7 @@ describe('validateShopFolder', () => {
     const result = await validateShopFolder('folder-1')
 
     expect(result.ok).toBe(false)
-    if (!result.ok) {
-      expect(result.error).toBe('structure')
+    if (!result.ok && result.error === 'structure') {
       expect(result.detail).toBe('Missing sheet')
     }
   })
