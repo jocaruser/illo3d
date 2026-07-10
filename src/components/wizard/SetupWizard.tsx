@@ -4,6 +4,7 @@ import { jwtDecode } from 'jwt-decode'
 import { useTranslation } from 'react-i18next'
 import { WelcomeStep } from './WelcomeStep'
 import { CreateConfirmModal } from './CreateConfirmModal'
+import { MigrationWizardModal } from './MigrationWizardModal'
 import { GoogleDriveStep } from './GoogleDriveStep'
 import { useCreateShop } from '@/hooks/useCreateShop'
 import { useOpenExistingShop } from '@/hooks/useOpenExistingShop'
@@ -21,6 +22,12 @@ interface GoogleUserInfo {
 type WizardScreen = 'welcome' | 'local-confirm' | 'google-drive'
 
 type GoogleDriveBusyKind = 'create' | 'work'
+
+interface MigrationCandidate {
+  folderId: string
+  shopVersion: string
+  appVersion: string
+}
 
 interface SetupWizardProps {
   onCancel: () => void
@@ -62,6 +69,7 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
     null
   )
   const [googleDriveIntent, setGoogleDriveIntent] = useState(false)
+  const [migrationCandidate, setMigrationCandidate] = useState<MigrationCandidate | null>(null)
   const googleEntryRef = useRef<'inactive' | 'google' | 'local'>('inactive')
   const screenRef = useRef<WizardScreen>('welcome')
 
@@ -78,6 +86,7 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
     setGoogleDriveError(null)
     setBusy(false)
     setGoogleDriveBusyKind(null)
+    setMigrationCandidate(null)
   }, [])
 
   const handleGoogleDriveOpen = useCallback(async () => {
@@ -107,8 +116,16 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
       try {
         const validation = await validateAndSetShop(folderId)
         if (!validation.ok) {
+          if (validation.error === 'version') {
+            setMigrationCandidate({
+              folderId,
+              shopVersion: validation.shopVersion,
+              appVersion: validation.appVersion,
+            })
+            return
+          }
           setGoogleDriveError(
-            mapValidationError(validation.error, t, validation.detail),
+            mapValidationError(validation.error, t, validation.error === 'structure' ? validation.detail : undefined),
           )
         }
       } catch (err) {
@@ -233,8 +250,17 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
         setLocalDirectoryHandle(handle)
         const validation = await validateAndSetShop(handle.name)
         if (!validation.ok) {
+          if (validation.error === 'version') {
+            setMigrationCandidate({
+              folderId: handle.name,
+              shopVersion: validation.shopVersion,
+              appVersion: validation.appVersion,
+            })
+            setBusy(false)
+            return
+          }
           setWelcomeError(
-            mapValidationError(validation.error, t, validation.detail),
+            mapValidationError(validation.error, t, validation.error === 'structure' ? validation.detail : undefined),
           )
           clearBackend()
           logout()
@@ -340,6 +366,16 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
           folderDisplayName={pendingLocalHandle.name}
           onConfirm={() => void handleLocalCreateConfirm()}
           onCancel={handleLocalCreateCancel}
+        />
+      ) : null}
+      {migrationCandidate ? (
+        <MigrationWizardModal
+          shopVersion={migrationCandidate.shopVersion}
+          appVersion={migrationCandidate.appVersion}
+          onLogOut={() => {
+            setMigrationCandidate(null)
+            resetToWelcome()
+          }}
         />
       ) : null}
     </div>

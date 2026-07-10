@@ -2,6 +2,11 @@
 
 ## Purpose
 
+> **Delta spec for v2-migration-wizard change.**  
+> When a version mismatch is detected, the wizard now shows a migration wizard modal instead of a static error. See `v2-migration-wizard/spec.md` for full requirements of the modal.
+
+## Purpose
+
 Shop identity, metadata, and version compatibility for illo3d, plus the setup wizard that creates or opens a shop (Google Drive or Local CSV) before the user can use the app.
 
 ## Shop model and metadata
@@ -303,3 +308,35 @@ All user-facing text in the wizard (buttons, titles, messages, errors) SHALL use
 
 - **WHEN** the wizard renders any step
 - **THEN** all visible text is sourced from i18n keys (e.g., `wizard.createNew`, `wizard.openExisting`, `wizard.cancel`)
+
+---
+
+## MODIFIED Requirements
+
+### Requirement: Version compatibility check uses semver major
+
+**See `v2-migration-wizard/spec.md` for the migration wizard modal that replaces the static version error.**
+
+#### MODIFIED Scenario: Different major version is incompatible
+
+- **WHEN** app version is `2.0.0` and metadata version is `1.5.0`
+- **THEN** the shop is considered incompatible and the system shows the migration wizard modal (see `v2-migration-wizard/spec.md`)
+
+### Requirement: Smart folder detection for Local Files
+
+**See `v2-migration-wizard/spec.md` for the migration wizard modal that replaces the static local-folder version error.**
+
+#### MODIFIED Scenario: Folder with incompatible metadata version shows error
+
+- **WHEN** the user selects a folder via the directory picker
+- **AND** the folder contains `illo3d.metadata.json` with an incompatible major version
+- **THEN** the system shows the migration wizard modal (see `v2-migration-wizard/spec.md`)
+
+### Requirement: Selected folder is validated before opening
+
+**See `v2-migration-wizard/spec.md` for the migration wizard modal that replaces the static validation error.**
+
+#### MODIFIED Scenario: Incompatible major version
+
+- **WHEN** the metadata's major version differs from the app's major version
+- **THEN** the system shows the migration wizard modal (see `v2-migration-wizard/spec.md`)
