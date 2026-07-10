@@ -15,11 +15,10 @@ export function MigrationWizardModal({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4">
-      <div
-        role="dialog"
-        aria-modal="true"
+      <dialog
+        open
         aria-labelledby="migration-wizard-title"
-        className="w-full max-w-md rounded-lg bg-surface-elevated p-6 shadow-xl"
+        className="relative w-full max-w-md rounded-lg bg-surface-elevated p-6 shadow-xl"
       >
         <h3 id="migration-wizard-title" className="text-lg font-semibold text-text">
           {t('wizard.migrationTitle')}
@@ -27,12 +26,12 @@ export function MigrationWizardModal({
 
         <div className="mt-6 flex items-center justify-center gap-4">
           <div className="flex flex-col items-center">
-            <span className="text-xl font-bold tracking-tight text-text">{shopVersion}</span>
+            <span className="text-xl font-bold tracking-tight text-text-muted">{shopVersion}</span>
             <span className="mt-1 text-xs text-text-muted">{t('wizard.migrationShopLabel')}</span>
           </div>
           <div className="flex items-center text-2xl text-text-muted/40">→</div>
           <div className="flex flex-col items-center">
-            <span className="text-xl font-bold tracking-tight text-brand">{appVersion}</span>
+            <span className="text-xl font-bold tracking-tight text-success">{appVersion}</span>
             <span className="mt-1 text-xs text-text-muted">{t('wizard.migrationAppLabel')}</span>
           </div>
         </div>
@@ -55,7 +54,7 @@ export function MigrationWizardModal({
             {t('wizard.migrationContinue')}
           </button>
         </div>
-      </div>
+      </dialog>
     </div>
   )
 }
