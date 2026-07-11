@@ -25,7 +25,7 @@ export function MigrationWizardModal({
   const language = useUserPreferencesStore((s) => s.language)
   const setLanguage = useUserPreferencesStore((s) => s.setLanguage)
 
-  const [backupAnswer, setBackupAnswer] = useState<'yes' | 'no' | null>(null)
+  const [backupAnswer, setBackupAnswer] = useState<boolean | null>(null)
   const [cooldownProgress, setCooldownProgress] = useState(0)
 
   useEffect(() => {
@@ -130,10 +130,10 @@ export function MigrationWizardModal({
             <button
               type="button"
               data-testid="wizard-backup-yes"
-              onClick={() => setBackupAnswer('yes')}
-              className={backupAnswer === 'yes'
+              onClick={() => setBackupAnswer(true)}
+              className={backupAnswer === true
                 ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-success text-white border border-success'
-                : backupAnswer === 'no'
+                : backupAnswer === false
                   ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text-muted border border-border opacity-40'
                   : 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text border border-border'
               }
@@ -143,10 +143,10 @@ export function MigrationWizardModal({
             <button
               type="button"
               data-testid="wizard-backup-no"
-              onClick={() => setBackupAnswer('no')}
-              className={backupAnswer === 'no'
+              onClick={() => setBackupAnswer(false)}
+              className={backupAnswer === false
                 ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-amber-500 text-white border border-amber-500'
-                : backupAnswer === 'yes'
+                : backupAnswer === true
                   ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text-muted border border-border opacity-40'
                   : 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text border border-border'
               }
@@ -156,7 +156,7 @@ export function MigrationWizardModal({
           </div>
 
           {/* Warning when No is selected */}
-          {backupAnswer === 'no' && (
+          {backupAnswer === false && (
             <div
               data-testid="wizard-backup-warning"
               className="mt-3 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200 p-3"

@@ -59,13 +59,13 @@ const ENTITY_ICONS: Record<string, ReactNode> = {
 }
 
 interface MigrationStepsGridProps {
-  backupAnswer?: 'yes' | 'no' | null
+  backupAnswer?: boolean | null
 }
 
 export function MigrationStepsGrid({ backupAnswer }: MigrationStepsGridProps) {
   const { t } = useTranslation()
 
-  const backupSkipped = backupAnswer === 'no'
+  const backupSkipped = backupAnswer === false
 
   return (
     <StepGrid label={t('wizard.migrationSummary', { done: backupSkipped ? '1' : '0', total: String(ENTITIES.length) })}>
