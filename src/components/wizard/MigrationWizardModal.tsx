@@ -1,13 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
 import { useUserPreferencesStore } from '@/stores/userPreferencesStore'
-import { MigrationStepsGrid, type MigrationStepItem } from './MigrationStepsGrid'
+import { MigrationStepsGrid } from './MigrationStepsGrid'
 
 interface MigrationWizardModalProps {
   shopVersion: string
   appVersion: string
   onLogOut: () => void
-  items?: MigrationStepItem[]
 }
 
 const LANGUAGES = [
@@ -19,7 +18,6 @@ export function MigrationWizardModal({
   shopVersion,
   appVersion,
   onLogOut,
-  items,
 }: MigrationWizardModalProps) {
   const { t } = useTranslation()
   const language = useUserPreferencesStore((s) => s.language)
@@ -90,7 +88,7 @@ export function MigrationWizardModal({
         </div>
 
         <div className="mt-5">
-          <MigrationStepsGrid items={items} />
+          <MigrationStepsGrid />
         </div>
 
         <div className="mt-5 flex flex-col justify-end gap-2 sm:flex-row sm:gap-3">

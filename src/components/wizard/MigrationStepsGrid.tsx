@@ -16,28 +16,23 @@ import {
   UsersIcon,
 } from '@heroicons/react/24/outline'
 
-export interface MigrationStepItem {
+interface EntityDef {
   entityId: string
   label: string
-  status: 'pending' | 'running' | 'done'
 }
 
-interface MigrationStepsGridProps {
-  items?: MigrationStepItem[]
-}
-
-const DEFAULT_ENTITIES: MigrationStepItem[] = [
-  { entityId: 'clients', label: 'Clients', status: 'pending' },
-  { entityId: 'crm_notes', label: 'CRM Notes', status: 'pending' },
-  { entityId: 'tags', label: 'Tags', status: 'pending' },
-  { entityId: 'tag_links', label: 'Tag Links', status: 'pending' },
-  { entityId: 'jobs', label: 'Jobs', status: 'pending' },
-  { entityId: 'pieces', label: 'Pieces', status: 'pending' },
-  { entityId: 'piece_items', label: 'Piece Items', status: 'pending' },
-  { entityId: 'inventory', label: 'Inventory', status: 'pending' },
-  { entityId: 'lots', label: 'Lots', status: 'pending' },
-  { entityId: 'transactions', label: 'Transactions', status: 'pending' },
-  { entityId: 'audit_log', label: 'Audit Log', status: 'pending' },
+const ENTITIES: EntityDef[] = [
+  { entityId: 'clients', label: 'Clients' },
+  { entityId: 'crm_notes', label: 'CRM Notes' },
+  { entityId: 'tags', label: 'Tags' },
+  { entityId: 'tag_links', label: 'Tag Links' },
+  { entityId: 'jobs', label: 'Jobs' },
+  { entityId: 'pieces', label: 'Pieces' },
+  { entityId: 'piece_items', label: 'Piece Items' },
+  { entityId: 'inventory', label: 'Inventory' },
+  { entityId: 'lots', label: 'Lots' },
+  { entityId: 'transactions', label: 'Transactions' },
+  { entityId: 'audit_log', label: 'Audit Log' },
 ]
 
 const STATUS_CONFIG: Record<string, StatusVisual> = {
@@ -60,23 +55,17 @@ const ENTITY_ICONS: Record<string, ReactNode> = {
   audit_log: <ClipboardDocumentCheckIcon />,
 }
 
-export function MigrationStepsGrid({ items }: MigrationStepsGridProps) {
+export function MigrationStepsGrid() {
   const { t } = useTranslation()
-  const stepItems = items ?? DEFAULT_ENTITIES
-  const doneCount = stepItems.filter((i) => i.status === 'done').length
-  const total = stepItems.length
-  const summary = doneCount === total
-    ? t('wizard.migrationAllDone')
-    : t('wizard.migrationSummary', { done: String(doneCount), total: String(total) })
 
   return (
-    <StepGrid label={summary}>
-      {stepItems.map((item) => (
+    <StepGrid label={t('wizard.migrationSummary', { done: '0', total: String(ENTITIES.length) })}>
+      {ENTITIES.map((item) => (
         <StepCard
           key={item.entityId}
           icon={ENTITY_ICONS[item.entityId]}
           label={item.label}
-          status={item.status}
+          status="pending"
           statusConfig={STATUS_CONFIG}
         />
       ))}
