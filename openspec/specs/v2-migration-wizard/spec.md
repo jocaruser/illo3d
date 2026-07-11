@@ -17,13 +17,20 @@ The `validateShopFolder` function SHALL return the shop's version string and the
 
 ### Requirement: Migration wizard modal appears on version mismatch
 
-When the setup wizard detects a version mismatch (Google Drive paste ID or local folder picker), the system SHALL display a modal overlay titled "Migration Wizard" showing the shop version, the app version, a disabled "Continue" button, and a "Log out" button.
+When the setup wizard detects a version mismatch (Google Drive paste ID or local folder picker), the system SHALL display a modal overlay titled "Migration Wizard" showing the shop version, the app version, a StepGrid with per-entity migration status, a disabled "Continue" button, and a "Log out" button.
 
-#### Scenario: Modal shows version information
+#### Scenario: Modal shows version information and step grid
 
 - **WHEN** a version mismatch is detected during shop validation
 - **THEN** a modal SHALL appear with title "Migration Wizard"
 - **AND** the modal SHALL display the current shop version and the target app version
+- **AND** the modal SHALL display a StepGrid showing all 11 entity cards with their migration status
+
+#### Scenario: Step grid appears between description and buttons
+
+- **WHEN** the migration wizard modal is displayed
+- **THEN** the description paragraph SHALL appear between the version comparison and the step grid
+- **AND** the step grid SHALL appear between the description paragraph and the action buttons
 
 #### Scenario: Continue button is disabled
 
@@ -55,13 +62,38 @@ All user-facing strings in the migration wizard modal SHALL use i18next translat
 #### Scenario: Strings are translatable
 
 - **WHEN** the modal renders
-- **THEN** all visible text is sourced from i18n keys: `wizard.migrationTitle`, `wizard.migrationShopVersion`, `wizard.migrationAppVersion`, `wizard.migrationContinue`, `wizard.migrationLogOut`
+- **THEN** all visible text is sourced from i18n keys: `wizard.migrationTitle`, `wizard.migrationShopVersion`, `wizard.migrationAppVersion`, `wizard.migrationContinue`, `wizard.migrationLogOut`, `wizard.migrationSummary`, `wizard.migrationAllDone`
 
 ## ADDED Requirements
 
+### Requirement: Step grid shows entity status
+
+The migration wizard modal SHALL display a StepGrid component between the description text and the action buttons. Each StepCard in the grid SHALL represent one entity sheet. Each card SHALL display a status from the migration status config: `pending` (grey), `running` (blue), `done` (green).
+
+#### Scenario: All entities shown as pending initially
+
+- **WHEN** the migration wizard modal first renders
+- **THEN** the StepGrid contains 11 StepCards, one per entity
+- **AND** all cards have `status="pending"` (grey background, grey icon)
+
+#### Scenario: Entity names match SHEET_NAMES
+
+- **WHEN** the migration wizard modal renders the StepGrid
+- **THEN** the cards use entity labels from SHEET_NAMES: clients, crm_notes, tags, tag_links, jobs, pieces, piece_items, inventory, lots, transactions, audit_log
+
+### Requirement: Step grid statuses are data-driven
+
+The migration wizard modal SHALL NOT manage status transitions internally. It SHALL accept items with their current status as props. The parent (SetupWizard or a future migration hook) SHALL control when statuses change.
+
+#### Scenario: Statuses passed as props
+
+- **WHEN** the migration wizard modal renders
+- **THEN** the item statuses come from a prop or state managed by the parent component
+- **AND** changing a status in the parent causes the card to re-render with the new visual style
+
 ### Requirement: Modal explains what changed in v2
 
-The migration wizard modal SHALL display a paragraph explaining the v2 breaking changes in user-friendly language. The paragraph SHALL appear between the version comparison display and the action buttons. The text SHALL NOT use technical jargon (e.g., "SHEET_HEADERS", "schema") and SHALL be understandable to an end user.
+The migration wizard modal SHALL display a paragraph explaining the v2 breaking changes in user-friendly language. The paragraph SHALL appear between the version comparison display and the step grid (see `#### Scenario: Step grid appears between description and buttons`). The text SHALL NOT use technical jargon (e.g., "SHEET_HEADERS", "schema") and SHALL be understandable to an end user.
 
 #### Scenario: Breaking changes are described
 
@@ -92,3 +124,40 @@ All user-facing description text SHALL use i18next translation keys.
 - **WHEN** the migration wizard modal renders
 - **THEN** all new description text SHALL be sourced from i18n keys
 - **AND** Spanish translations SHALL be provided alongside English
+
+### Requirement: Step summary shows progress count
+
+The migration wizard modal SHALL display a summary line above the StepGrid showing how many entities have been processed.
+
+#### Scenario: Summary shows count
+
+- **WHEN** the modal renders with 3 of 11 entities marked as `done`
+- **THEN** the summary line above the grid shows "3 of 11 done"
+- **AND** when all 11 are done, the summary shows "All done"
+
+### Requirement: Grid is responsive within the modal
+
+The StepGrid inside the migration wizard modal SHALL adapt to the modal's width: 2 columns on narrow viewports, 3 on tablet, 4 on desktop.
+
+#### Scenario: Grid columns adapt to modal width
+
+- **WHEN** the modal is viewed on a narrow screen (< 640px)
+- **THEN** the grid displays 2 columns
+- **WHEN** the modal is viewed on a screen 640–768px
+- **THEN** the grid displays 3 columns
+- **WHEN** the modal is viewed on a screen > 768px
+- **THEN** the grid displays 4 columns
+
+### Requirement: Step cards show entity icons
+
+Each StepCard in the migration StepGrid SHALL display an SVG icon that represents the entity type.
+
+#### Scenario: Each entity has a distinct icon
+
+- **WHEN** the migration wizard modal renders
+- **THEN** the clients card shows a users icon
+- **AND** the jobs card shows a briefcase icon
+- **AND** the inventory card shows a warehouse icon
+- **AND** the transactions card shows a coins icon
+- **AND** the audit_log card shows a clipboard icon
+- **AND** all other entity cards show appropriate icons
