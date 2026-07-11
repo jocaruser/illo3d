@@ -73,7 +73,7 @@ The system SHALL compare the major version of the app's `APP_VERSION` with the m
 
 #### Scenario: Same major version is compatible
 
-- **WHEN** app version is `2.1.0` and metadata version is `2.0.0`
+- **WHEN** app version is `2.0.0` and metadata version is `2.0.0`
 - **THEN** the shop is considered compatible and can be opened
 
 #### Scenario: Different major version is incompatible
