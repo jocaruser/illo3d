@@ -56,3 +56,39 @@ All user-facing strings in the migration wizard modal SHALL use i18next translat
 
 - **WHEN** the modal renders
 - **THEN** all visible text is sourced from i18n keys: `wizard.migrationTitle`, `wizard.migrationShopVersion`, `wizard.migrationAppVersion`, `wizard.migrationContinue`, `wizard.migrationLogOut`
+
+## ADDED Requirements
+
+### Requirement: Modal explains what changed in v2
+
+The migration wizard modal SHALL display a paragraph explaining the v2 breaking changes in user-friendly language. The paragraph SHALL appear between the version comparison display and the action buttons. The text SHALL NOT use technical jargon (e.g., "SHEET_HEADERS", "schema") and SHALL be understandable to an end user.
+
+#### Scenario: Breaking changes are described
+
+- **WHEN** the migration wizard modal is displayed due to a version mismatch
+- **THEN** the modal SHALL show a description paragraph between the version numbers and the buttons
+- **AND** the paragraph SHALL explain that version 2 adds audit logging (a record of changes) and archived/deleted tracking on items
+- **AND** the paragraph SHALL state that shops created in version 1 need an update to work with the new structure
+
+### Requirement: Modal explains what the migration will do
+
+The migration wizard modal SHALL display a paragraph explaining what will happen when the user continues with the migration. The paragraph SHALL list the specific changes the migration will make to the user's shop and SHALL reassure the user that no data will be removed.
+
+#### Scenario: Migration actions are described
+
+- **WHEN** the migration wizard modal is displayed
+- **THEN** the modal SHALL show a paragraph explaining that the migration will:
+  - Add the audit log sheet to track all future changes
+  - Add the missing archived/deleted columns
+  - Populate the audit log with entries for existing items (recording them as present at migration time)
+- **AND** the paragraph SHALL state that no data will be removed
+
+### Requirement: Description text supports i18n
+
+All user-facing description text SHALL use i18next translation keys.
+
+#### Scenario: Description strings are translatable
+
+- **WHEN** the migration wizard modal renders
+- **THEN** all new description text SHALL be sourced from i18n keys
+- **AND** Spanish translations SHALL be provided alongside English
