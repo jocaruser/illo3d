@@ -46,6 +46,19 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
+vi.mock('@/i18n', () => ({
+  default: { use: vi.fn().mockReturnThis(), init: vi.fn(), changeLanguage: vi.fn() },
+}))
+
+vi.mock('@/stores/userPreferencesStore', () => ({
+  useUserPreferencesStore: vi.fn((selector) =>
+    selector({
+      language: 'en',
+      setLanguage: vi.fn(),
+    }),
+  ),
+}))
+
 describe('SetupWizard', () => {
   beforeEach(() => {
     pickFolder.mockReset()

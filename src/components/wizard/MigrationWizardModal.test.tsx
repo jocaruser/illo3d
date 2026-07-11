@@ -8,6 +8,19 @@ vi.mock('react-i18next', () => ({
   }),
 }))
 
+vi.mock('@/i18n', () => ({
+  default: { changeLanguage: vi.fn() },
+}))
+
+vi.mock('@/stores/userPreferencesStore', () => ({
+  useUserPreferencesStore: vi.fn((selector) =>
+    selector({
+      language: 'en',
+      setLanguage: vi.fn(),
+    }),
+  ),
+}))
+
 describe('MigrationWizardModal', () => {
   it('renders the title', () => {
     render(
