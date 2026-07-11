@@ -26,7 +26,7 @@ describe('StepGrid', () => {
     expect(grid).toHaveClass('md:grid-cols-4')
   })
 
-  it('uses inline style for custom column overrides', () => {
+  it('uses style tag for custom column overrides', () => {
     const { container } = render(
       <StepGrid columns={{ default: 1, md: 2 }}>
         <div />
@@ -34,7 +34,34 @@ describe('StepGrid', () => {
     )
     const grid = container.querySelector('.grid')
     expect(grid).not.toHaveClass('grid-cols-2')
-    expect(grid).toHaveStyle({ gridTemplateColumns: 'repeat(1, minmax(0, 1fr))' })
+    const styleTag = container.querySelector('style')
+    expect(styleTag?.textContent).toContain('repeat(1,minmax(0,1fr))')
+    expect(styleTag?.textContent).toContain('@media(min-width:768px)')
+    expect(styleTag?.textContent).toContain('repeat(2,minmax(0,1fr))')
+  })
+
+  it('injects responsive style tag for breakpoint overrides', () => {
+    const { container } = render(
+      <StepGrid columns={{ default: 1, sm: 2, md: 3, lg: 4 }}>
+        <div />
+      </StepGrid>,
+    )
+    const styleTag = container.querySelector('style')
+    expect(styleTag).toBeInTheDocument()
+    expect(styleTag?.textContent).toContain('repeat(1,minmax(0,1fr))')
+    expect(styleTag?.textContent).toContain('@media(min-width:640px)')
+    expect(styleTag?.textContent).toContain('repeat(2,minmax(0,1fr))')
+    expect(styleTag?.textContent).toContain('@media(min-width:768px)')
+    expect(styleTag?.textContent).toContain('@media(min-width:1024px)')
+  })
+
+  it('omits style tag for default layout', () => {
+    const { container } = render(
+      <StepGrid>
+        <div />
+      </StepGrid>,
+    )
+    expect(container.querySelector('style')).not.toBeInTheDocument()
   })
 
   it('renders label when provided', () => {

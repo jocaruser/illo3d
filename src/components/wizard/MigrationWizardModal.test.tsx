@@ -4,7 +4,15 @@ import { MigrationWizardModal } from './MigrationWizardModal'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: (key: string, opts?: Record<string, string>) => {
+      const strings: Record<string, string> = {
+        'wizard.migrationSummary': '{{done}} of {{total}} done',
+        'wizard.migrationAllDone': 'All done',
+      }
+      const template = strings[key] ?? key
+      if (!opts) return template
+      return template.replace(/\{\{(\w+)\}\}/g, (_, name) => opts[name] ?? `{{${name}}}`)
+    },
   }),
 }))
 
@@ -106,7 +114,7 @@ describe('MigrationWizardModal', () => {
         items={items}
       />,
     )
-    expect(screen.getByText('wizard.migrationSummary')).toBeInTheDocument()
+    expect(screen.getByText('1 of 2 done')).toBeInTheDocument()
   })
 
   it('shows all-done summary when every item is done', () => {
@@ -122,7 +130,7 @@ describe('MigrationWizardModal', () => {
         items={items}
       />,
     )
-    expect(screen.getByText('wizard.migrationAllDone')).toBeInTheDocument()
+    expect(screen.getByText('All done')).toBeInTheDocument()
   })
 
   it('defaults to pending status when items not provided', () => {

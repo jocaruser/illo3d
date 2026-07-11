@@ -39,8 +39,8 @@ describe('StepCard', () => {
   })
 
   it('shows check icon for done status', () => {
-    const { container } = render(<StepCard icon={testIcon} label="Clients" status="done" statusConfig={testConfig} />)
-    expect(container.querySelector('svg path')).toBeInTheDocument()
+    render(<StepCard icon={testIcon} label="Clients" status="done" statusConfig={testConfig} />)
+    expect(screen.getByTestId('check-icon')).toBeInTheDocument()
     expect(screen.queryByTestId('test-icon')).not.toBeInTheDocument()
   })
 

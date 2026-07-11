@@ -39,6 +39,7 @@ export function StepCard({
         >
           {visual?.showCheckIcon ? (
             <svg
+              data-testid="check-icon"
               className={`h-3 w-3 ${visual?.iconColor ?? 'text-gray-400'}`}
               fill="none"
               viewBox="0 0 24 24"
