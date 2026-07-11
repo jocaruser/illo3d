@@ -566,7 +566,14 @@
     "migrationDescriptionChanges": "Version 2 adds audit logging — a record of every change made in your shop — and new archived/deleted tracking on items. These changes let you see who did what and keep your data clean, but shops created in version 1 need a quick update to work with the new structure.",
     "migrationDescriptionActions": "We'll update your shop: add the audit log sheet, add archived and deleted columns where needed, and record your existing items in the audit log. No data will be removed.",
     "migrationSummary": "{{done}} of {{total}} done",
-    "migrationAllDone": "All done"
+    "migrationAllDone": "All done",
+    "migrationBackupQuestion": "Would you like to back up your shop before migrating?",
+    "migrationBackupYes": "Yes, back up my shop",
+    "migrationBackupNo": "No, skip backup",
+    "migrationBackupWarning": "We strongly recommend creating a manual backup before proceeding. This ensures you have a restore point if anything goes wrong.",
+    "migrationBackupResolvedYes": "Your shop will be backed up before migration",
+    "migrationBackupResolvedNo": "Backup skipped",
+    "migrationBackupDetail": "A backup will be created as a copy of your current data."
   },
   "workbook": {
     "loading": "Loading workbook…",

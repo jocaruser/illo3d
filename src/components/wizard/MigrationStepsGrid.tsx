@@ -11,6 +11,7 @@ import {
   CubeIcon,
   CurrencyDollarIcon,
   LinkIcon,
+  ShieldExclamationIcon,
   Square3Stack3DIcon,
   TagIcon,
   UsersIcon,
@@ -22,6 +23,7 @@ interface EntityDef {
 }
 
 const ENTITIES: EntityDef[] = [
+  { entityId: 'backup', label: 'Backup' },
   { entityId: 'clients', label: 'Clients' },
   { entityId: 'crm_notes', label: 'CRM Notes' },
   { entityId: 'tags', label: 'Tags' },
@@ -42,6 +44,7 @@ const STATUS_CONFIG: Record<string, StatusVisual> = {
 }
 
 const ENTITY_ICONS: Record<string, ReactNode> = {
+  backup: <ShieldExclamationIcon />,
   clients: <UsersIcon />,
   crm_notes: <ChatBubbleLeftRightIcon />,
   tags: <TagIcon />,

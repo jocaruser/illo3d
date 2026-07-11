@@ -73,6 +73,25 @@ test.describe('Google Drive setup wizard', () => {
       page.getByLabel('Audit Log: pending'),
     ).toBeVisible()
     await expect(
+      page.getByLabel('Backup: pending'),
+    ).toBeVisible()
+    await expect(
+      page.getByTestId('wizard-backup-yes'),
+    ).toBeVisible()
+    await expect(
+      page.getByTestId('wizard-backup-no'),
+    ).toBeVisible()
+    // Click "No" and verify warning box appears with amber background
+    await page.getByTestId('wizard-backup-no').click()
+    await expect(
+      page.getByTestId('wizard-backup-warning'),
+    ).toBeVisible()
+    await expect(
+      page.getByTestId('wizard-backup-warning'),
+    ).toHaveClass(/bg-amber-50/)
+    // Switch to Yes so warning box collapses, making Log out reachable
+    await page.getByTestId('wizard-backup-yes').click()
+    await expect(
       page.getByTestId('wizard-migration-continue'),
     ).toBeDisabled()
     await page.getByTestId('wizard-migration-logout').click()
