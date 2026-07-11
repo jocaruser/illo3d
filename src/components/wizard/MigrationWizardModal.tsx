@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
 import { useUserPreferencesStore } from '@/stores/userPreferencesStore'
 import { MigrationStepsGrid } from './MigrationStepsGrid'
-import { ShieldExclamationIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
+import { ShieldExclamationIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 interface MigrationWizardModalProps {
   shopVersion: string
@@ -25,20 +25,29 @@ export function MigrationWizardModal({
   const language = useUserPreferencesStore((s) => s.language)
   const setLanguage = useUserPreferencesStore((s) => s.setLanguage)
 
-  const [backupAnswer, setBackupAnswer] = useState<'yes' | 'no' | null>(null)
-  const [cooldownDone, setCooldownDone] = useState(false)
+  const [backupAnswer, setBackupAnswer] = useState<boolean | null>(null)
+  const [cooldownProgress, setCooldownProgress] = useState(0)
 
   useEffect(() => {
     if (backupAnswer === null) {
-      setCooldownDone(false)
+      setCooldownProgress(0)
       return
     }
-    setCooldownDone(false)
-    const timeout = setTimeout(() => {
-      setCooldownDone(true)
-    }, 5000)
-    return () => clearTimeout(timeout)
+    setCooldownProgress(0)
+    const interval = setInterval(() => {
+      setCooldownProgress((prev) => {
+        const next = prev + 2
+        if (next >= 100) {
+          clearInterval(interval)
+          return 100
+        }
+        return next
+      })
+    }, 100)
+    return () => clearInterval(interval)
   }, [backupAnswer])
+
+  const cooldownDone = cooldownProgress >= 100
 
   const handleLanguageChange = (lang: 'en' | 'es') => {
     setLanguage(lang)
@@ -121,10 +130,10 @@ export function MigrationWizardModal({
             <button
               type="button"
               data-testid="wizard-backup-yes"
-              onClick={() => setBackupAnswer('yes')}
-              className={backupAnswer === 'yes'
+              onClick={() => setBackupAnswer(true)}
+              className={backupAnswer === true
                 ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-success text-white border border-success'
-                : backupAnswer === 'no'
+                : backupAnswer === false
                   ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text-muted border border-border opacity-40'
                   : 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text border border-border'
               }
@@ -134,10 +143,10 @@ export function MigrationWizardModal({
             <button
               type="button"
               data-testid="wizard-backup-no"
-              onClick={() => setBackupAnswer('no')}
-              className={backupAnswer === 'no'
+              onClick={() => setBackupAnswer(false)}
+              className={backupAnswer === false
                 ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-amber-500 text-white border border-amber-500'
-                : backupAnswer === 'yes'
+                : backupAnswer === true
                   ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text-muted border border-border opacity-40'
                   : 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text border border-border'
               }
@@ -147,7 +156,7 @@ export function MigrationWizardModal({
           </div>
 
           {/* Warning when No is selected */}
-          {backupAnswer === 'no' && (
+          {backupAnswer === false && (
             <div
               data-testid="wizard-backup-warning"
               className="mt-3 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200 p-3"
@@ -161,7 +170,7 @@ export function MigrationWizardModal({
         </div>
 
         <div className="mt-5">
-          <MigrationStepsGrid />
+          <MigrationStepsGrid backupAnswer={backupAnswer} />
         </div>
 
         <div className="mt-5 flex flex-col-reverse justify-end gap-2 sm:flex-row sm:gap-3">
@@ -169,12 +178,34 @@ export function MigrationWizardModal({
             type="button"
             data-testid="wizard-migration-continue"
             disabled={backupAnswer === null || !cooldownDone}
-            className={`rounded-lg border border-border px-5 py-2 text-sm font-medium transition sm:w-auto ${
+            className={`inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2 text-sm font-medium transition sm:w-auto ${
               backupAnswer === null || !cooldownDone
                 ? 'cursor-not-allowed opacity-50 bg-surface text-text-muted'
                 : 'bg-success text-white hover:opacity-90'
             }`}
           >
+            {backupAnswer !== null && !cooldownDone ? (
+              <svg className="h-4 w-4 -rotate-90" viewBox="0 0 20 20" aria-hidden="true">
+                <circle
+                  cx="10" cy="10" r="8"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  opacity="0.25"
+                />
+                <circle
+                  cx="10" cy="10" r="8"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 8}
+                  strokeDashoffset={2 * Math.PI * 8 * (1 - cooldownProgress / 100)}
+                />
+              </svg>
+            ) : cooldownDone ? (
+              <CheckIcon className="h-4 w-4" aria-hidden="true" />
+            ) : null}
             {t('wizard.migrationContinue')}
           </button>
           <button

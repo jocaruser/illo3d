@@ -573,6 +573,7 @@
     "migrationBackupWarning": "We strongly recommend creating a manual backup before proceeding. This ensures you have a restore point if anything goes wrong.",
     "migrationBackupResolvedYes": "Your shop will be backed up before migration",
     "migrationBackupResolvedNo": "Backup skipped",
+    "migrationBackupSkipped": "Skipped",
     "migrationBackupDetail": "A backup will be created as a copy of your current data."
   },
   "workbook": {

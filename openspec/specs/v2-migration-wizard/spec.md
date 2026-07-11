@@ -24,7 +24,7 @@ When the setup wizard detects a version mismatch (Google Drive paste ID or local
 - **WHEN** a version mismatch is detected during shop validation
 - **THEN** a modal SHALL appear with title "Migration Wizard"
 - **AND** the modal SHALL display the current shop version and the target app version
-- **AND** the modal SHALL display a StepGrid showing all 11 entity cards with their migration status
+- **AND** the modal SHALL display a StepGrid showing entity cards with their migration status
 
 #### Scenario: Step grid appears between description and buttons
 
@@ -64,8 +64,6 @@ All user-facing strings in the migration wizard modal SHALL use i18next translat
 - **WHEN** the modal renders
 - **THEN** all visible text is sourced from i18n keys: `wizard.migrationTitle`, `wizard.migrationShopVersion`, `wizard.migrationAppVersion`, `wizard.migrationContinue`, `wizard.migrationLogOut`, `wizard.migrationSummary`, `wizard.migrationAllDone`
 
-## ADDED Requirements
-
 ### Requirement: Step grid shows entity status
 
 The migration wizard modal SHALL display a StepGrid component between the description text and the action buttons. Each StepCard in the grid SHALL represent one entity sheet. Each card SHALL display a status from the migration status config: `pending` (grey), `running` (blue), `done` (green).
@@ -73,13 +71,13 @@ The migration wizard modal SHALL display a StepGrid component between the descri
 #### Scenario: All entities shown as pending initially
 
 - **WHEN** the migration wizard modal first renders
-- **THEN** the StepGrid contains 11 StepCards, one per entity
+- **THEN** the StepGrid contains 12 StepCards, one per entity (backup + 11 data entities)
 - **AND** all cards have `status="pending"` (grey background, grey icon)
 
-#### Scenario: Entity names match SHEET_NAMES
+#### Scenario: Entity names are labeled
 
 - **WHEN** the migration wizard modal renders the StepGrid
-- **THEN** the cards use entity labels from SHEET_NAMES: clients, crm_notes, tags, tag_links, jobs, pieces, piece_items, inventory, lots, transactions, audit_log
+- **THEN** the cards use labels: Backup, Clients, CRM Notes, Tags, Tag Links, Jobs, Pieces, Piece Items, Inventory, Lots, Transactions, Audit Log
 
 ### Requirement: Step grid statuses are data-driven
 
@@ -131,9 +129,9 @@ The migration wizard modal SHALL display a summary line above the StepGrid showi
 
 #### Scenario: Summary shows count
 
-- **WHEN** the modal renders with 3 of 11 entities marked as `done`
-- **THEN** the summary line above the grid shows "3 of 11 done"
-- **AND** when all 11 are done, the summary shows "All done"
+- **WHEN** the modal renders with done entities
+- **THEN** the summary line above the grid shows "{done} of {total} done"
+- **AND** when all entities are done, the summary shows "All done"
 
 ### Requirement: Grid is responsive within the modal
 
@@ -155,9 +153,132 @@ Each StepCard in the migration StepGrid SHALL display an SVG icon that represent
 #### Scenario: Each entity has a distinct icon
 
 - **WHEN** the migration wizard modal renders
-- **THEN** the clients card shows a users icon
+- **THEN** the backup card shows a shield icon
+- **AND** the clients card shows a users icon
 - **AND** the jobs card shows a briefcase icon
 - **AND** the inventory card shows a warehouse icon
 - **AND** the transactions card shows a coins icon
 - **AND** the audit_log card shows a clipboard icon
 - **AND** all other entity cards show appropriate icons
+
+### Requirement: Backup question banner appears in modal
+
+The migration wizard modal SHALL display a backup question banner between the description block and the StepGrid. The banner SHALL contain a shield icon, the question text, and two buttons: "Yes, back up my shop" and "No, skip backup".
+
+#### Scenario: Backup banner is visible
+
+- **WHEN** the migration wizard modal is displayed
+- **THEN** a banner with shield icon SHALL appear between the description paragraph and the StepGrid
+- **AND** the banner SHALL contain a question and two buttons (Yes/No)
+
+### Requirement: Yes/No buttons have toggle behavior
+
+The Yes and No buttons SHALL be togglable. Clicking one selects it (highlighted), clicking the other selects that one instead. Clicking the already-selected button deselects it (returning to "no answer" state).
+
+#### Scenario: Yes selected on click
+
+- **WHEN** the user clicks "Yes"
+- **THEN** the Yes button SHALL have a green background with white text
+- **AND** the No button SHALL have a dimmed/grey appearance
+
+#### Scenario: No selected on click
+
+- **WHEN** the user clicks "No"
+- **THEN** the No button SHALL have an amber background with white text
+- **AND** the Yes button SHALL have a dimmed/grey appearance
+
+#### Scenario: Toggle between Yes and No
+
+- **WHEN** "Yes" is selected and the user clicks "No"
+- **THEN** "No" becomes selected (amber) and "Yes" becomes dimmed
+- **WHEN** "No" is selected and the user clicks "Yes"
+- **THEN** "Yes" becomes selected (green) and "No" becomes dimmed
+
+#### Scenario: Clicking selected button deselects
+
+- **WHEN** "Yes" is selected and the user clicks "Yes" again
+- **THEN** both buttons return to neutral state (neither selected)
+- **WHEN** "No" is selected and the user clicks "No" again
+- **THEN** both buttons return to neutral state (neither selected)
+
+### Requirement: Warning shown when No is selected
+
+When the user selects "No", a warning paragraph SHALL appear below the buttons.
+
+#### Scenario: Warning appears on No
+
+- **WHEN** the user selects "No" on the backup question
+- **THEN** a warning paragraph SHALL appear below the buttons recommending a manual backup
+
+#### Scenario: Warning disappears on Yes or deselect
+
+- **WHEN** the warning is visible and the user selects "Yes"
+- **THEN** the warning text SHALL be removed
+- **WHEN** the warning is visible and the user deselects "No"
+- **THEN** the warning text SHALL be removed
+
+### Requirement: Continue button has cooldown timer with progress indicator
+
+The Continue button SHALL remain disabled until the backup question is answered AND a 5-second cooldown timer has elapsed since the last answer change. During the cooldown, a circular progress indicator SHALL animate around the button's text. When the cooldown completes, the progress indicator SHALL be replaced by a checkmark icon. Changing the answer SHALL reset the cooldown timer and progress.
+
+#### Scenario: Continue disabled until cooldown
+
+- **WHEN** the migration wizard modal first renders
+- **THEN** the Continue button SHALL be disabled
+- **WHEN** the user answers the backup question (Yes or No)
+- **THEN** the Continue button SHALL remain disabled for 5 seconds
+- **AND** a circular progress indicator SHALL animate during the cooldown
+- **WHEN** 5 seconds have elapsed since the last answer
+- **THEN** the Continue button SHALL become enabled
+- **AND** a checkmark icon SHALL replace the progress indicator
+
+#### Scenario: Changing answer resets cooldown
+
+- **WHEN** 5 seconds have elapsed and the Continue button is enabled
+- **AND** the user changes the backup answer
+- **THEN** the Continue button SHALL become disabled again
+- **AND** the cooldown timer SHALL restart from 0 seconds
+- **AND** the progress indicator SHALL reset and animate again
+
+### Requirement: Backup card reflects skip state
+
+When the user selects "No, skip backup", the backup entity card SHALL transition to the `done` status with a green visual and display the subtitle "Skipped". The steps summary SHALL update to show 1 of 12 done.
+
+#### Scenario: Backup marked done when skipped
+
+- **WHEN** the user selects "No" on the backup question
+- **THEN** the backup card in the StepGrid SHALL show `status="done"` (green background, green icon, checkmark)
+- **AND** the backup card SHALL display the subtitle "Skipped"
+- **AND** the step summary SHALL update to "1 of 12 done"
+
+#### Scenario: Backup stays pending when Yes is selected
+
+- **WHEN** the user selects "Yes" on the backup question
+- **THEN** the backup card SHALL remain `status="pending"` (grey)
+- **AND** the step summary SHALL show "0 of 12 done"
+
+### Requirement: Action buttons are right-aligned on desktop, stacked on mobile
+
+The modal action buttons (Continue, Log out) SHALL be right-aligned on desktop and stacked with `flex-col-reverse` on mobile (Continue on bottom-first for thumb reach).
+
+#### Scenario: Desktop button layout
+
+- **WHEN** the modal is viewed on a screen >= 640px
+- **THEN** Continue and Log out SHALL be horizontally arranged with right alignment
+- **AND** Continue SHALL be to the right of Log out
+
+#### Scenario: Mobile button layout
+
+- **WHEN** the modal is viewed on a screen < 640px
+- **THEN** Continue and Log out SHALL be stacked vertically
+- **AND** Continue SHALL appear above Log out in visual order
+
+### Requirement: Backup UI strings are i18n
+
+All user-facing strings for the backup feature SHALL use i18next translation keys with both English and Spanish translations.
+
+#### Scenario: Strings are translatable
+
+- **WHEN** the backup banner renders
+- **THEN** all backup-related text is sourced from i18n keys
+- **AND** Spanish translations SHALL be provided alongside English

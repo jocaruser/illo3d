@@ -40,7 +40,7 @@ const ENTITIES: EntityDef[] = [
 const STATUS_CONFIG: Record<string, StatusVisual> = {
   pending: { bg: 'bg-gray-100', text: 'text-gray-400', iconBg: 'bg-gray-300', iconColor: 'text-gray-400', showCheckIcon: false },
   running: { bg: 'bg-blue-50', text: 'text-blue-700', iconBg: 'bg-blue-500', iconColor: 'text-white', showCheckIcon: false, pulse: true },
-  done: { bg: 'bg-green-50', text: 'text-green-700', iconBg: 'bg-green-500', iconColor: 'text-white', showCheckIcon: true },
+  done: { bg: 'bg-green-100', text: 'text-green-800', iconBg: 'bg-green-600', iconColor: 'text-white', showCheckIcon: true },
 }
 
 const ENTITY_ICONS: Record<string, ReactNode> = {
@@ -58,17 +58,24 @@ const ENTITY_ICONS: Record<string, ReactNode> = {
   audit_log: <ClipboardDocumentCheckIcon />,
 }
 
-export function MigrationStepsGrid() {
+interface MigrationStepsGridProps {
+  backupAnswer?: boolean | null
+}
+
+export function MigrationStepsGrid({ backupAnswer }: MigrationStepsGridProps) {
   const { t } = useTranslation()
 
+  const backupSkipped = backupAnswer === false
+
   return (
-    <StepGrid label={t('wizard.migrationSummary', { done: '0', total: String(ENTITIES.length) })}>
+    <StepGrid label={t('wizard.migrationSummary', { done: backupSkipped ? '1' : '0', total: String(ENTITIES.length) })}>
       {ENTITIES.map((item) => (
         <StepCard
           key={item.entityId}
           icon={ENTITY_ICONS[item.entityId]}
           label={item.label}
-          status="pending"
+          status={item.entityId === 'backup' && backupSkipped ? 'done' : 'pending'}
+          detail={item.entityId === 'backup' && backupSkipped ? t('wizard.migrationBackupSkipped') : undefined}
           statusConfig={STATUS_CONFIG}
         />
       ))}
