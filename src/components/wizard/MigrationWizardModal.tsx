@@ -150,10 +150,10 @@ export function MigrationWizardModal({
           {backupAnswer === 'no' && (
             <div
               data-testid="wizard-backup-warning"
-              className="mt-3 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3"
+              className="mt-3 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200 p-3"
             >
-              <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-amber-800 mt-0.5" />
-              <p className="text-xs text-amber-800 leading-relaxed">
+              <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-amber-800 dark:text-amber-300 mt-0.5" />
+              <p className="text-xs leading-relaxed">
                 {t('wizard.migrationBackupWarning')}
               </p>
             </div>
