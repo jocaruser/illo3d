@@ -50,7 +50,7 @@ test.describe('Google Drive setup wizard', () => {
     ).toBeVisible({ timeout: 10000 })
   })
 
-  test('paste folder ID shows migration wizard modal on version mismatch', async ({ page }) => {
+  test('paste folder ID shows migration wizard modal with StepGrid on version mismatch', async ({ page }) => {
     await mockGoogleOAuth(page)
     await mockDriveApis(page, { pasteFolderMode: 'bad_version' })
     await page.goto('/#/dashboard', { waitUntil: 'load' })
@@ -60,6 +60,18 @@ test.describe('Google Drive setup wizard', () => {
     await expect(
       page.getByText(/Migration Wizard|Asistente de migración/i),
     ).toBeVisible({ timeout: 10000 })
+    await expect(
+      page.getByLabel('Clients: pending'),
+    ).toBeVisible()
+    await expect(
+      page.getByLabel('Jobs: pending'),
+    ).toBeVisible()
+    await expect(
+      page.getByLabel('Inventory: pending'),
+    ).toBeVisible()
+    await expect(
+      page.getByLabel('Audit Log: pending'),
+    ).toBeVisible()
     await expect(
       page.getByTestId('wizard-migration-continue'),
     ).toBeDisabled()

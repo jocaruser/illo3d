@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
 import { useUserPreferencesStore } from '@/stores/userPreferencesStore'
+import { MigrationStepsGrid } from './MigrationStepsGrid'
 
 interface MigrationWizardModalProps {
   shopVersion: string
@@ -86,7 +87,11 @@ export function MigrationWizardModal({
           </p>
         </div>
 
-        <div className="mt-5 flex flex-col justify-end gap-2 sm:mt-6 sm:flex-row sm:gap-3">
+        <div className="mt-5">
+          <MigrationStepsGrid />
+        </div>
+
+        <div className="mt-5 flex flex-col justify-end gap-2 sm:flex-row sm:gap-3">
           <button
             type="button"
             data-testid="wizard-migration-continue"

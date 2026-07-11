@@ -564,7 +564,9 @@
     "migrationContinue": "Continuar",
     "migrationLogOut": "Cerrar sesión",
     "migrationDescriptionChanges": "La versión 2 añade un registro de auditoría — un historial de todos los cambios realizados en tu tienda — y nuevas columnas de archivado/eliminado en los elementos. Estos cambios te permiten ver quién hizo qué y mantener tus datos ordenados, pero las tiendas creadas en la versión 1 necesitan una actualización para funcionar con la nueva estructura.",
-    "migrationDescriptionActions": "Actualizaremos tu tienda: añadiremos la hoja de registro de auditoría, las columnas de archivado y eliminado donde sean necesarias, y registraremos tus elementos existentes en el registro de auditoría. No se eliminará ningún dato."
+    "migrationDescriptionActions": "Actualizaremos tu tienda: añadiremos la hoja de registro de auditoría, las columnas de archivado y eliminado donde sean necesarias, y registraremos tus elementos existentes en el registro de auditoría. No se eliminará ningún dato.",
+    "migrationSummary": "{{done}} de {{total}} completados",
+    "migrationAllDone": "Todo completado"
   },
   "workbook": {
     "loading": "Cargando libro…",
