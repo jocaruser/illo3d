@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
 import { useUserPreferencesStore } from '@/stores/userPreferencesStore'
 import { MigrationStepsGrid } from './MigrationStepsGrid'
+import { ShieldExclamationIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 
 interface MigrationWizardModalProps {
   shopVersion: string
@@ -22,6 +24,21 @@ export function MigrationWizardModal({
   const { t } = useTranslation()
   const language = useUserPreferencesStore((s) => s.language)
   const setLanguage = useUserPreferencesStore((s) => s.setLanguage)
+
+  const [backupAnswer, setBackupAnswer] = useState<'yes' | 'no' | null>(null)
+  const [cooldownDone, setCooldownDone] = useState(false)
+
+  useEffect(() => {
+    if (backupAnswer === null) {
+      setCooldownDone(false)
+      return
+    }
+    setCooldownDone(false)
+    const timeout = setTimeout(() => {
+      setCooldownDone(true)
+    }, 5000)
+    return () => clearTimeout(timeout)
+  }, [backupAnswer])
 
   const handleLanguageChange = (lang: 'en' | 'es') => {
     setLanguage(lang)
@@ -87,16 +104,76 @@ export function MigrationWizardModal({
           </p>
         </div>
 
+        {/* Backup question */}
+        <div className="mt-5 rounded-lg border border-primary/20 bg-primary/5 p-3 sm:p-4">
+          <div className="flex items-center gap-3">
+            <ShieldExclamationIcon className="h-6 w-6 shrink-0 text-text-muted" />
+            <div>
+              <p className="text-sm font-medium text-text">
+                {t('wizard.migrationBackupQuestion')}
+              </p>
+              <p className="text-xs text-text-muted mt-0.5">
+                {t('wizard.migrationBackupDetail')}
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 flex gap-3">
+            <button
+              type="button"
+              data-testid="wizard-backup-yes"
+              onClick={() => setBackupAnswer('yes')}
+              className={backupAnswer === 'yes'
+                ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-success text-white border border-success'
+                : backupAnswer === 'no'
+                  ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text-muted border border-border opacity-40'
+                  : 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text border border-border'
+              }
+            >
+              {t('wizard.migrationBackupYes')}
+            </button>
+            <button
+              type="button"
+              data-testid="wizard-backup-no"
+              onClick={() => setBackupAnswer('no')}
+              className={backupAnswer === 'no'
+                ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-warning text-white border border-warning'
+                : backupAnswer === 'yes'
+                  ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text-muted border border-border opacity-40'
+                  : 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text border border-border'
+              }
+            >
+              {t('wizard.migrationBackupNo')}
+            </button>
+          </div>
+
+          {/* Warning when No is selected */}
+          {backupAnswer === 'no' && (
+            <div
+              data-testid="wizard-backup-warning"
+              className="mt-3 flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/10 p-3"
+            >
+              <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-warning mt-0.5" />
+              <p className="text-xs text-warning/90 leading-relaxed">
+                {t('wizard.migrationBackupWarning')}
+              </p>
+            </div>
+          )}
+        </div>
+
         <div className="mt-5">
           <MigrationStepsGrid />
         </div>
 
-        <div className="mt-5 flex flex-col justify-end gap-2 sm:flex-row sm:gap-3">
+        <div className="mt-5 flex flex-col-reverse justify-end gap-2 sm:flex-row sm:gap-3">
           <button
             type="button"
             data-testid="wizard-migration-continue"
-            disabled
-            className="btn-primary w-full cursor-not-allowed opacity-50 sm:w-auto"
+            disabled={backupAnswer === null || !cooldownDone}
+            className={`rounded-lg border border-border px-5 py-2 text-sm font-medium transition sm:w-auto ${
+              backupAnswer === null || !cooldownDone
+                ? 'cursor-not-allowed opacity-50 bg-surface text-text-muted'
+                : 'bg-success text-white hover:opacity-90'
+            }`}
           >
             {t('wizard.migrationContinue')}
           </button>

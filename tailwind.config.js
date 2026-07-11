@@ -23,6 +23,7 @@ export default {
         accent: 'rgb(var(--color-accent) / <alpha-value>)',
         success: 'rgb(var(--color-success) / <alpha-value>)',
         danger: 'rgb(var(--color-danger) / <alpha-value>)',
+        warning: 'rgb(var(--color-warning) / <alpha-value>)',
       },
       fontFamily: {
         display: ['Barlow Condensed', 'system-ui', 'sans-serif'],

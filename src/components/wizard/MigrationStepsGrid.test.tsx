@@ -17,8 +17,9 @@ vi.mock('react-i18next', () => ({
 }))
 
 describe('MigrationStepsGrid', () => {
-  it('renders StepCard for every entity', () => {
+  it('renders StepCard for every entity including backup', () => {
     render(<MigrationStepsGrid />)
+    expect(screen.getByText('Backup')).toBeInTheDocument()
     expect(screen.getByText('Clients')).toBeInTheDocument()
     expect(screen.getByText('Jobs')).toBeInTheDocument()
     expect(screen.getByText('Inventory')).toBeInTheDocument()
@@ -34,12 +35,14 @@ describe('MigrationStepsGrid', () => {
 
   it('shows initial pending status on each card', () => {
     render(<MigrationStepsGrid />)
+    const backupCard = screen.getByLabelText('Backup: pending')
+    expect(backupCard).toBeInTheDocument()
     const clientsCard = screen.getByLabelText('Clients: pending')
     expect(clientsCard).toBeInTheDocument()
   })
 
   it('shows summary with zero progress initially', () => {
     render(<MigrationStepsGrid />)
-    expect(screen.getByText('0 of 11 done')).toBeInTheDocument()
+    expect(screen.getByText('0 of 12 done')).toBeInTheDocument()
   })
 })

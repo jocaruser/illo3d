@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { MigrationWizardModal } from './MigrationWizardModal'
 
 vi.mock('react-i18next', () => ({
@@ -22,6 +22,14 @@ vi.mock('@/stores/userPreferencesStore', () => ({
 }))
 
 describe('MigrationWizardModal', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders the title', () => {
     render(
       <MigrationWizardModal
@@ -47,7 +55,78 @@ describe('MigrationWizardModal', () => {
     expect(screen.getByText('wizard.migrationAppLabel')).toBeInTheDocument()
   })
 
-  it('has a disabled Continue button', () => {
+  it('renders the backup question and buttons', () => {
+    render(
+      <MigrationWizardModal
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    expect(screen.getByText('wizard.migrationBackupQuestion')).toBeInTheDocument()
+    expect(screen.getByTestId('wizard-backup-yes')).toBeInTheDocument()
+    expect(screen.getByTestId('wizard-backup-no')).toBeInTheDocument()
+  })
+
+  it('shows backup banner with blueish primary background', () => {
+    render(
+      <MigrationWizardModal
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    const questionText = screen.getByText('wizard.migrationBackupQuestion')
+    const banner = questionText.closest('[class*="bg-primary"]')
+    expect(banner).toBeInTheDocument()
+    expect(banner).toHaveClass('bg-primary/5')
+    expect(banner).toHaveClass('border-primary/20')
+  })
+
+  it('shows warning when No is selected', () => {
+    render(
+      <MigrationWizardModal
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    expect(screen.queryByText('wizard.migrationBackupWarning')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('wizard-backup-no'))
+    expect(screen.getByText('wizard.migrationBackupWarning')).toBeInTheDocument()
+  })
+
+  it('shows warning box with yellow/amber classes when No is selected', () => {
+    render(
+      <MigrationWizardModal
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('wizard-backup-no'))
+    const warningBox = screen.getByTestId('wizard-backup-warning')
+    expect(warningBox).toBeInTheDocument()
+    expect(warningBox).toHaveClass('bg-warning/10')
+    expect(warningBox).toHaveClass('border-warning/30')
+    expect(screen.getByText('wizard.migrationBackupWarning')).toBeInTheDocument()
+  })
+
+  it('hides warning when switching from No to Yes', () => {
+    render(
+      <MigrationWizardModal
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('wizard-backup-no'))
+    expect(screen.getByText('wizard.migrationBackupWarning')).toBeInTheDocument()
+    fireEvent.click(screen.getByTestId('wizard-backup-yes'))
+    expect(screen.queryByText('wizard.migrationBackupWarning')).not.toBeInTheDocument()
+  })
+
+  it('has Continue disabled initially', () => {
     render(
       <MigrationWizardModal
         shopVersion="1.0.0"
@@ -57,6 +136,39 @@ describe('MigrationWizardModal', () => {
     )
     const continueButton = screen.getByTestId('wizard-migration-continue')
     expect(continueButton).toBeDisabled()
+  })
+
+  it('keeps Continue disabled until cooldown elapses after answering', () => {
+    render(
+      <MigrationWizardModal
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    const continueButton = screen.getByTestId('wizard-migration-continue')
+    fireEvent.click(screen.getByTestId('wizard-backup-yes'))
+    expect(continueButton).toBeDisabled()
+    act(() => { vi.advanceTimersByTime(6000) })
+    expect(continueButton).not.toBeDisabled()
+  })
+
+  it('resets cooldown when answer changes', () => {
+    render(
+      <MigrationWizardModal
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    const continueButton = screen.getByTestId('wizard-migration-continue')
+    fireEvent.click(screen.getByTestId('wizard-backup-yes'))
+    act(() => { vi.advanceTimersByTime(6000) })
+    expect(continueButton).not.toBeDisabled()
+    fireEvent.click(screen.getByTestId('wizard-backup-no'))
+    expect(continueButton).toBeDisabled()
+    act(() => { vi.advanceTimersByTime(6000) })
+    expect(continueButton).not.toBeDisabled()
   })
 
   it('fires onLogOut when Log out is clicked', () => {
