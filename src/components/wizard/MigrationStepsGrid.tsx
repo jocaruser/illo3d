@@ -40,7 +40,7 @@ const ENTITIES: EntityDef[] = [
 const STATUS_CONFIG: Record<string, StatusVisual> = {
   pending: { bg: 'bg-gray-100', text: 'text-gray-400', iconBg: 'bg-gray-300', iconColor: 'text-gray-400', showCheckIcon: false },
   running: { bg: 'bg-blue-50', text: 'text-blue-700', iconBg: 'bg-blue-500', iconColor: 'text-white', showCheckIcon: false, pulse: true },
-  done: { bg: 'bg-green-50', text: 'text-green-700', iconBg: 'bg-green-500', iconColor: 'text-white', showCheckIcon: true },
+  done: { bg: 'bg-green-100', text: 'text-green-800', iconBg: 'bg-green-600', iconColor: 'text-white', showCheckIcon: true },
 }
 
 const ENTITY_ICONS: Record<string, ReactNode> = {
