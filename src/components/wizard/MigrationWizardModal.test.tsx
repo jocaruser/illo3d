@@ -107,8 +107,8 @@ describe('MigrationWizardModal', () => {
     fireEvent.click(screen.getByTestId('wizard-backup-no'))
     const warningBox = screen.getByTestId('wizard-backup-warning')
     expect(warningBox).toBeInTheDocument()
-    expect(warningBox).toHaveClass('bg-warning/10')
-    expect(warningBox).toHaveClass('border-warning/30')
+    expect(warningBox).toHaveClass('bg-amber-100')
+    expect(warningBox).toHaveClass('border-amber-300')
     expect(screen.getByText('wizard.migrationBackupWarning')).toBeInTheDocument()
   })
 

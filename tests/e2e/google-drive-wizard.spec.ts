@@ -81,14 +81,15 @@ test.describe('Google Drive setup wizard', () => {
     await expect(
       page.getByTestId('wizard-backup-no'),
     ).toBeVisible()
-    // Click "No" and verify warning box appears with amber class
+    // Click "No" and verify warning box appears with amber background
     await page.getByTestId('wizard-backup-no').click()
     await expect(
       page.getByTestId('wizard-backup-warning'),
     ).toBeVisible()
-    await expect(
-      page.getByTestId('wizard-backup-warning'),
-    ).toHaveClass(/bg-warning/)
+    const warningBg = await page.getByTestId('wizard-backup-warning').evaluate(
+      (el) => getComputedStyle(el).backgroundColor,
+    )
+    expect(warningBg).toMatch(/254.*243.*199/)
     // Switch to Yes so warning box collapses, making Log out reachable
     await page.getByTestId('wizard-backup-yes').click()
     await expect(

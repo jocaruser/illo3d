@@ -136,7 +136,7 @@ export function MigrationWizardModal({
               data-testid="wizard-backup-no"
               onClick={() => setBackupAnswer('no')}
               className={backupAnswer === 'no'
-                ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-warning text-white border border-warning'
+                ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-amber-500 text-white border border-amber-500'
                 : backupAnswer === 'yes'
                   ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text-muted border border-border opacity-40'
                   : 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-surface text-text border border-border'
@@ -150,10 +150,10 @@ export function MigrationWizardModal({
           {backupAnswer === 'no' && (
             <div
               data-testid="wizard-backup-warning"
-              className="mt-3 flex items-start gap-3 rounded-lg border border-warning/30 bg-warning/10 p-3"
+              className="mt-3 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3"
             >
-              <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-warning mt-0.5" />
-              <p className="text-xs text-warning/90 leading-relaxed">
+              <ExclamationTriangleIcon className="h-5 w-5 shrink-0 text-amber-800 mt-0.5" />
+              <p className="text-xs text-amber-800 leading-relaxed">
                 {t('wizard.migrationBackupWarning')}
               </p>
             </div>
