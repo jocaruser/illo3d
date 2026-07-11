@@ -8,6 +8,8 @@ vi.mock('react-i18next', () => ({
       const strings: Record<string, string> = {
         'wizard.migrationSummary': '{{done}} of {{total}} done',
         'wizard.migrationAllDone': 'All done',
+        'wizard.migrationBackupResolvedNo': 'Backup skipped',
+        'wizard.migrationBackupSkipped': 'Skipped',
       }
       const template = strings[key] ?? key
       if (!opts) return template
@@ -44,5 +46,23 @@ describe('MigrationStepsGrid', () => {
   it('shows summary with zero progress initially', () => {
     render(<MigrationStepsGrid />)
     expect(screen.getByText('0 of 12 done')).toBeInTheDocument()
+  })
+
+  it('marks backup as done with skipped detail when backupAnswer is no', () => {
+    render(<MigrationStepsGrid backupAnswer="no" />)
+    const backupCard = screen.getByLabelText('Backup: done')
+    expect(backupCard).toBeInTheDocument()
+    expect(screen.getByText('Skipped')).toBeInTheDocument()
+  })
+
+  it('shows 1 of 12 done when backup is skipped', () => {
+    render(<MigrationStepsGrid backupAnswer="no" />)
+    expect(screen.getByText('1 of 12 done')).toBeInTheDocument()
+  })
+
+  it('shows backup as pending when backupAnswer is yes', () => {
+    render(<MigrationStepsGrid backupAnswer="yes" />)
+    const backupCard = screen.getByLabelText('Backup: pending')
+    expect(backupCard).toBeInTheDocument()
   })
 })

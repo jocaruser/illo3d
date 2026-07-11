@@ -573,6 +573,7 @@
     "migrationBackupWarning": "Recomendamos crear una copia de seguridad manual antes de continuar. Esto asegura que tengas un punto de restauración si algo sale mal.",
     "migrationBackupResolvedYes": "Se creará una copia de seguridad antes de la migración",
     "migrationBackupResolvedNo": "Copia de seguridad omitida",
+    "migrationBackupSkipped": "Omitido",
     "migrationBackupDetail": "Se creará una copia de tus datos actuales."
   },
   "workbook": {

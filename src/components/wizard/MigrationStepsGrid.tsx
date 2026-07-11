@@ -58,17 +58,24 @@ const ENTITY_ICONS: Record<string, ReactNode> = {
   audit_log: <ClipboardDocumentCheckIcon />,
 }
 
-export function MigrationStepsGrid() {
+interface MigrationStepsGridProps {
+  backupAnswer?: 'yes' | 'no' | null
+}
+
+export function MigrationStepsGrid({ backupAnswer }: MigrationStepsGridProps) {
   const { t } = useTranslation()
 
+  const backupSkipped = backupAnswer === 'no'
+
   return (
-    <StepGrid label={t('wizard.migrationSummary', { done: '0', total: String(ENTITIES.length) })}>
+    <StepGrid label={t('wizard.migrationSummary', { done: backupSkipped ? '1' : '0', total: String(ENTITIES.length) })}>
       {ENTITIES.map((item) => (
         <StepCard
           key={item.entityId}
           icon={ENTITY_ICONS[item.entityId]}
           label={item.label}
-          status="pending"
+          status={item.entityId === 'backup' && backupSkipped ? 'done' : 'pending'}
+          detail={item.entityId === 'backup' && backupSkipped ? t('wizard.migrationBackupSkipped') : undefined}
           statusConfig={STATUS_CONFIG}
         />
       ))}

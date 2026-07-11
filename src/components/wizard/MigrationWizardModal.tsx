@@ -161,7 +161,7 @@ export function MigrationWizardModal({
         </div>
 
         <div className="mt-5">
-          <MigrationStepsGrid />
+          <MigrationStepsGrid backupAnswer={backupAnswer} />
         </div>
 
         <div className="mt-5 flex flex-col-reverse justify-end gap-2 sm:flex-row sm:gap-3">
