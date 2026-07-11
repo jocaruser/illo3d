@@ -44,3 +44,6 @@ fixtures/realdata
 .opencode/
 docs/
 opencode.json
+
+# Local playground / sandbox files
+playground/
