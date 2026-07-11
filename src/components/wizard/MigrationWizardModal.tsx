@@ -22,7 +22,7 @@ export function MigrationWizardModal({
   const language = useUserPreferencesStore((s) => s.language)
   const setLanguage = useUserPreferencesStore((s) => s.setLanguage)
 
-  const handleLanguageChange = (lang: string) => {
+  const handleLanguageChange = (lang: 'en' | 'es') => {
     setLanguage(lang)
     i18n.changeLanguage(lang)
   }
