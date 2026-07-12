@@ -53,3 +53,8 @@ When fixing a confirmed bug or regression, follow the TDD workflow:
 - `tests/e2e/` — Playwright E2E tests (Chromium only, `workers: 1`, serial where needed)
 - `Makefile` — Single source of truth for all dev/CI commands
 - `.cursor/rules/quality-gate.mdc` — Detailed quality gate rules
+- `playground/` — Interactive HTML playgrounds for design/copy exploration
+- `.agents/skills/` — Custom skills (load with `skill` tool)
+
+## Skills
+- **html-reports** (`skill html-reports`): Load when user asks for HTML playgrounds, "alternatives in html", or "playable" comparisons. Creates self-contained interactive HTML files saved to `playground/`.

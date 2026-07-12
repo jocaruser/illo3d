@@ -108,6 +108,16 @@ export function MigrationWizardModal({
           <p className="text-sm leading-relaxed text-text">
             {t('wizard.migrationDescriptionChanges')}
           </p>
+          <ul className="mt-2 space-y-1 text-sm text-text">
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text-muted" aria-hidden="true" />
+              <span><strong>{t('wizard.migrationDescriptionLabel1')}</strong> — {t('wizard.migrationDescriptionItem1')}</span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-text-muted" aria-hidden="true" />
+              <span><strong>{t('wizard.migrationDescriptionLabel2')}</strong> — {t('wizard.migrationDescriptionItem2')}</span>
+            </li>
+          </ul>
           <p className="mt-3 text-sm leading-relaxed text-text">
             {t('wizard.migrationDescriptionActions')}
           </p>
