@@ -47,9 +47,7 @@ export async function uploadMetadata(
   }
 }
 
-export async function readMetadata(
-  folderId: string
-): Promise<ShopMetadata | null> {
+async function findMetadataFileId(folderId: string): Promise<string | null> {
   const listResponse = await driveFetch(
     `/files?q='${folderId}' in parents and name='${METADATA_FILENAME}' and trashed=false`
   )
@@ -62,11 +60,44 @@ export async function readMetadata(
     files?: { id: string }[]
   }
   const files = listResult.files || []
-  if (files.length === 0) {
+  return files.length > 0 ? files[0].id : null
+}
+
+export async function updateMetadata(
+  folderId: string,
+  metadata: ShopMetadata
+): Promise<void> {
+  const fileId = await findMetadataFileId(folderId)
+  if (!fileId) {
+    throw new Error('Shop metadata file not found')
+  }
+
+  const response = await googleFetchWithAuthRetry(
+    `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(metadata),
+    }
+  )
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}))
+    throw new Error(
+      (error as { error?: { message?: string } }).error?.message ||
+        `Failed to update metadata: ${response.status}`
+    )
+  }
+}
+
+export async function readMetadata(
+  folderId: string
+): Promise<ShopMetadata | null> {
+  const fileId = await findMetadataFileId(folderId)
+  if (!fileId) {
     return null
   }
 
-  const fileId = files[0].id
   const contentResponse = await driveFetch(`/files/${fileId}?alt=media`)
 
   if (!contentResponse.ok) {

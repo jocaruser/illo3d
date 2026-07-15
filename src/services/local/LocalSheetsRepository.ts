@@ -21,8 +21,13 @@ function escapeCsvValue(val: unknown): string {
 }
 
 export class LocalSheetsRepository implements SheetsRepository {
+  constructor(
+    private readonly directoryHandle: FileSystemDirectoryHandle | null = null
+  ) {}
+
   private getHandle(): FileSystemDirectoryHandle {
-    const handle = useBackendStore.getState().localDirectoryHandle
+    const handle =
+      this.directoryHandle ?? useBackendStore.getState().localDirectoryHandle
     if (!handle) throw new Error('No local directory handle set')
     return handle
   }
