@@ -578,7 +578,12 @@
     "migrationBackupResolvedYes": "Se creará una copia de seguridad antes de la migración",
     "migrationBackupResolvedNo": "Copia de seguridad omitida",
     "migrationBackupSkipped": "Omitido",
-    "migrationBackupDetail": "Se creará una copia de tus datos actuales."
+    "migrationBackupDetail": "Se creará una copia de tus datos actuales.",
+    "migrationStepStarting": "Iniciando…",
+    "migrationStepComplete": "Completado",
+    "migrationStepFailed": "Fallido",
+    "migrationStepBackupCreating": "Creando una copia de tu tienda…",
+    "migrationStepBackupDone": "Copia de seguridad creada"
   },
   "workbook": {
     "loading": "Cargando libro…",
