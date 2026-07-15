@@ -1,4 +1,4 @@
-import { APP_VERSION } from '@/config/version'
+import { APP_VERSION, parseMajorVersion } from '@/config/version'
 import { getFolderRepository } from './folderRepository'
 import { validateStructure } from '@/services/sheets/validateStructure'
 
@@ -7,11 +7,6 @@ export type ValidationResult =
   | { ok: false; error: 'not_shop' }
   | { ok: false; error: 'version'; shopVersion: string; appVersion: string }
   | { ok: false; error: 'structure'; detail: string }
-
-function parseMajor(version: string): number {
-  const match = version.match(/^(\d+)/)
-  return match ? parseInt(match[1], 10) : 0
-}
 
 export async function validateShopFolder(
   folderId: string
@@ -22,8 +17,8 @@ export async function validateShopFolder(
     return { ok: false, error: 'not_shop' }
   }
 
-  const appMajor = parseMajor(APP_VERSION)
-  const metaMajor = parseMajor(metadata.version)
+  const appMajor = parseMajorVersion(APP_VERSION)
+  const metaMajor = parseMajorVersion(metadata.version)
   if (appMajor !== metaMajor) {
     return { ok: false, error: 'version', shopVersion: metadata.version, appVersion: APP_VERSION }
   }

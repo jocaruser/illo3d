@@ -199,6 +199,7 @@ export const AUDIT_ACTIONS = [
   'archive',
   'delete',
   'restore',
+  'migration',
 ] as const
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[number]

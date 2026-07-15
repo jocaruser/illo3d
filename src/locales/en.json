@@ -578,7 +578,17 @@
     "migrationBackupResolvedYes": "Your shop will be backed up before migration",
     "migrationBackupResolvedNo": "Backup skipped",
     "migrationBackupSkipped": "Skipped",
-    "migrationBackupDetail": "A backup will be created as a copy of your current data."
+    "migrationBackupDetail": "A backup will be created as a copy of your current data.",
+    "migrationStepStarting": "Starting…",
+    "migrationStepCheckingColumns": "Checking columns…",
+    "migrationStepAddingColumns": "Adding lifecycle columns…",
+    "migrationStepCreatingAuditLog": "Creating the audit log sheet…",
+    "migrationStepRecordingExisting": "Recording existing items…",
+    "migrationStepComplete": "Complete",
+    "migrationStepFailed": "Failed",
+    "migrationStepBackupCreating": "Creating a copy of your shop…",
+    "migrationStepBackupDone": "Backup created",
+    "migrationFailed": "The migration stopped because a step failed. Your original shop data has not been modified. You can log out and try again."
   },
   "workbook": {
     "loading": "Loading workbook…",

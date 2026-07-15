@@ -370,6 +370,7 @@ export function SetupWizard({ onCancel }: SetupWizardProps) {
       ) : null}
       {migrationCandidate ? (
         <MigrationWizardModal
+          folderId={migrationCandidate.folderId}
           shopVersion={migrationCandidate.shopVersion}
           appVersion={migrationCandidate.appVersion}
           onLogOut={() => {

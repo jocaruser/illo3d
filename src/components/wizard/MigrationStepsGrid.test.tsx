@@ -1,6 +1,7 @@
-import { render, screen } from '@testing-library/react'
-import { describe, it, expect, vi } from 'vitest'
+import { render, screen, act } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { MigrationStepsGrid } from './MigrationStepsGrid'
+import { useMigrationStore } from '@/stores/migrationStore'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -19,6 +20,10 @@ vi.mock('react-i18next', () => ({
 }))
 
 describe('MigrationStepsGrid', () => {
+  beforeEach(() => {
+    useMigrationStore.getState().reset()
+  })
+
   it('renders StepCard for every entity including backup', () => {
     render(<MigrationStepsGrid />)
     expect(screen.getByText('Backup')).toBeInTheDocument()
@@ -64,5 +69,72 @@ describe('MigrationStepsGrid', () => {
     render(<MigrationStepsGrid backupAnswer={true} />)
     const backupCard = screen.getByLabelText('Backup: pending')
     expect(backupCard).toBeInTheDocument()
+  })
+
+  it('renders store-driven steps once a migration run starts', () => {
+    useMigrationStore.getState().seedSteps([
+      { id: 'backup', status: 'done', description: 'wizard.migrationStepBackupDone' },
+      { id: 'clients', status: 'running', description: 'wizard.migrationStepAddingColumns' },
+      { id: 'jobs', status: 'pending' },
+    ])
+    useMigrationStore.getState().setPhase('migrating')
+
+    render(<MigrationStepsGrid backupAnswer={true} />)
+
+    expect(screen.getByLabelText('Backup: done')).toBeInTheDocument()
+    expect(screen.getByLabelText('Clients: running')).toBeInTheDocument()
+    expect(screen.getByLabelText('Jobs: pending')).toBeInTheDocument()
+    expect(
+      screen.getByText('wizard.migrationStepAddingColumns')
+    ).toBeInTheDocument()
+    expect(screen.getByText('1 of 3 done')).toBeInTheDocument()
+  })
+
+  it('updates the running card description in place', () => {
+    useMigrationStore.getState().seedSteps([
+      { id: 'clients', status: 'running', description: 'wizard.migrationStepCheckingColumns' },
+    ])
+    useMigrationStore.getState().setPhase('migrating')
+    render(<MigrationStepsGrid />)
+    expect(
+      screen.getByText('wizard.migrationStepCheckingColumns')
+    ).toBeInTheDocument()
+
+    act(() => {
+      useMigrationStore.getState().updateStep('clients', {
+        description: 'wizard.migrationStepAddingColumns',
+      })
+    })
+
+    expect(
+      screen.getByText('wizard.migrationStepAddingColumns')
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Clients: running')).toBeInTheDocument()
+  })
+
+  it('shows a failed card with its error message', () => {
+    useMigrationStore.getState().seedSteps([
+      { id: 'clients', status: 'failed', error: 'columns exploded' },
+      { id: 'jobs', status: 'pending' },
+    ])
+    useMigrationStore.getState().setPhase('failed')
+
+    render(<MigrationStepsGrid />)
+
+    expect(screen.getByLabelText('Clients: failed')).toBeInTheDocument()
+    expect(screen.getByText('columns exploded')).toBeInTheDocument()
+    expect(screen.getByLabelText('Jobs: pending')).toBeInTheDocument()
+  })
+
+  it('shows the all-done summary when every step is done', () => {
+    useMigrationStore.getState().seedSteps([
+      { id: 'backup', status: 'done' },
+      { id: 'clients', status: 'done' },
+    ])
+    useMigrationStore.getState().setPhase('done')
+
+    render(<MigrationStepsGrid />)
+
+    expect(screen.getByText('All done')).toBeInTheDocument()
   })
 })

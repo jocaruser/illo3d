@@ -1,0 +1,4 @@
+id,name,created_at,archived,deleted
+T6,Urgent,2025-01-01T00:00:00Z,,
+T7,Wholesale,2025-01-01T00:00:00Z,2025-06-15T11:00:00Z,
+T8,Fragile,2025-02-01T00:00:00Z,,

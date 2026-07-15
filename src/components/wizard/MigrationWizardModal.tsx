@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
+import { AlertBox } from '@/components/AlertBox'
+import { useMigration } from '@/hooks/useMigration'
+import { useMigrationStore } from '@/stores/migrationStore'
 import { useUserPreferencesStore } from '@/stores/userPreferencesStore'
 import { MigrationStepsGrid } from './MigrationStepsGrid'
 import { ShieldExclamationIcon, ExclamationTriangleIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 interface MigrationWizardModalProps {
+  folderId: string
   shopVersion: string
   appVersion: string
   onLogOut: () => void
@@ -17,6 +21,7 @@ const LANGUAGES = [
 ] as const
 
 export function MigrationWizardModal({
+  folderId,
   shopVersion,
   appVersion,
   onLogOut,
@@ -24,9 +29,16 @@ export function MigrationWizardModal({
   const { t } = useTranslation()
   const language = useUserPreferencesStore((s) => s.language)
   const setLanguage = useUserPreferencesStore((s) => s.setLanguage)
+  const { start } = useMigration()
+  const phase = useMigrationStore((s) => s.phase)
+  const failureMessage = useMigrationStore((s) => s.failureMessage)
 
   const [backupAnswer, setBackupAnswer] = useState<boolean | null>(null)
   const [cooldownProgress, setCooldownProgress] = useState(0)
+
+  useEffect(() => {
+    useMigrationStore.getState().reset()
+  }, [])
 
   useEffect(() => {
     if (backupAnswer === null) {
@@ -48,10 +60,24 @@ export function MigrationWizardModal({
   }, [backupAnswer])
 
   const cooldownDone = cooldownProgress >= 100
+  const migrationRunning =
+    phase === 'backing-up' || phase === 'migrating' || phase === 'committing'
+  const answerLocked = phase !== 'idle'
+  const continueDisabled =
+    backupAnswer === null || !cooldownDone || phase !== 'idle'
 
   const handleLanguageChange = (lang: 'en' | 'es') => {
     setLanguage(lang)
     i18n.changeLanguage(lang)
+  }
+
+  const handleContinue = () => {
+    if (backupAnswer === null) return
+    void start({
+      folderId,
+      shopVersion,
+      keepOriginalAsBackup: backupAnswer,
+    })
   }
 
   return (
@@ -140,6 +166,7 @@ export function MigrationWizardModal({
             <button
               type="button"
               data-testid="wizard-backup-yes"
+              disabled={answerLocked}
               onClick={() => setBackupAnswer(true)}
               className={backupAnswer === true
                 ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-success text-white border border-success'
@@ -153,6 +180,7 @@ export function MigrationWizardModal({
             <button
               type="button"
               data-testid="wizard-backup-no"
+              disabled={answerLocked}
               onClick={() => setBackupAnswer(false)}
               className={backupAnswer === false
                 ? 'flex-1 rounded-lg px-4 py-2 text-sm font-medium bg-amber-500 text-white border border-amber-500'
@@ -183,13 +211,27 @@ export function MigrationWizardModal({
           <MigrationStepsGrid backupAnswer={backupAnswer} />
         </div>
 
+        {phase === 'failed' && (
+          <AlertBox
+            variant="danger"
+            className="mt-5"
+            data-testid="wizard-migration-failed"
+          >
+            <p>{t('wizard.migrationFailed')}</p>
+            {failureMessage && (
+              <p className="mt-1 text-xs opacity-80">{failureMessage}</p>
+            )}
+          </AlertBox>
+        )}
+
         <div className="mt-5 flex flex-col-reverse justify-end gap-2 sm:flex-row sm:gap-3">
           <button
             type="button"
             data-testid="wizard-migration-continue"
-            disabled={backupAnswer === null || !cooldownDone}
+            disabled={continueDisabled}
+            onClick={handleContinue}
             className={`inline-flex items-center gap-2 rounded-lg border border-border px-5 py-2 text-sm font-medium transition sm:w-auto ${
-              backupAnswer === null || !cooldownDone
+              continueDisabled
                 ? 'cursor-not-allowed opacity-50 bg-surface text-text-muted'
                 : 'bg-success text-white hover:opacity-90'
             }`}
@@ -221,8 +263,13 @@ export function MigrationWizardModal({
           <button
             type="button"
             data-testid="wizard-migration-logout"
+            disabled={migrationRunning}
             onClick={onLogOut}
-            className="w-full rounded-lg border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-text hover:bg-surface sm:w-auto"
+            className={`w-full rounded-lg border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-text sm:w-auto ${
+              migrationRunning
+                ? 'cursor-not-allowed opacity-50'
+                : 'hover:bg-surface'
+            }`}
           >
             {t('wizard.migrationLogOut')}
           </button>

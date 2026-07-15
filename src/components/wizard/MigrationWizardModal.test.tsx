@@ -1,6 +1,7 @@
 import { render, screen, fireEvent, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { MigrationWizardModal } from './MigrationWizardModal'
+import { useMigrationStore } from '@/stores/migrationStore'
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -21,9 +22,17 @@ vi.mock('@/stores/userPreferencesStore', () => ({
   ),
 }))
 
+const startMigration = vi.fn()
+vi.mock('@/hooks/useMigration', () => ({
+  useMigration: () => ({ start: startMigration }),
+}))
+
 describe('MigrationWizardModal', () => {
   beforeEach(() => {
     vi.useFakeTimers()
+    startMigration.mockReset()
+    startMigration.mockResolvedValue({ success: true })
+    useMigrationStore.getState().reset()
   })
 
   afterEach(() => {
@@ -33,6 +42,7 @@ describe('MigrationWizardModal', () => {
   it('renders the title', () => {
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={vi.fn()}
@@ -44,6 +54,7 @@ describe('MigrationWizardModal', () => {
   it('shows shop version, app version, and labels', () => {
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={vi.fn()}
@@ -58,6 +69,7 @@ describe('MigrationWizardModal', () => {
   it('renders the backup question and buttons', () => {
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={vi.fn()}
@@ -71,6 +83,7 @@ describe('MigrationWizardModal', () => {
   it('shows backup banner with blueish primary background', () => {
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={vi.fn()}
@@ -86,6 +99,7 @@ describe('MigrationWizardModal', () => {
   it('shows warning when No is selected', () => {
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={vi.fn()}
@@ -99,6 +113,7 @@ describe('MigrationWizardModal', () => {
   it('shows warning box with yellow/amber classes when No is selected', () => {
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={vi.fn()}
@@ -116,6 +131,7 @@ describe('MigrationWizardModal', () => {
   it('hides warning when switching from No to Yes', () => {
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={vi.fn()}
@@ -130,6 +146,7 @@ describe('MigrationWizardModal', () => {
   it('has Continue disabled initially', () => {
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={vi.fn()}
@@ -142,6 +159,7 @@ describe('MigrationWizardModal', () => {
   it('keeps Continue disabled until cooldown elapses after answering', () => {
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={vi.fn()}
@@ -157,6 +175,7 @@ describe('MigrationWizardModal', () => {
   it('resets cooldown when answer changes', () => {
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={vi.fn()}
@@ -176,6 +195,7 @@ describe('MigrationWizardModal', () => {
     const onLogOut = vi.fn()
     render(
       <MigrationWizardModal
+        folderId="folder-1"
         shopVersion="1.0.0"
         appVersion="2.0.0"
         onLogOut={onLogOut}
@@ -183,5 +203,106 @@ describe('MigrationWizardModal', () => {
     )
     fireEvent.click(screen.getByTestId('wizard-migration-logout'))
     expect(onLogOut).toHaveBeenCalledTimes(1)
+  })
+
+  it('starts the migration when the enabled Continue is clicked', () => {
+    render(
+      <MigrationWizardModal
+        folderId="folder-1"
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('wizard-backup-yes'))
+    act(() => { vi.advanceTimersByTime(6000) })
+    fireEvent.click(screen.getByTestId('wizard-migration-continue'))
+
+    expect(startMigration).toHaveBeenCalledWith({
+      folderId: 'folder-1',
+      shopVersion: '1.0.0',
+      keepOriginalAsBackup: true,
+    })
+  })
+
+  it('passes keepOriginalAsBackup false when backup was skipped', () => {
+    render(
+      <MigrationWizardModal
+        folderId="folder-1"
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('wizard-backup-no'))
+    act(() => { vi.advanceTimersByTime(6000) })
+    fireEvent.click(screen.getByTestId('wizard-migration-continue'))
+
+    expect(startMigration).toHaveBeenCalledWith({
+      folderId: 'folder-1',
+      shopVersion: '1.0.0',
+      keepOriginalAsBackup: false,
+    })
+  })
+
+  it('locks all controls while the migration is running', () => {
+    render(
+      <MigrationWizardModal
+        folderId="folder-1"
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('wizard-backup-yes'))
+    act(() => { vi.advanceTimersByTime(6000) })
+    act(() => {
+      useMigrationStore.getState().setPhase('migrating')
+    })
+
+    expect(screen.getByTestId('wizard-migration-continue')).toBeDisabled()
+    expect(screen.getByTestId('wizard-backup-yes')).toBeDisabled()
+    expect(screen.getByTestId('wizard-backup-no')).toBeDisabled()
+    expect(screen.getByTestId('wizard-migration-logout')).toBeDisabled()
+  })
+
+  it('shows the failure alert and re-enables Log out when the migration fails', () => {
+    render(
+      <MigrationWizardModal
+        folderId="folder-1"
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    act(() => {
+      useMigrationStore.getState().setFailureMessage('quota exceeded')
+      useMigrationStore.getState().setPhase('failed')
+    })
+
+    const alert = screen.getByTestId('wizard-migration-failed')
+    expect(alert).toBeInTheDocument()
+    expect(screen.getByText('wizard.migrationFailed')).toBeInTheDocument()
+    expect(screen.getByText('quota exceeded')).toBeInTheDocument()
+    expect(screen.getByTestId('wizard-migration-logout')).not.toBeDisabled()
+    expect(screen.getByTestId('wizard-migration-continue')).toBeDisabled()
+  })
+
+  it('keeps Continue disabled after the migration is done', () => {
+    render(
+      <MigrationWizardModal
+        folderId="folder-1"
+        shopVersion="1.0.0"
+        appVersion="2.0.0"
+        onLogOut={vi.fn()}
+      />,
+    )
+    fireEvent.click(screen.getByTestId('wizard-backup-yes'))
+    act(() => { vi.advanceTimersByTime(6000) })
+    act(() => {
+      useMigrationStore.getState().setPhase('done')
+    })
+
+    expect(screen.getByTestId('wizard-migration-continue')).toBeDisabled()
   })
 })
