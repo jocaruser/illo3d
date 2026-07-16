@@ -18,13 +18,18 @@
     "localFolder": "Local folder",
     "editMetadata": "Edit metadata.json",
     "changelog": "Changelog",
-    "localUserDefault": "Local user"
+    "localUserDefault": "Local user",
+    "versionRow": "App {{app}} · Shop {{shop}}"
   },
   "common": {
     "loading": "Loading...",
     "submitting": "Submitting...",
     "confirm": "Confirm",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "add": "Add"
   },
   "toast": {
     "saveSuccess": "Saved successfully",
@@ -42,7 +47,9 @@
   },
   "page": {
     "dashboard": "Dashboard",
-    "transactions": "Transactions"
+    "transactions": "Transactions",
+    "notFoundMessage": "This page does not exist.",
+    "backToDashboard": "Back to dashboard"
   },
   "errors": {
     "googleSession": "Your Google session expired. Try signing in with Google again, then retry.",
@@ -89,7 +96,10 @@
       "viewAll": "View inventory"
     },
     "expectedBenefit": "Expected benefit (active jobs)",
-    "expectedBenefitEmpty": "Add units, per-unit prices, and material lines with lot costs on draft or in-progress jobs to see expected benefit."
+    "expectedBenefitEmpty": "Add units, per-unit prices, and material lines with lot costs on draft or in-progress jobs to see expected benefit.",
+    "viewSwitcher": {
+      "label": "Dashboard view"
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -99,7 +109,8 @@
     "transactions": "Transactions",
     "inventory": "Inventory",
     "auditLog": "Audit Log",
-    "toggleMenu": "Toggle menu"
+    "toggleMenu": "Toggle menu",
+    "ariaLabel": "Main navigation"
   },
   "auditLog": {
     "title": "Audit Log",
@@ -109,7 +120,33 @@
     "colActor": "Actor",
     "colEntity": "Entity",
     "colAction": "Action",
-    "colParentEntity": "Parent Entity"
+    "colParentEntity": "Parent Entity",
+    "searchPlaceholder": "Search the audit log…",
+    "filterActionAria": "Filter by action",
+    "filterEntityAria": "Filter by entity type",
+    "filterAllActions": "All actions",
+    "filterAllEntities": "All entities",
+    "actionUnknown": "Unknown",
+    "action": {
+      "create": "Create",
+      "update": "Update",
+      "archive": "Archive",
+      "delete": "Delete",
+      "restore": "Restore",
+      "migration": "Migration"
+    },
+    "entity": {
+      "client": "Client",
+      "crm_note": "Note",
+      "tag": "Tag",
+      "tag_link": "Tag link",
+      "job": "Job",
+      "piece": "Piece",
+      "piece_item": "Material line",
+      "inventory": "Inventory",
+      "lot": "Lot",
+      "transaction": "Transaction"
+    }
   },
   "globalSearch": {
     "placeholder": "Search everything…",
@@ -160,7 +197,8 @@
     "deleteConfirmMessage": "Delete {{name}}? This cannot be undone.",
     "deleteBlockedJobs": "This client cannot be deleted while jobs reference them.",
     "validation.required": "This field is required",
-    "tagsTooltip": "Tags: {{list}}"
+    "tagsTooltip": "Tags: {{list}}",
+    "id": "ID"
   },
   "clientDetail": {
     "backToList": "Back to clients",
@@ -207,7 +245,8 @@
         "income": "Income",
         "tag": "Tag"
       }
-    }
+    },
+    "noteSaved": "Note saved"
   },
   "jobDetail": {
     "notesTitle": "Notes",
@@ -283,7 +322,8 @@
       "filament": "Filament",
       "consumable": "Consumable",
       "equipment": "Equipment"
-    }
+    },
+    "colId": "ID"
   },
   "expenseTransactionDetail": {
     "backToList": "Back to transactions",
@@ -338,7 +378,14 @@
     "lotSaveError": "Could not save lot.",
     "archiveConfirmTitle": "Archive inventory?",
     "archiveConfirmMessage": "Archive “{{name}}” and all its purchase lots? You can unarchive from the sheet if needed.",
-    "archiveError": "Could not archive this item."
+    "archiveError": "Could not archive this item.",
+    "colourHeading": "Swatch colour",
+    "colourPickerLabel": "Colour picker",
+    "colourHexLabel": "Hex value",
+    "colourClear": "Clear",
+    "saveColour": "Save colour",
+    "colourInvalid": "Enter a colour as #RRGGBB, or clear it.",
+    "colourSaveError": "Could not save the colour."
   },
   "transactions": {
     "date": "Date",
@@ -355,7 +402,8 @@
     "error": "Error",
     "retry": "Retry",
     "connect": "Connect",
-    "connectPrompt": "Connect Google Sheets to load transactions."
+    "connectPrompt": "Connect Google Sheets to load transactions.",
+    "colId": "ID"
   },
   "pieces": {
     "title": "Pieces",
@@ -433,7 +481,18 @@
       "inventoryRequired": "Select an inventory lot",
       "quantityPositive": "Quantity must be greater than zero",
       "duplicateInventory": "This piece already has a material line for that inventory item."
-    }
+    },
+    "expandAria": "Expand piece {{id}}",
+    "collapseAria": "Collapse piece {{id}}",
+    "nameFieldAria": "Name for piece {{id}}",
+    "unitsFieldAria": "Units for piece {{id}}",
+    "priceFieldAria": "Price per unit for piece {{id}}",
+    "qtyFieldAria": "Quantity for material line {{id}}",
+    "inventoryFieldAria": "Inventory for material line {{id}}",
+    "removeLine": "Remove material line {{id}}",
+    "unitsUnsetHint": "Set a units count for this piece",
+    "searchPlaceholder": "Search pieces…",
+    "suggestedUnavailable": "No suggested price available"
   },
   "jobs": {
     "title": "Jobs",
@@ -522,7 +581,17 @@
     "confirmCancelTitle": "Cancel job",
     "confirmCancelMessage": "Mark this job as cancelled?",
     "confirmLeavePaidTitle": "Change status from paid?",
-    "confirmLeavePaidMessage": "This job is paid and already has an income transaction. Changing it to \"{{status}}\" means if you mark it paid again, another income transaction will be added. Continue?"
+    "confirmLeavePaidMessage": "This job is paid and already has an income transaction. Changing it to \"{{status}}\" means if you mark it paid again, another income transaction will be added. Continue?",
+    "colDueDate": "Due date",
+    "dueDate": "Due date",
+    "dueDateEditAria": "Due date for job {{id}}",
+    "dueDateOverdueDays": "{{count}} days past due",
+    "dueDateOnTrack": "On track",
+    "dueDateInherited": "Inherited from the creation date",
+    "filamentGrams": "{{grams}} g",
+    "consumableUnits": "{{units}} units",
+    "riskFactorNone": "No filament lines",
+    "searchPlaceholder": "Search jobs…"
   },
   "wizard": {
     "welcomeTitle": "illo3d",
@@ -585,7 +654,26 @@
     "migrationStepAuditSheet": "Creating the audit log sheet",
     "migrationStepAuditBackfill": "Backfilling baseline audit entries",
     "migrationStepJobsDueDate": "Adding the due date column to jobs",
-    "migrationStepInventoryColour": "Adding the colour column to inventory"
+    "migrationStepInventoryColour": "Adding the colour column to inventory",
+    "migrationFailedTitle": "Migration failed",
+    "migrationStepStatus": "{{label}}: {{status}}",
+    "migrationStatusPending": "pending",
+    "migrationStatusRunning": "running",
+    "migrationStatusDone": "done",
+    "migrationStatusFailed": "failed",
+    "migrationEntityBackup": "Backup",
+    "migrationEntityClients": "Clients",
+    "migrationEntityCrmNotes": "Notes",
+    "migrationEntityTags": "Tags",
+    "migrationEntityTagLinks": "Tag Links",
+    "migrationEntityJobs": "Jobs",
+    "migrationEntityPieces": "Pieces",
+    "migrationEntityPieceItems": "Piece Items",
+    "migrationEntityInventory": "Inventory",
+    "migrationEntityLots": "Lots",
+    "migrationEntityTransactions": "Transactions",
+    "migrationEntityAuditLog": "Audit Log",
+    "googleSignedInAs": "Signed in as"
   },
   "workbook": {
     "loading": "Loading workbook…",
@@ -604,7 +692,8 @@
     "loadingWorkbook": "Loading workbook",
     "savingSheet": "Saving {{sheet}}…",
     "loadingSheet": "Loading {{sheet}}…",
-    "progress": "Progress"
+    "progress": "Progress",
+    "progressCount": "{{current}} of {{total}}"
   },
   "combobox": {
     "noMatch": "No matching items",
@@ -612,5 +701,49 @@
     "createOption": "Create \"{{query}}\"",
     "placeholder": "Search...",
     "ariaLabel": "Options"
+  },
+  "kanban": {
+    "viewLabel": "Kanban",
+    "piecesProgress": "{{done}}/{{total}} pieces done",
+    "dueOn": "Due {{date}}"
+  },
+  "calendar": {
+    "viewLabel": "Calendar",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "today": "Today",
+    "empty": "No jobs due this month.",
+    "month": {
+      "january": "January",
+      "february": "February",
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
+    "weekday": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "weekdayLong": {
+      "mon": "Monday",
+      "tue": "Tuesday",
+      "wed": "Wednesday",
+      "thu": "Thursday",
+      "fri": "Friday",
+      "sat": "Saturday",
+      "sun": "Sunday"
+    }
   }
 }

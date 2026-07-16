@@ -18,13 +18,18 @@
     "localFolder": "Carpeta local",
     "editMetadata": "Editar metadata.json",
     "changelog": "Registro de cambios",
-    "localUserDefault": "Usuario local"
+    "localUserDefault": "Usuario local",
+    "versionRow": "App {{app}} · Tienda {{shop}}"
   },
   "common": {
     "loading": "Cargando...",
     "submitting": "Enviando...",
     "confirm": "Confirmar",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "save": "Guardar",
+    "add": "Añadir"
   },
   "toast": {
     "saveSuccess": "Guardado correctamente",
@@ -42,7 +47,9 @@
   },
   "page": {
     "dashboard": "Panel",
-    "transactions": "Transacciones"
+    "transactions": "Transacciones",
+    "notFoundMessage": "Esta página no existe.",
+    "backToDashboard": "Volver al panel"
   },
   "errors": {
     "googleSession": "Tu sesión de Google ha caducado. Vuelve a iniciar sesión con Google e inténtalo de nuevo.",
@@ -89,7 +96,10 @@
       "viewAll": "Ver inventario"
     },
     "expectedBenefit": "Beneficio esperado (trabajos activos)",
-    "expectedBenefitEmpty": "Añade unidades, precios por unidad y líneas de material con coste por lote en trabajos en borrador o en curso para ver el beneficio esperado."
+    "expectedBenefitEmpty": "Añade unidades, precios por unidad y líneas de material con coste por lote en trabajos en borrador o en curso para ver el beneficio esperado.",
+    "viewSwitcher": {
+      "label": "Vista del panel"
+    }
   },
   "nav": {
     "dashboard": "Panel",
@@ -99,7 +109,8 @@
     "transactions": "Transacciones",
     "inventory": "Inventario",
     "auditLog": "Registro de auditoría",
-    "toggleMenu": "Alternar menú"
+    "toggleMenu": "Alternar menú",
+    "ariaLabel": "Navegación principal"
   },
   "auditLog": {
     "title": "Registro de auditoría",
@@ -109,7 +120,33 @@
     "colActor": "Actor",
     "colEntity": "Entidad",
     "colAction": "Acción",
-    "colParentEntity": "Entidad Padre"
+    "colParentEntity": "Entidad Padre",
+    "searchPlaceholder": "Buscar en el registro…",
+    "filterActionAria": "Filtrar por acción",
+    "filterEntityAria": "Filtrar por tipo de entidad",
+    "filterAllActions": "Todas las acciones",
+    "filterAllEntities": "Todas las entidades",
+    "actionUnknown": "Desconocida",
+    "action": {
+      "create": "Creación",
+      "update": "Actualización",
+      "archive": "Archivado",
+      "delete": "Eliminación",
+      "restore": "Restauración",
+      "migration": "Migración"
+    },
+    "entity": {
+      "client": "Cliente",
+      "crm_note": "Nota",
+      "tag": "Etiqueta",
+      "tag_link": "Enlace de etiqueta",
+      "job": "Trabajo",
+      "piece": "Pieza",
+      "piece_item": "Línea de material",
+      "inventory": "Inventario",
+      "lot": "Lote",
+      "transaction": "Transacción"
+    }
   },
   "globalSearch": {
     "placeholder": "Buscar en todo…",
@@ -160,7 +197,8 @@
     "deleteConfirmMessage": "¿Eliminar a {{name}}? No se puede deshacer.",
     "deleteBlockedJobs": "No se puede eliminar este cliente mientras existan trabajos asociados.",
     "validation.required": "Este campo es obligatorio",
-    "tagsTooltip": "Etiquetas: {{list}}"
+    "tagsTooltip": "Etiquetas: {{list}}",
+    "id": "ID"
   },
   "clientDetail": {
     "backToList": "Volver a clientes",
@@ -207,7 +245,8 @@
         "income": "Ingreso",
         "tag": "Etiqueta"
       }
-    }
+    },
+    "noteSaved": "Nota guardada"
   },
   "jobDetail": {
     "notesTitle": "Notas",
@@ -283,7 +322,8 @@
       "filament": "Filamento",
       "consumable": "Consumible",
       "equipment": "Equipo"
-    }
+    },
+    "colId": "ID"
   },
   "expenseTransactionDetail": {
     "backToList": "Volver a transacciones",
@@ -338,7 +378,14 @@
     "lotSaveError": "No se pudo guardar el lote.",
     "archiveConfirmTitle": "¿Archivar inventario?",
     "archiveConfirmMessage": "¿Archivar «{{name}}» y todos sus lotes de compra? Puedes desarchivar desde la hoja si hace falta.",
-    "archiveError": "No se pudo archivar este artículo."
+    "archiveError": "No se pudo archivar este artículo.",
+    "colourHeading": "Color del material",
+    "colourPickerLabel": "Selector de color",
+    "colourHexLabel": "Valor hexadecimal",
+    "colourClear": "Quitar",
+    "saveColour": "Guardar color",
+    "colourInvalid": "Introduce un color con el formato #RRGGBB, o quítalo.",
+    "colourSaveError": "No se pudo guardar el color."
   },
   "transactions": {
     "date": "Fecha",
@@ -355,7 +402,8 @@
     "error": "Error",
     "retry": "Reintentar",
     "connect": "Conectar",
-    "connectPrompt": "Conecta Google Sheets para cargar transacciones."
+    "connectPrompt": "Conecta Google Sheets para cargar transacciones.",
+    "colId": "ID"
   },
   "pieces": {
     "title": "Piezas",
@@ -433,7 +481,18 @@
       "inventoryRequired": "Selecciona un lote de inventario",
       "quantityPositive": "La cantidad debe ser mayor que cero",
       "duplicateInventory": "Esta pieza ya tiene una línea de material para ese inventario."
-    }
+    },
+    "expandAria": "Desplegar pieza {{id}}",
+    "collapseAria": "Plegar pieza {{id}}",
+    "nameFieldAria": "Nombre de la pieza {{id}}",
+    "unitsFieldAria": "Unidades de la pieza {{id}}",
+    "priceFieldAria": "Precio por unidad de la pieza {{id}}",
+    "qtyFieldAria": "Cantidad de la línea de material {{id}}",
+    "inventoryFieldAria": "Inventario de la línea de material {{id}}",
+    "removeLine": "Eliminar la línea de material {{id}}",
+    "unitsUnsetHint": "Indica un número de unidades para esta pieza",
+    "searchPlaceholder": "Buscar piezas…",
+    "suggestedUnavailable": "No hay precio sugerido disponible"
   },
   "jobs": {
     "title": "Trabajos",
@@ -522,7 +581,17 @@
     "confirmCancelTitle": "Cancelar trabajo",
     "confirmCancelMessage": "¿Marcar este trabajo como cancelado?",
     "confirmLeavePaidTitle": "¿Cambiar el estado de pagado?",
-    "confirmLeavePaidMessage": "Este trabajo está pagado y ya tiene un ingreso asociado. Si lo cambias a «{{status}}» y luego lo marcas de nuevo como pagado, se añadirá otro ingreso. ¿Continuar?"
+    "confirmLeavePaidMessage": "Este trabajo está pagado y ya tiene un ingreso asociado. Si lo cambias a «{{status}}» y luego lo marcas de nuevo como pagado, se añadirá otro ingreso. ¿Continuar?",
+    "colDueDate": "Fecha de entrega",
+    "dueDate": "Fecha de entrega",
+    "dueDateEditAria": "Fecha de entrega del trabajo {{id}}",
+    "dueDateOverdueDays": "{{count}} días de retraso",
+    "dueDateOnTrack": "En plazo",
+    "dueDateInherited": "Heredada de la fecha de creación",
+    "filamentGrams": "{{grams}} g",
+    "consumableUnits": "{{units}} unidades",
+    "riskFactorNone": "Sin líneas de filamento",
+    "searchPlaceholder": "Buscar trabajos…"
   },
   "wizard": {
     "welcomeTitle": "illo3d",
@@ -585,7 +654,26 @@
     "migrationStepAuditSheet": "Creando la hoja de registro de auditoría",
     "migrationStepAuditBackfill": "Registrando entradas de auditoría iniciales",
     "migrationStepJobsDueDate": "Añadiendo la columna de fecha de entrega a los trabajos",
-    "migrationStepInventoryColour": "Añadiendo la columna de color al inventario"
+    "migrationStepInventoryColour": "Añadiendo la columna de color al inventario",
+    "migrationFailedTitle": "La migración ha fallado",
+    "migrationStepStatus": "{{label}}: {{status}}",
+    "migrationStatusPending": "pendiente",
+    "migrationStatusRunning": "en curso",
+    "migrationStatusDone": "completado",
+    "migrationStatusFailed": "fallido",
+    "migrationEntityBackup": "Copia de seguridad",
+    "migrationEntityClients": "Clientes",
+    "migrationEntityCrmNotes": "Notas",
+    "migrationEntityTags": "Etiquetas",
+    "migrationEntityTagLinks": "Enlaces de etiquetas",
+    "migrationEntityJobs": "Trabajos",
+    "migrationEntityPieces": "Piezas",
+    "migrationEntityPieceItems": "Materiales de piezas",
+    "migrationEntityInventory": "Inventario",
+    "migrationEntityLots": "Lotes",
+    "migrationEntityTransactions": "Transacciones",
+    "migrationEntityAuditLog": "Registro de auditoría",
+    "googleSignedInAs": "Sesión iniciada como"
   },
   "workbook": {
     "loading": "Cargando libro…",
@@ -604,7 +692,8 @@
     "loadingWorkbook": "Cargando libro",
     "savingSheet": "Guardando {{sheet}}…",
     "loadingSheet": "Cargando {{sheet}}…",
-    "progress": "Progreso"
+    "progress": "Progreso",
+    "progressCount": "{{current}} de {{total}}"
   },
   "combobox": {
     "noMatch": "No hay elementos que coincidan",
@@ -612,5 +701,49 @@
     "createOption": "Crear \"{{query}}\"",
     "placeholder": "Buscar...",
     "ariaLabel": "Opciones"
+  },
+  "kanban": {
+    "viewLabel": "Kanban",
+    "piecesProgress": "{{done}}/{{total}} piezas hechas",
+    "dueOn": "Vence {{date}}"
+  },
+  "calendar": {
+    "viewLabel": "Calendario",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Mes siguiente",
+    "today": "Hoy",
+    "empty": "No hay trabajos con vencimiento este mes.",
+    "month": {
+      "january": "Enero",
+      "february": "Febrero",
+      "march": "Marzo",
+      "april": "Abril",
+      "may": "Mayo",
+      "june": "Junio",
+      "july": "Julio",
+      "august": "Agosto",
+      "september": "Septiembre",
+      "october": "Octubre",
+      "november": "Noviembre",
+      "december": "Diciembre"
+    },
+    "weekday": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mié",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sáb",
+      "sun": "Dom"
+    },
+    "weekdayLong": {
+      "mon": "Lunes",
+      "tue": "Martes",
+      "wed": "Miércoles",
+      "thu": "Jueves",
+      "fri": "Viernes",
+      "sat": "Sábado",
+      "sun": "Domingo"
+    }
   }
 }
