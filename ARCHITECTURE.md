@@ -122,26 +122,40 @@ fixtures/                # golden CSV shop scenarios (v3), incl. pre-v2-upgrade 
 - **Theme**: class-based dark mode with CSS custom-property tokens; initialized before React
   mounts to avoid flash.
 
-## Non-negotiable platform constraints
+## Platform constraint: GitHub Pages
 
-The app is deployed as a **static bundle on GitHub Pages** (`.github/workflows/deploy.yml`, on
-push to `main`). There is no server at runtime — every constraint below follows from that and
-is carried over from v2 unchanged. See `openspec/specs/github-pages-deployment/spec.md` and
-`openspec/specs/security-headers/spec.md`.
+The app ships as a **static bundle on GitHub Pages** (`.github/workflows/deploy.yml`, on push to
+`main`). There is no server at runtime, ever. This is the hard constraint; the rules below are
+the things that follow from it and therefore cannot change. See
+`openspec/specs/github-pages-deployment/spec.md` and `openspec/specs/security-headers/spec.md`.
 
-- **HashRouter, not BrowserRouter.** Deep links must resolve on a static host with no rewrite
-  rules, so in-app routes are `/#/clients/CL1`. `src/Config/routes.tsx` wires `createHashRouter`
-  / `<HashRouter>`; nothing may switch to history-based routing.
+- **HashRouter, not BrowserRouter.** A static host serves no rewrite rules, so deep links must
+  live in the fragment: `/#/clients/CL1`. `src/Config/routes.tsx` wires the hash router and
+  nothing may switch to history-based routing.
 - **Base path `/illo3d/` in production** (`/` in dev) via `vite.config.ts` `base`, so assets
   resolve under the repo subpath.
-- **No backend, no service worker, no server-side env.** `VITE_GOOGLE_CLIENT_ID` is injected at
-  build time from repo secrets. The Vite dev plugins that serve/write fixture CSVs are
-  dev/e2e-only and must never be a production dependency — the Local CSV backend writes through
-  the File System Access API directly.
-- **CSP + security headers stay in `index.html` meta tags** (no server to set them): script/connect
-  allowlists for Google Identity and the Sheets/Drive APIs, `frame-ancestors 'none'`,
-  `referrer strict-origin-when-cross-origin`, `nosniff`, and a restrictive `Permissions-Policy`.
-  Theme init must therefore run from the bundle, never an inline `<script>`, so `script-src`
-  needs no `'unsafe-inline'`.
-- **Session storage semantics**: OAuth credentials and the active shop live in `sessionStorage`
-  in production (dev/e2e use `localStorage` so Playwright `storageState` works).
+- **No backend and no server-side secrets.** `VITE_GOOGLE_CLIENT_ID` is injected at build time
+  from repo secrets. The Vite plugins that serve and write fixture CSVs are dev/e2e-only and must
+  never become a production dependency — the Local CSV backend writes through the File System
+  Access API directly, and the Google backend talks to the Sheets/Drive APIs from the browser.
+- **CSP and security headers live in `index.html` meta tags**, because there is no server to send
+  real headers: script/connect allowlists for Google Identity and the Sheets/Drive APIs,
+  `frame-ancestors 'none'`, `referrer strict-origin-when-cross-origin`, `nosniff`, and a
+  restrictive `Permissions-Policy`. Theme init therefore runs from the bundle rather than an
+  inline `<script>`, so `script-src` needs no `'unsafe-inline'`.
+
+## Client-side persistence (a design decision, not a platform constraint)
+
+Static hosting says *where* state may live (the browser) but not *which* browser store. v2 put
+OAuth credentials and the active shop in `sessionStorage`, which meant every new tab dropped the
+user back at the setup wizard. v3 makes a deliberate choice per kind of state:
+
+| State | Store | Why |
+|---|---|---|
+| Google access token | **memory only** | A token in `localStorage` is readable by any XSS and outlives the tab for no benefit: the GIS token client already renews silently, so a reload simply re-acquires one. Never persisted. |
+| Active shop, backend choice | **`localStorage`** | Not secret (a folder id and a spreadsheet id). Persisting them lets a returning user land straight in their shop instead of re-running the wizard — the v2 behaviour users felt as friction. |
+| Local CSV directory handle | **IndexedDB** | The only store that can hold a `FileSystemDirectoryHandle`; re-permissioned on use. |
+| Language, theme | **`localStorage`** | Preferences, unchanged from v2. |
+
+Consequence: opening a shop is idempotent across reloads and tabs, and signing out is an
+explicit act that clears the persisted shop rather than a side effect of closing a tab.
