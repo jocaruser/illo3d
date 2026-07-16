@@ -41,8 +41,9 @@ export class CrmNote extends SheetEntity {
   static fromRecord(record: SheetRecord): CrmNote {
     const note = new CrmNote()
     note.id = record.id ?? ''
-    note.entityType = (NOTE_ENTITY_TYPES as readonly string[]).includes(record.entity_type ?? '')
-      ? ((record.entity_type ?? '') as NoteEntityType)
+    const entityType = record.entity_type ?? ''
+    note.entityType = (NOTE_ENTITY_TYPES as readonly string[]).includes(entityType)
+      ? (entityType as NoteEntityType)
       : ''
     note.entityId = record.entity_id ?? ''
     note.body = record.body ?? ''

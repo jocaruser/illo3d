@@ -49,9 +49,8 @@ export class AuditLogger {
   }
 
   private existingIds(): string[] {
-    return matrixToRecords('audit_log', this.tabs.getTab('audit_log')).map(
-      (record) => record.id ?? '',
-    )
+    // rowToRecord fills every canonical column, so `id` is always a string here.
+    return matrixToRecords('audit_log', this.tabs.getTab('audit_log')).map((record) => record.id)
   }
 }
 

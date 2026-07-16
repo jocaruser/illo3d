@@ -15,10 +15,9 @@ export class TagLink extends SheetEntity {
     const link = new TagLink()
     link.id = record.id ?? ''
     link.tagId = record.tag_id ?? ''
-    link.entityType = (TAGGABLE_ENTITY_TYPES as readonly string[]).includes(
-      record.entity_type ?? '',
-    )
-      ? ((record.entity_type ?? '') as TaggableEntityType)
+    const entityType = record.entity_type ?? ''
+    link.entityType = (TAGGABLE_ENTITY_TYPES as readonly string[]).includes(entityType)
+      ? (entityType as TaggableEntityType)
       : ''
     link.entityId = record.entity_id ?? ''
     link.createdAt = record.created_at ?? ''

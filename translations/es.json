@@ -22,7 +22,9 @@
   },
   "common": {
     "loading": "Cargando...",
-    "submitting": "Enviando..."
+    "submitting": "Enviando...",
+    "confirm": "Confirmar",
+    "cancel": "Cancelar"
   },
   "toast": {
     "saveSuccess": "Guardado correctamente",
@@ -578,7 +580,12 @@
     "migrationBackupResolvedYes": "Se creará una copia de seguridad antes de la migración",
     "migrationBackupResolvedNo": "Copia de seguridad omitida",
     "migrationBackupSkipped": "Omitido",
-    "migrationBackupDetail": "Se creará una copia de tus datos actuales."
+    "migrationBackupDetail": "Se creará una copia de tus datos actuales.",
+    "migrationStepColumns": "Añadiendo las nuevas columnas",
+    "migrationStepAuditSheet": "Creando la hoja de registro de auditoría",
+    "migrationStepAuditBackfill": "Registrando entradas de auditoría iniciales",
+    "migrationStepJobsDueDate": "Añadiendo la columna de fecha de entrega a los trabajos",
+    "migrationStepInventoryColour": "Añadiendo la columna de color al inventario"
   },
   "workbook": {
     "loading": "Cargando libro…",

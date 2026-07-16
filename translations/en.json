@@ -22,7 +22,9 @@
   },
   "common": {
     "loading": "Loading...",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "toast": {
     "saveSuccess": "Saved successfully",
@@ -578,7 +580,12 @@
     "migrationBackupResolvedYes": "Your shop will be backed up before migration",
     "migrationBackupResolvedNo": "Backup skipped",
     "migrationBackupSkipped": "Skipped",
-    "migrationBackupDetail": "A backup will be created as a copy of your current data."
+    "migrationBackupDetail": "A backup will be created as a copy of your current data.",
+    "migrationStepColumns": "Adding the new columns",
+    "migrationStepAuditSheet": "Creating the audit log sheet",
+    "migrationStepAuditBackfill": "Backfilling baseline audit entries",
+    "migrationStepJobsDueDate": "Adding the due date column to jobs",
+    "migrationStepInventoryColour": "Adding the colour column to inventory"
   },
   "workbook": {
     "loading": "Loading workbook…",
