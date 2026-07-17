@@ -278,7 +278,7 @@ jobs:
   # ============================================================
   auto-merge:
     runs-on: ubuntu-latest
-    needs: [lint, react-doctor, unit-test, build, e2e-test]
+    needs: [lint, react-doctor, unit-test, build, e2e-test, audit]
     if: ${{ !github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository }}
     permissions:
       contents: write
