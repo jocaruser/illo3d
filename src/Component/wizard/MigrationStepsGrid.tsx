@@ -1,20 +1,10 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ShieldCheckIcon } from '@heroicons/react/24/outline'
 import {
-  ArchiveBoxIcon,
-  BanknotesIcon,
-  BriefcaseIcon,
-  BuildingStorefrontIcon,
-  ChatBubbleLeftRightIcon,
-  ClipboardDocumentListIcon,
-  CubeIcon,
-  DocumentTextIcon,
-  LinkIcon,
-  ShieldCheckIcon,
-  Squares2X2Icon,
-  TagIcon,
-  UsersIcon,
-} from '@heroicons/react/24/outline'
+  FALLBACK_SHEET_ICON,
+  SHEET_ICON,
+} from '@/Component/SheetMeta'
 import { StepCard, type StepStatusConfig } from '@/Component/StepCard'
 import { StepGrid } from '@/Component/StepGrid'
 import { BACKUP_STEP_ID } from '@/Hook/useMigration'
@@ -38,34 +28,14 @@ const STATUS_STYLE: StepStatusConfig = {
   failed: { container: 'border-danger/50 bg-danger/10 text-danger' },
 }
 
-const ICON_CLASS = 'h-4 w-4 shrink-0'
-
 const STEP_ICON: Record<string, ReactNode> = {
   [BACKUP_STEP_ID]: (
-    <ShieldCheckIcon className={ICON_CLASS} aria-hidden="true" />
+    <ShieldCheckIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
   ),
-  clients: <UsersIcon className={ICON_CLASS} aria-hidden="true" />,
-  crm_notes: (
-    <ChatBubbleLeftRightIcon className={ICON_CLASS} aria-hidden="true" />
-  ),
-  tags: <TagIcon className={ICON_CLASS} aria-hidden="true" />,
-  tag_links: <LinkIcon className={ICON_CLASS} aria-hidden="true" />,
-  jobs: <BriefcaseIcon className={ICON_CLASS} aria-hidden="true" />,
-  pieces: <CubeIcon className={ICON_CLASS} aria-hidden="true" />,
-  piece_items: <Squares2X2Icon className={ICON_CLASS} aria-hidden="true" />,
-  inventory: (
-    <BuildingStorefrontIcon className={ICON_CLASS} aria-hidden="true" />
-  ),
-  lots: <ArchiveBoxIcon className={ICON_CLASS} aria-hidden="true" />,
-  transactions: <BanknotesIcon className={ICON_CLASS} aria-hidden="true" />,
-  audit_log: (
-    <ClipboardDocumentListIcon className={ICON_CLASS} aria-hidden="true" />
-  ),
+  ...SHEET_ICON,
 }
 
-const FALLBACK_ICON = (
-  <DocumentTextIcon className={ICON_CLASS} aria-hidden="true" />
-)
+const FALLBACK_ICON = FALLBACK_SHEET_ICON
 
 interface MigrationStepsGridProps {
   shopVersion: string
