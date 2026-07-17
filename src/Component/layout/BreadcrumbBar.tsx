@@ -10,6 +10,7 @@ const SECTION_LABEL_KEYS: Record<string, string> = {
   transactions: 'nav.transactions',
   inventory: 'nav.inventory',
   'audit-log': 'nav.auditLog',
+  save: 'savePreview.breadcrumb',
 }
 
 /**

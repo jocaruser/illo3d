@@ -697,6 +697,35 @@
     "progress": "Progress",
     "progressCount": "{{current}} of {{total}}"
   },
+  "savePreview": {
+    "title": "Save changes",
+    "subtitle": "Review changes before submitting.",
+    "breadcrumb": "Save",
+    "sheetsNav": "Sheets",
+    "sheetStatus": "{{label}}: {{status}}",
+    "unsavedSheets_one": "{{count}} unsaved sheet",
+    "unsavedSheets_other": "{{count}} unsaved sheets",
+    "rowsChanged_one": "{{count}} row changed",
+    "rowsChanged_other": "{{count}} rows changed",
+    "newEntries_one": "{{count}} new entry",
+    "newEntries_other": "{{count}} new entries",
+    "noChanges": "No changes",
+    "allClean": "Nothing to save — everything is already stored.",
+    "back": "Back",
+    "saveAll": "Save all",
+    "discardAll": "Discard all",
+    "showUnchanged": "Show unchanged fields",
+    "hideUnchanged": "Hide unchanged fields",
+    "revert": "Revert",
+    "revertField": "Revert {{field}}",
+    "status": {
+      "clean": "No changes",
+      "changed": "Changed",
+      "saving": "Saving",
+      "saved": "Saved",
+      "failed": "Failed"
+    }
+  },
   "combobox": {
     "noMatch": "No matching items",
     "noItems": "No items available",

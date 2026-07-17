@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
 import { useWorkbookService } from '@/Hook/useWorkbookService'
 
@@ -13,17 +14,17 @@ interface WorkbookActionsProps {
 
 /**
  * Refresh and Save for the workbook snapshot. Refresh discards local edits, so
- * a dirty workbook forces a confirmation first; Save is offered only when
- * there is something to save.
+ * a dirty workbook forces a confirmation first. Save writes nothing here: it
+ * opens the save preview, where the actual Save all lives.
  */
 export function WorkbookActions({ testIdPrefix = 'workbook' }: WorkbookActionsProps = {}) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const {
     refresh,
     confirmRefresh,
     cancelRefresh,
     needsConfirm,
-    save,
     dirty,
     ready,
   } = useWorkbookService()
@@ -46,7 +47,7 @@ export function WorkbookActions({ testIdPrefix = 'workbook' }: WorkbookActionsPr
         data-testid={`${testIdPrefix}-save`}
         disabled={!ready || !dirty}
         onClick={() => {
-          void save()
+          navigate('/save')
         }}
       >
         {t('workbook.save')}

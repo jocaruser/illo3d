@@ -697,6 +697,35 @@
     "progress": "Progreso",
     "progressCount": "{{current}} de {{total}}"
   },
+  "savePreview": {
+    "title": "Guardar cambios",
+    "subtitle": "Revisa los cambios antes de enviarlos.",
+    "breadcrumb": "Guardar",
+    "sheetsNav": "Hojas",
+    "sheetStatus": "{{label}}: {{status}}",
+    "unsavedSheets_one": "{{count}} hoja sin guardar",
+    "unsavedSheets_other": "{{count}} hojas sin guardar",
+    "rowsChanged_one": "{{count}} fila cambiada",
+    "rowsChanged_other": "{{count}} filas cambiadas",
+    "newEntries_one": "{{count}} entrada nueva",
+    "newEntries_other": "{{count}} entradas nuevas",
+    "noChanges": "Sin cambios",
+    "allClean": "Nada que guardar: todo está ya almacenado.",
+    "back": "Volver",
+    "saveAll": "Guardar todo",
+    "discardAll": "Descartar todo",
+    "showUnchanged": "Mostrar campos sin cambios",
+    "hideUnchanged": "Ocultar campos sin cambios",
+    "revert": "Revertir",
+    "revertField": "Revertir {{field}}",
+    "status": {
+      "clean": "Sin cambios",
+      "changed": "Cambiada",
+      "saving": "Guardando",
+      "saved": "Guardada",
+      "failed": "Fallida"
+    }
+  },
   "combobox": {
     "noMatch": "No hay elementos que coincidan",
     "noItems": "No hay elementos disponibles",

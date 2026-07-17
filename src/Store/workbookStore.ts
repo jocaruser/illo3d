@@ -26,6 +26,12 @@ export interface WorkbookState {
   saveInProgress: boolean
   /** True when a mutation landed while a save was writing — keeps dirty set. */
   mutatedDuringSave: boolean
+  /**
+   * Data rows of `audit_log` already persisted (hydrated or saved). The log is
+   * append-only, so every row beyond this count is an unsaved change — the
+   * save preview reads its diff from exactly those rows.
+   */
+  savedAuditRows: number
 
   /** Replace the whole snapshot after hydrate/refresh. Marks the store clean and ready. */
   hydrateTabs(tabs: WorkbookTabs, workbookId: string): void
@@ -35,6 +41,8 @@ export interface WorkbookState {
   beginSave(): void
   /** End a save; on success the store becomes clean unless mutated mid-save. */
   endSave(success: boolean): void
+  /** Record how many audit rows the last successful save wrote. */
+  setSavedAuditRows(count: number): void
   reset(): void
 }
 
@@ -46,9 +54,18 @@ export const useWorkbookStore = create<WorkbookState>()((set) => ({
   workbookId: null,
   saveInProgress: false,
   mutatedDuringSave: false,
+  savedAuditRows: 0,
 
   hydrateTabs: (tabs, workbookId) =>
-    set({ tabs, workbookId, status: 'ready', error: null, dirty: false, mutatedDuringSave: false }),
+    set({
+      tabs,
+      workbookId,
+      status: 'ready',
+      error: null,
+      dirty: false,
+      mutatedDuringSave: false,
+      savedAuditRows: tabs.audit_log.length - 1,
+    }),
 
   mutateTab: (sheet, mutate) =>
     set((state) => ({
@@ -68,6 +85,8 @@ export const useWorkbookStore = create<WorkbookState>()((set) => ({
       mutatedDuringSave: false,
     })),
 
+  setSavedAuditRows: (count) => set({ savedAuditRows: count }),
+
   reset: () =>
     set({
       tabs: emptyTabs(),
@@ -77,5 +96,6 @@ export const useWorkbookStore = create<WorkbookState>()((set) => ({
       workbookId: null,
       saveInProgress: false,
       mutatedDuringSave: false,
+      savedAuditRows: 0,
     }),
 }))

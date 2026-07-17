@@ -1,3 +1,4 @@
+import { SHEET_LABEL_KEY } from '@/Component/SheetMeta'
 import {
   BACKUP_SKIPPED_KEY,
   BACKUP_STEP_ID,
@@ -12,17 +13,7 @@ import type {
 /** Row label per step id. Ids are sheet names plus the synthetic backup step. */
 const STEP_LABEL_KEY: Record<string, string> = {
   [BACKUP_STEP_ID]: 'wizard.migrationEntityBackup',
-  clients: 'wizard.migrationEntityClients',
-  crm_notes: 'wizard.migrationEntityCrmNotes',
-  tags: 'wizard.migrationEntityTags',
-  tag_links: 'wizard.migrationEntityTagLinks',
-  jobs: 'wizard.migrationEntityJobs',
-  pieces: 'wizard.migrationEntityPieces',
-  piece_items: 'wizard.migrationEntityPieceItems',
-  inventory: 'wizard.migrationEntityInventory',
-  lots: 'wizard.migrationEntityLots',
-  transactions: 'wizard.migrationEntityTransactions',
-  audit_log: 'wizard.migrationEntityAuditLog',
+  ...SHEET_LABEL_KEY,
 }
 
 const STATUS_LABEL_KEY: Record<MigrationStepStatus, string> = {

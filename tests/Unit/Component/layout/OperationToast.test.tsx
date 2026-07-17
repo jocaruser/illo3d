@@ -42,6 +42,22 @@ describe('OperationToast', () => {
     expect(screen.queryByTestId('operation-toast')).not.toBeInTheDocument()
   })
 
+  it('ignores non-blocking saves, which the save preview narrates', () => {
+    act(() => {
+      useOperationStore
+        .getState()
+        .start('save', {
+          total: 11,
+          blocking: false,
+          message: 'workbook.savingWorkbook',
+        })
+    })
+
+    renderLayout(<OperationToast />)
+
+    expect(screen.queryByTestId('operation-toast')).not.toBeInTheDocument()
+  })
+
   it('announces a load without blocking the app', () => {
     startLoad()
     renderLayout(<OperationToast />)
