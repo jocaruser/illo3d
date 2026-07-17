@@ -7,7 +7,8 @@ type FileStore = Record<string, string>
 const STORE_KEY = '__e2eFixtureFiles'
 
 function fixtureFileList(): string[] {
-  return ['illo3d.metadata.json', ...SHEET_NAMES.map((s) => `${s}.csv`)]
+  // `logo.svg` is optional — scenarios without one simply 404 and stay absent.
+  return ['illo3d.metadata.json', 'logo.svg', ...SHEET_NAMES.map((s) => `${s}.csv`)]
 }
 
 /**
@@ -53,12 +54,21 @@ function installMock(args: { seed: FileStore; force: boolean }): void {
     return String(data)
   }
 
+  /** A real handle reports the file's MIME type; `<img>` (the shop logo) needs it. */
+  function mimeFor(path: string): string {
+    if (path.endsWith('.svg')) return 'image/svg+xml'
+    if (path.endsWith('.png')) return 'image/png'
+    if (path.endsWith('.json')) return 'application/json'
+    if (path.endsWith('.csv')) return 'text/csv'
+    return 'text/plain'
+  }
+
   function fileHandle(path: string) {
     return {
       kind: 'file' as const,
       name: path.split('/').pop() ?? path,
       async getFile(): Promise<File> {
-        return new File([store[path] ?? ''], path, { type: 'text/plain' })
+        return new File([store[path] ?? ''], path, { type: mimeFor(path) })
       },
       async createWritable(options?: { keepExistingData?: boolean }) {
         let position = 0
@@ -196,6 +206,9 @@ export async function mockDirectoryPicker(
       const loaded: Record<string, string> = {}
       for (const name of fileNames) {
         const response = await fetch(`/fixtures/${scen}/${name}`)
+        // Older-schema scenarios legitimately lack newer sheets (a v1 shop has
+        // no audit_log.csv) — absent files stay absent, like a real folder.
+        if (response.status === 404) continue
         if (!response.ok) {
           throw new Error(`Missing fixture file: ${scen}/${name} (${response.status})`)
         }

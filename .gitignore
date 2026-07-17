@@ -47,3 +47,6 @@ opencode.json
 
 # Local playground / sandbox files
 playground/
+.e2e-fixtures-*/
+test-results-*/
+tests/e2e/.auth/storage-state-*.json
