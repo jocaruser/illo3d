@@ -54,6 +54,7 @@
   },
   "errors": {
     "googleSession": "Your Google session expired. Try signing in with Google again, then retry.",
+    "unexpected": "Something unexpected failed in the background. If something looks off, reload the app.",
     "routeTitle": "This page couldn’t be displayed",
     "routeDescription": "Something unexpected happened. You can try again.",
     "retry": "Try again",
