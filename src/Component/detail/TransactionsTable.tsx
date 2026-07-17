@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ColoredNumber } from '@/Component/ColoredNumber'
@@ -13,10 +13,13 @@ import {
 import { SortableColumnHeader } from '@/Component/table/SortableColumnHeader'
 import type { Transaction } from '@/Entity/Transaction'
 import { formatCurrency } from '@/Service/Pricing/money'
+import { sortRows, useTableSort, type SortValue } from './tableSort'
 
 /** Where a row's concept points, decided by the page from the workbook. */
 export type ConceptLink =
-  { kind: 'job'; to: string } | { kind: 'expense'; to: string } | { kind: 'none' }
+  | { kind: 'job'; to: string }
+  | { kind: 'expense'; to: string }
+  | { kind: 'none' }
 
 export interface TransactionTableRow {
   transaction: Transaction
@@ -30,12 +33,8 @@ interface TransactionsTableProps {
   emptyMessage: string
 }
 
-type SortKey = 'id' | 'date' | 'type' | 'amount' | 'category' | 'concept' | 'client'
-
-interface SortState {
-  key: SortKey
-  direction: 'asc' | 'desc'
-}
+type SortKey =
+  'id' | 'date' | 'type' | 'amount' | 'category' | 'concept' | 'client'
 
 const COLUMN_COUNT = 7
 
@@ -51,54 +50,50 @@ const responsiveColumns = [
   '[&_tr>*:nth-child(7)]:hidden md:[&_tr>*:nth-child(7)]:table-cell',
 ].join(' ')
 
-function sortValue(row: TransactionTableRow, key: SortKey, typeLabel: string): string | number {
-  switch (key) {
-    case 'id':
-      return row.transaction.id
-    case 'date':
-      return row.transaction.date
-    case 'type':
-      return typeLabel
-    case 'amount':
-      return row.transaction.amount ?? 0
-    case 'category':
-      return row.transaction.category
-    case 'concept':
-      return row.transaction.concept
-    case 'client':
-      return row.clientName
-  }
-}
-
-function compare(a: string | number, b: string | number): number {
-  if (typeof a === 'number' && typeof b === 'number') return a - b
-  return String(a).localeCompare(String(b))
-}
-
 /** Read-only: transactions are edited on the expense detail page, never in the list. */
-export function TransactionsTable({ rows, emptyMessage }: TransactionsTableProps) {
+export function TransactionsTable({
+  rows,
+  emptyMessage,
+}: TransactionsTableProps) {
   const { t } = useTranslation()
-  const [sort, setSort] = useState<SortState>({
+  const { sort, directionFor, toggle } = useTableSort<SortKey>({
     key: 'date',
-    direction: 'desc',
+    dir: 'desc',
   })
 
-  const sorted = useMemo(() => {
-    const typeLabel = (row: TransactionTableRow) => t(`transactions.type.${row.transaction.type}`)
-    return [...rows].sort((a, b) => {
-      const result = compare(
-        sortValue(a, sort.key, typeLabel(a)),
-        sortValue(b, sort.key, typeLabel(b))
-      )
-      return sort.direction === 'asc' ? result : -result
-    })
-  }, [rows, sort, t])
+  const sorted = useMemo(
+    () =>
+      sortRows(
+        rows,
+        sort,
+        (row, key): SortValue => {
+          switch (key) {
+            case 'id':
+              return row.transaction.id
+            case 'date':
+              return row.transaction.date
+            case 'type':
+              return t(`transactions.type.${row.transaction.type}`)
+            case 'amount':
+              return row.transaction.amount ?? 0
+            case 'category':
+              return row.transaction.category
+            case 'concept':
+              return row.transaction.concept
+            case 'client':
+              return row.clientName
+          }
+        },
+        (row) => row.transaction.id
+      ),
+    [rows, sort, t]
+  )
 
   const header = (key: SortKey, label: string) => (
     <SortableColumnHeader
       label={label}
-      direction={sort.key === key ? sort.direction : null}
-      onToggle={(direction) => setSort({ key, direction })}
+      direction={directionFor(key)}
+      onToggle={(dir) => toggle(key, dir)}
     />
   )
 
@@ -136,16 +131,26 @@ export function TransactionsTable({ rows, emptyMessage }: TransactionsTableProps
                     transaction.id
                   )}
                 </TableCell>
-                <TableCell className="whitespace-nowrap">{transaction.date}</TableCell>
-                <TableCell>{t(`transactions.type.${transaction.type}`)}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {transaction.date}
+                </TableCell>
+                <TableCell>
+                  {t(`transactions.type.${transaction.type}`)}
+                </TableCell>
                 <TableCell className="whitespace-nowrap text-right">
-                  <ColoredNumber value={amount} forceRed={transaction.isExpense()}>
+                  <ColoredNumber
+                    value={amount}
+                    forceRed={transaction.isExpense()}
+                  >
                     {formatCurrency(amount)}
                   </ColoredNumber>
                 </TableCell>
                 <TableCell>{transaction.category}</TableCell>
                 <TableCell>
-                  <ConceptCell transaction={transaction} conceptLink={conceptLink} />
+                  <ConceptCell
+                    transaction={transaction}
+                    conceptLink={conceptLink}
+                  />
                 </TableCell>
                 <TableCell>
                   {transaction.clientId === '' || clientName === '' ? (

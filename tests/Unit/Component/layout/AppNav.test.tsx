@@ -7,7 +7,14 @@ describe('AppNav', () => {
   it('links every section', () => {
     renderLayout(<AppNav />)
 
-    for (const name of ['Dashboard', 'Clients', 'Jobs', 'Transactions', 'Inventory', 'Audit Log']) {
+    for (const name of [
+      'Dashboard',
+      'Clients',
+      'Jobs',
+      'Transactions',
+      'Inventory',
+      'Audit Log',
+    ]) {
       expect(screen.getByRole('link', { name })).toBeInTheDocument()
     }
   })
@@ -15,8 +22,13 @@ describe('AppNav', () => {
   it('marks the current section', () => {
     renderLayout(<AppNav />, ['/clients'])
 
-    expect(screen.getByRole('link', { name: 'Clients' })).toHaveAttribute('aria-current', 'page')
-    expect(screen.getByRole('link', { name: 'Jobs' })).not.toHaveAttribute('aria-current')
+    expect(screen.getByRole('link', { name: 'Clients' })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
+    expect(screen.getByRole('link', { name: 'Jobs' })).not.toHaveAttribute(
+      'aria-current'
+    )
   })
 
   it.each([
@@ -27,19 +39,26 @@ describe('AppNav', () => {
   ])('keeps the section active on its detail route %s', (path, name) => {
     renderLayout(<AppNav />, [path])
 
-    expect(screen.getByRole('link', { name })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name })).toHaveAttribute(
+      'aria-current',
+      'page'
+    )
   })
 
   it('does not mark a section whose name merely prefixes the route', () => {
     renderLayout(<AppNav />, ['/jobsomething'])
 
-    expect(screen.getByRole('link', { name: 'Jobs' })).not.toHaveAttribute('aria-current')
+    expect(screen.getByRole('link', { name: 'Jobs' })).not.toHaveAttribute(
+      'aria-current'
+    )
   })
 
   it('marks nothing on an unknown route', () => {
     renderLayout(<AppNav />, ['/nowhere'])
 
-    expect(screen.queryByRole('link', { current: 'page' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { current: 'page' })
+    ).not.toBeInTheDocument()
   })
 
   it('reports navigation so the mobile sheet can close', async () => {

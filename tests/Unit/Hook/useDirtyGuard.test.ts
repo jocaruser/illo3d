@@ -4,7 +4,9 @@ import { useWorkbookStore } from '@/Store/workbookStore'
 import { installFakeLocalStorage } from '../Store/memoryLocalStorage'
 
 function fireBeforeUnload(): BeforeUnloadEvent {
-  const event = new Event('beforeunload', { cancelable: true }) as BeforeUnloadEvent
+  const event = new Event('beforeunload', {
+    cancelable: true,
+  }) as BeforeUnloadEvent
   window.dispatchEvent(event)
   return event
 }

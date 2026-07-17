@@ -54,12 +54,19 @@ function isInventoryCategory(category: string): boolean {
  * Records an expense, optionally turning it into stock. Mounting the body only
  * while open keeps every fresh dialog free of the last one's draft.
  */
-export function CreatePurchaseDialog({ open, onClose, onCreated }: CreatePurchaseDialogProps) {
+export function CreatePurchaseDialog({
+  open,
+  onClose,
+  onCreated,
+}: CreatePurchaseDialogProps) {
   if (!open) return null
   return <PurchaseDialogBody onClose={onClose} onCreated={onCreated} />
 }
 
-function PurchaseDialogBody({ onClose, onCreated }: Omit<CreatePurchaseDialogProps, 'open'>) {
+function PurchaseDialogBody({
+  onClose,
+  onCreated,
+}: Omit<CreatePurchaseDialogProps, 'open'>) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [date, setDate] = useState(() => isoDay(em.clock))
@@ -71,7 +78,10 @@ function PurchaseDialogBody({ onClose, onCreated }: Omit<CreatePurchaseDialogPro
   const [error, setError] = useState('')
 
   const inventoryItems = useMemo<ComboboxItem[]>(
-    () => em.inventory.findActive().map((item) => ({ key: item.id, label: item.name })),
+    () =>
+      em.inventory
+        .findActive()
+        .map((item) => ({ key: item.id, label: item.name })),
     [em]
   )
 
@@ -80,12 +90,17 @@ function PurchaseDialogBody({ onClose, onCreated }: Omit<CreatePurchaseDialogPro
   ).map((value) => ({ value, label: t(`purchase.category.${value}`) }))
 
   // With line items the total is the sum of the lines, never typed by hand.
-  const lineTotal = lines.reduce((sum, line) => sum + (parseNumericCell(line.amount) ?? 0), 0)
+  const lineTotal = lines.reduce(
+    (sum, line) => sum + (parseNumericCell(line.amount) ?? 0),
+    0
+  )
   const amountValue = addToInventory ? lineTotal.toFixed(2) : amount
 
   const updateLine = (index: number, patch: Partial<LineDraft>) =>
     setLines((current) =>
-      current.map((line, position) => (position === index ? { ...line, ...patch } : line))
+      current.map((line, position) =>
+        position === index ? { ...line, ...patch } : line
+      )
     )
 
   const handleToggleInventory = (next: boolean) => {
@@ -144,14 +159,24 @@ function PurchaseDialogBody({ onClose, onCreated }: Omit<CreatePurchaseDialogPro
   /** Filament is bought by weight; everything else by the piece. */
   const quantityHint = (line: LineDraft) => {
     const type =
-      line.mode === 'new' ? line.type : (em.inventory.find(line.inventoryId)?.type ?? 'consumable')
-    return type === 'filament' ? t('purchase.quantityHintGrams') : t('purchase.quantityHintUnits')
+      line.mode === 'new'
+        ? line.type
+        : (em.inventory.find(line.inventoryId)?.type ?? 'consumable')
+    return type === 'filament'
+      ? t('purchase.quantityHintGrams')
+      : t('purchase.quantityHintUnits')
   }
 
   return (
     <DialogShell open onClose={onClose} labelledBy="purchase-dialog-title">
-      <div data-testid="purchase-dialog" className="max-h-[70vh] space-y-4 overflow-y-auto">
-        <h2 id="purchase-dialog-title" className="font-display text-xl font-semibold text-text">
+      <div
+        data-testid="purchase-dialog"
+        className="max-h-[70vh] space-y-4 overflow-y-auto"
+      >
+        <h2
+          id="purchase-dialog-title"
+          className="font-display text-xl font-semibold text-text"
+        >
           {t('purchase.title')}
         </h2>
 
@@ -166,18 +191,24 @@ function PurchaseDialogBody({ onClose, onCreated }: Omit<CreatePurchaseDialogPro
         </FormGroup>
 
         <FormGroup>
-          <FormLabel htmlFor="purchase-category">{t('purchase.category')}</FormLabel>
+          <FormLabel htmlFor="purchase-category">
+            {t('purchase.category')}
+          </FormLabel>
           <Select
             id="purchase-category"
             options={categoryOptions}
             value={category}
-            onChange={(event) => setCategory(event.target.value as ExpenseCategory)}
+            onChange={(event) =>
+              setCategory(event.target.value as ExpenseCategory)
+            }
           />
         </FormGroup>
 
         <FormGroup>
           <FormLabel htmlFor="purchase-amount">
-            {addToInventory ? t('purchase.totalFromLines') : t('purchase.amount')}
+            {addToInventory
+              ? t('purchase.totalFromLines')
+              : t('purchase.amount')}
           </FormLabel>
           <FormInput
             id="purchase-amount"
@@ -214,7 +245,10 @@ function PurchaseDialogBody({ onClose, onCreated }: Omit<CreatePurchaseDialogPro
         {addToInventory && (
           <div className="space-y-4">
             {lines.map((line, index) => (
-              <div key={index} className="space-y-3 rounded-md border border-border p-3">
+              <div
+                key={index}
+                className="space-y-3 rounded-md border border-border p-3"
+              >
                 <div className="flex gap-2">
                   {(['existing', 'new'] as const).map((mode) => (
                     <button
@@ -229,20 +263,29 @@ function PurchaseDialogBody({ onClose, onCreated }: Omit<CreatePurchaseDialogPro
                           : 'border border-border text-text-muted'
                       )}
                     >
-                      {mode === 'existing' ? t('purchase.lineExisting') : t('purchase.lineNew')}
+                      {mode === 'existing'
+                        ? t('purchase.lineExisting')
+                        : t('purchase.lineNew')}
                     </button>
                   ))}
                 </div>
 
                 {line.mode === 'existing' ? (
                   <FormGroup>
-                    <FormLabel>{t('purchase.inventoryItem')}</FormLabel>
-                    <Combobox
-                      items={inventoryItems}
-                      value={line.inventoryId === '' ? null : line.inventoryId}
-                      onChange={(key) => updateLine(index, { inventoryId: key })}
-                      placeholder={t('purchase.searchInventory')}
-                    />
+                    {/* Combobox owns its input id, so the label wraps it to associate. */}
+                    <FormLabel className="space-y-1">
+                      {t('purchase.inventoryItem')}
+                      <Combobox
+                        items={inventoryItems}
+                        value={
+                          line.inventoryId === '' ? null : line.inventoryId
+                        }
+                        onChange={(key) =>
+                          updateLine(index, { inventoryId: key })
+                        }
+                        placeholder={t('purchase.searchInventory')}
+                      />
+                    </FormLabel>
                   </FormGroup>
                 ) : (
                   <>
@@ -255,7 +298,9 @@ function PurchaseDialogBody({ onClose, onCreated }: Omit<CreatePurchaseDialogPro
                         data-testid={`purchase-line-${index}-new-name`}
                         type="text"
                         value={line.name}
-                        onChange={(event) => updateLine(index, { name: event.target.value })}
+                        onChange={(event) =>
+                          updateLine(index, { name: event.target.value })
+                        }
                       />
                     </FormGroup>
                     <FormGroup>
@@ -291,7 +336,9 @@ function PurchaseDialogBody({ onClose, onCreated }: Omit<CreatePurchaseDialogPro
                       step=".01"
                       min="0"
                       value={line.quantity}
-                      onChange={(event) => updateLine(index, { quantity: event.target.value })}
+                      onChange={(event) =>
+                        updateLine(index, { quantity: event.target.value })
+                      }
                     />
                   </FormGroup>
                   <FormGroup className="flex-1">
@@ -305,7 +352,9 @@ function PurchaseDialogBody({ onClose, onCreated }: Omit<CreatePurchaseDialogPro
                       step=".01"
                       min="0"
                       value={line.amount}
-                      onChange={(event) => updateLine(index, { amount: event.target.value })}
+                      onChange={(event) =>
+                        updateLine(index, { amount: event.target.value })
+                      }
                     />
                   </FormGroup>
                 </div>

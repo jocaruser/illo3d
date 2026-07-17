@@ -23,7 +23,13 @@ export function AuditEntityLink({
   afterJson = '',
 }: AuditEntityLinkProps) {
   const em = useEntityManager()
-  const { label, to } = resolveAuditEntity(em, entityName, entityId, beforeJson, afterJson)
+  const { label, to } = resolveAuditEntity(
+    em,
+    entityName,
+    entityId,
+    beforeJson,
+    afterJson
+  )
 
   if (to === null) {
     return (
@@ -33,7 +39,11 @@ export function AuditEntityLink({
     )
   }
   return (
-    <Link to={to} className="block truncate text-primary hover:underline" title={label}>
+    <Link
+      to={to}
+      className="block truncate text-primary hover:underline"
+      title={label}
+    >
       {label}
     </Link>
   )

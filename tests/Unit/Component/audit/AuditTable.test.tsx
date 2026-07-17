@@ -3,7 +3,11 @@ import { AuditTable } from '@/Component/audit/AuditTable'
 import { AuditEntry } from '@/Entity/AuditEntry'
 import type { SheetRecord } from '@/Entity/SheetEntity'
 import type { EntityManager } from '@/Repository/EntityManager'
-import { createTestEm, FakeTabs, renderRoute } from '../../helpers/workbookTestBed'
+import {
+  createTestEm,
+  FakeTabs,
+  renderRoute,
+} from '../../helpers/workbookTestBed'
 
 const mocks = vi.hoisted(() => ({ em: null as unknown as EntityManager }))
 vi.mock('@/Hook/useEntityManager', () => ({ useEntityManager: () => mocks.em }))
@@ -30,13 +34,19 @@ describe('AuditTable', () => {
   beforeEach(() => {
     const tabs = new FakeTabs()
     tabs.seed('clients', { id: 'CL1', name: 'TechStart Solutions' })
-    tabs.seed('jobs', { id: 'J6', client_id: 'CL1', description: 'Piece test job' })
+    tabs.seed('jobs', {
+      id: 'J6',
+      client_id: 'CL1',
+      description: 'Piece test job',
+    })
     tabs.seed('pieces', { id: 'P1', job_id: 'J6', name: 'Alpha bracket' })
     mocks.em = createTestEm(tabs)
   })
 
   it('lays out one row per entry as id, actor, action, entity, timestamp, parent', () => {
-    renderRoute(<AuditTable entries={[entry(clientCreate)]} emptyMessage="none" />)
+    renderRoute(
+      <AuditTable entries={[entry(clientCreate)]} emptyMessage="none" />
+    )
 
     const cells = within(bodyRows()[0]).getAllByRole('cell')
     expect(cells).toHaveLength(6)
@@ -71,7 +81,9 @@ describe('AuditTable', () => {
       'href',
       '/jobs/J6#piece-P1'
     )
-    expect(screen.getByRole('link', { name: 'Piece test job' })).toHaveAttribute('href', '/jobs/J6')
+    expect(
+      screen.getByRole('link', { name: 'Piece test job' })
+    ).toHaveAttribute('href', '/jobs/J6')
   })
 
   it('marks a row with no timestamp as broken and omits the time element', () => {
@@ -88,13 +100,20 @@ describe('AuditTable', () => {
   })
 
   it('marks a row with no id as broken', () => {
-    renderRoute(<AuditTable entries={[entry({ ...clientCreate, id: '' })]} emptyMessage="none" />)
+    renderRoute(
+      <AuditTable
+        entries={[entry({ ...clientCreate, id: '' })]}
+        emptyMessage="none"
+      />
+    )
 
     expect(bodyRows()[0]).toHaveClass('text-danger')
   })
 
   it('leaves a well-formed row unmarked', () => {
-    renderRoute(<AuditTable entries={[entry(clientCreate)]} emptyMessage="none" />)
+    renderRoute(
+      <AuditTable entries={[entry(clientCreate)]} emptyMessage="none" />
+    )
 
     expect(bodyRows()[0]).not.toHaveClass('text-danger')
   })
@@ -103,6 +122,8 @@ describe('AuditTable', () => {
     renderRoute(<AuditTable entries={[]} emptyMessage="No audit entries yet" />)
 
     expect(screen.getByRole('table')).toBeInTheDocument()
-    expect(screen.getByTestId('audit-log-empty-state')).toHaveTextContent('No audit entries yet')
+    expect(screen.getByTestId('audit-log-empty-state')).toHaveTextContent(
+      'No audit entries yet'
+    )
   })
 })

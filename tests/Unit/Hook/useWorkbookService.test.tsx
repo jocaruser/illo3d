@@ -130,7 +130,10 @@ describe('useWorkbookService', () => {
 
       await act(() => result.current.save())
 
-      expect(toast.error).toHaveBeenCalledWith('Could not save workbook.', expect.anything())
+      expect(toast.error).toHaveBeenCalledWith(
+        'Could not save workbook.',
+        expect.anything()
+      )
       const options = vi.mocked(toast.error).mock.calls[0][1]
       expect(options?.action?.label).toBe('Retry')
 
@@ -171,7 +174,10 @@ describe('useWorkbookService', () => {
 
       await act(() => result.current.hydrate())
 
-      expect(toast.error).toHaveBeenCalledWith('Could not load', expect.anything())
+      expect(toast.error).toHaveBeenCalledWith(
+        'Could not load',
+        expect.anything()
+      )
       const options = vi.mocked(toast.error).mock.calls[0][1]
       mocks.hydrate.mockResolvedValueOnce()
       await act(async () => {

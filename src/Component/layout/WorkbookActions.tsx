@@ -9,8 +9,15 @@ import { useWorkbookService } from '@/Hook/useWorkbookService'
  */
 export function WorkbookActions() {
   const { t } = useTranslation()
-  const { refresh, confirmRefresh, cancelRefresh, needsConfirm, save, dirty, ready } =
-    useWorkbookService()
+  const {
+    refresh,
+    confirmRefresh,
+    cancelRefresh,
+    needsConfirm,
+    save,
+    dirty,
+    ready,
+  } = useWorkbookService()
 
   return (
     <div className="flex items-center gap-2">

@@ -59,7 +59,8 @@ describe('useShopLogoUrl', () => {
   beforeEach(() => {
     installFakeLocalStorage()
     vi.clearAllMocks()
-    URL.createObjectURL = createObjectURL as unknown as typeof URL.createObjectURL
+    URL.createObjectURL =
+      createObjectURL as unknown as typeof URL.createObjectURL
     URL.revokeObjectURL = revokeObjectURL
     useShopStore.getState().clearActiveShop()
     useBackendStore.getState().clearBackend()
@@ -145,22 +146,30 @@ describe('useShopLogoUrl', () => {
 
     it('prefers the thumbnail link', async () => {
       vi.mocked(driveFetch).mockResolvedValue(
-        driveResponse({ files: [{ id: 'file-1', thumbnailLink: 'https://lh3.example/thumb' }] })
+        driveResponse({
+          files: [{ id: 'file-1', thumbnailLink: 'https://lh3.example/thumb' }],
+        })
       )
 
       const { result } = renderHook(() => useShopLogoUrl())
 
-      await waitFor(() => expect(result.current).toBe('https://lh3.example/thumb'))
+      await waitFor(() =>
+        expect(result.current).toBe('https://lh3.example/thumb')
+      )
       expect(revokeObjectURL).not.toHaveBeenCalled()
     })
 
     it('falls back to the plain file URL', async () => {
-      vi.mocked(driveFetch).mockResolvedValue(driveResponse({ files: [{ id: 'file-1' }] }))
+      vi.mocked(driveFetch).mockResolvedValue(
+        driveResponse({ files: [{ id: 'file-1' }] })
+      )
 
       const { result } = renderHook(() => useShopLogoUrl())
 
       await waitFor(() =>
-        expect(result.current).toBe('https://drive.google.com/uc?export=view&id=file-1')
+        expect(result.current).toBe(
+          'https://drive.google.com/uc?export=view&id=file-1'
+        )
       )
     })
 
@@ -197,13 +206,16 @@ describe('useShopLogoUrl', () => {
     const getFileHandle = vi.fn(
       () =>
         new Promise((resolve) => {
-          releaseFile = () => resolve({ getFile: () => Promise.resolve({ name: 'logo.png' }) })
+          releaseFile = () =>
+            resolve({ getFile: () => Promise.resolve({ name: 'logo.png' }) })
         })
     )
     useBackendStore.getState().setBackend('local-csv')
     useBackendStore
       .getState()
-      .setLocalDirectoryHandle({ getFileHandle } as unknown as FileSystemDirectoryHandle)
+      .setLocalDirectoryHandle({
+        getFileHandle,
+      } as unknown as FileSystemDirectoryHandle)
     mockMetadata(baseMetadata('logo.png'))
     const { unmount } = renderHook(() => useShopLogoUrl())
     await waitFor(() => expect(getFileHandle).toHaveBeenCalled())
@@ -215,6 +227,64 @@ describe('useShopLogoUrl', () => {
     })
 
     // The URL was minted for a hook that no longer exists — it must not leak.
-    await waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith('blob:logo-url'))
+    await waitFor(() =>
+      expect(revokeObjectURL).toHaveBeenCalledWith('blob:logo-url')
+    )
+  })
+
+  it('has nothing to revoke when a Drive link resolves after unmount', async () => {
+    openShop()
+    useBackendStore.getState().setBackend('google-drive')
+    mockMetadata(baseMetadata('logo.png'))
+    let releaseFetch: () => void = () => {}
+    vi.mocked(driveFetch).mockReturnValue(
+      new Promise<Response>((resolve) => {
+        releaseFetch = () =>
+          resolve(
+            driveResponse({
+              files: [{ id: 'file-1', thumbnailLink: 'https://lh3/t' }],
+            })
+          )
+      })
+    )
+    const { unmount } = renderHook(() => useShopLogoUrl())
+    await waitFor(() => expect(driveFetch).toHaveBeenCalled())
+
+    unmount()
+    await act(async () => {
+      releaseFetch()
+      await Promise.resolve()
+    })
+
+    // A Drive link is not an object URL: revoking it would be meaningless.
+    expect(revokeObjectURL).not.toHaveBeenCalled()
+  })
+
+  it('swallows a read that fails after unmount', async () => {
+    openShop()
+    let failFile: () => void = () => {}
+    const getFileHandle = vi.fn(
+      () =>
+        new Promise((_resolve, reject) => {
+          failFile = () => reject(new Error('permission revoked'))
+        })
+    )
+    useBackendStore.getState().setBackend('local-csv')
+    useBackendStore
+      .getState()
+      .setLocalDirectoryHandle({
+        getFileHandle,
+      } as unknown as FileSystemDirectoryHandle)
+    mockMetadata(baseMetadata('logo.png'))
+    const { unmount } = renderHook(() => useShopLogoUrl())
+    await waitFor(() => expect(getFileHandle).toHaveBeenCalled())
+
+    unmount()
+
+    // No state update on an unmounted hook: React would warn and fail the run.
+    await act(async () => {
+      failFile()
+      await Promise.resolve()
+    })
   })
 })

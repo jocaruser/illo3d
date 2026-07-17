@@ -87,9 +87,8 @@ export function JobsPage() {
     setDialogOpen(true)
   }
 
-  const confirmArchive = () => {
-    if (archiving === null) return
-    new LifecycleService(em).archiveJob(archiving.id)
+  const confirmArchive = (job: Job) => {
+    new LifecycleService(em).archiveJob(job.id)
     toast.success(t('toast.saveSuccess'))
     setArchiving(null)
     bump()
@@ -148,14 +147,16 @@ export function JobsPage() {
         onUpdated={bump}
       />
 
-      <ConfirmDialog
-        open={archiving !== null}
-        title={t('jobs.archiveConfirmTitle')}
-        message={t('jobs.archiveConfirmMessage', { id: archiving?.id ?? '' })}
-        confirmLabel={t('lifecycle.archive')}
-        onConfirm={confirmArchive}
-        onCancel={() => setArchiving(null)}
-      />
+      {archiving !== null && (
+        <ConfirmDialog
+          open
+          title={t('jobs.archiveConfirmTitle')}
+          message={t('jobs.archiveConfirmMessage', { id: archiving.id })}
+          confirmLabel={t('lifecycle.archive')}
+          onConfirm={() => confirmArchive(archiving)}
+          onCancel={() => setArchiving(null)}
+        />
+      )}
     </div>
   )
 }

@@ -21,8 +21,13 @@ export function GoogleSessionBanner() {
   }
 
   return (
-    <AlertStrip variant="warning" className="flex flex-wrap items-center justify-between gap-2">
-      <span data-testid="google-session-banner">{t('auth.sessionRenewalFailed')}</span>
+    <AlertStrip
+      variant="warning"
+      className="flex flex-wrap items-center justify-between gap-2"
+    >
+      <span data-testid="google-session-banner">
+        {t('auth.sessionRenewalFailed')}
+      </span>
       <button
         type="button"
         className="btn-secondary py-1 text-xs"

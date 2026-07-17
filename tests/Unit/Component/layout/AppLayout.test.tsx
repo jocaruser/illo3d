@@ -20,7 +20,9 @@ vi.mock('@/Component/layout/FaviconUpdater', () => ({
 }))
 
 vi.mock('sonner', () => ({
-  Toaster: ({ theme }: { theme: string }) => <div data-testid="toaster" data-theme={theme} />,
+  Toaster: ({ theme }: { theme: string }) => (
+    <div data-testid="toaster" data-theme={theme} />
+  ),
   toast: { success: vi.fn(), error: vi.fn(), dismiss: vi.fn() },
 }))
 
@@ -64,8 +66,12 @@ describe('AppLayout', () => {
     renderLayoutShell()
 
     expect(screen.getByTestId('app-header')).toBeInTheDocument()
-    expect(screen.getByRole('navigation', { name: 'Breadcrumb' })).toBeInTheDocument()
-    expect(within(screen.getByRole('main')).getByText('page content')).toBeInTheDocument()
+    expect(
+      screen.getByRole('navigation', { name: 'Breadcrumb' })
+    ).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('main')).getByText('page content')
+    ).toBeInTheDocument()
     expect(screen.getByTestId('favicon-updater')).toBeInTheDocument()
   })
 

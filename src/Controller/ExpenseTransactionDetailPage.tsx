@@ -66,10 +66,15 @@ function ExpenseDetail({ transaction }: ExpenseDetailProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
 
-  const lots = useMemo(() => em.lots.findActiveByTransaction(transaction.id), [em, transaction.id])
+  const lots = useMemo(
+    () => em.lots.findActiveByTransaction(transaction.id),
+    [em, transaction.id]
+  )
 
   const [amount, setAmount] = useState(String(transaction.amount ?? ''))
-  const [drafts, setDrafts] = useState<Record<string, ExpenseLotDraft>>(() => initialDrafts(lots))
+  const [drafts, setDrafts] = useState<Record<string, ExpenseLotDraft>>(() =>
+    initialDrafts(lots)
+  )
   const [saveError, setSaveError] = useState('')
 
   const parsedAmount = parseNumericCell(amount)
@@ -114,7 +119,10 @@ function ExpenseDetail({ transaction }: ExpenseDetailProps) {
       sumLots += Math.abs(lotAmount)
     }
     const absTxn = Math.abs(parsedAmount)
-    if (Math.abs(sumLots - absTxn) <= SUM_TOLERANCE) return null
+    // Round to cents first: 30 - 29.99 is 0.010000000000001705 in binary float,
+    // which would flag an exactly-one-cent gap the tolerance is meant to allow.
+    const difference = Math.round(Math.abs(sumLots - absTxn) * 100) / 100
+    if (difference <= SUM_TOLERANCE) return null
     return { sumLots: sumLots.toFixed(2), absTxn: absTxn.toFixed(2) }
   }, [lots, drafts, parsedAmount])
 
@@ -126,7 +134,10 @@ function ExpenseDetail({ transaction }: ExpenseDetailProps) {
 
   const handleSave = () => {
     const service = new InventoryService(em)
-    const amountResult = service.updateTransactionAmount(transaction.id, parsedAmount ?? NaN)
+    const amountResult = service.updateTransactionAmount(
+      transaction.id,
+      parsedAmount ?? NaN
+    )
     if (!amountResult.ok) {
       setSaveError(t(amountResult.error))
       return
@@ -147,7 +158,8 @@ function ExpenseDetail({ transaction }: ExpenseDetailProps) {
   }
 
   const conceptValue = conceptField(em, transaction)
-  const client = transaction.clientId === '' ? null : em.clients.find(transaction.clientId)
+  const client =
+    transaction.clientId === '' ? null : em.clients.find(transaction.clientId)
 
   return (
     <EntityDetailPage
@@ -169,7 +181,10 @@ function ExpenseDetail({ transaction }: ExpenseDetailProps) {
             client === null ? (
               ''
             ) : (
-              <Link to={`/clients/${client.id}`} className="text-primary hover:underline">
+              <Link
+                to={`/clients/${client.id}`}
+                className="text-primary hover:underline"
+              >
                 {client.name}
               </Link>
             ),
@@ -178,7 +193,9 @@ function ExpenseDetail({ transaction }: ExpenseDetailProps) {
     >
       <div className="space-y-8">
         <section className="space-y-3">
-          <SectionHeading>{t('expenseTransactionDetail.amountHeading')}</SectionHeading>
+          <SectionHeading>
+            {t('expenseTransactionDetail.amountHeading')}
+          </SectionHeading>
           <FormGroup className="w-56">
             <FormLabel htmlFor="expense-amount">
               {t('expenseTransactionDetail.amountLabel')}
@@ -226,14 +243,20 @@ function ExpenseDetail({ transaction }: ExpenseDetailProps) {
 function conceptField(em: EntityManager, transaction: Transaction): ReactNode {
   if (transaction.refType === 'job') {
     return (
-      <Link to={`/jobs/${transaction.refId}`} className="text-primary hover:underline">
+      <Link
+        to={`/jobs/${transaction.refId}`}
+        className="text-primary hover:underline"
+      >
         {transaction.concept}
       </Link>
     )
   }
   if (em.lots.findActiveByTransaction(transaction.id).length > 0) {
     return (
-      <Link to={`/transactions/${transaction.id}`} className="text-primary hover:underline">
+      <Link
+        to={`/transactions/${transaction.id}`}
+        className="text-primary hover:underline"
+      >
         {transaction.concept}
       </Link>
     )

@@ -7,7 +7,11 @@ function startLoad(total = 11) {
   act(() => {
     useOperationStore
       .getState()
-      .start('load', { total, blocking: false, message: 'workbook.loadingWorkbook' })
+      .start('load', {
+        total,
+        blocking: false,
+        message: 'workbook.loadingWorkbook',
+      })
   })
 }
 
@@ -26,7 +30,11 @@ describe('OperationToast', () => {
     act(() => {
       useOperationStore
         .getState()
-        .start('save', { total: 11, blocking: true, message: 'workbook.savingWorkbook' })
+        .start('save', {
+          total: 11,
+          blocking: true,
+          message: 'workbook.savingWorkbook',
+        })
     })
 
     renderLayout(<OperationToast />)

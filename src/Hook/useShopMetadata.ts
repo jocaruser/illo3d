@@ -21,7 +21,9 @@ function errorMessage(error: unknown): string {
 export function useShopMetadata(): UseShopMetadata {
   const folderId = useShopStore((state) => state.activeShop?.folderId ?? null)
   const backend = useBackendStore((state) => state.backend)
-  const localDirectoryHandle = useBackendStore((state) => state.localDirectoryHandle)
+  const localDirectoryHandle = useBackendStore(
+    (state) => state.localDirectoryHandle
+  )
   const [state, setState] = useState<UseShopMetadata>({
     metadata: null,
     loading: false,

@@ -39,14 +39,15 @@ describe('StatCards', () => {
         type: 'income',
         amount: '100',
       })
-      seedTransaction(context.tabs, { id: 'T2', date: '2026-07-02', amount: '-40' })
+      seedTransaction(context.tabs, {
+        id: 'T2',
+        date: '2026-07-02',
+        amount: '-40',
+      })
 
       renderWithProviders(<StatCards />)
 
-      expect(screen.getByRole('link', { name: /Balance/ })).toHaveAttribute(
-        'href',
-        '/transactions'
-      )
+      expect(screen.getByRole('link', { name: /Balance/ })).toHaveAttribute('href', '/transactions')
       expect(screen.getByText('€60.00')).toHaveClass('text-success')
     })
 
@@ -78,7 +79,11 @@ describe('StatCards', () => {
     })
 
     it('tints a negative balance red', () => {
-      seedTransaction(context.tabs, { id: 'T1', date: '2026-07-01', amount: '-40' })
+      seedTransaction(context.tabs, {
+        id: 'T1',
+        date: '2026-07-01',
+        amount: '-40',
+      })
 
       renderWithProviders(<StatCards />)
 
@@ -86,7 +91,11 @@ describe('StatCards', () => {
     })
 
     it('leaves a zero balance neutral', () => {
-      seedTransaction(context.tabs, { id: 'T1', date: '2026-07-01', amount: '0' })
+      seedTransaction(context.tabs, {
+        id: 'T1',
+        date: '2026-07-01',
+        amount: '0',
+      })
 
       renderWithProviders(<StatCards />)
 
@@ -96,8 +105,18 @@ describe('StatCards', () => {
 
   it('counts only open, active jobs', () => {
     seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Draft' })
-    seedJob(context.tabs, { id: 'J2', client_id: 'CL1', description: 'Open', status: 'in_progress' })
-    seedJob(context.tabs, { id: 'J3', client_id: 'CL1', description: 'Done', status: 'paid' })
+    seedJob(context.tabs, {
+      id: 'J2',
+      client_id: 'CL1',
+      description: 'Open',
+      status: 'in_progress',
+    })
+    seedJob(context.tabs, {
+      id: 'J3',
+      client_id: 'CL1',
+      description: 'Done',
+      status: 'paid',
+    })
     seedJob(context.tabs, {
       id: 'J4',
       client_id: 'CL1',
@@ -111,9 +130,23 @@ describe('StatCards', () => {
   })
 
   it('sums income dated in the clock month only', () => {
-    seedTransaction(context.tabs, { id: 'T1', date: '2026-07-02', type: 'income', amount: '100' })
-    seedTransaction(context.tabs, { id: 'T2', date: '2026-06-30', type: 'income', amount: '900' })
-    seedTransaction(context.tabs, { id: 'T3', date: '2026-07-03', amount: '-50' })
+    seedTransaction(context.tabs, {
+      id: 'T1',
+      date: '2026-07-02',
+      type: 'income',
+      amount: '100',
+    })
+    seedTransaction(context.tabs, {
+      id: 'T2',
+      date: '2026-06-30',
+      type: 'income',
+      amount: '900',
+    })
+    seedTransaction(context.tabs, {
+      id: 'T3',
+      date: '2026-07-03',
+      amount: '-50',
+    })
 
     renderWithProviders(<StatCards />)
 

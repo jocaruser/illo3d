@@ -54,7 +54,11 @@ describe('useShopMetadata', () => {
   it('stays empty with no shop open', () => {
     const { result } = renderHook(() => useShopMetadata())
 
-    expect(result.current).toEqual({ metadata: null, loading: false, error: null })
+    expect(result.current).toEqual({
+      metadata: null,
+      loading: false,
+      error: null,
+    })
     expect(getFolderRepository).not.toHaveBeenCalled()
   })
 

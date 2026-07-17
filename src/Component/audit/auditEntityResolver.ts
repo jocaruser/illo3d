@@ -119,7 +119,8 @@ export function resolveAuditEntity(
   afterJson = ''
 ): ResolvedAuditEntity {
   if (entityId === '') return { label: '', to: null }
-  const resolved = liveLabel(em, entityName, entityId) ?? jsonLabel(beforeJson, afterJson)
+  const resolved =
+    liveLabel(em, entityName, entityId) ?? jsonLabel(beforeJson, afterJson)
   if (resolved === null) return { label: entityId, to: null }
   return { label: resolved, to: linkTarget(em, entityName, entityId) }
 }

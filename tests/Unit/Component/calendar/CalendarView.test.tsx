@@ -22,9 +22,7 @@ function setViewportWidth(width: number): void {
 }
 
 function day(iso: string): HTMLElement {
-  const cell = screen
-    .getAllByTestId('calendar-day')
-    .find((node) => node.dataset.day === iso)
+  const cell = screen.getAllByTestId('calendar-day').find((node) => node.dataset.day === iso)
   if (cell === undefined) throw new Error(`no cell for ${iso}`)
   return cell
 }
@@ -38,7 +36,12 @@ describe('CalendarView', () => {
 
   describe('month grid', () => {
     it('titles the current month and highlights today', () => {
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Vase', due_date: '2026-07-16' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Vase',
+        due_date: '2026-07-16',
+      })
 
       renderWithProviders(<CalendarView today={TODAY} />)
 
@@ -48,7 +51,12 @@ describe('CalendarView', () => {
     })
 
     it('places a job on its due date with client and link', () => {
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Vase', due_date: '2026-07-20' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Vase',
+        due_date: '2026-07-20',
+      })
 
       renderWithProviders(<CalendarView today={TODAY} />)
 
@@ -86,8 +94,18 @@ describe('CalendarView', () => {
     })
 
     it('stacks several jobs due on the same day', () => {
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Vase', due_date: '2026-07-20' })
-      seedJob(context.tabs, { id: 'J2', client_id: 'CL1', description: 'Gear', due_date: '2026-07-20' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Vase',
+        due_date: '2026-07-20',
+      })
+      seedJob(context.tabs, {
+        id: 'J2',
+        client_id: 'CL1',
+        description: 'Gear',
+        due_date: '2026-07-20',
+      })
 
       renderWithProviders(<CalendarView today={TODAY} />)
 
@@ -95,7 +113,12 @@ describe('CalendarView', () => {
     })
 
     it('colors an overdue chip by its band', () => {
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Late', due_date: '2026-07-01' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Late',
+        due_date: '2026-07-01',
+      })
 
       renderWithProviders(<CalendarView today={TODAY} />)
 
@@ -125,8 +148,18 @@ describe('CalendarView', () => {
 
     it('keeps neighbouring-month days empty', () => {
       // 2026-06-29 is a leading day of the July grid.
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'June job', due_date: '2026-06-29' })
-      seedJob(context.tabs, { id: 'J2', client_id: 'CL1', description: 'July job', due_date: '2026-07-20' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'June job',
+        due_date: '2026-06-29',
+      })
+      seedJob(context.tabs, {
+        id: 'J2',
+        client_id: 'CL1',
+        description: 'July job',
+        due_date: '2026-07-20',
+      })
 
       renderWithProviders(<CalendarView today={TODAY} />)
 
@@ -137,8 +170,18 @@ describe('CalendarView', () => {
 
   describe('month navigation', () => {
     beforeEach(() => {
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'August job', due_date: '2026-08-04' })
-      seedJob(context.tabs, { id: 'J2', client_id: 'CL1', description: 'June job', due_date: '2026-06-04' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'August job',
+        due_date: '2026-08-04',
+      })
+      seedJob(context.tabs, {
+        id: 'J2',
+        client_id: 'CL1',
+        description: 'June job',
+        due_date: '2026-06-04',
+      })
     })
 
     it('steps forward a month', async () => {
@@ -168,7 +211,12 @@ describe('CalendarView', () => {
   })
 
   it('defaults to the entity manager clock when no today is given', () => {
-    seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Vase', due_date: '2026-07-20' })
+    seedJob(context.tabs, {
+      id: 'J1',
+      client_id: 'CL1',
+      description: 'Vase',
+      due_date: '2026-07-20',
+    })
 
     renderWithProviders(<CalendarView />)
 
@@ -177,8 +225,18 @@ describe('CalendarView', () => {
 
   describe('narrow viewport', () => {
     it('lists the days that have work instead of drawing a grid', () => {
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Later', due_date: '2026-07-20' })
-      seedJob(context.tabs, { id: 'J2', client_id: 'CL1', description: 'Today job', due_date: '2026-07-16' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Later',
+        due_date: '2026-07-20',
+      })
+      seedJob(context.tabs, {
+        id: 'J2',
+        client_id: 'CL1',
+        description: 'Today job',
+        due_date: '2026-07-16',
+      })
       window.innerWidth = 500
 
       renderWithProviders(<CalendarView today={TODAY} />)
@@ -191,7 +249,12 @@ describe('CalendarView', () => {
     })
 
     it('switches between the grid and the list as the viewport changes', () => {
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Vase', due_date: '2026-07-20' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Vase',
+        due_date: '2026-07-20',
+      })
 
       renderWithProviders(<CalendarView today={TODAY} />)
       expect(screen.getByText('Mon')).toBeInTheDocument()

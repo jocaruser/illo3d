@@ -55,8 +55,18 @@ describe('RecentTransactions', () => {
   })
 
   it('breaks same-day ties by id so the list never jitters', () => {
-    seedTransaction(context.tabs, { id: 'T1', date: '2026-07-01', concept: 'First', amount: '-1' })
-    seedTransaction(context.tabs, { id: 'T2', date: '2026-07-01', concept: 'Second', amount: '-2' })
+    seedTransaction(context.tabs, {
+      id: 'T1',
+      date: '2026-07-01',
+      concept: 'First',
+      amount: '-1',
+    })
+    seedTransaction(context.tabs, {
+      id: 'T2',
+      date: '2026-07-01',
+      concept: 'Second',
+      amount: '-2',
+    })
 
     renderWithProviders(<RecentTransactions />)
 
@@ -92,7 +102,12 @@ describe('RecentTransactions', () => {
       concept: 'Paid job',
       amount: '100',
     })
-    seedTransaction(context.tabs, { id: 'T2', date: '2026-07-01', concept: 'Filament', amount: '-40' })
+    seedTransaction(context.tabs, {
+      id: 'T2',
+      date: '2026-07-01',
+      concept: 'Filament',
+      amount: '-40',
+    })
 
     renderWithProviders(<RecentTransactions />)
 
@@ -101,7 +116,11 @@ describe('RecentTransactions', () => {
   })
 
   it('shows a dash-less zero for a row with no amount', () => {
-    seedTransaction(context.tabs, { id: 'T1', date: '2026-07-01', concept: 'Unknown' })
+    seedTransaction(context.tabs, {
+      id: 'T1',
+      date: '2026-07-01',
+      concept: 'Unknown',
+    })
 
     renderWithProviders(<RecentTransactions />)
 

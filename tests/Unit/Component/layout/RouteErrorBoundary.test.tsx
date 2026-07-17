@@ -45,9 +45,15 @@ describe('RouteErrorBoundary', () => {
       </RouteErrorBoundary>
     )
 
-    expect(screen.getByRole('alert')).toHaveTextContent('This page couldn’t be displayed')
-    expect(screen.getByText('Something unexpected happened. You can try again.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument()
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'This page couldn’t be displayed'
+    )
+    expect(
+      screen.getByText('Something unexpected happened. You can try again.')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Try again' })
+    ).toBeInTheDocument()
   })
 
   it('re-renders the page when retried', async () => {

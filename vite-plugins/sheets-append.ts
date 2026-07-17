@@ -2,7 +2,7 @@ import type { Plugin } from 'vite'
 import path from 'path'
 import fs from 'fs'
 import { getFixturesRootDir } from './fixtures-root-dir'
-import { SHEET_HEADERS, type SheetName } from '../src/services/sheets/config'
+import { SHEET_HEADERS, type SheetName } from '../src/Config/schema'
 
 function escapeCsvValue(val: unknown): string {
   const s = String(val ?? '')

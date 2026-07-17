@@ -10,7 +10,13 @@ vi.mock('@/Repository/LocalCsv/persistDirectoryHandle', () => ({
 }))
 
 vi.mock('@react-oauth/google', () => ({
-  GoogleOAuthProvider: ({ children, clientId }: { children: React.ReactNode; clientId: string }) => (
+  GoogleOAuthProvider: ({
+    children,
+    clientId,
+  }: {
+    children: React.ReactNode
+    clientId: string
+  }) => (
     <div data-testid="google-provider" data-client-id={clientId}>
       {children}
     </div>
@@ -44,20 +50,28 @@ describe('Kernel', () => {
   })
 
   it('passes the build-time client id to the Google provider', () => {
+    // Injected by Vite from repo secrets at build time — there is no server.
+    vi.stubEnv('VITE_GOOGLE_CLIENT_ID', 'client-id-from-secrets')
+
     render(<Kernel />)
 
     expect(screen.getByTestId('google-provider')).toHaveAttribute(
       'data-client-id',
-      import.meta.env.VITE_GOOGLE_CLIENT_ID ?? ''
+      'client-id-from-secrets'
     )
   })
 
   it('starts in the persisted language', async () => {
-    localStorage.setItem('user-preferences-storage', JSON.stringify({ state: { language: 'es' } }))
+    localStorage.setItem(
+      'user-preferences-storage',
+      JSON.stringify({ state: { language: 'es' } })
+    )
 
     render(<Kernel />)
 
-    await waitFor(() => expect(screen.getByText('routed content')).toBeInTheDocument())
+    await waitFor(() =>
+      expect(screen.getByText('routed content')).toBeInTheDocument()
+    )
   })
 
   it('restores a persisted local directory handle', async () => {
@@ -78,7 +92,9 @@ describe('Kernel', () => {
   })
 
   it('survives an unreadable handle store', async () => {
-    vi.mocked(restoreDirectoryHandle).mockRejectedValue(new Error('IndexedDB blocked'))
+    vi.mocked(restoreDirectoryHandle).mockRejectedValue(
+      new Error('IndexedDB blocked')
+    )
 
     render(<Kernel />)
 

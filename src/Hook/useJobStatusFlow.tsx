@@ -16,7 +16,12 @@ import { formatCurrency } from '@/Service/Pricing/money'
  */
 export type JobStatusDialog =
   | { kind: 'paid'; job: Job; next: JobStatus; total: number }
-  | { kind: 'cancelled' | 'leave-paid'; job: Job; next: JobStatus; total: number | null }
+  | {
+      kind: 'cancelled' | 'leave-paid'
+      job: Job
+      next: JobStatus
+      total: number | null
+    }
 
 export interface JobStatusFlow {
   /** Opens the dialog the transition needs, or commits it when none is needed. */
@@ -51,7 +56,11 @@ export function useJobStatusFlow(): JobStatusFlow {
   // Committing mutates the workbook in place; bumping forces consumers to re-read.
   const [, setRevision] = useState(0)
 
-  const commit = (job: Job, next: JobStatus, options?: { incomeAmount: number }): void => {
+  const commit = (
+    job: Job,
+    next: JobStatus,
+    options?: { incomeAmount: number }
+  ): void => {
     setBusy(true)
     const result =
       options === undefined
@@ -149,7 +158,9 @@ export function JobStatusFlowDialogs({ flow }: JobStatusFlowDialogsProps) {
       <ConfirmDialog
         open
         title={t('jobs.confirmPaidTitle')}
-        message={t('jobs.confirmPaidWithPrice', { price: formatCurrency(dialog.total) })}
+        message={t('jobs.confirmPaidWithPrice', {
+          price: formatCurrency(dialog.total),
+        })}
         busy={flow.busy}
         onConfirm={flow.confirm}
         onCancel={flow.cancel}
@@ -184,7 +195,9 @@ export function JobStatusFlowDialogs({ flow }: JobStatusFlowDialogsProps) {
     <ConfirmDialog
       open
       title={t('jobs.confirmLeavePaidTitle')}
-      message={t('jobs.confirmLeavePaidMessage', { status: t(`jobs.status.${dialog.next}`) })}
+      message={t('jobs.confirmLeavePaidMessage', {
+        status: t(`jobs.status.${dialog.next}`),
+      })}
       busy={flow.busy}
       onConfirm={flow.confirm}
       onCancel={flow.cancel}

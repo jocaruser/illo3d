@@ -58,9 +58,7 @@ export function DashboardPage() {
 
           <div>
             <ViewSwitcher view={view} onChange={setView} />
-            <div className="mt-3">
-              {view === 'kanban' ? <KanbanBoard /> : <CalendarView />}
-            </div>
+            <div className="mt-3">{view === 'kanban' ? <KanbanBoard /> : <CalendarView />}</div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

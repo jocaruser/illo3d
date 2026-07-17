@@ -10,7 +10,10 @@ import {
 
 describe('calendarMath', () => {
   it('reads the month of a date in UTC', () => {
-    expect(monthOf(new Date('2026-07-16T12:00:00.000Z'))).toEqual({ year: 2026, month: 6 })
+    expect(monthOf(new Date('2026-07-16T12:00:00.000Z'))).toEqual({
+      year: 2026,
+      month: 6,
+    })
   })
 
   it('formats an ISO day', () => {
@@ -18,9 +21,18 @@ describe('calendarMath', () => {
   })
 
   it('steps months and rolls the year over in both directions', () => {
-    expect(addMonths({ year: 2026, month: 6 }, 1)).toEqual({ year: 2026, month: 7 })
-    expect(addMonths({ year: 2026, month: 11 }, 1)).toEqual({ year: 2027, month: 0 })
-    expect(addMonths({ year: 2026, month: 0 }, -1)).toEqual({ year: 2025, month: 11 })
+    expect(addMonths({ year: 2026, month: 6 }, 1)).toEqual({
+      year: 2026,
+      month: 7,
+    })
+    expect(addMonths({ year: 2026, month: 11 }, 1)).toEqual({
+      year: 2027,
+      month: 0,
+    })
+    expect(addMonths({ year: 2026, month: 0 }, -1)).toEqual({
+      year: 2025,
+      month: 11,
+    })
   })
 
   it('builds a zero-padded month prefix', () => {

@@ -47,8 +47,12 @@ export function ExpenseLotsTable({ rows, onChange }: ExpenseLotsTableProps) {
       <DataTable>
         <TableHead>
           <TableRow>
-            <TableHeader>{t('expenseTransactionDetail.lotDescription')}</TableHeader>
-            <TableHeader>{t('expenseTransactionDetail.lotQuantity')}</TableHeader>
+            <TableHeader>
+              {t('expenseTransactionDetail.lotDescription')}
+            </TableHeader>
+            <TableHeader>
+              {t('expenseTransactionDetail.lotQuantity')}
+            </TableHeader>
             <TableHeader>{t('expenseTransactionDetail.lotAmount')}</TableHeader>
           </TableRow>
         </TableHead>
@@ -59,45 +63,51 @@ export function ExpenseLotsTable({ rows, onChange }: ExpenseLotsTableProps) {
               message={t('expenseTransactionDetail.lotsEmpty')}
             />
           ) : (
-            rows.map(({ lot, materialName, draft, quantityError, amountError }) => (
-              <TableRow key={lot.id}>
-                <TableCell>
-                  <Link
-                    to={`/inventory/${lot.inventoryId}`}
-                    data-testid={`expense-detail-lot-material-${lot.id}`}
-                    className="text-primary hover:underline"
-                  >
-                    {materialName === '' ? lot.inventoryId : materialName}
-                  </Link>
-                </TableCell>
-                <TableCell className="space-y-1">
-                  <FormInput
-                    aria-label={t('expenseTransactionDetail.lotQuantity')}
-                    data-testid={`expense-detail-lot-quantity-input-${lot.id}`}
-                    type="number"
-                    step=".01"
-                    min="0"
-                    className="w-28"
-                    value={draft.quantity}
-                    onChange={(event) => onChange(lot.id, { quantity: event.target.value })}
-                  />
-                  <FormError message={quantityError} />
-                </TableCell>
-                <TableCell className="space-y-1">
-                  <FormInput
-                    aria-label={t('expenseTransactionDetail.lotAmount')}
-                    data-testid={`expense-detail-lot-amount-input-${lot.id}`}
-                    type="number"
-                    step=".01"
-                    min="0"
-                    className="w-28"
-                    value={draft.amount}
-                    onChange={(event) => onChange(lot.id, { amount: event.target.value })}
-                  />
-                  <FormError message={amountError} />
-                </TableCell>
-              </TableRow>
-            ))
+            rows.map(
+              ({ lot, materialName, draft, quantityError, amountError }) => (
+                <TableRow key={lot.id}>
+                  <TableCell>
+                    <Link
+                      to={`/inventory/${lot.inventoryId}`}
+                      data-testid={`expense-detail-lot-material-${lot.id}`}
+                      className="text-primary hover:underline"
+                    >
+                      {materialName === '' ? lot.inventoryId : materialName}
+                    </Link>
+                  </TableCell>
+                  <TableCell className="space-y-1">
+                    <FormInput
+                      aria-label={t('expenseTransactionDetail.lotQuantity')}
+                      data-testid={`expense-detail-lot-quantity-input-${lot.id}`}
+                      type="number"
+                      step=".01"
+                      min="0"
+                      className="w-28"
+                      value={draft.quantity}
+                      onChange={(event) =>
+                        onChange(lot.id, { quantity: event.target.value })
+                      }
+                    />
+                    <FormError message={quantityError} />
+                  </TableCell>
+                  <TableCell className="space-y-1">
+                    <FormInput
+                      aria-label={t('expenseTransactionDetail.lotAmount')}
+                      data-testid={`expense-detail-lot-amount-input-${lot.id}`}
+                      type="number"
+                      step=".01"
+                      min="0"
+                      className="w-28"
+                      value={draft.amount}
+                      onChange={(event) =>
+                        onChange(lot.id, { amount: event.target.value })
+                      }
+                    />
+                    <FormError message={amountError} />
+                  </TableCell>
+                </TableRow>
+              )
+            )
           )}
         </TableBody>
       </DataTable>

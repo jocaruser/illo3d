@@ -59,7 +59,9 @@ export function AppHeader() {
               onError={() => setLogoFailed(true)}
             />
           )}
-          <span className="font-display text-xl font-semibold text-text">illo3d</span>
+          <span className="font-display text-xl font-semibold text-text">
+            illo3d
+          </span>
         </Link>
 
         <div className="hidden md:flex">
@@ -67,7 +69,10 @@ export function AppHeader() {
         </div>
 
         <div className="ml-auto flex items-center gap-2">
-          <div data-testid="workbook-actions-desktop" className="hidden md:block">
+          <div
+            data-testid="workbook-actions-desktop"
+            className="hidden md:block"
+          >
             <WorkbookActions />
           </div>
           {activeShop !== null && <GlobalSearchBox />}
@@ -76,8 +81,14 @@ export function AppHeader() {
       </div>
 
       {menuOpen && (
-        <div id="app-nav-mobile" className="border-t border-border px-4 py-2 md:hidden">
-          <AppNav orientation="vertical" onNavigate={() => setMenuOpen(false)} />
+        <div
+          id="app-nav-mobile"
+          className="border-t border-border px-4 py-2 md:hidden"
+        >
+          <AppNav
+            orientation="vertical"
+            onNavigate={() => setMenuOpen(false)}
+          />
         </div>
       )}
 

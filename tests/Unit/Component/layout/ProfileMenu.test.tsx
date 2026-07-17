@@ -44,15 +44,19 @@ function openShop(folderName = 'My 3D Shop') {
 }
 
 function signInWithGoogle(picture?: string) {
-  useAuthStore.getState().login(
-    { email: 'carlos@example.com', name: 'Carlos Ruiz', picture },
-    { accessToken: 'token', accessTokenExpiresAtMs: Date.now() + 3_600_000 }
-  )
+  useAuthStore
+    .getState()
+    .login(
+      { email: 'carlos@example.com', name: 'Carlos Ruiz', picture },
+      { accessToken: 'token', accessTokenExpiresAtMs: Date.now() + 3_600_000 }
+    )
   useBackendStore.getState().setBackend('google-drive')
 }
 
 async function openMenu() {
-  await userEvent.click(screen.getByRole('button', { name: 'Toggle profile menu' }))
+  await userEvent.click(
+    screen.getByRole('button', { name: 'Toggle profile menu' })
+  )
 }
 
 describe('ProfileMenu', () => {
@@ -75,7 +79,9 @@ describe('ProfileMenu', () => {
   describe('trigger', () => {
     it('is avatar-only and reports its state', async () => {
       renderLayout(<ProfileMenu />)
-      const trigger = screen.getByRole('button', { name: 'Toggle profile menu' })
+      const trigger = screen.getByRole('button', {
+        name: 'Toggle profile menu',
+      })
 
       expect(trigger).toHaveAttribute('aria-expanded', 'false')
       expect(screen.queryByRole('menu')).not.toBeInTheDocument()
@@ -100,19 +106,26 @@ describe('ProfileMenu', () => {
 
       renderLayout(<ProfileMenu />)
 
-      expect(screen.getByRole('button', { name: 'Toggle profile menu' }).querySelector('img')).toHaveAttribute(
-        'src',
-        'https://example.com/me.jpg'
-      )
+      expect(
+        screen
+          .getByRole('button', { name: 'Toggle profile menu' })
+          .querySelector('img')
+      ).toHaveAttribute('src', 'https://example.com/me.jpg')
     })
 
     it('falls back to the first initial when the picture fails', () => {
       signInWithGoogle('https://example.com/broken.jpg')
       renderLayout(<ProfileMenu />)
 
-      fireEvent.error(screen.getByRole('button', { name: 'Toggle profile menu' }).querySelector('img') as HTMLImageElement)
+      fireEvent.error(
+        screen
+          .getByRole('button', { name: 'Toggle profile menu' })
+          .querySelector('img') as HTMLImageElement
+      )
 
-      expect(screen.getByRole('button', { name: 'Toggle profile menu' })).toHaveTextContent('C')
+      expect(
+        screen.getByRole('button', { name: 'Toggle profile menu' })
+      ).toHaveTextContent('C')
     })
 
     it('falls back to the first initial when there is no picture', () => {
@@ -120,7 +133,9 @@ describe('ProfileMenu', () => {
 
       renderLayout(<ProfileMenu />)
 
-      expect(screen.getByRole('button', { name: 'Toggle profile menu' })).toHaveTextContent('C')
+      expect(
+        screen.getByRole('button', { name: 'Toggle profile menu' })
+      ).toHaveTextContent('C')
     })
   })
 
@@ -167,7 +182,10 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       const link = screen.getByRole('link', { name: /Open Drive folder/ })
-      expect(link).toHaveAttribute('href', 'https://drive.google.com/drive/folders/folder-1')
+      expect(link).toHaveAttribute(
+        'href',
+        'https://drive.google.com/drive/folders/folder-1'
+      )
       expect(link).toHaveAttribute('target', '_blank')
       expect(link).toHaveAttribute('rel', 'noopener noreferrer')
       expect(link).toHaveTextContent('My 3D Shop')
@@ -192,7 +210,9 @@ describe('ProfileMenu', () => {
 
       await openMenu()
 
-      expect(screen.queryByRole('link', { name: /Open Drive folder/ })).not.toBeInTheDocument()
+      expect(
+        screen.queryByRole('link', { name: /Open Drive folder/ })
+      ).not.toBeInTheDocument()
       expect(screen.queryByText('Local folder')).not.toBeInTheDocument()
     })
   })
@@ -232,7 +252,9 @@ describe('ProfileMenu', () => {
       renderLayout(<ProfileMenu />)
       await openMenu()
 
-      await userEvent.click(screen.getByRole('menuitem', { name: 'Light mode' }))
+      await userEvent.click(
+        screen.getByRole('menuitem', { name: 'Light mode' })
+      )
 
       expect(useUserPreferencesStore.getState().theme).toBe('light')
       expect(applyTheme).toHaveBeenCalledWith('light')
@@ -246,7 +268,9 @@ describe('ProfileMenu', () => {
 
       await openMenu()
 
-      expect(screen.getByTestId('profile-menu-version')).toHaveTextContent('App 3.0.0 · Shop 3.0.0')
+      expect(screen.getByTestId('profile-menu-version')).toHaveTextContent(
+        'App 3.0.0 · Shop 3.0.0'
+      )
     })
 
     it('dashes the shop version with no shop open', async () => {
@@ -254,7 +278,9 @@ describe('ProfileMenu', () => {
 
       await openMenu()
 
-      expect(screen.getByTestId('profile-menu-version')).toHaveTextContent('App 3.0.0 · Shop —')
+      expect(screen.getByTestId('profile-menu-version')).toHaveTextContent(
+        'App 3.0.0 · Shop —'
+      )
     })
 
     it('parks the unbuilt actions as disabled', async () => {
@@ -262,7 +288,9 @@ describe('ProfileMenu', () => {
 
       await openMenu()
 
-      expect(screen.getByRole('menuitem', { name: 'Edit metadata.json' })).toBeDisabled()
+      expect(
+        screen.getByRole('menuitem', { name: 'Edit metadata.json' })
+      ).toBeDisabled()
       expect(screen.getByRole('menuitem', { name: 'Changelog' })).toBeDisabled()
     })
   })

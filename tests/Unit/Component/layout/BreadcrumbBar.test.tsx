@@ -13,20 +13,28 @@ describe('BreadcrumbBar', () => {
     renderLayout(<BreadcrumbBar />, ['/clients'])
 
     expect(crumbs()).toEqual(['Home', 'Clients'])
-    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute(
+      'href',
+      '/'
+    )
   })
 
   it('links the section and shows the id on a detail route', () => {
     renderLayout(<BreadcrumbBar />, ['/clients/CL1'])
 
     expect(crumbs()).toEqual(['Home', 'Clients', 'CL1'])
-    expect(screen.getByRole('link', { name: 'Clients' })).toHaveAttribute('href', '/clients')
+    expect(screen.getByRole('link', { name: 'Clients' })).toHaveAttribute(
+      'href',
+      '/clients'
+    )
   })
 
   it('leaves the section as plain text when it is the current page', () => {
     renderLayout(<BreadcrumbBar />, ['/clients'])
 
-    expect(screen.queryByRole('link', { name: 'Clients' })).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Clients' })
+    ).not.toBeInTheDocument()
   })
 
   it('translates every known section', () => {

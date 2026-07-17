@@ -20,8 +20,12 @@ function RouteErrorFallback({ onRetry }: RouteErrorFallbackProps) {
   return (
     <Card className="mx-auto max-w-md p-6 text-center">
       <div role="alert">
-        <h2 className="font-display text-xl font-semibold text-text">{t('errors.routeTitle')}</h2>
-        <p className="mt-2 text-sm text-text-muted">{t('errors.routeDescription')}</p>
+        <h2 className="font-display text-xl font-semibold text-text">
+          {t('errors.routeTitle')}
+        </h2>
+        <p className="mt-2 text-sm text-text-muted">
+          {t('errors.routeDescription')}
+        </p>
       </div>
       <button type="button" className="btn-secondary mt-4" onClick={onRetry}>
         {t('errors.retry')}
@@ -34,7 +38,10 @@ function RouteErrorFallback({ onRetry }: RouteErrorFallbackProps) {
  * Contains a crashing page so the app shell survives it. Routes mount one per
  * pathname, so navigating away from a broken page is enough to clear it.
  */
-export class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, RouteErrorBoundaryState> {
+export class RouteErrorBoundary extends Component<
+  RouteErrorBoundaryProps,
+  RouteErrorBoundaryState
+> {
   state: RouteErrorBoundaryState = { hasError: false }
 
   static getDerivedStateFromError(): RouteErrorBoundaryState {
@@ -46,7 +53,8 @@ export class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, Route
   }
 
   render(): ReactNode {
-    if (this.state.hasError) return <RouteErrorFallback onRetry={this.handleRetry} />
+    if (this.state.hasError)
+      return <RouteErrorFallback onRetry={this.handleRetry} />
     return this.props.children
   }
 }

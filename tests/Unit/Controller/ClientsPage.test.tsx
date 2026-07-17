@@ -22,14 +22,20 @@ vi.mock('@/Component/Toast', () => ({ toast: toastMock }))
 function seedWorld(): TestWorld {
   return createWorld({
     clients: [
-      { id: 'CL1', name: 'Acme Corp', email: 'hi@acme.test', phone: '600', notes: 'first', created_at: '2024-01-02' },
+      { id: 'CL1', name: 'Acme Corp', email: 'hi@acme.test', phone: '600', notes: 'shared', created_at: '2024-01-02' },
       { id: 'CL2', name: 'Beta LLC', email: 'ops@beta.test', phone: '700', notes: 'second', created_at: '2024-03-04' },
-      { id: 'CL10', name: 'Zenith', email: '', phone: '', notes: '', created_at: '2024-02-01' },
+      { id: 'CL10', name: 'Zenith', email: '', phone: '', notes: 'shared', created_at: '2024-02-01' },
       { id: 'CL3', name: 'Archived Co', email: '', phone: '', notes: '', created_at: '2024-01-01', archived: 'true' },
     ],
-    tags: [{ id: 'TG1', name: 'Vip', created_at: '2024-01-01T00:00:00.000Z' }],
+    tags: [
+      { id: 'TG1', name: 'Vip', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: 'TG2', name: 'Stale', created_at: '2024-01-01T00:00:00.000Z', archived: 'true' },
+    ],
     tag_links: [
       { id: 'TL1', tag_id: 'TG1', entity_type: 'client', entity_id: 'CL1', created_at: '2024-01-01T00:00:00.000Z' },
+      // A job link and a link to an archived tag: neither may reach a client tooltip.
+      { id: 'TL2', tag_id: 'TG1', entity_type: 'job', entity_id: 'J1', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: 'TL3', tag_id: 'TG2', entity_type: 'client', entity_id: 'CL2', created_at: '2024-01-01T00:00:00.000Z' },
     ],
     jobs: [{ id: 'J1', client_id: 'CL2', description: 'Case', status: 'draft', created_at: '2024-03-05T00:00:00.000Z' }],
   })
@@ -87,7 +93,7 @@ describe('ClientsPage', () => {
 
   it.each([
     ['Name', 1, ['Acme Corp', 'Beta LLC', 'Zenith']],
-    ['Notes', 4, ['first', 'second', '']],
+    ['Notes', 4, ['second', 'shared', 'shared']],
   ])('sorts ascending by %s', async (column, cellIndex, expected) => {
     const user = userEvent.setup()
     renderPage()
@@ -98,6 +104,23 @@ describe('ClientsPage', () => {
       .slice(1)
       .map((row) => within(row).getAllByRole('cell')[cellIndex].textContent)
     expect(cells).toEqual(expected)
+  })
+
+  it('breaks a tie on the id, naturally', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    // CL1 and CL10 share their notes, so the id decides — and CL1 precedes CL10.
+    await user.click(screen.getByRole('button', { name: 'Sort by Notes' }))
+    expect(dataRowIds()).toEqual(['CL2', 'CL1', 'CL10'])
+  })
+
+  it('ignores job tag links and links to archived tags', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.hover(screen.getByTestId('client-name-tooltip-CL2'))
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
   })
 
   it('sorts by email, sinking the blank one to the bottom', async () => {

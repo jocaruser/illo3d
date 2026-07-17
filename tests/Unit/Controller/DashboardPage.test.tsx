@@ -3,7 +3,13 @@ import userEvent from '@testing-library/user-event'
 import { DashboardPage } from '@/Controller/DashboardPage'
 import { useWorkbookStore, type WorkbookStatus } from '@/Store/workbookStore'
 import { renderWithProviders } from '../Component/helpers/renderWithProviders'
-import { seedClient, seedInventory, seedJob, seedTransaction, setupShop } from '../Component/dashboard/harness'
+import {
+  seedClient,
+  seedInventory,
+  seedJob,
+  seedTransaction,
+  setupShop,
+} from '../Component/dashboard/harness'
 import type { TestContext } from '../Service/helpers'
 
 vi.mock('@/Hook/useEntityManager', async () => {
@@ -105,7 +111,12 @@ describe('DashboardPage', () => {
   describe('when ready', () => {
     beforeEach(() => {
       seedClient(context.tabs, { id: 'CL1', name: 'Acme' })
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Vase', due_date: '2026-07-20' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Vase',
+        due_date: '2026-07-20',
+      })
       seedTransaction(context.tabs, {
         id: 'T1',
         date: '2026-07-02',
@@ -113,7 +124,12 @@ describe('DashboardPage', () => {
         concept: 'Paid job',
         amount: '100',
       })
-      seedInventory(context.tabs, { id: 'INV1', name: 'PLA', qty_current: '10', warn_red: '100' })
+      seedInventory(context.tabs, {
+        id: 'INV1',
+        name: 'PLA',
+        qty_current: '10',
+        warn_red: '100',
+      })
     })
 
     it('lays out the stats, benefit, board and the two widgets', () => {

@@ -31,7 +31,9 @@ describe('toast', () => {
 
     const [message, options] = mocked.error.mock.calls[0]
     expect(message).toBe('Broke')
-    const action = (options as { action: { label: string; onClick: () => void } }).action
+    const action = (
+      options as { action: { label: string; onClick: () => void } }
+    ).action
     expect(action.label).toBe('Retry')
     action.onClick()
     expect(onClick).toHaveBeenCalledTimes(1)

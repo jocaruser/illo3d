@@ -1,7 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { cx } from '@/Component/cx'
 import { CalendarJobChip, type CalendarEntry } from './CalendarJobChip'
-import { buildMonthGrid, dayNumber, isInMonth, WEEKDAY_KEYS, type CalendarMonth } from './calendarMath'
+import {
+  buildMonthGrid,
+  dayNumber,
+  isInMonth,
+  WEEKDAY_KEYS,
+  type CalendarMonth,
+} from './calendarMath'
 
 interface CalendarMonthGridProps {
   month: CalendarMonth
@@ -36,7 +42,9 @@ export function CalendarMonthGrid({ month, todayIso, entriesByDay }: CalendarMon
               data-day={day}
               className={cx(
                 'min-h-[5rem] rounded border p-1',
-                inMonth ? 'border-border bg-surface-elevated' : 'border-transparent bg-surface-alt/40',
+                inMonth
+                  ? 'border-border bg-surface-elevated'
+                  : 'border-transparent bg-surface-alt/40',
                 day === todayIso && 'ring-2 ring-primary'
               )}
             >

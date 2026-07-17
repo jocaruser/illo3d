@@ -22,14 +22,16 @@ export function BreadcrumbBar() {
 
   const segments = pathname.split('/').filter((segment) => segment !== '')
   const items: BreadcrumbItem[] = [{ label: t('breadcrumb.home'), to: '/' }]
-  const labelKey = segments.length > 0 ? SECTION_LABEL_KEYS[segments[0]] : undefined
+  const labelKey =
+    segments.length > 0 ? SECTION_LABEL_KEYS[segments[0]] : undefined
 
   if (labelKey !== undefined) {
     items.push({
       label: t(labelKey),
       to: segments.length > 1 ? `/${segments[0]}` : undefined,
     })
-    if (segments.length > 1) items.push({ label: decodeURIComponent(segments[1]) })
+    if (segments.length > 1)
+      items.push({ label: decodeURIComponent(segments[1]) })
   }
 
   return (

@@ -68,7 +68,10 @@ export function JobCard({ card, onStatusChange }: JobCardProps) {
 
       {card.piecesTotal > 0 && (
         <p className="mt-2 text-xs text-text-muted">
-          {t('kanban.piecesProgress', { done: card.piecesDone, total: card.piecesTotal })}
+          {t('kanban.piecesProgress', {
+            done: card.piecesDone,
+            total: card.piecesTotal,
+          })}
         </p>
       )}
 

@@ -26,7 +26,9 @@ declare global {
  * `workbookStore` is the single source of truth, so no query client exists.
  */
 export function Kernel() {
-  const [i18n] = useState(() => initI18n(readPersistedLanguage(window.localStorage)))
+  const [i18n] = useState(() =>
+    initI18n(readPersistedLanguage(window.localStorage))
+  )
   const [router] = useState(() => createHashRouter(routes))
 
   useDirtyGuard()
@@ -36,7 +38,8 @@ export function Kernel() {
     // can hold it — so a reload resumes the shop without re-picking a folder.
     restoreDirectoryHandle()
       .then((handle) => {
-        if (handle !== null) useBackendStore.getState().setLocalDirectoryHandle(handle)
+        if (handle !== null)
+          useBackendStore.getState().setLocalDirectoryHandle(handle)
       })
       .catch(() => {
         // A missing or unreadable handle just means the wizard asks again.

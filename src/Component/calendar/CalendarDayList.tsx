@@ -19,7 +19,9 @@ export function CalendarDayList({ todayIso, entriesByDay }: CalendarDayListProps
     <ul className="space-y-3">
       {days.map(([day, entries]) => (
         <li key={day} data-testid="calendar-day" data-day={day}>
-          <h3 className={cx('text-sm font-semibold', day === todayIso ? 'text-primary' : 'text-text')}>
+          <h3
+            className={cx('text-sm font-semibold', day === todayIso ? 'text-primary' : 'text-text')}
+          >
             {day}
             {day === todayIso && <span className="ml-2 text-xs">{t('calendar.today')}</span>}
           </h3>

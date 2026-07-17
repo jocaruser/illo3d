@@ -88,15 +88,16 @@ describe('InventoryAlerts', () => {
 
     renderWithProviders(<InventoryAlerts />)
 
-    expect(alertRows().map((node) => node.textContent)).toEqual([
-      'Critical10',
-      'Low150',
-      'Mild300',
-    ])
+    expect(alertRows().map((node) => node.textContent)).toEqual(['Critical10', 'Low150', 'Mild300'])
   })
 
   it('alerts at the threshold, not only below it', () => {
-    seedInventory(context.tabs, { id: 'INV1', name: 'PLA', qty_current: '100', warn_red: '100' })
+    seedInventory(context.tabs, {
+      id: 'INV1',
+      name: 'PLA',
+      qty_current: '100',
+      warn_red: '100',
+    })
 
     renderWithProviders(<InventoryAlerts />)
 
@@ -125,7 +126,12 @@ describe('InventoryAlerts', () => {
   })
 
   it('treats a zero threshold as disabled', () => {
-    seedInventory(context.tabs, { id: 'INV1', name: 'PLA', qty_current: '0', warn_red: '0' })
+    seedInventory(context.tabs, {
+      id: 'INV1',
+      name: 'PLA',
+      qty_current: '0',
+      warn_red: '0',
+    })
 
     renderWithProviders(<InventoryAlerts />)
 

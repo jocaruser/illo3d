@@ -15,7 +15,7 @@ function pieceQualifies(
   job: Job,
   pieceItems: PieceItem[],
   inventory: InventoryItem[],
-  lots: Lot[],
+  lots: Lot[]
 ): boolean {
   if (piece.jobId !== job.id || piece.isDeleted() || !piece.isPriced()) return false
   const lines = pieceItems.filter((line) => line.pieceId === piece.id && line.isActive())
@@ -33,7 +33,7 @@ export function jobBenefit(
   pieces: Piece[],
   pieceItems: PieceItem[],
   inventory: InventoryItem[],
-  lots: Lot[],
+  lots: Lot[]
 ): number | null {
   if (!job.isActive() || !job.isOpen()) return null
   const qualifies = pieces.some((piece) => pieceQualifies(piece, job, pieceItems, inventory, lots))

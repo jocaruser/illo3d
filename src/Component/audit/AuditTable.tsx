@@ -38,7 +38,9 @@ export function AuditTable({ entries, emptyMessage }: AuditTableProps) {
           <TableHeader>{t('auditLog.colActor')}</TableHeader>
           <TableHeader>{t('auditLog.colAction')}</TableHeader>
           <TableHeader>{t('auditLog.colEntity')}</TableHeader>
-          <TableHeader className="whitespace-nowrap">{t('auditLog.colTimestamp')}</TableHeader>
+          <TableHeader className="whitespace-nowrap">
+            {t('auditLog.colTimestamp')}
+          </TableHeader>
           <TableHeader>{t('auditLog.colParentEntity')}</TableHeader>
         </TableRow>
       </TableHead>
@@ -59,7 +61,9 @@ export function AuditTable({ entries, emptyMessage }: AuditTableProps) {
               key={entry.id === '' ? `malformed-${index}` : entry.id}
               className={cx(isMalformed(entry) && 'text-danger')}
             >
-              <TableCell className="max-w-[100px] whitespace-nowrap">{entry.id}</TableCell>
+              <TableCell className="max-w-[100px] whitespace-nowrap">
+                {entry.id}
+              </TableCell>
               <TableCell>{entry.actor}</TableCell>
               <TableCell>
                 <AuditActionPill action={entry.action} />
@@ -73,7 +77,9 @@ export function AuditTable({ entries, emptyMessage }: AuditTableProps) {
                 />
               </TableCell>
               <TableCell className="whitespace-nowrap">
-                {entry.timestamp === '' ? null : <RelativeTime value={entry.timestamp} />}
+                {entry.timestamp === '' ? null : (
+                  <RelativeTime value={entry.timestamp} />
+                )}
               </TableCell>
               <TableCell className="max-w-[220px]">
                 <AuditEntityLink

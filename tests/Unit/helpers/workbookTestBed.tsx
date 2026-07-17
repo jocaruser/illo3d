@@ -23,7 +23,10 @@ export class FakeTabs implements TabAccess {
     return this.tabs[sheet]
   }
 
-  mutateTab(sheet: SheetName, mutate: (matrix: SheetMatrix) => SheetMatrix): void {
+  mutateTab(
+    sheet: SheetName,
+    mutate: (matrix: SheetMatrix) => SheetMatrix
+  ): void {
     this.tabs[sheet] = mutate(this.tabs[sheet])
   }
 
@@ -46,8 +49,15 @@ class FixedClock implements Clock {
   }
 }
 
-export function createTestEm(tabs: TabAccess, instant = '2026-07-16T12:00:00.000Z'): EntityManager {
-  return new EntityManager(tabs, new FixedClock(instant), () => 'test@example.com')
+export function createTestEm(
+  tabs: TabAccess,
+  instant = '2026-07-16T12:00:00.000Z'
+): EntityManager {
+  return new EntityManager(
+    tabs,
+    new FixedClock(instant),
+    () => 'test@example.com'
+  )
 }
 
 function LocationProbe() {
@@ -66,7 +76,10 @@ interface RenderRouteOptions {
  * Renders a page under the real i18n catalog and a memory router, exposing the
  * current pathname through `location` so navigation is assertable.
  */
-export function renderRoute(element: ReactElement, options: RenderRouteOptions = {}) {
+export function renderRoute(
+  element: ReactElement,
+  options: RenderRouteOptions = {}
+) {
   const { path = '/', entry = '/' } = options
   return render(
     <I18nextProvider i18n={i18n}>

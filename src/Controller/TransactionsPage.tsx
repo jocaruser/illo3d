@@ -21,9 +21,16 @@ import { transactionSearchBlob } from '@/Service/Search/searchBlobs'
  * A concept links to whatever explains the money: the job that produced the
  * income, or the expense detail when the purchase actually bought stock.
  */
-function conceptLinkFor(em: EntityManager, transaction: Transaction): ConceptLink {
-  if (transaction.refType === 'job') return { kind: 'job', to: `/jobs/${transaction.refId}` }
-  if (transaction.isExpense() && em.lots.findActiveByTransaction(transaction.id).length > 0) {
+function conceptLinkFor(
+  em: EntityManager,
+  transaction: Transaction
+): ConceptLink {
+  if (transaction.refType === 'job')
+    return { kind: 'job', to: `/jobs/${transaction.refId}` }
+  if (
+    transaction.isExpense() &&
+    em.lots.findActiveByTransaction(transaction.id).length > 0
+  ) {
     return { kind: 'expense', to: `/transactions/${transaction.id}` }
   }
   return { kind: 'none' }
@@ -44,7 +51,9 @@ export function TransactionsPage() {
       transactions.map((transaction) => ({
         transaction,
         clientName:
-          transaction.clientId === '' ? '' : (em.clients.find(transaction.clientId)?.name ?? ''),
+          transaction.clientId === ''
+            ? ''
+            : (em.clients.find(transaction.clientId)?.name ?? ''),
         conceptLink: conceptLinkFor(em, transaction),
       })),
     [em, transactions]
@@ -53,7 +62,11 @@ export function TransactionsPage() {
   const visible = useMemo(
     () =>
       fuzzyFilter(rows, query, (row) =>
-        transactionSearchBlob(row.transaction, { clientLabel: row.clientName }, t)
+        transactionSearchBlob(
+          row.transaction,
+          { clientLabel: row.clientName },
+          t
+        )
       ),
     [rows, query, t]
   )
@@ -67,7 +80,9 @@ export function TransactionsPage() {
           <>
             <span className="text-sm font-medium text-text-muted">
               {`${t('transactions.balance')}: `}
-              <ColoredNumber value={balance}>{formatCurrency(balance)}</ColoredNumber>
+              <ColoredNumber value={balance}>
+                {formatCurrency(balance)}
+              </ColoredNumber>
             </span>
             <button
               type="button"
@@ -82,7 +97,9 @@ export function TransactionsPage() {
       />
       <TransactionsTable
         rows={visible}
-        emptyMessage={rows.length === 0 ? t('transactions.empty') : t('listTable.noMatches')}
+        emptyMessage={
+          rows.length === 0 ? t('transactions.empty') : t('listTable.noMatches')
+        }
       />
       <CreatePurchaseDialog
         open={dialogOpen}

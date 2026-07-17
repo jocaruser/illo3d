@@ -1,5 +1,5 @@
 import type { Page } from '@playwright/test'
-import { SHEET_NAMES } from '../../../src/services/sheets/config'
+import { SHEET_NAMES } from '../../../src/Config/schema'
 
 function fixtureFileList(): string[] {
   return ['illo3d.metadata.json', ...SHEET_NAMES.map((s) => `${s}.csv`)]

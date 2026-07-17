@@ -7,7 +7,11 @@ function startSave(total = 11) {
   act(() => {
     useOperationStore
       .getState()
-      .start('save', { total, blocking: true, message: 'workbook.savingWorkbook' })
+      .start('save', {
+        total,
+        blocking: true,
+        message: 'workbook.savingWorkbook',
+      })
   })
 }
 
@@ -26,7 +30,11 @@ describe('BlockingOverlay', () => {
     act(() => {
       useOperationStore
         .getState()
-        .start('load', { total: 11, blocking: false, message: 'workbook.loadingWorkbook' })
+        .start('load', {
+          total: 11,
+          blocking: false,
+          message: 'workbook.loadingWorkbook',
+        })
     })
 
     renderLayout(<BlockingOverlay />)
@@ -64,7 +72,10 @@ describe('BlockingOverlay', () => {
     renderLayout(<BlockingOverlay />)
 
     expect(screen.getByText('0 of 11')).toBeInTheDocument()
-    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
+    expect(screen.getByRole('progressbar')).toHaveAttribute(
+      'aria-valuenow',
+      '0'
+    )
   })
 
   it('survives a zero-sheet operation without dividing by zero', () => {

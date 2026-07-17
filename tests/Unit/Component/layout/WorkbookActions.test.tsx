@@ -1,7 +1,10 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { WorkbookActions } from '@/Component/layout/WorkbookActions'
-import { useWorkbookService, type UseWorkbookService } from '@/Hook/useWorkbookService'
+import {
+  useWorkbookService,
+  type UseWorkbookService,
+} from '@/Hook/useWorkbookService'
 import { renderLayout } from './renderLayout'
 
 vi.mock('@/Hook/useWorkbookService', () => ({ useWorkbookService: vi.fn() }))
@@ -81,9 +84,13 @@ describe('WorkbookActions', () => {
     mockService({ needsConfirm: true, dirty: true })
     renderLayout(<WorkbookActions />)
 
-    expect(screen.getByRole('dialog')).toHaveTextContent('Discard unsaved changes?')
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      'Discard unsaved changes?'
+    )
 
-    await userEvent.click(screen.getByRole('button', { name: 'Discard and refresh' }))
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Discard and refresh' })
+    )
 
     expect(api.confirmRefresh).toHaveBeenCalledTimes(1)
   })

@@ -64,16 +64,36 @@ describe('KanbanBoard', () => {
     })
 
     it('places each job in its status column and counts it', () => {
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Vase', status: 'draft' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Vase',
+        status: 'draft',
+      })
       seedJob(context.tabs, {
         id: 'J2',
         client_id: 'CL1',
         description: 'Gear',
         status: 'in_progress',
       })
-      seedJob(context.tabs, { id: 'J3', client_id: 'CL1', description: 'Box', status: 'delivered' })
-      seedJob(context.tabs, { id: 'J4', client_id: 'CL1', description: 'Hook', status: 'paid' })
-      seedJob(context.tabs, { id: 'J5', client_id: 'CL1', description: 'Pin', status: 'cancelled' })
+      seedJob(context.tabs, {
+        id: 'J3',
+        client_id: 'CL1',
+        description: 'Box',
+        status: 'delivered',
+      })
+      seedJob(context.tabs, {
+        id: 'J4',
+        client_id: 'CL1',
+        description: 'Hook',
+        status: 'paid',
+      })
+      seedJob(context.tabs, {
+        id: 'J5',
+        client_id: 'CL1',
+        description: 'Pin',
+        status: 'cancelled',
+      })
 
       renderWithProviders(<KanbanBoard />)
 
@@ -118,7 +138,12 @@ describe('KanbanBoard', () => {
         description: 'Archived',
         archived: 'true',
       })
-      seedJob(context.tabs, { id: 'J2', client_id: 'CL1', description: 'Deleted', deleted: 'true' })
+      seedJob(context.tabs, {
+        id: 'J2',
+        client_id: 'CL1',
+        description: 'Deleted',
+        deleted: 'true',
+      })
 
       renderWithProviders(<KanbanBoard />)
 
@@ -127,7 +152,11 @@ describe('KanbanBoard', () => {
     })
 
     it('falls back to a blank client when the job points at nothing', () => {
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL404', description: 'Orphan' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL404',
+        description: 'Orphan',
+      })
 
       renderWithProviders(<KanbanBoard />)
 
@@ -215,7 +244,9 @@ describe('KanbanBoard', () => {
       renderWithProviders(<KanbanBoard />)
       const dataTransfer = makeDataTransfer()
 
-      fireEvent.dragStart(within(column('Draft')).getAllByRole('listitem')[1], { dataTransfer })
+      fireEvent.dragStart(within(column('Draft')).getAllByRole('listitem')[1], {
+        dataTransfer,
+      })
       fireEvent.dragOver(gapBefore('Draft', 'J2'), { dataTransfer })
       fireEvent.drop(gapBefore('Draft', 'J2'), { dataTransfer })
 
@@ -233,10 +264,23 @@ describe('KanbanBoard', () => {
       expect(gapBefore('Draft', 'J2')).not.toHaveClass('bg-primary/60')
     })
 
+    it('highlights the trailing gap when hovering the end of a column', () => {
+      renderWithProviders(<KanbanBoard />)
+
+      fireEvent.dragOver(gapBefore('Draft', '__end__'), {
+        dataTransfer: makeDataTransfer('J1'),
+      })
+
+      expect(gapBefore('Draft', '__end__')).toHaveClass('bg-primary/60')
+      expect(gapBefore('Draft', 'J2')).not.toHaveClass('bg-primary/60')
+    })
+
     it('moves a card to another column when dropped on the column itself', () => {
       renderWithProviders(<KanbanBoard />)
 
-      fireEvent.drop(column('In progress'), { dataTransfer: makeDataTransfer('J1') })
+      fireEvent.drop(column('In progress'), {
+        dataTransfer: makeDataTransfer('J1'),
+      })
 
       expect(statusOf('J1')).toBe('in_progress')
       expect(within(column('In progress')).getByText('Second')).toBeInTheDocument()
@@ -245,7 +289,9 @@ describe('KanbanBoard', () => {
     it('appends to a column when dropped on its trailing gap', () => {
       renderWithProviders(<KanbanBoard />)
 
-      fireEvent.drop(gapBefore('Draft', '__end__'), { dataTransfer: makeDataTransfer('J2') })
+      fireEvent.drop(gapBefore('Draft', '__end__'), {
+        dataTransfer: makeDataTransfer('J2'),
+      })
 
       expect(cardOrder('Draft')).toEqual(['J1', 'J2'])
     })
@@ -253,7 +299,9 @@ describe('KanbanBoard', () => {
     it('ignores a drop that carries no job id', () => {
       renderWithProviders(<KanbanBoard />)
 
-      fireEvent.drop(column('In progress'), { dataTransfer: makeDataTransfer() })
+      fireEvent.drop(column('In progress'), {
+        dataTransfer: makeDataTransfer(),
+      })
 
       expect(statusOf('J1')).toBe('draft')
       expect(cardOrder('Draft')).toEqual(['J2', 'J1'])
@@ -262,7 +310,9 @@ describe('KanbanBoard', () => {
     it('ignores a drop naming a job that is not on the board', () => {
       renderWithProviders(<KanbanBoard />)
 
-      fireEvent.drop(column('In progress'), { dataTransfer: makeDataTransfer('J404') })
+      fireEvent.drop(column('In progress'), {
+        dataTransfer: makeDataTransfer('J404'),
+      })
 
       expect(within(column('In progress')).getByText('No jobs')).toBeInTheDocument()
     })
@@ -325,8 +375,19 @@ describe('KanbanBoard', () => {
 
   it('shows piece progress and the benefit on a card', () => {
     seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Vase' })
-    seedPricedPiece(context.tabs, { id: 'P1', job_id: 'J1', name: 'Body', status: 'done' })
-    seedPiece(context.tabs, { id: 'P2', job_id: 'J1', name: 'Lid', price: '5', units: '1' })
+    seedPricedPiece(context.tabs, {
+      id: 'P1',
+      job_id: 'J1',
+      name: 'Body',
+      status: 'done',
+    })
+    seedPiece(context.tabs, {
+      id: 'P2',
+      job_id: 'J1',
+      name: 'Lid',
+      price: '5',
+      units: '1',
+    })
 
     renderWithProviders(<KanbanBoard />)
 

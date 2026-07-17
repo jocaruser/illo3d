@@ -7,7 +7,10 @@ import { applyTheme } from '@/Theme/initTheme'
 import { useAuthStore } from '@/Store/authStore'
 import { useBackendStore } from '@/Store/backendStore'
 import { useShopStore } from '@/Store/shopStore'
-import { useUserPreferencesStore, type Language } from '@/Store/userPreferencesStore'
+import {
+  useUserPreferencesStore,
+  type Language,
+} from '@/Store/userPreferencesStore'
 import { useWorkbookStore } from '@/Store/workbookStore'
 
 const LANGUAGES: { code: Language; label: string }[] = [
@@ -116,8 +119,12 @@ export function ProfileMenu() {
           className="absolute right-0 z-40 mt-2 w-64 rounded-lg border border-border bg-surface-elevated py-2 shadow-lg"
         >
           <div className="border-b border-border px-4 pb-3">
-            <p className="truncate text-sm font-medium text-text">{displayName}</p>
-            {isGoogleUser && <p className="truncate text-xs text-text-muted">{user.email}</p>}
+            <p className="truncate text-sm font-medium text-text">
+              {displayName}
+            </p>
+            {isGoogleUser && (
+              <p className="truncate text-xs text-text-muted">{user.email}</p>
+            )}
           </div>
 
           {activeShop !== null && (
@@ -139,7 +146,9 @@ export function ProfileMenu() {
                   <p className="text-xs uppercase tracking-wide text-text-muted">
                     {t('profileMenu.localFolder')}
                   </p>
-                  <p className="truncate text-sm text-text">{activeShop.folderName}</p>
+                  <p className="truncate text-sm text-text">
+                    {activeShop.folderName}
+                  </p>
                 </>
               )}
             </div>
@@ -174,12 +183,17 @@ export function ProfileMenu() {
               className="mt-3 w-full rounded-md border border-border px-2 py-1 text-left text-xs text-text hover:bg-surface-alt"
               onClick={handleTheme}
             >
-              {theme === 'dark' ? t('profileMenu.lightMode') : t('profileMenu.darkMode')}
+              {theme === 'dark'
+                ? t('profileMenu.lightMode')
+                : t('profileMenu.darkMode')}
             </button>
           </div>
 
           <div className="border-b border-border px-4 py-3">
-            <p data-testid="profile-menu-version" className="text-xs text-text-muted">
+            <p
+              data-testid="profile-menu-version"
+              className="text-xs text-text-muted"
+            >
               {t('profileMenu.versionRow', {
                 app: APP_VERSION,
                 shop: activeShop?.metadataVersion ?? '—',

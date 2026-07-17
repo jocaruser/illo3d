@@ -10,24 +10,34 @@ import { installFakeLocalStorage } from '../Store/memoryLocalStorage'
  * Page controllers and the wizard are stubbed: this suite is about the route
  * table — which URL reaches which controller — not about the pages themselves.
  */
-vi.mock('@/Controller/DashboardPage', () => ({ DashboardPage: () => <p>dashboard page</p> }))
-vi.mock('@/Controller/ClientsPage', () => ({ ClientsPage: () => <p>clients page</p> }))
+vi.mock('@/Controller/DashboardPage', () => ({
+  DashboardPage: () => <p>dashboard page</p>,
+}))
+vi.mock('@/Controller/ClientsPage', () => ({
+  ClientsPage: () => <p>clients page</p>,
+}))
 vi.mock('@/Controller/ClientDetailPage', () => ({
   ClientDetailPage: () => <p>client detail page</p>,
 }))
 vi.mock('@/Controller/JobsPage', () => ({ JobsPage: () => <p>jobs page</p> }))
-vi.mock('@/Controller/JobDetailPage', () => ({ JobDetailPage: () => <p>job detail page</p> }))
+vi.mock('@/Controller/JobDetailPage', () => ({
+  JobDetailPage: () => <p>job detail page</p>,
+}))
 vi.mock('@/Controller/TransactionsPage', () => ({
   TransactionsPage: () => <p>transactions page</p>,
 }))
 vi.mock('@/Controller/ExpenseTransactionDetailPage', () => ({
   ExpenseTransactionDetailPage: () => <p>expense transaction detail page</p>,
 }))
-vi.mock('@/Controller/InventoryPage', () => ({ InventoryPage: () => <p>inventory page</p> }))
+vi.mock('@/Controller/InventoryPage', () => ({
+  InventoryPage: () => <p>inventory page</p>,
+}))
 vi.mock('@/Controller/InventoryDetailPage', () => ({
   InventoryDetailPage: () => <p>inventory detail page</p>,
 }))
-vi.mock('@/Controller/AuditLogPage', () => ({ AuditLogPage: () => <p>audit log page</p> }))
+vi.mock('@/Controller/AuditLogPage', () => ({
+  AuditLogPage: () => <p>audit log page</p>,
+}))
 
 vi.mock('@/Component/wizard/SetupWizard', () => ({
   SetupWizard: () => <div data-testid="setup-wizard" />,
@@ -35,7 +45,9 @@ vi.mock('@/Component/wizard/SetupWizard', () => ({
 
 vi.mock('@/Component/layout/AppHeader', () => ({ AppHeader: () => <header /> }))
 
-vi.mock('@/Component/layout/FaviconUpdater', () => ({ FaviconUpdater: () => null }))
+vi.mock('@/Component/layout/FaviconUpdater', () => ({
+  FaviconUpdater: () => null,
+}))
 
 vi.mock('sonner', () => ({
   Toaster: () => null,
@@ -77,19 +89,25 @@ describe('routes', () => {
     it('sends the root to the dashboard', async () => {
       const { router } = renderRoute('/')
 
-      await waitFor(() => expect(router.state.location.pathname).toBe('/dashboard'))
+      await waitFor(() =>
+        expect(router.state.location.pathname).toBe('/dashboard')
+      )
     })
 
     it('sends the retired login route through the root to the dashboard', async () => {
       const { router } = renderRoute('/login')
 
-      await waitFor(() => expect(router.state.location.pathname).toBe('/dashboard'))
+      await waitFor(() =>
+        expect(router.state.location.pathname).toBe('/dashboard')
+      )
     })
 
     it('sends the retired expenses route to transactions', async () => {
       const { router } = renderRoute('/expenses')
 
-      await waitFor(() => expect(router.state.location.pathname).toBe('/transactions'))
+      await waitFor(() =>
+        expect(router.state.location.pathname).toBe('/transactions')
+      )
     })
   })
 
@@ -118,11 +136,12 @@ describe('routes', () => {
     it('shows a not-found card for an unknown route', async () => {
       renderRoute('/nope')
 
-      expect(await screen.findByText('This page does not exist.')).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: 'Back to dashboard' })).toHaveAttribute(
-        'href',
-        '/dashboard'
-      )
+      expect(
+        await screen.findByText('This page does not exist.')
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('link', { name: 'Back to dashboard' })
+      ).toHaveAttribute('href', '/dashboard')
     })
   })
 

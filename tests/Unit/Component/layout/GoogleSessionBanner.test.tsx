@@ -24,7 +24,9 @@ describe('GoogleSessionBanner', () => {
   it('stays hidden while the session is healthy', () => {
     renderLayout(<GoogleSessionBanner />)
 
-    expect(screen.queryByTestId('google-session-banner')).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('google-session-banner')
+    ).not.toBeInTheDocument()
   })
 
   it('warns when the session needs re-authentication', () => {
@@ -46,19 +48,25 @@ describe('GoogleSessionBanner', () => {
     })
     renderLayout(<GoogleSessionBanner />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Sign in with Google again' }))
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Sign in with Google again' })
+    )
 
     expect(ensureGoogleAccessToken).toHaveBeenCalledTimes(1)
   })
 
   it('leaves the banner up when re-authentication fails', async () => {
-    vi.mocked(ensureGoogleAccessToken).mockRejectedValue(new Error('popup blocked'))
+    vi.mocked(ensureGoogleAccessToken).mockRejectedValue(
+      new Error('popup blocked')
+    )
     act(() => {
       useAuthStore.getState().markGoogleSessionNeedsReauth()
     })
     renderLayout(<GoogleSessionBanner />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'Sign in with Google again' }))
+    await userEvent.click(
+      screen.getByRole('button', { name: 'Sign in with Google again' })
+    )
 
     expect(screen.getByTestId('google-session-banner')).toBeInTheDocument()
   })
@@ -73,6 +81,8 @@ describe('GoogleSessionBanner', () => {
       useAuthStore.getState().clearGoogleSessionNeedsReauth()
     })
 
-    expect(screen.queryByTestId('google-session-banner')).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('google-session-banner')
+    ).not.toBeInTheDocument()
   })
 })

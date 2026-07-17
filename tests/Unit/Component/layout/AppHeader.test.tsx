@@ -55,7 +55,10 @@ describe('AppHeader', () => {
     it('links the wordmark home', () => {
       renderLayout(<AppHeader />)
 
-      expect(screen.getByRole('link', { name: 'illo3d' })).toHaveAttribute('href', '/')
+      expect(screen.getByRole('link', { name: 'illo3d' })).toHaveAttribute(
+        'href',
+        '/'
+      )
     })
 
     it('shows no logo when the shop has none', () => {
@@ -92,7 +95,9 @@ describe('AppHeader', () => {
     it('is offered only once a shop is open', () => {
       renderLayout(<AppHeader />)
 
-      expect(screen.queryByTestId('global-header-search')).not.toBeInTheDocument()
+      expect(
+        screen.queryByTestId('global-header-search')
+      ).not.toBeInTheDocument()
     })
 
     it('appears with an open shop', () => {
@@ -108,7 +113,10 @@ describe('AppHeader', () => {
     it('starts collapsed', () => {
       renderLayout(<AppHeader />)
 
-      expect(screen.getByTestId('nav-toggle')).toHaveAttribute('aria-expanded', 'false')
+      expect(screen.getByTestId('nav-toggle')).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      )
       expect(document.getElementById('app-nav-mobile')).toBeNull()
     })
 
@@ -117,9 +125,14 @@ describe('AppHeader', () => {
 
       await userEvent.click(screen.getByTestId('nav-toggle'))
 
-      expect(screen.getByTestId('nav-toggle')).toHaveAttribute('aria-expanded', 'true')
+      expect(screen.getByTestId('nav-toggle')).toHaveAttribute(
+        'aria-expanded',
+        'true'
+      )
       const mobileNav = document.getElementById('app-nav-mobile') as HTMLElement
-      expect(within(mobileNav).getByRole('link', { name: 'Clients' })).toBeInTheDocument()
+      expect(
+        within(mobileNav).getByRole('link', { name: 'Clients' })
+      ).toBeInTheDocument()
     })
 
     it('closes again on a second press', async () => {
@@ -136,7 +149,9 @@ describe('AppHeader', () => {
       await userEvent.click(screen.getByTestId('nav-toggle'))
       const mobileNav = document.getElementById('app-nav-mobile') as HTMLElement
 
-      await userEvent.click(within(mobileNav).getByRole('link', { name: 'Jobs' }))
+      await userEvent.click(
+        within(mobileNav).getByRole('link', { name: 'Jobs' })
+      )
 
       expect(document.getElementById('app-nav-mobile')).toBeNull()
     })
@@ -145,7 +160,10 @@ describe('AppHeader', () => {
   it('gives the workbook actions their own row on mobile', () => {
     renderLayout(<AppHeader />)
 
-    for (const testId of ['workbook-actions-desktop', 'workbook-actions-mobile']) {
+    for (const testId of [
+      'workbook-actions-desktop',
+      'workbook-actions-mobile',
+    ]) {
       const row = within(screen.getByTestId(testId))
       expect(row.getByRole('button', { name: 'Save' })).toBeInTheDocument()
       expect(row.getByRole('button', { name: 'Refresh' })).toBeInTheDocument()

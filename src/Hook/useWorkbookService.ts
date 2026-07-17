@@ -35,9 +35,13 @@ export interface UseWorkbookService {
  */
 export function useWorkbookService(): UseWorkbookService {
   const { t } = useTranslation()
-  const spreadsheetId = useShopStore((state) => state.activeShop?.spreadsheetId ?? null)
+  const spreadsheetId = useShopStore(
+    (state) => state.activeShop?.spreadsheetId ?? null
+  )
   const backend = useBackendStore((state) => state.backend)
-  const localDirectoryHandle = useBackendStore((state) => state.localDirectoryHandle)
+  const localDirectoryHandle = useBackendStore(
+    (state) => state.localDirectoryHandle
+  )
   const dirty = useWorkbookStore((state) => state.dirty)
   const status = useWorkbookStore((state) => state.status)
   const saveInProgress = useWorkbookStore((state) => state.saveInProgress)

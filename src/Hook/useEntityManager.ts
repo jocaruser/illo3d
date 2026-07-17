@@ -1,5 +1,8 @@
 import { useMemo } from 'react'
-import { createEntityManager, type EntityManager } from '@/Repository/EntityManager'
+import {
+  createEntityManager,
+  type EntityManager,
+} from '@/Repository/EntityManager'
 import { useWorkbookStore } from '@/Store/workbookStore'
 
 /**

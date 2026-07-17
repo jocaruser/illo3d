@@ -3,7 +3,7 @@ import {
   SHEET_NAMES,
   SHEET_HEADERS,
   type SheetName,
-} from '../../../src/services/sheets/config'
+} from '../../../src/Config/schema'
 
 const MOCK_SPREADSHEET_ID = 'e2eMockSpreadsheetId'
 const MOCK_FOLDER_ID = 'e2eMockFolderId'

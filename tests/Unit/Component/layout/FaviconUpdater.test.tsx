@@ -20,7 +20,10 @@ describe('FaviconUpdater', () => {
     render(<FaviconUpdater />)
 
     // BASE_URL is '/' under test and '/illo3d/' in production builds.
-    expect(favicon()).toHaveAttribute('href', `${import.meta.env.BASE_URL}logo.svg`)
+    expect(favicon()).toHaveAttribute(
+      'href',
+      `${import.meta.env.BASE_URL}logo.svg`
+    )
     expect(favicon()).toHaveAttribute('type', 'image/svg+xml')
   })
 
@@ -46,7 +49,8 @@ describe('FaviconUpdater', () => {
   })
 
   it('drops the type hint for a shop logo of unknown format', () => {
-    document.head.innerHTML = '<link rel="icon" type="image/svg+xml" href="/logo.svg" />'
+    document.head.innerHTML =
+      '<link rel="icon" type="image/svg+xml" href="/logo.svg" />'
     vi.mocked(useShopLogoUrl).mockReturnValue('blob:shop-logo')
 
     render(<FaviconUpdater />)
@@ -61,7 +65,10 @@ describe('FaviconUpdater', () => {
     vi.mocked(useShopLogoUrl).mockReturnValue(null)
     rerender(<FaviconUpdater />)
 
-    expect(favicon()).toHaveAttribute('href', `${import.meta.env.BASE_URL}logo.svg`)
+    expect(favicon()).toHaveAttribute(
+      'href',
+      `${import.meta.env.BASE_URL}logo.svg`
+    )
   })
 
   it('renders nothing itself', () => {

@@ -31,7 +31,10 @@ interface AppNavProps {
  * Section links, highlighted purely from the current route — never from
  * search, hover or any other transient state.
  */
-export function AppNav({ orientation = 'horizontal', onNavigate }: AppNavProps) {
+export function AppNav({
+  orientation = 'horizontal',
+  onNavigate,
+}: AppNavProps) {
   const { t } = useTranslation()
   const { pathname } = useLocation()
 

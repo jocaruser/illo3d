@@ -98,7 +98,9 @@ describe('useJobStatusFlow', () => {
 
         await request(jobById('J1'), next)
 
-        expect(screen.getByTestId('error')).toHaveTextContent('jobs.paidPiecesIncomplete')
+        expect(screen.getByTestId('error')).toHaveTextContent(
+          'jobs.paidPiecesIncomplete'
+        )
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
         expect(statusOf('J1')).toBe('draft')
       }
@@ -107,7 +109,9 @@ describe('useJobStatusFlow', () => {
     it('refuses paid when the job has no pieces at all', async () => {
       await request(jobById('J1'), 'paid')
 
-      expect(screen.getByTestId('error')).toHaveTextContent('jobs.paidPiecesIncomplete')
+      expect(screen.getByTestId('error')).toHaveTextContent(
+        'jobs.paidPiecesIncomplete'
+      )
       expect(statusOf('J1')).toBe('draft')
     })
 
@@ -117,10 +121,14 @@ describe('useJobStatusFlow', () => {
       renderWithProviders(<FlowHarness job={job} next="paid" />)
 
       await userEvent.click(screen.getByRole('button', { name: 'request' }))
-      expect(screen.getByTestId('error')).toHaveTextContent('jobs.paidPiecesIncomplete')
+      expect(screen.getByTestId('error')).toHaveTextContent(
+        'jobs.paidPiecesIncomplete'
+      )
 
       await userEvent.click(screen.getByRole('button', { name: 'request' }))
-      expect(screen.getByTestId('error')).toHaveTextContent('jobs.paidPiecesIncomplete')
+      expect(screen.getByTestId('error')).toHaveTextContent(
+        'jobs.paidPiecesIncomplete'
+      )
     })
   })
 
@@ -187,7 +195,9 @@ describe('useJobStatusFlow', () => {
 
       await request(jobById('J1'), 'cancelled')
 
-      expect(screen.getByRole('dialog')).toHaveTextContent('Mark this job as cancelled?')
+      expect(screen.getByRole('dialog')).toHaveTextContent(
+        'Mark this job as cancelled?'
+      )
       await userEvent.click(screen.getByRole('button', { name: 'Confirm' }))
 
       expect(statusOf('J1')).toBe('cancelled')
@@ -198,7 +208,12 @@ describe('useJobStatusFlow', () => {
   describe('leaving paid', () => {
     beforeEach(() => {
       context = setupShop()
-      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Vase', status: 'paid' })
+      seedJob(context.tabs, {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Vase',
+        status: 'paid',
+      })
     })
 
     it('warns about duplicate income instead of prompting twice for cancelled', async () => {
@@ -208,7 +223,9 @@ describe('useJobStatusFlow', () => {
 
       const dialog = screen.getByRole('dialog')
       expect(dialog).toHaveTextContent('Change status from paid?')
-      expect(dialog).toHaveTextContent('another income transaction will be added')
+      expect(dialog).toHaveTextContent(
+        'another income transaction will be added'
+      )
       expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
 
       await userEvent.click(screen.getByRole('button', { name: 'Confirm' }))
@@ -220,7 +237,9 @@ describe('useJobStatusFlow', () => {
 
       await request(jobById('J1'), 'in_progress')
 
-      expect(screen.getByRole('dialog')).toHaveTextContent('Change status from paid?')
+      expect(screen.getByRole('dialog')).toHaveTextContent(
+        'Change status from paid?'
+      )
       await userEvent.click(screen.getByRole('button', { name: 'Confirm' }))
       expect(statusOf('J1')).toBe('in_progress')
     })
@@ -246,7 +265,9 @@ describe('useJobStatusFlow', () => {
     it('ignores confirm when no dialog is pending', async () => {
       renderWithProviders(<FlowHarness job={jobById('J1')} next="delivered" />)
 
-      await userEvent.click(screen.getByRole('button', { name: 'confirm-directly' }))
+      await userEvent.click(
+        screen.getByRole('button', { name: 'confirm-directly' })
+      )
 
       expect(statusOf('J1')).toBe('draft')
       expect(screen.getByTestId('error')).toHaveTextContent('')

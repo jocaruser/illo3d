@@ -1,7 +1,11 @@
 import { screen } from '@testing-library/react'
 import { AuditEntityLink } from '@/Component/audit/AuditEntityLink'
 import type { EntityManager } from '@/Repository/EntityManager'
-import { createTestEm, FakeTabs, renderRoute } from '../../helpers/workbookTestBed'
+import {
+  createTestEm,
+  FakeTabs,
+  renderRoute,
+} from '../../helpers/workbookTestBed'
 
 const mocks = vi.hoisted(() => ({ em: null as unknown as EntityManager }))
 vi.mock('@/Hook/useEntityManager', () => ({ useEntityManager: () => mocks.em }))
@@ -38,7 +42,11 @@ describe('AuditEntityLink', () => {
 
   it('resolves from the audit snapshots when the row is gone', () => {
     renderRoute(
-      <AuditEntityLink entityName="client" entityId="CL404" afterJson='{"name":"Vanished Co"}' />
+      <AuditEntityLink
+        entityName="client"
+        entityId="CL404"
+        afterJson='{"name":"Vanished Co"}'
+      />
     )
 
     expect(screen.getByRole('link', { name: 'Vanished Co' })).toHaveAttribute(

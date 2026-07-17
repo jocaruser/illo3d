@@ -1,6 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { InventoryTable, type InventoryTableRow } from '@/Component/detail/InventoryTable'
+import {
+  InventoryTable,
+  type InventoryTableRow,
+} from '@/Component/detail/InventoryTable'
 import { ListTablePageHeader } from '@/Component/layout/ListTablePageHeader'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
 import { useEntityManager } from '@/Hook/useEntityManager'
@@ -40,7 +43,9 @@ export function InventoryPage() {
       />
       <InventoryTable
         rows={visible}
-        emptyMessage={rows.length === 0 ? t('inventory.empty') : t('listTable.noMatches')}
+        emptyMessage={
+          rows.length === 0 ? t('inventory.empty') : t('listTable.noMatches')
+        }
       />
     </div>
   )

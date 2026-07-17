@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { cx } from '@/Component/cx'
 import { useEntityManager } from '@/Hook/useEntityManager'
-import { globalSearch, type GlobalSearchHit } from '@/Service/Search/globalSearch'
+import {
+  globalSearch,
+  type GlobalSearchHit,
+} from '@/Service/Search/globalSearch'
 
 const MIN_QUERY_LENGTH = 2
 
@@ -65,7 +68,9 @@ export function GlobalSearchBox() {
         aria-controls={listboxId}
         aria-autocomplete="list"
         aria-activedescendant={
-          expanded && activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined
+          expanded && activeIndex >= 0
+            ? `${id}-option-${activeIndex}`
+            : undefined
         }
         className="w-40 rounded-md border border-border bg-surface px-3 py-1.5 text-sm text-text placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:w-56"
         placeholder={t('globalSearch.placeholder')}
@@ -91,7 +96,10 @@ export function GlobalSearchBox() {
           className="absolute right-0 z-40 mt-1 max-h-96 w-80 overflow-auto rounded-md border border-border bg-surface-elevated py-1 shadow-lg"
         >
           {hits.length === 0 ? (
-            <li role="presentation" className="px-3 py-2 text-sm text-text-muted">
+            <li
+              role="presentation"
+              className="px-3 py-2 text-sm text-text-muted"
+            >
               {t('globalSearch.noResults')}
             </li>
           ) : (
@@ -116,7 +124,9 @@ export function GlobalSearchBox() {
                 <span className="block text-xs uppercase tracking-wide text-text-muted">
                   {t(`globalSearch.kind.${hit.kind}`)}
                 </span>
-                <span className="block truncate text-sm text-text">{hit.primaryLine}</span>
+                <span className="block truncate text-sm text-text">
+                  {hit.primaryLine}
+                </span>
                 {hit.secondaryLine !== undefined && (
                   <span className="block truncate text-xs text-text-muted">
                     {hit.secondaryLine}

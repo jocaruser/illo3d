@@ -263,11 +263,10 @@ export function PiecesTable({ rows, emptyMessage, onChanged }: PiecesTableProps)
     return true
   }
 
-  const confirmStatus = () => {
-    if (request === null) return
-    apply(request.piece, request.next, {
-      decrementInventory: request.kind === 'consume' ? applyInventory : undefined,
-      restoreInventory: request.kind === 'restore' ? applyInventory : undefined,
+  const confirmStatus = (pending: StatusRequest) => {
+    apply(pending.piece, pending.next, {
+      decrementInventory: pending.kind === 'consume' ? applyInventory : undefined,
+      restoreInventory: pending.kind === 'restore' ? applyInventory : undefined,
     })
   }
 
@@ -469,46 +468,48 @@ export function PiecesTable({ rows, emptyMessage, onChanged }: PiecesTableProps)
         </TableBody>
       </DataTable>
 
-      <ConfirmDialog
-        open={request !== null}
-        title={
-          request?.kind === 'restore'
-            ? t('pieces.confirmRestoreTitle')
-            : t('pieces.confirmConsumeTitle')
-        }
-        message={
-          request?.kind === 'restore'
-            ? t('pieces.confirmRestoreMessage')
-            : t('pieces.confirmConsumeMessage')
-        }
-        error={dialogError === '' ? undefined : dialogError}
-        onConfirm={confirmStatus}
-        onCancel={() => setRequest(null)}
-      >
-        {request !== null && request.insufficient.length > 0 && (
-          <div className="mt-3 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs text-warning">
-            <p>{t('pieces.confirmConsumeLowStock')}</p>
-            <ul className="mt-1 list-inside list-disc">
-              {request.insufficient.map((line) => (
-                <li key={line.inventoryId}>
-                  {t('pieces.shortfallLine', { id: line.name, need: line.need, have: line.have })}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        <label className="mt-3 flex items-center gap-2 text-sm text-text">
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
-            checked={applyInventory}
-            onChange={(event) => setApplyInventory(event.target.checked)}
-          />
-          {request?.kind === 'restore'
-            ? t('pieces.restoreInventoryLabel')
-            : t('pieces.decrementInventoryLabel')}
-        </label>
-      </ConfirmDialog>
+      {request !== null && (
+        <ConfirmDialog
+          open
+          title={
+            request.kind === 'restore'
+              ? t('pieces.confirmRestoreTitle')
+              : t('pieces.confirmConsumeTitle')
+          }
+          message={
+            request.kind === 'restore'
+              ? t('pieces.confirmRestoreMessage')
+              : t('pieces.confirmConsumeMessage')
+          }
+          error={dialogError === '' ? undefined : dialogError}
+          onConfirm={() => confirmStatus(request)}
+          onCancel={() => setRequest(null)}
+        >
+          {request.insufficient.length > 0 && (
+            <div className="mt-3 rounded-md border border-warning/40 bg-warning/10 p-2 text-xs text-warning">
+              <p>{t('pieces.confirmConsumeLowStock')}</p>
+              <ul className="mt-1 list-inside list-disc">
+                {request.insufficient.map((line) => (
+                  <li key={line.inventoryId}>
+                    {t('pieces.shortfallLine', { id: line.name, need: line.need, have: line.have })}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <label className="mt-3 flex items-center gap-2 text-sm text-text">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
+              checked={applyInventory}
+              onChange={(event) => setApplyInventory(event.target.checked)}
+            />
+            {request.kind === 'restore'
+              ? t('pieces.restoreInventoryLabel')
+              : t('pieces.decrementInventoryLabel')}
+          </label>
+        </ConfirmDialog>
+      )}
     </div>
   )
 }

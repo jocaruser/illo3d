@@ -1,3 +1,7 @@
+/* eslint-disable react-refresh/only-export-components --
+ * This is the route table, not a component module: exporting `routes`
+ * alongside the redirect/not-found elements is the whole point of the file.
+ */
 import { lazy, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, type RouteObject } from 'react-router-dom'
@@ -28,13 +32,15 @@ const TransactionsPage = lazy(async () => ({
   default: (await import('@/Controller/TransactionsPage')).TransactionsPage,
 }))
 const ExpenseTransactionDetailPage = lazy(async () => ({
-  default: (await import('@/Controller/ExpenseTransactionDetailPage')).ExpenseTransactionDetailPage,
+  default: (await import('@/Controller/ExpenseTransactionDetailPage'))
+    .ExpenseTransactionDetailPage,
 }))
 const InventoryPage = lazy(async () => ({
   default: (await import('@/Controller/InventoryPage')).InventoryPage,
 }))
 const InventoryDetailPage = lazy(async () => ({
-  default: (await import('@/Controller/InventoryDetailPage')).InventoryDetailPage,
+  default: (await import('@/Controller/InventoryDetailPage'))
+    .InventoryDetailPage,
 }))
 const AuditLogPage = lazy(async () => ({
   default: (await import('@/Controller/AuditLogPage')).AuditLogPage,
@@ -77,10 +83,16 @@ export const routes: RouteObject[] = [
       { path: '/jobs', element: page(<JobsPage />) },
       { path: '/jobs/:jobId', element: page(<JobDetailPage />) },
       { path: '/transactions', element: page(<TransactionsPage />) },
-      { path: '/transactions/:transactionId', element: page(<ExpenseTransactionDetailPage />) },
+      {
+        path: '/transactions/:transactionId',
+        element: page(<ExpenseTransactionDetailPage />),
+      },
       { path: '/expenses', element: <Navigate to="/transactions" replace /> },
       { path: '/inventory', element: page(<InventoryPage />) },
-      { path: '/inventory/:inventoryId', element: page(<InventoryDetailPage />) },
+      {
+        path: '/inventory/:inventoryId',
+        element: page(<InventoryDetailPage />),
+      },
       { path: '/audit-log', element: page(<AuditLogPage />) },
       { path: '*', element: page(<NotFoundRoute />) },
     ],

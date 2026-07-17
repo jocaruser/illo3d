@@ -71,9 +71,8 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
     setEditError('')
   }
 
-  const saveEdit = () => {
-    if (editingId === null) return
-    const result = service.updateNote(editingId, editBody, editSeverity)
+  const saveEdit = (noteId: string) => {
+    const result = service.updateNote(noteId, editBody, editSeverity)
     if (!result.ok) {
       setEditError(t(result.error))
       return
@@ -83,10 +82,8 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
     bump()
   }
 
-  const confirmDelete = () => {
-    if (deleting === null) return
-    const result = service.deleteNote(deleting.id)
-    if (!result.ok) toast.error(t(result.error))
+  const confirmDelete = (note: CrmNote) => {
+    service.deleteNote(note.id)
     setDeleting(null)
     bump()
   }
@@ -158,7 +155,7 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
                       onChange={(event) => setEditSeverity(event.target.value)}
                     />
                   </div>
-                  <button type="button" className="btn-primary" onClick={saveEdit}>
+                  <button type="button" className="btn-primary" onClick={() => saveEdit(note.id)}>
                     {t(`${prefix}.saveNote`)}
                   </button>
                   <button
@@ -209,14 +206,16 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
         ))}
       </ul>
 
-      <ConfirmDialog
-        open={deleting !== null}
-        title={t(`${prefix}.deleteNoteTitle`)}
-        message={t(`${prefix}.deleteNoteMessage`)}
-        confirmLabel={t('common.delete')}
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleting(null)}
-      />
+      {deleting !== null && (
+        <ConfirmDialog
+          open
+          title={t(`${prefix}.deleteNoteTitle`)}
+          message={t(`${prefix}.deleteNoteMessage`)}
+          confirmLabel={t('common.delete')}
+          onConfirm={() => confirmDelete(deleting)}
+          onCancel={() => setDeleting(null)}
+        />
+      )}
     </section>
   )
 }

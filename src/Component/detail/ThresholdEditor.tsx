@@ -57,7 +57,9 @@ export function ThresholdEditor({ item }: ThresholdEditorProps) {
       <div className="flex flex-wrap items-end gap-3">
         {TIERS.map((tier) => (
           <FormGroup key={tier} className="w-40">
-            <FormLabel htmlFor={`inventory-warn-${tier}`}>{t(labelKeys[tier])}</FormLabel>
+            <FormLabel htmlFor={`inventory-warn-${tier}`}>
+              {t(labelKeys[tier])}
+            </FormLabel>
             <FormInput
               id={`inventory-warn-${tier}`}
               data-testid={`inventory-detail-warn-${tier}`}

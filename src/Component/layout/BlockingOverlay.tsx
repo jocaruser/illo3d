@@ -24,8 +24,12 @@ export function BlockingOverlay() {
       className="fixed inset-0 z-50 flex items-center justify-center bg-surface p-4"
     >
       <Card className="w-full max-w-sm p-6">
-        <p className="font-display text-lg font-semibold text-text">{t(message)}</p>
-        {sheetName !== '' && <p className="mt-1 text-sm text-text-muted">{sheetName}</p>}
+        <p className="font-display text-lg font-semibold text-text">
+          {t(message)}
+        </p>
+        {sheetName !== '' && (
+          <p className="mt-1 text-sm text-text-muted">{sheetName}</p>
+        )}
         <div
           role="progressbar"
           aria-label={t('workbook.progress')}
@@ -34,7 +38,10 @@ export function BlockingOverlay() {
           aria-valuemax={total}
           className="mt-4 h-2 w-full overflow-hidden rounded-full bg-surface-alt"
         >
-          <div className="h-full bg-primary transition-all" style={{ width: `${percent}%` }} />
+          <div
+            className="h-full bg-primary transition-all"
+            style={{ width: `${percent}%` }}
+          />
         </div>
         <p className="mt-2 text-right text-xs text-text-muted">
           {t('workbook.progressCount', { current, total })}

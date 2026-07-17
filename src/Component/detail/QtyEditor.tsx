@@ -24,7 +24,10 @@ export function QtyEditor({ itemId, qtyCurrent }: QtyEditorProps) {
 
   const handleSave = () => {
     const parsed = parseNumericCell(value)
-    const result = new InventoryService(em).updateQtyCurrent(itemId, parsed ?? NaN)
+    const result = new InventoryService(em).updateQtyCurrent(
+      itemId,
+      parsed ?? NaN
+    )
     if (!result.ok) {
       setError(t(result.error))
       toast.error(t('inventoryDetail.qtySaveError'))
@@ -41,7 +44,9 @@ export function QtyEditor({ itemId, qtyCurrent }: QtyEditorProps) {
       <SectionHeading>{t('inventoryDetail.qtyHeading')}</SectionHeading>
       <div className="flex flex-wrap items-end gap-3">
         <FormGroup className="w-40">
-          <FormLabel htmlFor="inventory-qty-current">{t('inventory.qtyCurrent')}</FormLabel>
+          <FormLabel htmlFor="inventory-qty-current">
+            {t('inventory.qtyCurrent')}
+          </FormLabel>
           <FormInput
             id="inventory-qty-current"
             data-testid="inventory-detail-qty-current"

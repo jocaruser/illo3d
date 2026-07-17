@@ -9,7 +9,10 @@ import {
   InventoryConsumptionTable,
   type InventoryConsumptionRow,
 } from '@/Component/detail/InventoryConsumptionTable'
-import { InventoryLotsTable, type InventoryLotRow } from '@/Component/detail/InventoryLotsTable'
+import {
+  InventoryLotsTable,
+  type InventoryLotRow,
+} from '@/Component/detail/InventoryLotsTable'
 import { QtyEditor } from '@/Component/detail/QtyEditor'
 import { ThresholdEditor } from '@/Component/detail/ThresholdEditor'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
@@ -50,13 +53,17 @@ function InventoryDetail({ item }: InventoryDetailProps) {
   const navigate = useNavigate()
   const [confirmOpen, setConfirmOpen] = useState(false)
 
-  const lots = useMemo(() => em.lots.findActiveByInventory(item.id), [em, item.id])
+  const lots = useMemo(
+    () => em.lots.findActiveByInventory(item.id),
+    [em, item.id]
+  )
 
   const lotRows = useMemo<InventoryLotRow[]>(
     () =>
       lots.map((lot) => ({
         lot,
-        transactionLabel: em.transactions.find(lot.transactionId)?.concept ?? '',
+        transactionLabel:
+          em.transactions.find(lot.transactionId)?.concept ?? '',
       })),
     [em, lots]
   )

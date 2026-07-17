@@ -32,9 +32,12 @@ async function readDriveLogo(
   )
   const payload = (await response.json()) as DriveFileListResponse
   const file = payload.files?.[0]
-  if (file?.id === undefined) throw new Error(`Logo not found in Drive folder: ${logo}`)
+  if (file?.id === undefined)
+    throw new Error(`Logo not found in Drive folder: ${logo}`)
   return {
-    url: file.thumbnailLink ?? `https://drive.google.com/uc?export=view&id=${file.id}`,
+    url:
+      file.thumbnailLink ??
+      `https://drive.google.com/uc?export=view&id=${file.id}`,
     revocable: false,
   }
 }
@@ -48,7 +51,9 @@ export function useShopLogoUrl(): string | null {
   const { metadata } = useShopMetadata()
   const folderId = useShopStore((state) => state.activeShop?.folderId ?? null)
   const backend = useBackendStore((state) => state.backend)
-  const localDirectoryHandle = useBackendStore((state) => state.localDirectoryHandle)
+  const localDirectoryHandle = useBackendStore(
+    (state) => state.localDirectoryHandle
+  )
   const logo = metadata?.logo ?? null
   const [url, setUrl] = useState<string | null>(null)
 
@@ -60,7 +65,10 @@ export function useShopLogoUrl(): string | null {
     let cancelled = false
     let objectUrl: string | null = null
 
-    const resolve = async (): Promise<{ url: string; revocable: boolean } | null> => {
+    const resolve = async (): Promise<{
+      url: string
+      revocable: boolean
+    } | null> => {
       if (backend === 'local-csv' && localDirectoryHandle !== null) {
         return readLocalLogo(localDirectoryHandle, logo)
       }

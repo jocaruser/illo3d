@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ColourSwatch } from '@/Component/ColourSwatch'
@@ -15,6 +15,7 @@ import { SortableColumnHeader } from '@/Component/table/SortableColumnHeader'
 import { cx } from '@/Component/cx'
 import type { InventoryItem, StockAlertLevel } from '@/Entity/InventoryItem'
 import { formatCurrency } from '@/Service/Pricing/money'
+import { sortRows, useTableSort, type SortValue } from './tableSort'
 
 export interface InventoryTableRow {
   item: InventoryItem
@@ -29,11 +30,6 @@ interface InventoryTableProps {
 
 type SortKey = 'id' | 'name' | 'type' | 'qty' | 'avgUnitCost' | 'createdAt'
 
-interface SortState {
-  key: SortKey
-  direction: 'asc' | 'desc'
-}
-
 const COLUMN_COUNT = 6
 
 /**
@@ -41,7 +37,8 @@ const COLUMN_COUNT = 6
  * the header and every cell hide together without forking the shared table
  * primitives.
  */
-const responsiveColumns = '[&_tr>*:nth-child(3)]:hidden sm:[&_tr>*:nth-child(3)]:table-cell'
+const responsiveColumns =
+  '[&_tr>*:nth-child(3)]:hidden sm:[&_tr>*:nth-child(3)]:table-cell'
 
 /**
  * Threshold tints. Red is the danger token; the amber tiers use the palette
@@ -54,49 +51,45 @@ const alertClasses: Record<NonNullable<StockAlertLevel>, string> = {
   yellow: 'font-semibold text-yellow-600 dark:text-yellow-400',
 }
 
-function sortValue(row: InventoryTableRow, key: SortKey, typeLabel: string): string | number {
-  switch (key) {
-    case 'id':
-      return row.item.id
-    case 'name':
-      return row.item.name
-    case 'type':
-      return typeLabel
-    case 'qty':
-      return row.item.qtyCurrent
-    case 'avgUnitCost':
-      // Items without lots sort as the cheapest; they are the ones to price.
-      return row.avgUnitCost ?? -1
-    case 'createdAt':
-      return row.item.createdAt
-  }
-}
-
-function compare(a: string | number, b: string | number): number {
-  if (typeof a === 'number' && typeof b === 'number') return a - b
-  return String(a).localeCompare(String(b))
-}
-
 export function InventoryTable({ rows, emptyMessage }: InventoryTableProps) {
   const { t } = useTranslation()
-  const [sort, setSort] = useState<SortState>({ key: 'id', direction: 'asc' })
+  const { sort, directionFor, toggle } = useTableSort<SortKey>({
+    key: 'id',
+    dir: 'asc',
+  })
 
-  const sorted = useMemo(() => {
-    const typeLabel = (row: InventoryTableRow) => t(`inventory.type.${row.item.type}`)
-    return [...rows].sort((a, b) => {
-      const result = compare(
-        sortValue(a, sort.key, typeLabel(a)),
-        sortValue(b, sort.key, typeLabel(b))
-      )
-      return sort.direction === 'asc' ? result : -result
-    })
-  }, [rows, sort, t])
+  const sorted = useMemo(
+    () =>
+      sortRows(
+        rows,
+        sort,
+        (row, key): SortValue => {
+          switch (key) {
+            case 'id':
+              return row.item.id
+            case 'name':
+              return row.item.name
+            case 'type':
+              return t(`inventory.type.${row.item.type}`)
+            case 'qty':
+              return row.item.qtyCurrent
+            case 'avgUnitCost':
+              // An item with no lots has no cost to compare, so it sinks.
+              return row.avgUnitCost ?? undefined
+            case 'createdAt':
+              return row.item.createdAt
+          }
+        },
+        (row) => row.item.id
+      ),
+    [rows, sort, t]
+  )
 
   const header = (key: SortKey, label: string) => (
     <SortableColumnHeader
       label={label}
-      direction={sort.key === key ? sort.direction : null}
-      onToggle={(direction) => setSort({ key, direction })}
+      direction={directionFor(key)}
+      onToggle={(dir) => toggle(key, dir)}
     />
   )
 
@@ -136,7 +129,12 @@ export function InventoryTable({ rows, emptyMessage }: InventoryTableProps) {
                   </span>
                 </TableCell>
                 <TableCell>{t(`inventory.type.${item.type}`)}</TableCell>
-                <TableCell className={cx('text-right', alert !== null && alertClasses[alert])}>
+                <TableCell
+                  className={cx(
+                    'text-right',
+                    alert !== null && alertClasses[alert]
+                  )}
+                >
                   {item.qtyCurrent}
                 </TableCell>
                 <TableCell className="text-right">

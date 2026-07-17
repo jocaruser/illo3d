@@ -68,9 +68,8 @@ export function ClientsPage() {
     bump()
   }
 
-  const confirmArchive = () => {
-    if (archiving === null) return
-    new LifecycleService(em).archiveClient(archiving.id)
+  const confirmArchive = (client: Client) => {
+    new LifecycleService(em).archiveClient(client.id)
     toast.success(t('toast.saveSuccess'))
     setArchiving(null)
     bump()
@@ -110,14 +109,16 @@ export function ClientsPage() {
         onSaved={handleSaved}
       />
 
-      <ConfirmDialog
-        open={archiving !== null}
-        title={t('clients.archiveConfirmTitle')}
-        message={t('clients.archiveConfirmMessage', { name: archiving?.name ?? '' })}
-        confirmLabel={t('lifecycle.archive')}
-        onConfirm={confirmArchive}
-        onCancel={() => setArchiving(null)}
-      />
+      {archiving !== null && (
+        <ConfirmDialog
+          open
+          title={t('clients.archiveConfirmTitle')}
+          message={t('clients.archiveConfirmMessage', { name: archiving.name })}
+          confirmLabel={t('lifecycle.archive')}
+          onConfirm={() => confirmArchive(archiving)}
+          onCancel={() => setArchiving(null)}
+        />
+      )}
     </div>
   )
 }

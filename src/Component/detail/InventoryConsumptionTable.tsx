@@ -29,7 +29,9 @@ interface InventoryConsumptionTableProps {
 const COLUMN_COUNT = 3
 
 /** Where this material is spent: one row per bill-of-materials line that uses it. */
-export function InventoryConsumptionTable({ rows }: InventoryConsumptionTableProps) {
+export function InventoryConsumptionTable({
+  rows,
+}: InventoryConsumptionTableProps) {
   const { t } = useTranslation()
   return (
     <section className="space-y-3">
@@ -37,18 +39,25 @@ export function InventoryConsumptionTable({ rows }: InventoryConsumptionTablePro
       <DataTable>
         <TableHead>
           <TableRow>
-            <TableHeader className="text-right">{t('inventoryDetail.quantity')}</TableHeader>
+            <TableHeader className="text-right">
+              {t('inventoryDetail.quantity')}
+            </TableHeader>
             <TableHeader>{t('inventoryDetail.piece')}</TableHeader>
             <TableHeader>{t('inventoryDetail.job')}</TableHeader>
           </TableRow>
         </TableHead>
         <TableBody>
           {rows.length === 0 ? (
-            <TableEmptyRow colSpan={COLUMN_COUNT} message={t('inventoryDetail.consumptionEmpty')} />
+            <TableEmptyRow
+              colSpan={COLUMN_COUNT}
+              message={t('inventoryDetail.consumptionEmpty')}
+            />
           ) : (
             rows.map((row) => (
               <TableRow key={row.id}>
-                <TableCell className="text-right">{row.quantity ?? '—'}</TableCell>
+                <TableCell className="text-right">
+                  {row.quantity ?? '—'}
+                </TableCell>
                 <TableCell>{row.pieceName}</TableCell>
                 <TableCell>
                   {row.jobId === '' ? (

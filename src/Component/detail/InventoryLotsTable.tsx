@@ -49,7 +49,10 @@ export function InventoryLotsTable({ rows }: InventoryLotsTableProps) {
         </TableHead>
         <TableBody>
           {rows.length === 0 ? (
-            <TableEmptyRow colSpan={COLUMN_COUNT} message={t('inventoryDetail.lotsEmpty')} />
+            <TableEmptyRow
+              colSpan={COLUMN_COUNT}
+              message={t('inventoryDetail.lotsEmpty')}
+            />
           ) : (
             rows.map((row) => <LotRow key={row.lot.id} {...row} />)
           )}

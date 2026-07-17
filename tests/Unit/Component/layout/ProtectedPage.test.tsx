@@ -60,6 +60,8 @@ describe('ProtectedPage', () => {
       </ProtectedPage>
     )
 
-    expect(screen.getByRole('alert')).toHaveTextContent('This page couldn’t be displayed')
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'This page couldn’t be displayed'
+    )
   })
 })

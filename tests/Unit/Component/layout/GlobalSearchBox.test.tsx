@@ -1,7 +1,10 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GlobalSearchBox } from '@/Component/layout/GlobalSearchBox'
-import { globalSearch, type GlobalSearchHit } from '@/Service/Search/globalSearch'
+import {
+  globalSearch,
+  type GlobalSearchHit,
+} from '@/Service/Search/globalSearch'
 import { installFakeLocalStorage } from '../../Store/memoryLocalStorage'
 import { renderLayout } from './renderLayout'
 
@@ -62,7 +65,9 @@ describe('GlobalSearchBox', () => {
 
     await userEvent.type(searchBox(), 'C')
 
-    expect(screen.queryByTestId('global-search-listbox')).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('global-search-listbox')
+    ).not.toBeInTheDocument()
     expect(searchBox()).toHaveAttribute('aria-expanded', 'false')
   })
 
@@ -75,7 +80,9 @@ describe('GlobalSearchBox', () => {
     expect(option).toHaveTextContent('Client')
     expect(option).toHaveTextContent('Beta LLC')
     expect(option).toHaveTextContent('CL1 · beta@example.com')
-    expect(screen.getByTestId('global-search-listbox')).toHaveAccessibleName('Search results')
+    expect(screen.getByTestId('global-search-listbox')).toHaveAccessibleName(
+      'Search results'
+    )
   })
 
   it('reports no matches', async () => {
@@ -196,7 +203,9 @@ describe('GlobalSearchBox', () => {
     await userEvent.type(searchBox(), 'CL')
 
     await userEvent.keyboard('{Escape}')
-    expect(screen.queryByTestId('global-search-listbox')).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('global-search-listbox')
+    ).not.toBeInTheDocument()
 
     await userEvent.click(searchBox())
     expect(screen.getByTestId('global-search-listbox')).toBeInTheDocument()
@@ -235,6 +244,8 @@ describe('GlobalSearchBox', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'elsewhere' }))
 
-    expect(screen.queryByTestId('global-search-listbox')).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('global-search-listbox')
+    ).not.toBeInTheDocument()
   })
 })

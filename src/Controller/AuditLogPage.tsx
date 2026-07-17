@@ -4,7 +4,11 @@ import { Select, type SelectOption } from '@/Component/Select'
 import { AuditTable } from '@/Component/audit/AuditTable'
 import { ListTablePageHeader } from '@/Component/layout/ListTablePageHeader'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
-import { AUDIT_ACTIONS, AUDIT_ENTITY_NAMES, type AuditEntry } from '@/Entity/AuditEntry'
+import {
+  AUDIT_ACTIONS,
+  AUDIT_ENTITY_NAMES,
+  type AuditEntry,
+} from '@/Entity/AuditEntry'
 import { useEntityManager } from '@/Hook/useEntityManager'
 import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
 import { joinSearchParts } from '@/Service/Search/searchBlobs'
@@ -13,7 +17,13 @@ import { joinSearchParts } from '@/Service/Search/searchBlobs'
 const ALL = ''
 
 function auditSearchBlob(entry: AuditEntry): string {
-  return joinSearchParts([entry.id, entry.actor, entry.entityName, entry.entityId, entry.action])
+  return joinSearchParts([
+    entry.id,
+    entry.actor,
+    entry.entityName,
+    entry.entityId,
+    entry.action,
+  ])
 }
 
 /**
@@ -86,7 +96,9 @@ export function AuditLogPage() {
       />
       <AuditTable
         entries={visible}
-        emptyMessage={entries.length === 0 ? t('auditLog.empty') : t('listTable.noMatches')}
+        emptyMessage={
+          entries.length === 0 ? t('auditLog.empty') : t('listTable.noMatches')
+        }
       />
     </div>
   )

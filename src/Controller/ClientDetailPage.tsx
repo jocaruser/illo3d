@@ -103,9 +103,8 @@ export function ClientDetailPage() {
     void navigate('/clients')
   }
 
-  const confirmArchiveJob = () => {
-    if (archivingJob === null) return
-    new LifecycleService(em).archiveJob(archivingJob.id)
+  const confirmArchiveJob = (job: Job) => {
+    new LifecycleService(em).archiveJob(job.id)
     toast.success(t('toast.saveSuccess'))
     setArchivingJob(null)
     bump()
@@ -156,7 +155,7 @@ export function ClientDetailPage() {
         </>
       }
     >
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5" data-testid="client-metrics">
         <StatCard label={t('clientDetail.metricPaidLedger')} value={formatCurrency(metrics.paidLedger)} tone="positive" />
         <StatCard
           label={t('clientDetail.metricOutstanding')}
@@ -236,14 +235,16 @@ export function ClientDetailPage() {
         onCancel={() => setArchiveOpen(false)}
       />
 
-      <ConfirmDialog
-        open={archivingJob !== null}
-        title={t('jobs.archiveConfirmTitle')}
-        message={t('jobs.archiveConfirmMessage', { id: archivingJob?.id ?? '' })}
-        confirmLabel={t('lifecycle.archive')}
-        onConfirm={confirmArchiveJob}
-        onCancel={() => setArchivingJob(null)}
-      />
+      {archivingJob !== null && (
+        <ConfirmDialog
+          open
+          title={t('jobs.archiveConfirmTitle')}
+          message={t('jobs.archiveConfirmMessage', { id: archivingJob.id })}
+          confirmLabel={t('lifecycle.archive')}
+          onConfirm={() => confirmArchiveJob(archivingJob)}
+          onCancel={() => setArchivingJob(null)}
+        />
+      )}
     </EntityDetailPage>
   )
 }
