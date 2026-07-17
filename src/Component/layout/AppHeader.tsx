@@ -96,7 +96,7 @@ export function AppHeader() {
         data-testid="workbook-actions-mobile"
         className="flex justify-end border-t border-border px-4 py-2 md:hidden"
       >
-        <WorkbookActions />
+        <WorkbookActions testIdPrefix="workbook-mobile" />
       </div>
     </header>
   )

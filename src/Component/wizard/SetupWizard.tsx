@@ -99,7 +99,10 @@ export function SetupWizard() {
     }
 
     useBackendStore.getState().setLocalDirectoryHandle(handle)
-    await persistDirectoryHandle(handle)
+    // Best-effort: the in-memory handle is what opens the shop. Persisting it
+    // only saves a re-pick after a reload, so a storage failure (private mode,
+    // quota, disabled storage) must not strand the user on this screen.
+    await persistDirectoryHandle(handle).catch(() => {})
 
     try {
       // The folder's own contents decide create-vs-open: metadata means shop.

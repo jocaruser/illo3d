@@ -2,12 +2,21 @@ import { useTranslation } from 'react-i18next'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
 import { useWorkbookService } from '@/Hook/useWorkbookService'
 
+interface WorkbookActionsProps {
+  /**
+   * The header renders these actions twice — inline on desktop, in their own row
+   * on mobile — and CSS hides one. Both are in the DOM, so each instance needs
+   * its own test id namespace to stay individually addressable.
+   */
+  testIdPrefix?: string
+}
+
 /**
  * Refresh and Save for the workbook snapshot. Refresh discards local edits, so
  * a dirty workbook forces a confirmation first; Save is offered only when
  * there is something to save.
  */
-export function WorkbookActions() {
+export function WorkbookActions({ testIdPrefix = 'workbook' }: WorkbookActionsProps = {}) {
   const { t } = useTranslation()
   const {
     refresh,
@@ -24,6 +33,7 @@ export function WorkbookActions() {
       <button
         type="button"
         className="btn-secondary py-1.5 text-sm"
+        data-testid={`${testIdPrefix}-refresh`}
         onClick={() => {
           void refresh()
         }}
@@ -33,6 +43,7 @@ export function WorkbookActions() {
       <button
         type="button"
         className="btn-primary py-1.5 text-sm"
+        data-testid={`${testIdPrefix}-save`}
         disabled={!ready || !dirty}
         onClick={() => {
           void save()

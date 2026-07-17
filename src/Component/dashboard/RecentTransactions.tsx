@@ -25,19 +25,31 @@ export function RecentTransactions() {
   const conceptOf = (transaction: Transaction): ReactNode => {
     if (transaction.refType === 'job') {
       return (
-        <Link to={`/jobs/${transaction.refId}`} className="text-primary hover:underline">
+        <Link
+          to={`/jobs/${transaction.refId}`}
+          className="text-primary hover:underline"
+          data-testid={`transaction-concept-job-link-${transaction.id}`}
+        >
           {transaction.concept}
         </Link>
       )
     }
     if (transaction.isExpense() && em.lots.findActiveByTransaction(transaction.id).length > 0) {
       return (
-        <Link to={`/transactions/${transaction.id}`} className="text-primary hover:underline">
+        <Link
+          to={`/transactions/${transaction.id}`}
+          className="text-primary hover:underline"
+          data-testid={`transaction-concept-expense-link-${transaction.id}`}
+        >
           {transaction.concept}
         </Link>
       )
     }
-    return <span className="text-text">{transaction.concept}</span>
+    return (
+      <span className="text-text" data-testid={`transaction-concept-plain-${transaction.id}`}>
+        {transaction.concept}
+      </span>
+    )
   }
 
   return (

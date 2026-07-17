@@ -203,6 +203,20 @@ describe('SetupWizard', () => {
       ).not.toBeInTheDocument()
     })
 
+    it('opens the shop even when the handle cannot be persisted', async () => {
+      // Persisting only saves a re-pick after reload; storage can fail (private
+      // mode, quota) and must never strand the user on the picking screen.
+      persistDirectoryHandle.mockRejectedValueOnce(new Error('DataCloneError'))
+      const user = userEvent.setup()
+      renderWithProviders(<SetupWizard />)
+
+      await user.click(screen.getByTestId('wizard-local-folder'))
+
+      await waitFor(() =>
+        expect(useShopStore.getState().activeShop).toEqual(shop)
+      )
+    })
+
     it('offers to create a shop when the folder holds no metadata', async () => {
       readMetadata.mockResolvedValue(null)
       const user = userEvent.setup()

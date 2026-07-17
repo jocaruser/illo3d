@@ -37,7 +37,8 @@ export function DashboardPage() {
       ) : (
         <>
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <SectionHeading>{t('page.dashboard')}</SectionHeading>
+            {/* The page's h1, matching every other page's title level. */}
+            <h1 className="font-display text-2xl font-semibold text-text">{t('page.dashboard')}</h1>
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -56,10 +57,13 @@ export function DashboardPage() {
 
           <ExpectedBenefitCard />
 
-          <div>
-            <ViewSwitcher view={view} onChange={setView} />
+          <section aria-labelledby="dashboard-jobs-heading">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <SectionHeading id="dashboard-jobs-heading">{t('nav.jobs')}</SectionHeading>
+              <ViewSwitcher view={view} onChange={setView} />
+            </div>
             <div className="mt-3">{view === 'kanban' ? <KanbanBoard /> : <CalendarView />}</div>
-          </div>
+          </section>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <InventoryAlerts />
