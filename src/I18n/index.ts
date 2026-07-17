@@ -8,6 +8,16 @@ export const SUPPORTED_LANGUAGES = ['en', 'es'] as const
 export type Language = (typeof SUPPORTED_LANGUAGES)[number]
 
 /**
+ * First-run default: the browser's language, narrowed to what the app
+ * speaks. A stored preference always wins over this.
+ */
+export function detectBrowserLanguage(
+  raw: string = globalThis.navigator?.language ?? ''
+): Language {
+  return raw.toLowerCase().startsWith('es') ? 'es' : 'en'
+}
+
+/**
  * Reads the persisted language without importing the preferences store —
  * i18n must initialize before React (and before Zustand hydration).
  */
@@ -16,11 +26,13 @@ export function readPersistedLanguage(
 ): Language {
   try {
     const raw = storage.getItem('user-preferences-storage')
-    if (raw === null) return 'en'
+    if (raw === null) return detectBrowserLanguage()
     const parsed = JSON.parse(raw) as { state?: { language?: string } }
-    return parsed.state?.language === 'es' ? 'es' : 'en'
+    if (parsed.state?.language === 'es') return 'es'
+    if (parsed.state?.language === 'en') return 'en'
+    return detectBrowserLanguage()
   } catch {
-    return 'en'
+    return detectBrowserLanguage()
   }
 }
 

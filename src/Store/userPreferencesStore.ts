@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
+import { detectBrowserLanguage } from '@/I18n'
 import { appStorage } from '@/Store/persistStorage'
 
 export type Language = 'en' | 'es'
@@ -24,7 +25,8 @@ interface UserPreferencesState {
 export const useUserPreferencesStore = create<UserPreferencesState>()(
   persist(
     (set) => ({
-      language: 'en',
+      // First run speaks the browser's language; a persisted choice overrides.
+      language: detectBrowserLanguage(),
       theme: 'light',
 
       setLanguage: (language) => set({ language }),
