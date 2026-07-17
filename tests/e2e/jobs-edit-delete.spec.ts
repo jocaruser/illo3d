@@ -1,13 +1,5 @@
 import { test, expect } from './fixtures'
-
-async function readMockCsv(page: typeof test.arguments[0], fileName: string): Promise<string> {
-  return page.evaluate(async (name) => {
-    const handle = (window as unknown as { __e2eMockDirectoryHandle: FileSystemDirectoryHandle }).__e2eMockDirectoryHandle
-    const fileHandle = await handle.getFileHandle(name)
-    const file = await fileHandle.getFile()
-    return file.text()
-  }, fileName)
-}
+import { readMockCsv } from './helpers/readMockCsv'
 
 test.describe('Job edit and delete', () => {
   test.describe.configure({ mode: 'serial' })
