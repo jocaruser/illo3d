@@ -30,7 +30,7 @@ function seedWorld(): TestWorld {
         phone: '600',
         notes: 'sheet level note',
         preferred_contact: 'email',
-        lead_source: 'referred by @CL2 who saw @P1',
+        lead_source: 'referred by @CL2 who saw @P1 not @P99',
         address: '1 Main St',
         created_at: '2024-01-02',
       },
@@ -83,6 +83,8 @@ describe('ClientDetailPage', () => {
     expect(screen.getByRole('link', { name: '@CL2' })).toHaveAttribute('href', '/clients/CL2')
     // A piece mention resolves through to its job's detail anchor.
     expect(screen.getByRole('link', { name: '@P1' })).toHaveAttribute('href', '/jobs/J1#piece-P1')
+    // An unresolvable one stays plain text.
+    expect(screen.queryByRole('link', { name: '@P99' })).not.toBeInTheDocument()
   })
 
   it('omits optional fields that are empty', () => {
