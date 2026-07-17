@@ -4,24 +4,9 @@ illo3d is a **3D print shop management** web app: clients, jobs, money (transact
 
 ## Development standards commitment
 
-Per the Aircury development standards, illo3d is an **internal tool in production** (a failure affects only its own users, but real shop data is at stake). The agreed level per dimension:
+Per the Aircury development standards, illo3d is an **internal tool in production**. The agreed level per dimension:
 
 **R2 D3 C4 E4 L3 S2 Y2 O1 B1 P2 U1 A2**
-
-| Dimension | Level | Rationale |
-|---|---|---|
-| Code review | R2 — PR with green CI | Single maintainer; branch protection + required checks enforce it. Revisit to R3 if a second developer joins. |
-| Documentation & specs | D3 — specs in sync with behaviour | Spec-driven repo: `specs/` is the canonical behaviour record and must track the app. |
-| Test coverage | C4 — 95% lines / 100% files | Exceeded: Vitest thresholds enforce **100%** statements, branches, functions and lines. |
-| E2E testing | E4 — full regression suite in CI | The whole Playwright suite runs on every PR (`make e2e-test`). |
-| Static analysis | L3 — maximum level, no errors or warnings in CI | ESLint with `--max-warnings 0` + `tsc` + React Doctor (blocking at warning level). |
-| Security | S2 — dependency updates + CI vulnerability gate | Dependabot weekly; `make audit` fails CI on high/critical advisories. |
-| Deployment | Y2 — automated from CI | Every push to `main` deploys to GitHub Pages. |
-| Observability | O1 — basic logs | Static app with no server; console + error boundaries suffice for its audience. |
-| Backups & recovery | B1 — none (with rationale) | The app stores no data itself: shops live in the user's Drive or local folder, and the migration wizard creates its own backups before touching a shop. |
-| Performance | P2 — budget checked in CI | `make budget` fails CI when the gzipped bundle exceeds its limits (`scripts/check-bundle-budget.mjs`). |
-| Uptime | U1 — best effort | Static hosting on GitHub Pages. |
-| Accessibility & browsers | A2 — modern (evergreen) browsers | The Local CSV backend needs the File System Access API, so it is **Chromium-only**; Google Drive works in all evergreen browsers. |
 
 ## Prerequisites
 
