@@ -80,6 +80,50 @@ describe('serializeCsv', () => {
   })
 })
 
+describe('formula-injection guard', () => {
+  it('prefixes formula-trigger cells with an apostrophe on serialize', () => {
+    expect(serializeCsv([['=SUM(A1:A9)', '+cmd| /C calc', '-cmd', '@handle', '\tlead']])).toBe(
+      "'=SUM(A1:A9),'+cmd| /C calc,'-cmd,'@handle,'\tlead\r\n"
+    )
+  })
+
+  it('leaves plain numbers unguarded', () => {
+    expect(serializeCsv([['-25.5', '+42', '-350', '0', '-0.001']])).toBe(
+      '-25.5,+42,-350,0,-0.001\r\n'
+    )
+  })
+
+  it('strips the guard apostrophe on parse', () => {
+    expect(parseCsv("'=SUM(A1),x")).toEqual([['=SUM(A1)', 'x']])
+  })
+
+  it('leaves a plain apostrophe-lead cell alone on parse', () => {
+    expect(parseCsv("'hello,x")).toEqual([["'hello", 'x']])
+  })
+
+  it('guards and quotes a cell needing both', () => {
+    expect(serializeCsv([['=HYPERLINK("x"),y']])).toBe('"\'=HYPERLINK(""x""),y"\r\n')
+    expect(parseCsv('"\'=HYPERLINK(""x""),y"')).toEqual([['=HYPERLINK("x"),y']])
+  })
+
+  it('round-trips guarded, apostrophe-prefixed and numeric cells unchanged', () => {
+    const cells = [
+      '=SUM(A1)',
+      "'=already prefixed",
+      "''=double prefixed",
+      '-leading dash note',
+      '@user',
+      '-25.5',
+      "'plain apostrophe",
+      '\tcmd',
+      '-',
+    ]
+    for (const cell of cells) {
+      expect(parseCsv(serializeCsv([[cell]]))).toEqual([[cell]])
+    }
+  })
+})
+
 describe('round-trip', () => {
   const trickyCells = [
     '{"a":"x,y","b":"he said \\"hi\\""}',
