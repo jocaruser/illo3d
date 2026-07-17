@@ -10,8 +10,7 @@ a dialog that upgrades the shop before it can be used.
 ## When it triggers
 
 Every shop records the app version that created or last upgraded it,
-in the shop's metadata file
-(a future `entities/metadata.spec.md` will describe that file).
+in [the shop's metadata file](../entities/metadata.spec.md).
 Opening a shop compares that recorded version
 against the app's own
 ([`src/Config/version.ts`](../../src/Config/version.ts)).
