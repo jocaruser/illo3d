@@ -29,39 +29,49 @@ specs lead, code follows.
 
 ## Checklist
 
-Statuses: unplanned → questions answered → **drafted (awaiting confirmation)** → confirmed & committed.
+Every surface and page is drafted.
+Carlos's review of the self-directed batch (everything below the line) is pending.
 
-Done:
+Reviewed and confirmed in session:
 
 - [x] `welcome/` — welcome, local-folder, google-drive
 - [x] `migration/` — wizard, v1-to-v2, v2-to-v3
+- [x] `navigation.spec.md`, `saving.spec.md`, `not-found.spec.md`
+  (committed with the merge; content amendable)
 
-Committed with the merge to main, content still open to amendment:
+---
 
-- [x] `navigation.spec.md`
-  (breadcrumb rule lives here; page specs must link to it, never restate it)
-- [x] `saving.spec.md`
-  (two-tabs truth backed by ADR-0013)
-- [x] `not-found.spec.md`
-  (own loose file per round 7; details specs link here for soft-deleted pages)
+Self-directed, awaiting Carlos's review:
 
-Loose surfaces, not yet planned:
+- [x] `search.spec.md`, `profile.spec.md`, `entities/metadata.spec.md`
+- [x] `dashboard/` — overview, stats, kanban, calendar, stock-alerts, recent-transactions
+- [x] `jobs/` — list (owns how-lists-behave); details: overview, widgets
+  (owns totals, due colours, paid dialogs), pieces-table (owns consumption),
+  materials-summary
+- [x] `clients/` — list; details: overview, metrics, notes (owns mentions
+  and severities), tags (owns the shared pool), timeline, jobs-table
+- [x] `inventory/` — list; details: item, lots, consumption
+- [x] `transactions/` — list, purchase, expense-details
+- [x] `audit-log/audit-log.spec.md`
+- [x] ADR-0014 (archive-then-delete lifecycle), ADR-0015 (derived pricing,
+  income on paid) — extracted hidden decisions
 
-- [ ] `search.spec.md` — global search
-- [ ] `profile.spec.md` — identity, sign out, version row
-  (whether theme/language stay inside it: TBD)
-- [ ] `entities/metadata.spec.md` — the shop metadata file
-  (forward-referenced from `migration/wizard.spec.md`)
+## Questions for review
 
-Pages, not yet planned:
-
-- [ ] `dashboard/` — stats, kanban, calendar, stock alerts, recent transactions
-- [ ] `clients/` — list; details (profile, metrics, timeline, notes, tags, jobs table)
-- [ ] `jobs/` — list; details (widgets, pieces table, materials summary, notes, tags)
-  — owns totals, benefit, due-date colours, consumption
-- [ ] `inventory/` — list; details (item, lots, consumption)
-- [ ] `transactions/` — list, purchase, expense details
-- [ ] `audit-log/`
+1. Notes and tags mechanics are owned by `clients/details/` (the CRM heart);
+   jobs' identical sections link over and have no files of their own. Agreed?
+2. The how-lists-behave rule is owned by `jobs/list.spec.md`
+   (first list written). Keep, or prefer another owner?
+3. Sign-out discards unsaved changes without the confirmation Refresh asks
+   for — specced as truth in `profile.spec.md`; fix queued as a task. Fix it?
+4. Two backend-inappropriate strings were fixed to spec them honestly:
+   the structure error ("Google Sheet" → "files") and the transactions empty
+   state ("Add data in Google Sheets." → how transactions are actually
+   created). Review the new wording.
+5. American spellings remain in pre-ADR-0010 ADRs and framework-generated
+   files (`specs/features/README.md`, `specs/ui/`) per adoption-on-next-edit.
+6. `FRAMEWORK.local.md` still names `openspec/specs/` as canonical;
+   flip it to this tree after review? The fate of `openspec/` stays open.
 
 ## Spec-led deviations awaiting implementation
 
