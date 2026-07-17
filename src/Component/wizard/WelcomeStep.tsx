@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CloudIcon, FolderOpenIcon } from '@heroicons/react/24/outline'
 import { LanguageToggle } from '@/Component/LanguageToggle'
+import { ThemeToggle } from '@/Component/ThemeToggle'
 
 interface WelcomeStepProps {
   onChooseLocal: () => void
@@ -22,7 +23,8 @@ export function WelcomeStep({
   const { t } = useTranslation()
   return (
     <div>
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <ThemeToggle />
         <LanguageToggle />
       </div>
       <h1 className="text-center font-display text-4xl font-semibold text-text">
