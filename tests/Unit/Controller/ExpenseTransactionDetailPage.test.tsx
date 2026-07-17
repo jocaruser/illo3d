@@ -458,7 +458,7 @@ describe('ExpenseTransactionDetailPage', () => {
       expect(after.transactions.find('T11')?.amount).toBe(-40)
       expect(after.lots.find('L1')?.quantity).toBe(1500)
       expect(after.lots.find('L1')?.amount).toBe(40)
-      expect(mocks.toast.success).toHaveBeenCalledWith('Saved successfully')
+      expect(mocks.toast.success).toHaveBeenCalledWith('Change applied — save to persist it')
     })
 
     it('persists the amount alone when there are no lots', async () => {

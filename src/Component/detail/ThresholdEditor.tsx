@@ -48,7 +48,7 @@ export function ThresholdEditor({ item }: ThresholdEditorProps) {
       return
     }
     setError('')
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
   }
 
   return (

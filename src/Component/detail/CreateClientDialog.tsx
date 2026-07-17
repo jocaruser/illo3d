@@ -73,7 +73,7 @@ export function CreateClientDialog({ open, onClose, client, onSaved }: CreateCli
       setError(t(result.error))
       return
     }
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     onSaved?.(result.client, isEdit ? 'edit' : 'create')
     onClose()
   }

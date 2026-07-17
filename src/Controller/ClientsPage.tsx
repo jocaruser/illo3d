@@ -70,7 +70,7 @@ export function ClientsPage() {
 
   const confirmArchive = (client: Client) => {
     new LifecycleService(em).archiveClient(client.id)
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     setArchiving(null)
     bump()
   }

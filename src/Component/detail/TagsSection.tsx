@@ -45,7 +45,7 @@ export function TagsSection({ entityType, entityId }: TagsSectionProps) {
       toast.error(t(result.error))
       return
     }
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     bump()
   }
 
@@ -56,7 +56,7 @@ export function TagsSection({ entityType, entityId }: TagsSectionProps) {
 
   const remove = (tagId: string) => {
     service.removeTagFromEntity(entityType, entityId, tagId)
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     bump()
   }
 

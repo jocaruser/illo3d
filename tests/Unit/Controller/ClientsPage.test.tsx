@@ -216,7 +216,7 @@ describe('ClientsPage', () => {
     expect(dataRowIds()).toEqual(['CL1', 'CL10'])
     expect(world.em.clients.find('CL2')?.isArchived()).toBe(true)
     expect(world.em.jobs.find('J1')?.isArchived()).toBe(true)
-    expect(toastMock.success).toHaveBeenCalledWith('Saved successfully')
+    expect(toastMock.success).toHaveBeenCalledWith('Change applied — save to persist it')
   })
 
   it('keeps the client when archiving is cancelled', async () => {

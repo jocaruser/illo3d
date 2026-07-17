@@ -357,7 +357,7 @@ describe('JobsPage', () => {
     expect(dataRowIds()).toEqual(['J3', 'J2'])
     expect(world.em.jobs.find('J1')?.isArchived()).toBe(true)
     expect(world.em.pieces.find('P1')?.isArchived()).toBe(true)
-    expect(toastMock.success).toHaveBeenCalledWith('Saved successfully')
+    expect(toastMock.success).toHaveBeenCalledWith('Change applied — save to persist it')
   })
 
   it('keeps the job when the archive is cancelled', async () => {

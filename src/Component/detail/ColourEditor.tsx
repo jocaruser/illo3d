@@ -42,7 +42,7 @@ export function ColourEditor({ itemId, colour }: ColourEditorProps) {
     }
     setError('')
     setValue(result.item.colour)
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
   }
 
   return (

@@ -67,7 +67,7 @@ describe('TagsSection', () => {
 
     expect(screen.getByTestId('client-tag-chip-TG2')).toHaveTextContent('Rush')
     expect(world.em.tagLinks.hasActiveLink('TG2', 'client', 'CL1')).toBe(true)
-    expect(toastMock.success).toHaveBeenCalledWith('Saved successfully')
+    expect(toastMock.success).toHaveBeenCalledWith('Change applied — save to persist it')
   })
 
   it('creates a new tag in Title Case', async () => {
@@ -113,7 +113,7 @@ describe('TagsSection', () => {
 
     expect(screen.getByText('No tags yet.')).toBeInTheDocument()
     expect(world.em.tagLinks.findAll()).toHaveLength(0)
-    expect(toastMock.success).toHaveBeenCalledWith('Saved successfully')
+    expect(toastMock.success).toHaveBeenCalledWith('Change applied — save to persist it')
   })
 
   it('ignores a picked option whose tag disappeared', async () => {

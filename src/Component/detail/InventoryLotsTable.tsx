@@ -81,7 +81,7 @@ function LotRow({ lot, transactionLabel }: InventoryLotRow) {
       return
     }
     setError('')
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
   }
 
   return (

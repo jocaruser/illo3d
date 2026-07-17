@@ -36,7 +36,7 @@ export function QtyEditor({ itemId, qtyCurrent }: QtyEditorProps) {
     setError('')
     // Echo what was stored: the service rounds to two decimals.
     setValue(String(result.item.qtyCurrent))
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
   }
 
   return (

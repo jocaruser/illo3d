@@ -39,7 +39,7 @@ export function CreatePieceDialog({ open, onClose, jobId, onCreated }: CreatePie
       setError(t(result.error))
       return
     }
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     onCreated?.(result.piece.id)
     onClose()
   }

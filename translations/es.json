@@ -35,7 +35,8 @@
     "saveSuccess": "Guardado correctamente",
     "saveError": "No se pudo guardar",
     "loadError": "No se pudo cargar",
-    "retryAction": "Reintentar"
+    "retryAction": "Reintentar",
+    "changeApplied": "Cambio aplicado — guarda para conservarlo"
   },
   "listTable": {
     "searchPlaceholder": "Buscar…",

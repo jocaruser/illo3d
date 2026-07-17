@@ -84,7 +84,7 @@ export function JobDetailPage() {
     const service = new LifecycleService(em)
     if (lifecycle === 'delete') service.softDeleteJob(job.id)
     else service.archiveJob(job.id)
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     setLifecycle(null)
     void navigate('/jobs')
   }
@@ -99,7 +99,7 @@ export function JobDetailPage() {
       toast.error(t(result.error))
       return
     }
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     bump()
   }
 

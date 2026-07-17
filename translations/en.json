@@ -35,7 +35,8 @@
     "saveSuccess": "Saved successfully",
     "saveError": "Could not save",
     "loadError": "Could not load",
-    "retryAction": "Retry"
+    "retryAction": "Retry",
+    "changeApplied": "Change applied — save to persist it"
   },
   "listTable": {
     "searchPlaceholder": "Search…",

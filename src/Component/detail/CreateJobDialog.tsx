@@ -87,7 +87,7 @@ export function CreateJobDialog({
       setError(t(result.error))
       return
     }
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     if (job !== null && job !== undefined) onUpdated?.(result.job)
     else onCreated?.(result.job.id)
     onClose()

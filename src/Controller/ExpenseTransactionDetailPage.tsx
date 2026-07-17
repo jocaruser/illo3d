@@ -154,7 +154,7 @@ function ExpenseDetail({ transaction }: ExpenseDetailProps) {
       }
     }
     setSaveError('')
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
   }
 
   const conceptValue = conceptField(em, transaction)

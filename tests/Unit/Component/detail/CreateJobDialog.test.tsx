@@ -83,7 +83,7 @@ describe('CreateJobDialog', () => {
     })
     expect(onCreated).toHaveBeenCalledWith('J2')
     expect(onClose).toHaveBeenCalled()
-    expect(toastMock.success).toHaveBeenCalledWith('Saved successfully')
+    expect(toastMock.success).toHaveBeenCalledWith('Change applied — save to persist it')
   })
 
   it('offers only active clients', async () => {

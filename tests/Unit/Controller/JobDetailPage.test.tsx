@@ -212,7 +212,7 @@ describe('JobDetailPage', () => {
 
     expect(world.em.jobs.find('J1')?.dueDate).toBe('2024-06-30')
     expect(within(widget('due-date')).getByText('2024-06-30')).toBeInTheDocument()
-    expect(toastMock.success).toHaveBeenCalledWith('Saved successfully')
+    expect(toastMock.success).toHaveBeenCalledWith('Change applied — save to persist it')
   })
 
   it('leaves the due date alone when the inline edit changes nothing', async () => {

@@ -140,7 +140,7 @@ describe('InventoryDetailPage', () => {
 
       expect(inventoryRow('INV1')?.qtyCurrent).toBe(900.57)
       expect(input).toHaveValue(900.57)
-      expect(mocks.toast.success).toHaveBeenCalledWith('Saved successfully')
+      expect(mocks.toast.success).toHaveBeenCalledWith('Change applied — save to persist it')
     })
 
     it('rejects a negative count', async () => {

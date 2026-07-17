@@ -98,21 +98,21 @@ export function ClientDetailPage() {
 
   const confirmArchiveClient = () => {
     new LifecycleService(em).archiveClient(client.id)
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     setArchiveOpen(false)
     void navigate('/clients')
   }
 
   const confirmArchiveJob = (job: Job) => {
     new LifecycleService(em).archiveJob(job.id)
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     setArchivingJob(null)
     bump()
   }
 
   const unarchiveJob = (job: Job) => {
     new LifecycleService(em).restoreJob(job.id)
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     bump()
   }
 

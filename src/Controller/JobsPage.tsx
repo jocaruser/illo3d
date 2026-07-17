@@ -89,7 +89,7 @@ export function JobsPage() {
 
   const confirmArchive = (job: Job) => {
     new LifecycleService(em).archiveJob(job.id)
-    toast.success(t('toast.saveSuccess'))
+    toast.success(t('toast.changeApplied'))
     setArchiving(null)
     bump()
   }

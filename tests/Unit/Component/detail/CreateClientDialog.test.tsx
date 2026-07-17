@@ -72,7 +72,7 @@ describe('CreateClientDialog', () => {
     })
     expect(onSaved).toHaveBeenCalledWith(created, 'create')
     expect(onClose).toHaveBeenCalled()
-    expect(toastMock.success).toHaveBeenCalledWith('Saved successfully')
+    expect(toastMock.success).toHaveBeenCalledWith('Change applied — save to persist it')
   })
 
   it('rejects a blank name and keeps the dialog open', async () => {
