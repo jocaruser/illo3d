@@ -191,6 +191,13 @@ describe('MigrationWizardModal', () => {
     expect(screen.getByLabelText('Inventory: pending')).toBeInTheDocument()
   })
 
+  it('offers the same language and theme toggles as the welcome screen', () => {
+    renderModal()
+
+    expect(screen.getByTestId('language-toggle-es')).toBeInTheDocument()
+    expect(screen.getByTestId('theme-toggle-dark')).toBeInTheDocument()
+  })
+
   it('gates Continue on the backup question', () => {
     renderModal()
 
