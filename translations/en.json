@@ -629,7 +629,7 @@
     "errorNotShop": "This folder is not an illo3d shop.",
     "errorVersion": "This shop was created with a different app version and cannot be opened.",
     "errorShopStructure": "This shop's Google Sheet is missing a tab or column this version of illo3d needs. Update the sheet to match the latest template, or create a new shop.",
-    "errorShopStructureWithDetail": "This shop's Google Sheet does not match the layout this app expects: {{detail}}",
+    "errorShopStructureWithDetail": "This shop's files do not match the layout this app expects: {{detail}}",
     "errorGeneric": "Something went wrong. Please try again.",
     "migrationTitle": "Migration Wizard",
     "migrationShopLabel": "Current version",
