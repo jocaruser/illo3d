@@ -1,0 +1,10 @@
+# Single-package repo: this file exists to carry pnpm settings.
+packages:
+  - '.'
+
+# Supply-chain hardening (pnpm reads these settings from this file as of v10).
+# Wait a week before adopting newly published versions, so malicious releases
+# tend to be caught and unpublished before they can reach an install.
+minimumReleaseAge: 10080
+# Refuse updates whose trust signals (provenance, signatures) weaken.
+trustPolicy: no-downgrade

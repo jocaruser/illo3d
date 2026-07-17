@@ -1,8 +1,8 @@
-id,type,name,qty_current,warn_yellow,warn_orange,warn_red,created_at,archived,deleted
-INV1,plastic,PLA filament,500,100,50,25,2025-07-04T10:00:00.000Z,,
-INV2,resin,ABS pellets,180,50,25,10,2025-08-03T11:00:00.000Z,,
-INV3,metal,Aluminum rods,85,30,15,5,2025-08-04T10:00:00.000Z,,
-INV4,tool,Drill bits set,20,8,4,2,2025-08-05T11:00:00.000Z,2025-08-11T11:00:00.000Z,2025-08-14T10:00:00.000Z
-INV5,consumable,Sandpaper sheets,500,100,50,25,2025-08-06T10:00:00.000Z,2025-08-12T10:00:00.000Z,
-INV6,consumable,Cleaning solvent,50,15,8,3,2025-08-07T11:00:00.000Z,,
-INV7,material,Lot stock,1000,200,100,50,2025-11-01T09:00:00.000Z,,
+id,type,name,qty_current,warn_yellow,warn_orange,warn_red,created_at,archived,deleted,colour
+INV1,plastic,PLA filament,500,100,50,25,2025-07-04T10:00:00.000Z,,,
+INV2,resin,ABS pellets,180,50,25,10,2025-08-03T11:00:00.000Z,,,
+INV3,metal,Aluminum rods,85,30,15,5,2025-08-04T10:00:00.000Z,,,
+INV4,tool,Drill bits set,20,8,4,2,2025-08-05T11:00:00.000Z,2025-08-11T11:00:00.000Z,2025-08-14T10:00:00.000Z,
+INV5,consumable,Sandpaper sheets,500,100,50,25,2025-08-06T10:00:00.000Z,2025-08-12T10:00:00.000Z,,
+INV6,consumable,Cleaning solvent,50,15,8,3,2025-08-07T11:00:00.000Z,,,
+INV7,material,Lot stock,1000,200,100,50,2025-11-01T09:00:00.000Z,,,

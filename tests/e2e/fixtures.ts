@@ -16,7 +16,8 @@ export function copyGoldenFixtureToE2eRoot(fixtureScenario: string): void {
   if (!fs.existsSync(goldenDir)) {
     throw new Error(`Golden fixture scenario not found: ${fixtureScenario}`)
   }
-  const destRoot = path.join(process.cwd(), '.e2e-fixtures')
+  // Overridable so parallel playwright runs can each own an isolated tree.
+  const destRoot = path.join(process.cwd(), process.env.E2E_FIXTURES_DIR ?? '.e2e-fixtures')
 
   fs.rmSync(destRoot, { recursive: true, force: true })
   fs.mkdirSync(destRoot, { recursive: true })
@@ -38,13 +39,20 @@ export async function waitForShopDataReady(page: Page) {
 }
 
 /**
- * Wizard welcome: first Google Drive click expresses Drive intent (One Tap may run);
- * second click runs the OAuth token client (mocked in e2e).
+ * Wizard welcome: click Google Drive until the Drive step mounts. A click can
+ * race the (mocked) GIS script load — `useGoogleLogin` no-ops until the token
+ * client exists — so the click is retried instead of fired a fixed number of
+ * times (a second unconditional click would target a detached button once the
+ * first one succeeds).
  */
 export async function completeWizardGoogleDriveWelcome(page: Page): Promise<void> {
   const driveBtn = page.getByTestId('wizard-google-drive')
-  await driveBtn.click()
-  await driveBtn.click()
+  const driveStep = page.getByTestId('wizard-google-create')
+  await expect(async () => {
+    if (await driveStep.isVisible()) return
+    await driveBtn.click({ timeout: 2000 })
+    await expect(driveStep).toBeVisible({ timeout: 2000 })
+  }).toPass({ timeout: 20000 })
 }
 
 /** Wizard: mock directory picker + open local fixture shop for `fixtureScenario`. */

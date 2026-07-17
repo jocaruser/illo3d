@@ -183,7 +183,7 @@ test.describe('Job edit and delete', () => {
       .getByRole('dialog', {
         name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
       })
-      .getByRole('button', { name: /archive|archivar/i })
+      .getByRole('button', { name: /soft delete|eliminar/i })
       .click()
 
     await expect(page).toHaveURL(/\/jobs$/)

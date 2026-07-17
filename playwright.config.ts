@@ -39,7 +39,7 @@ export default defineConfig({
       dependencies: ['setup'],
       use: {
         ...devices['Desktop Chrome'],
-        storageState: 'tests/e2e/.auth/storage-state.json',
+        storageState: process.env.E2E_AUTH_STATE ?? 'tests/e2e/.auth/storage-state.json',
       },
     },
   ],

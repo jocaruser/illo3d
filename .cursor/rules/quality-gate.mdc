@@ -14,7 +14,7 @@ alwaysApply: true
 - **All tests must pass at all times**: Every test in the codebase must pass. There are no exceptions, no "expected failures," and no "this test is flaky so we ignore it." If a test fails, it indicates a real problem that must be fixed immediately.
 - **When to run E2E locally**: GitHub CI runs **`make e2e-test`** on pull requests. Run **`make e2e-test`** locally when you touch routing, auth, or other flows covered by Playwright, or when debugging a CI e2e failure—not as part of every small edit. All E2E tests must pass in CI before merging.
 - **Build must succeed**: TypeScript compilation and Vite build must complete with no errors or warnings.
-- **Version bump required for every change**: Every PR and code change must bump `src/config/version.ts` following semantic versioning. Ask the user for the next version number if it is unclear; otherwise apply standard semver rules:
+- **Version bump required for every change**: Every PR and code change must bump `src/Config/version.ts` following semantic versioning. Ask the user for the next version number if it is unclear; otherwise apply standard semver rules:
   - **Patch** (e.g. `1.0.1` → `1.0.2`): backwards-compatible bug fixes, refactors, docs, or minor UI tweaks.
   - **Minor** (e.g. `1.0.1` → `1.1.0`): backwards-compatible new features, new non-breaking APIs, or additive schema changes.
   - **Major** (e.g. `1.0.1` → `2.0.0`): any breaking change, incompatible schema change, or anything that causes `validateShopFolder` to reject old shops until they are migrated.

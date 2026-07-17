@@ -48,6 +48,44 @@ jobs:
         run: make lint
 
   # ============================================================
+  # JOB 1b: Dependency audit (security gate — S2)
+  # ============================================================
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Build app image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Dockerfile
+          push: false
+          load: true
+          tags: illo3d-app:latest
+          cache-from: type=gha
+
+      - name: Start app container
+        run: docker compose up -d --no-build app
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Dependency vulnerability gate
+        run: make audit
+
+  # ============================================================
   # JOB 2: React Doctor (Code quality scanner)
   # ============================================================
   react-doctor:
@@ -168,6 +206,9 @@ jobs:
 
       - name: Build
         run: make build
+
+      - name: Bundle budget (P2)
+        run: docker compose exec app node scripts/check-bundle-budget.mjs
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

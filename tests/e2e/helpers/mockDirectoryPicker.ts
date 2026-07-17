@@ -1,19 +1,198 @@
 import type { Page } from '@playwright/test'
-import { SHEET_NAMES } from '../../../src/services/sheets/config'
+import { SHEET_NAMES } from '../../../src/Config/schema'
+
+/** Flat path → contents map. Directories are implied by `/`-separated prefixes. */
+type FileStore = Record<string, string>
+
+const STORE_KEY = '__e2eFixtureFiles'
 
 function fixtureFileList(): string[] {
-  return ['illo3d.metadata.json', ...SHEET_NAMES.map((s) => `${s}.csv`)]
+  // `logo.svg` is optional — scenarios without one simply 404 and stay absent.
+  return ['illo3d.metadata.json', 'logo.svg', ...SHEET_NAMES.map((s) => `${s}.csv`)]
 }
 
 /**
- * Replaces `showDirectoryPicker` on the live page with a handle backed by in-memory files
- * loaded from `/fixtures/<scenario>/` (served by the e2e Vite server).
+ * Installs an in-memory `showDirectoryPicker` on the page.
  *
- * Playwright's Chromium often has no `navigator.storage` (OPFS) on non-localhost HTTP
- * origins (e.g. `http://web:5174` in Docker), so we do not use OPFS here.
+ * Serialized into the browser by both `evaluate` and `addInitScript`, so it must
+ * be entirely self-contained — no imports, no outer-scope references.
  *
- * To survive `page.goto()` navigations within the same test, fixture data is stored in
- * `localStorage` and an init script recreates the mock handle on every page load.
+ * The handle mirrors the slice of the File System Access API the app actually
+ * uses: `getFileHandle`, `getDirectoryHandle`, `removeEntry` and `keys` (the
+ * migration engine copies a shop into a working subdirectory, and
+ * `LocalCsvWorkbookRepository.getSheetNames` iterates `keys()`). Writes flush to
+ * `localStorage` so a Save survives a reload, matching a real folder.
+ *
+ * @param args.seed  fixture contents to install
+ * @param args.force overwrite any store already in `localStorage` (a fresh
+ *                   `mockDirectoryPicker` call resets; page loads restore)
+ */
+function installMock(args: { seed: FileStore; force: boolean }): void {
+  const persisted = localStorage.getItem('__e2eFixtureFiles')
+  const store: FileStore =
+    !args.force && persisted !== null
+      ? (JSON.parse(persisted) as FileStore)
+      : { ...args.seed }
+
+  const flush = (): void =>
+    localStorage.setItem('__e2eFixtureFiles', JSON.stringify(store))
+  flush()
+
+  // Directories created but not yet written to; real ones exist before holding files.
+  const emptyDirs = new Set<string>()
+
+  async function chunkText(data: unknown): Promise<string> {
+    if (typeof data === 'string') return data
+    if (data instanceof Blob) return await data.text()
+    if (data instanceof ArrayBuffer) return new TextDecoder().decode(data)
+    if (ArrayBuffer.isView(data)) {
+      const view = data as ArrayBufferView
+      return new TextDecoder().decode(
+        view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength)
+      )
+    }
+    return String(data)
+  }
+
+  /** A real handle reports the file's MIME type; `<img>` (the shop logo) needs it. */
+  function mimeFor(path: string): string {
+    if (path.endsWith('.svg')) return 'image/svg+xml'
+    if (path.endsWith('.png')) return 'image/png'
+    if (path.endsWith('.json')) return 'application/json'
+    if (path.endsWith('.csv')) return 'text/csv'
+    return 'text/plain'
+  }
+
+  function fileHandle(path: string) {
+    return {
+      kind: 'file' as const,
+      name: path.split('/').pop() ?? path,
+      async getFile(): Promise<File> {
+        return new File([store[path] ?? ''], path, { type: mimeFor(path) })
+      },
+      async createWritable(options?: { keepExistingData?: boolean }) {
+        let position = 0
+        let buffer =
+          options?.keepExistingData === true ? String(store[path] ?? '') : ''
+        return {
+          async write(data: unknown): Promise<void> {
+            const chunk = await chunkText(data)
+            buffer =
+              buffer.slice(0, position) +
+              chunk +
+              buffer.slice(position + chunk.length)
+            position += chunk.length
+          },
+          async seek(offset: number): Promise<void> {
+            position = offset
+          },
+          async close(): Promise<void> {
+            store[path] = buffer
+            flush()
+          },
+        }
+      },
+    }
+  }
+
+  function notFound(what: string): DOMException {
+    return new DOMException(`${what} could not be found.`, 'NotFoundError')
+  }
+
+  function dirHandle(name: string, prefix: string) {
+    /** Immediate children: file names, plus the first segment of nested paths. */
+    const childNames = (): string[] => {
+      const names = new Set<string>()
+      for (const path of Object.keys(store)) {
+        if (!path.startsWith(prefix)) continue
+        const rest = path.slice(prefix.length)
+        if (rest === '') continue
+        const slash = rest.indexOf('/')
+        names.add(slash === -1 ? rest : rest.slice(0, slash))
+      }
+      for (const dir of emptyDirs) {
+        if (!dir.startsWith(prefix)) continue
+        const rest = dir.slice(prefix.length).replace(/\/$/, '')
+        if (rest !== '' && !rest.includes('/')) names.add(rest)
+      }
+      return [...names]
+    }
+
+    return {
+      kind: 'directory' as const,
+      name,
+      async getFileHandle(rel: string, options?: { create?: boolean }) {
+        const path = prefix + rel
+        if (!(path in store)) {
+          if (options?.create !== true) throw notFound(`The file ${rel}`)
+          store[path] = ''
+          flush()
+        }
+        return fileHandle(path)
+      },
+      async getDirectoryHandle(rel: string, options?: { create?: boolean }) {
+        const childPrefix = `${prefix + rel}/`
+        const exists =
+          emptyDirs.has(childPrefix) ||
+          Object.keys(store).some((path) => path.startsWith(childPrefix))
+        if (!exists) {
+          if (options?.create !== true) throw notFound(`The directory ${rel}`)
+          emptyDirs.add(childPrefix)
+        }
+        return dirHandle(rel, childPrefix)
+      },
+      async removeEntry(rel: string, options?: { recursive?: boolean }) {
+        const path = prefix + rel
+        const childPrefix = `${path}/`
+        let removed = false
+        if (path in store) {
+          delete store[path]
+          removed = true
+        }
+        for (const key of Object.keys(store)) {
+          if (!key.startsWith(childPrefix)) continue
+          if (options?.recursive !== true) {
+            throw new DOMException(
+              `${rel} is not empty.`,
+              'InvalidModificationError'
+            )
+          }
+          delete store[key]
+          removed = true
+        }
+        for (const dir of [...emptyDirs]) {
+          if (dir === childPrefix || dir.startsWith(childPrefix)) {
+            emptyDirs.delete(dir)
+            removed = true
+          }
+        }
+        if (!removed) throw notFound(`The entry ${rel}`)
+        flush()
+      },
+      async *keys(): AsyncIterableIterator<string> {
+        for (const child of childNames()) yield child
+      },
+    }
+  }
+
+  const rootName = 'e2e-shop'
+  const handle = dirHandle(rootName, '') as unknown as FileSystemDirectoryHandle
+
+  const target = window as unknown as {
+    showDirectoryPicker: () => Promise<FileSystemDirectoryHandle>
+    __e2eMockDirectoryHandle: FileSystemDirectoryHandle
+  }
+  target.showDirectoryPicker = async () => handle
+  target.__e2eMockDirectoryHandle = handle
+}
+
+/**
+ * Replaces `showDirectoryPicker` with a handle backed by in-memory copies of
+ * `/fixtures/<scenario>/` (served by the e2e Vite server).
+ *
+ * OPFS is unavailable in Playwright's Chromium on non-localhost HTTP origins
+ * (e.g. `http://web:5174` in Docker), hence the hand-rolled handle. The mock is
+ * re-installed on every page load so it survives `page.goto()`.
  */
 export async function mockDirectoryPicker(
   page: Page,
@@ -22,170 +201,26 @@ export async function mockDirectoryPicker(
 ): Promise<void> {
   const files = mode === 'empty' ? [] : fixtureFileList()
 
-  // Fetch fixture files and persist them in localStorage so they survive navigations.
-  await page.evaluate(
+  const seed = await page.evaluate(
     async ({ scen, fileNames }) => {
-      async function asWriteChunk(data: unknown): Promise<string> {
-        if (typeof data === 'string') return data
-        if (data instanceof Blob) return await data.text()
-        if (data instanceof ArrayBuffer) return new TextDecoder().decode(data)
-        if (ArrayBuffer.isView(data)) {
-          const v = data as ArrayBufferView
-          return new TextDecoder().decode(
-            v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength),
-          )
+      const loaded: Record<string, string> = {}
+      for (const name of fileNames) {
+        const response = await fetch(`/fixtures/${scen}/${name}`)
+        // Older-schema scenarios legitimately lack newer sheets (a v1 shop has
+        // no audit_log.csv) — absent files stay absent, like a real folder.
+        if (response.status === 404) continue
+        if (!response.ok) {
+          throw new Error(`Missing fixture file: ${scen}/${name} (${response.status})`)
         }
-        return String(data)
+        loaded[name] = await response.text()
       }
-
-      function memFileHandle(rel: string, store: Record<string, string>) {
-        return {
-          async getFile(): Promise<File> {
-            const body = store[rel] ?? ''
-            return new File([body], rel, { type: 'text/plain' })
-          },
-          async createWritable(options?: { keepExistingData?: boolean }) {
-            let position = 0
-            let buffer = options?.keepExistingData ? String(store[rel] ?? '') : ''
-            return {
-              async write(data: unknown) {
-                const chunk = await asWriteChunk(data)
-                buffer =
-                  buffer.slice(0, position) + chunk + buffer.slice(position + chunk.length)
-                position += chunk.length
-              },
-              async seek(offset: number) {
-                position = offset
-              },
-              async close() {
-                store[rel] = buffer
-              },
-            }
-          },
-        }
-      }
-
-      function memDirHandle(name: string, initial: Record<string, string>) {
-        const filesMap: Record<string, string> = { ...initial }
-        return {
-          name,
-          async getFileHandle(rel: string, options?: { create?: boolean }) {
-            const create = options?.create === true
-            if (!(rel in filesMap)) {
-              if (!create) {
-                throw new DOMException('The requested file could not be found.', 'NotFoundError')
-              }
-              filesMap[rel] = ''
-            }
-            return memFileHandle(rel, filesMap)
-          },
-        }
-      }
-
-      const storage: Record<string, string> = {}
-      for (const f of fileNames as string[]) {
-        const res = await fetch(`/fixtures/${scen}/${f}`)
-        if (!res.ok) {
-          throw new Error(`Missing fixture file: ${scen}/${f} (${res.status})`)
-        }
-        storage[f] = await res.text()
-      }
-
-      const rootName = `e2e-shop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-      const handle = memDirHandle(rootName, storage) as unknown as FileSystemDirectoryHandle
-
-      const w = window as unknown as {
-        showDirectoryPicker: () => Promise<FileSystemDirectoryHandle>
-        __e2eMockDirectoryHandle: FileSystemDirectoryHandle
-      }
-      w.showDirectoryPicker = async (): Promise<FileSystemDirectoryHandle> => handle
-      w.__e2eMockDirectoryHandle = handle
-
-      localStorage.setItem('__e2eFixtureFiles', JSON.stringify(storage))
-      localStorage.setItem('__e2eFixtureScenario', scen)
+      return loaded
     },
-    { scen: scenario, fileNames: files },
+    { scen: scenario, fileNames: files }
   )
 
-  // Register an init script that recreates the mock handle on every page load.
-  await page.addInitScript(() => {
-    const raw = localStorage.getItem('__e2eFixtureFiles')
-    const scen = localStorage.getItem('__e2eFixtureScenario')
-    if (!raw || !scen) return
-
-    const storage: Record<string, string> = JSON.parse(raw)
-
-    function memFileHandle(rel: string, store: Record<string, string>) {
-      return {
-        async getFile(): Promise<File> {
-          const body = store[rel] ?? ''
-          return new File([body], rel, { type: 'text/plain' })
-        },
-        async createWritable(options?: { keepExistingData?: boolean }) {
-          let position = 0
-          let buffer = options?.keepExistingData ? String(store[rel] ?? '') : ''
-          return {
-            async write(data: unknown) {
-              const chunk =
-                typeof data === 'string'
-                  ? data
-                  : data instanceof Blob
-                    ? await data.text()
-                    : data instanceof ArrayBuffer
-                      ? new TextDecoder().decode(data)
-                      : ArrayBuffer.isView(data)
-                        ? new TextDecoder().decode(
-                            data.buffer.slice(
-                              data.byteOffset,
-                              data.byteOffset + data.byteLength,
-                            ),
-                          )
-                        : String(data)
-              buffer =
-                buffer.slice(0, position) +
-                chunk +
-                buffer.slice(position + chunk.length)
-              position += chunk.length
-            },
-            async seek(offset: number) {
-              position = offset
-            },
-            async close() {
-              store[rel] = buffer
-            },
-          }
-        },
-      }
-    }
-
-    function memDirHandle(name: string, initial: Record<string, string>) {
-      const filesMap: Record<string, string> = { ...initial }
-      return {
-        name,
-        async getFileHandle(rel: string, options?: { create?: boolean }) {
-          const create = options?.create === true
-          if (!(rel in filesMap)) {
-            if (!create) {
-              throw new DOMException(
-                'The requested file could not be found.',
-                'NotFoundError',
-              )
-            }
-            filesMap[rel] = ''
-          }
-          return memFileHandle(rel, filesMap)
-        },
-      }
-    }
-
-    const rootName = `e2e-shop-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`
-    const handle = memDirHandle(rootName, storage) as unknown as FileSystemDirectoryHandle
-
-    const w = window as unknown as {
-      showDirectoryPicker: () => Promise<FileSystemDirectoryHandle>
-      __e2eMockDirectoryHandle: FileSystemDirectoryHandle
-    }
-    w.showDirectoryPicker = async (): Promise<FileSystemDirectoryHandle> => handle
-    w.__e2eMockDirectoryHandle = handle
-  })
+  await page.evaluate(installMock, { seed, force: true })
+  await page.addInitScript(installMock, { seed, force: false })
 }
+
+export { STORE_KEY }

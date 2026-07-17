@@ -18,7 +18,7 @@ jobs:
       - name: Extract current version
         id: current
         run: |
-          VERSION=$(sed -n "s/.*APP_VERSION *= *'\([^']*\)'.*/\1/p" src/config/version.ts)
+          VERSION=$(sed -n "s/.*APP_VERSION *= *'\([^']*\)'.*/\1/p" src/Config/version.ts)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Check if release exists

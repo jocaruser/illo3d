@@ -1,4 +1,28 @@
+import type { Page } from '@playwright/test'
 import { test, expect } from './fixtures'
+
+/** The header nav renders plain links (no testids); target them by role. */
+function navAuditLogLink(page: Page) {
+  return page
+    .getByRole('navigation', { name: /main navigation|navegación principal/i })
+    .getByRole('link', { name: /audit log|registro de auditoría/i })
+}
+
+/**
+ * `RelativeTime` renders `<time title="absolute">relative</time>` (no dateTime
+ * attr); the absolute text is locale/timezone-dependent, so compute it in the
+ * page's own context.
+ */
+async function absoluteTimeTitle(page: Page, iso: string): Promise<string> {
+  return page.evaluate(
+    (value) =>
+      new Intl.DateTimeFormat('en', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }).format(new Date(value)),
+    iso
+  )
+}
 
 test.describe('Audit Log page (empty)', () => {
   test('navigates from header, shows title and empty state', async ({
@@ -11,7 +35,7 @@ test.describe('Audit Log page (empty)', () => {
       page.getByRole('heading', { name: /dashboard|panel/i })
     ).toBeVisible()
 
-    await page.getByTestId('nav-audit-log').click()
+    await navAuditLogLink(page).click()
     await expect(page).toHaveURL(/\/audit-log/)
 
     await expect(page.getByTestId('audit-log-page')).toBeVisible()
@@ -47,7 +71,7 @@ test.describe('Audit Log page (with data)', () => {
       page.getByRole('heading', { name: /dashboard|panel/i })
     ).toBeVisible()
 
-    await page.getByTestId('nav-audit-log').click()
+    await navAuditLogLink(page).click()
     await expect(page).toHaveURL(/\/audit-log/)
 
     await expect(page.getByTestId('audit-log-page')).toBeVisible()
@@ -77,18 +101,19 @@ test.describe('Audit Log page (with data)', () => {
     )
     expect(al1015Index).toBeLessThan(al1014Index)
 
-    // Malformed rows have red background and readable dark-red text
-    await expect(al1015Row).toHaveClass(/bg-red-50/)
-    await expect(al1015Row).toHaveClass(/text-red-900/)
+    // Malformed rows (missing id OR timestamp) are flagged with danger text
     await expect(
       page.locator('tbody tr').filter({ hasText: /MALFORMED_1/ }).first()
-    ).toHaveClass(/bg-red-50/)
+    ).toHaveClass(/text-danger/)
     await expect(
       page.locator('tbody tr').filter({ hasText: /MALFORMED_2/ }).first()
-    ).toHaveClass(/bg-red-50/)
+    ).toHaveClass(/text-danger/)
 
-    // Valid row AL1014 has no red background
-    await expect(al1014Row).not.toHaveClass(/bg-red-50/)
+    // AL1015 is truncated but keeps its id and timestamp, so it renders normally
+    await expect(al1015Row).not.toHaveClass(/text-danger/)
+
+    // Valid row AL1014 is not flagged either
+    await expect(al1014Row).not.toHaveClass(/text-danger/)
   })
 
   test('renders action pills with correct colors', async ({ page, openCsvShop }) => {
@@ -96,33 +121,33 @@ test.describe('Audit Log page (with data)', () => {
     await page.goto('/#/audit-log', { waitUntil: 'load' })
     await expect(page.getByTestId('audit-log-page')).toBeVisible()
 
-    // Create action → green pill
+    // Create action → green pill (label text is title-case; CSS uppercases it)
     const createRow = page.locator('tbody tr').filter({ hasText: /AL001/ }).first()
-    const createPill = createRow.locator('span').filter({ hasText: /CREATE/ })
+    const createPill = createRow.locator('span').filter({ hasText: /create/i })
     await expect(createPill).toHaveClass(/bg-success\/15/)
     await expect(createPill).toHaveClass(/text-success/)
 
     // Update action → blue pill
     const updateRow = page.locator('tbody tr').filter({ hasText: /AL111/ }).first()
-    const updatePill = updateRow.locator('span').filter({ hasText: /UPDATE/ })
+    const updatePill = updateRow.locator('span').filter({ hasText: /update/i })
     await expect(updatePill).toHaveClass(/bg-primary\/15/)
     await expect(updatePill).toHaveClass(/text-primary/)
 
     // Archive action → red pill
     const archiveRow = page.locator('tbody tr').filter({ hasText: /AL075/ }).first()
-    const archivePill = archiveRow.locator('span').filter({ hasText: /ARCHIVE/ })
+    const archivePill = archiveRow.locator('span').filter({ hasText: /archive/i })
     await expect(archivePill).toHaveClass(/bg-danger\/15/)
     await expect(archivePill).toHaveClass(/text-danger/)
 
     // Delete action → red pill
     const deleteRow = page.locator('tbody tr').filter({ hasText: /AL079/ }).first()
-    const deletePill = deleteRow.locator('span').filter({ hasText: /DELETE/ })
+    const deletePill = deleteRow.locator('span').filter({ hasText: /delete/i })
     await expect(deletePill).toHaveClass(/bg-danger\/15/)
     await expect(deletePill).toHaveClass(/text-danger/)
 
     // Restore action → green pill
     const restoreRow = page.locator('tbody tr').filter({ hasText: /AL083/ }).first()
-    const restorePill = restoreRow.locator('span').filter({ hasText: /RESTORE/ })
+    const restorePill = restoreRow.locator('span').filter({ hasText: /restore/i })
     await expect(restorePill).toHaveClass(/bg-success\/15/)
     await expect(restorePill).toHaveClass(/text-success/)
   })
@@ -147,11 +172,11 @@ test.describe('Audit Log page (with data)', () => {
     await expect(jobLink).toBeVisible()
     await expect(jobLink).toHaveAttribute('href', '#/jobs/J1')
 
-    // Piece entity links to parent job
+    // Piece entity links to parent job (anchored to the piece row on the job page)
     const pieceRow = page.locator('tbody tr').filter({ hasText: /AL302/ }).first()
     const pieceLink = pieceRow.locator('a').filter({ hasText: /Alpha bracket/ })
     await expect(pieceLink).toBeVisible()
-    await expect(pieceLink).toHaveAttribute('href', '#/jobs/J6')
+    await expect(pieceLink).toHaveAttribute('href', '#/jobs/J6#piece-P1')
 
     // Tag link (no detail page) shows raw ID with no <a>
     const tagLinkRow = page.locator('tbody tr').filter({ hasText: /AL702/ }).first()
@@ -192,9 +217,14 @@ test.describe('Audit Log page (with data)', () => {
 
     // Verify expected cell content (new column order: id, actor, action, entity, timestamp, parent)
     await expect(cells.nth(0)).toHaveText('AL111')
-    await expect(cells.nth(2)).toContainText('UPDATE')
+    await expect(cells.nth(2)).toContainText(/update/i)
     await expect(cells.nth(3)).toHaveText('TechStart Solutions')
-    await expect(cells.nth(4).locator('time')).toHaveAttribute('dateTime', '2025-03-02T10:00:00.000Z')
+    // <time title="absolute">relative</time>, without a dateTime attr
+    await expect(cells.nth(4).locator('time')).toHaveAttribute(
+      'title',
+      await absoluteTimeTitle(page, '2025-03-02T10:00:00.000Z')
+    )
+    await expect(cells.nth(4).locator('time')).not.toHaveAttribute('datetime', /.*/)
     await expect(cells.nth(5)).toHaveText('')
   })
 
@@ -219,9 +249,14 @@ test.describe('Audit Log page (with data)', () => {
 
     // Verify expected cell content (new column order: id, actor, action, entity, timestamp, parent)
     await expect(cells.nth(0)).toHaveText('AL1008')
-    await expect(cells.nth(2)).toContainText('UPDATE')
+    await expect(cells.nth(2)).toContainText(/update/i)
     await expect(cells.nth(3)).toHaveText('TL4')
-    await expect(cells.nth(4).locator('time')).toHaveAttribute('dateTime', '2026-01-09T11:00:00.000Z')
+    // <time title="absolute">relative</time>, without a dateTime attr
+    await expect(cells.nth(4).locator('time')).toHaveAttribute(
+      'title',
+      await absoluteTimeTitle(page, '2026-01-09T11:00:00.000Z')
+    )
+    await expect(cells.nth(4).locator('time')).not.toHaveAttribute('datetime', /.*/)
     await expect(cells.nth(5)).toHaveText('')
   })
 
@@ -233,16 +268,17 @@ test.describe('Audit Log page (with data)', () => {
     // AL1208: Job J14 archive (root of cascade) — no parent entity
     const archiveJobRow = page.locator('tbody tr').filter({ hasText: /AL1208/ }).first()
     await expect(archiveJobRow).toBeVisible()
-    await expect(archiveJobRow.locator('span').filter({ hasText: /ARCHIVE/ })).toHaveClass(/bg-danger\/15/)
+    await expect(archiveJobRow.locator('span').filter({ hasText: /archive/i })).toHaveClass(/bg-danger\/15/)
     await expect(archiveJobRow.locator('a').filter({ hasText: /Cascade draft job/ })).toBeVisible()
     await expect(archiveJobRow.locator('a').filter({ hasText: /Cascade draft job/ })).toHaveAttribute('href', '#/jobs/J14')
 
     // AL1209: Piece P7 archive with parent_entity=job J14
     const archivePieceRow = page.locator('tbody tr').filter({ hasText: /AL1209/ }).first()
     await expect(archivePieceRow).toBeVisible()
-    await expect(archivePieceRow.locator('span').filter({ hasText: /ARCHIVE/ })).toHaveClass(/bg-danger\/15/)
+    await expect(archivePieceRow.locator('span').filter({ hasText: /archive/i })).toHaveClass(/bg-danger\/15/)
     await expect(archivePieceRow.locator('a').filter({ hasText: /Cascade draft piece/ })).toBeVisible()
-    await expect(archivePieceRow.locator('a').filter({ hasText: /Cascade draft piece/ })).toHaveAttribute('href', '#/jobs/J14')
+    // Piece entity links to its parent job, anchored to the piece row
+    await expect(archivePieceRow.locator('a').filter({ hasText: /Cascade draft piece/ })).toHaveAttribute('href', '#/jobs/J14#piece-P7')
     const p9ParentLink = archivePieceRow.locator('a').filter({ hasText: /Cascade draft job/ })
     await expect(p9ParentLink).toBeVisible()
     await expect(p9ParentLink).toHaveAttribute('href', '#/jobs/J14')
@@ -250,8 +286,10 @@ test.describe('Audit Log page (with data)', () => {
     // AL1210: Piece item PI6 archive with parent_entity=job J14
     const archivePi6Row = page.locator('tbody tr').filter({ hasText: /AL1210/ }).first()
     await expect(archivePi6Row).toBeVisible()
-    await expect(archivePi6Row.locator('span').filter({ hasText: /ARCHIVE/ })).toHaveClass(/bg-danger\/15/)
-    await expect(archivePi6Row.locator('a').filter({ hasText: /Item for Cascade draft piece/ })).toBeVisible()
+    await expect(archivePi6Row.locator('span').filter({ hasText: /archive/i })).toHaveClass(/bg-danger\/15/)
+    // Piece items have no detail page: the entity shows its raw id, unlinked
+    await expect(archivePi6Row.locator('a').filter({ hasText: /PI6/ })).not.toBeVisible()
+    await expect(archivePi6Row).toContainText('PI6')
     const pi6ParentLink = archivePi6Row.locator('a').filter({ hasText: /Cascade draft job/ })
     await expect(pi6ParentLink).toBeVisible()
     await expect(pi6ParentLink).toHaveAttribute('href', '#/jobs/J14')
@@ -259,8 +297,10 @@ test.describe('Audit Log page (with data)', () => {
     // AL1211: Piece item PI7 archive with parent_entity=job J14
     const archivePi7Row = page.locator('tbody tr').filter({ hasText: /AL1211/ }).first()
     await expect(archivePi7Row).toBeVisible()
-    await expect(archivePi7Row.locator('span').filter({ hasText: /ARCHIVE/ })).toHaveClass(/bg-danger\/15/)
-    await expect(archivePi7Row.locator('a').filter({ hasText: /Item for Cascade draft piece/ })).toBeVisible()
+    await expect(archivePi7Row.locator('span').filter({ hasText: /archive/i })).toHaveClass(/bg-danger\/15/)
+    // Piece items have no detail page: the entity shows its raw id, unlinked
+    await expect(archivePi7Row.locator('a').filter({ hasText: /PI7/ })).not.toBeVisible()
+    await expect(archivePi7Row).toContainText('PI7')
     const pi7ParentLink = archivePi7Row.locator('a').filter({ hasText: /Cascade draft job/ })
     await expect(pi7ParentLink).toBeVisible()
     await expect(pi7ParentLink).toHaveAttribute('href', '#/jobs/J14')

@@ -42,8 +42,17 @@ tests/e2e/.auth/
 fixtures/realdata
 .gitignore
 .opencode/
-docs/
+# docs/ stays untracked except the framework-managed capability details,
+# which FRAMEWORK.md links to and which must ship with the repo.
+docs/*
+!docs/aircury/
 opencode.json
 
 # Local playground / sandbox files
 playground/
+.e2e-fixtures-*/
+test-results-*/
+tests/e2e/.auth/storage-state-*.json
+
+# Aircury AI Framework
+specs/changes/

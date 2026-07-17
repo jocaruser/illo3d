@@ -52,6 +52,7 @@ Table jobs {
   created_at varchar [not null]
   archived varchar
   deleted varchar
+  due_date varchar [note: 'v3: optional YYYY-MM-DD; falls back to created_at']
 }
 
 Table pieces {
@@ -86,6 +87,7 @@ Table inventory {
   created_at varchar [not null]
   archived varchar
   deleted varchar
+  colour varchar [note: 'v3: optional #RRGGBB swatch']
 }
 
 Table lots {

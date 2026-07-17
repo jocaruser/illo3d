@@ -72,7 +72,7 @@ test.describe('Jobs page', () => {
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
-    const j1Status = page.locator('#job-status-J1')
+    const j1Status = page.getByTestId('job-status-J1').getByRole('combobox')
     await j1Status.focus()
     await page.getByRole('option', { name: /in progress|en curso/i }).click()
     await expect(j1Status).toHaveValue(/in progress|en curso/i)
@@ -99,7 +99,7 @@ test.describe('Jobs page', () => {
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
-    const j2Status = page.locator('#job-status-J2')
+    const j2Status = page.getByTestId('job-status-J2').getByRole('combobox')
     await j2Status.focus()
     await page.getByRole('option', { name: /^paid$/i }).click()
     // Paid is dialog-gated: controlled value stays on prior value until confirm.
@@ -170,7 +170,7 @@ test.describe('Jobs page', () => {
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
-    const j1PaidFlow = page.locator('#job-status-J1')
+    const j1PaidFlow = page.getByTestId('job-status-J1').getByRole('combobox')
     await j1PaidFlow.focus()
     await page.getByRole('option', { name: /^paid$/i }).click()
     await expect(j1PaidFlow).toHaveValue(/^draft$/i)

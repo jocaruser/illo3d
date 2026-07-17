@@ -1,32 +1,23 @@
-import { Fragment, StrictMode } from 'react'
+import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { GoogleOAuthProvider } from '@react-oauth/google'
-import App from './App'
-import './i18n'
-import './index.css'
-import './styles/tokens.css'
-import { registerGoogleOAuthClientId } from '@/services/google/accessToken'
-import { initTheme } from '@/lib/theme/initTheme'
+import '@/Theme/index.css'
+import { Kernel } from '@/Kernel'
+import { initTheme } from '@/Theme/initTheme'
 
+// Before the first paint: the theme comes from the bundle, never an inline
+// script, because the CSP forbids `'unsafe-inline'` (ARCHITECTURE.md).
 initTheme()
 
-const queryClient = new QueryClient()
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
-registerGoogleOAuthClientId(googleClientId)
+const container = document.getElementById('root')
+if (container === null) throw new Error('Missing #root container')
 
-const appTree = (
-  <GoogleOAuthProvider clientId={googleClientId}>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </GoogleOAuthProvider>
-)
-
-// Playwright E2E uses the Vite dev server; StrictMode's dev double-mount remounts
-// the tree and can detach nodes mid-click (flaky in CI). Production builds omit it.
-const RootWrapper = import.meta.env.VITE_E2E === 'true' ? Fragment : StrictMode
-
-createRoot(document.getElementById('root')!).render(
-  <RootWrapper>{appTree}</RootWrapper>,
+createRoot(container).render(
+  // StrictMode double-invokes effects, which makes Playwright races flaky.
+  import.meta.env.VITE_E2E === 'true' ? (
+    <Kernel />
+  ) : (
+    <StrictMode>
+      <Kernel />
+    </StrictMode>
+  )
 )

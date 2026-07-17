@@ -1,6 +1,12 @@
 # illo3d
 
-illo3d is a **3D print shop management** web app: clients, jobs, money (transactions and expenses), and inventory. The UI is **React18**, **TypeScript**, **Vite**, and **Tailwind CSS**, with **Zustand** for client state and **TanStack Query** for server state. Google OAuth and optional local CSV fixtures back the data layer.
+illo3d is a **3D print shop management** web app: clients, jobs, money (transactions and expenses), and inventory. The UI is **React 18**, **TypeScript**, **Vite**, and **Tailwind CSS**, with **Zustand** for state over an in-memory workbook snapshot. Shops live in the user's own storage — Google Drive (Sheets) or a local folder of CSVs — behind swappable repository implementations. See `ARCHITECTURE.md` for the design.
+
+## Development standards commitment
+
+Per the Aircury development standards, illo3d is an **internal tool in production**. The agreed level per dimension:
+
+**R2 D3 C4 E4 L3 S2 Y2 O1 B1 P2 U1 A2**
 
 ## Prerequisites
 
@@ -66,11 +72,14 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 
 | Target | Purpose |
 |--------|---------|
-| `make lint` | ESLint |
+| `make lint` | ESLint (0 errors required) |
 | `make format` | Prettier (write) |
-| `make test` | Vitest unit tests |
+| `make test` | Vitest unit tests with **100% coverage thresholds** |
+| `make audit` | Dependency vulnerability gate — fails on high/critical advisories |
+| `make budget` | Performance budget — gzipped bundle must stay within `scripts/check-bundle-budget.mjs` limits |
 | `make e2e-test` | Playwright e2e (dedicated Vite on port 5174, ephemeral fixtures); also runs in GitHub CI on PRs |
-| `make quality-gate` | **`build` → `lint` → `test`** — local/agent check before finishing a change (fast; no e2e) |
+| `make quality-gate` | Sequential full gate: `build` → `lint` → `react-doctor` → `test` → `e2e-test` |
+| `make ci` | Same checks as CI: fast ones (`build`, `lint`, `react-doctor`, `test`, `audit`) in parallel, then `e2e-test` |
 
 ### Data / fixtures
 
@@ -106,7 +115,7 @@ The next push to `main` will trigger the deploy workflow.
 
 - **Unit tests:** `make test` (Vitest). Prefer strong coverage on changed code so logic bugs surface before CI.
 - **E2E tests:** `make e2e-test` (Playwright; uses Dev Login and isolated fixture root — does not modify `public/fixtures/`). Every PR runs this in GitHub Actions; run it locally when changing flows Playwright covers or when reproducing a CI e2e failure.
-- **Local quality gate:** `make quality-gate` — **build**, **lint**, and **unit tests** only (fast feedback). CI still runs **e2e** after unit tests.
+- **Local quality gate:** `make quality-gate` (sequential) or `make ci` (parallel fast checks, then e2e) — both cover build, lint, react-doctor, unit tests; `make ci` adds the dependency audit.
 
 ### Branch protection
 
@@ -115,7 +124,7 @@ The `main` branch requires **1 approved review** before merging. `dependabot[bot
 ## Tech stack summary
 
 - **UI:** React, TypeScript, Vite, Tailwind CSS, react-router-dom, react-i18next  
-- **State / data:** Zustand, TanStack Query  
+- **State / data:** Zustand over an in-memory workbook snapshot (see `ARCHITECTURE.md`)  
 - **Auth:** `@react-oauth/google`  
 - **Tests:** Vitest, Testing Library, Playwright  
 - **Tooling:** ESLint, Prettier, pnpm (inside Docker)

@@ -11,9 +11,30 @@ export default defineConfig({
   },
   test: {
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
+    setupFiles: ['./tests/Unit/setup.ts'],
     globals: true,
-    exclude: ['tests/e2e/**', 'node_modules', 'dist', '.opencode/**'],
+    include: ['tests/Unit/**/*.test.{ts,tsx}'],
+    exclude: ['tests/e2e/**', 'node_modules', 'dist'],
     ...(isCi ? { maxWorkers: 2 } : {}),
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        // Wires the DOM entry point only; everything it composes is covered.
+        'src/main.tsx',
+        // Erasable type declarations with zero executable code.
+        'src/Repository/WorkbookRepositoryInterface.ts',
+        'src/Repository/FolderRepositoryInterface.ts',
+        'src/Migration/MigrationContext.ts',
+        'src/Migration/MigrationPlan.ts',
+        'src/Migration/MigrationTarget.ts',
+      ],
+      thresholds: {
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+      },
+    },
   },
 })

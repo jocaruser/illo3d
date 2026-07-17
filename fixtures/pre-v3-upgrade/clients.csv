@@ -1,0 +1,5 @@
+id,name,email,phone,notes,preferred_contact,lead_source,address,created_at,archived,deleted
+c1,Acme Corp,acme@example.com,+1234567890,First client,,,,2025-01-01,,
+CL1,Beta LLC,beta@example.com,,Beta notes,Email,Referred by @CL2,,2025-01-02,,
+CL2,Gamma Inc,,+19995550102,,WhatsApp,,,2025-01-03,,
+CL3,Delta Co,delta@example.com,,,,,,2025-01-04,,

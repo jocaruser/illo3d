@@ -9,7 +9,8 @@ test.describe('Entry and setup wizard', () => {
     await expect(page).toHaveURL(/\/dashboard/)
     await expect(page.getByTestId('wizard-local-folder')).toBeVisible({ timeout: 15000 })
     await expect(page.getByTestId('wizard-google-drive')).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'illo3d', level: 3 })).toBeVisible()
+    // v3 gives every screen a single h1; the wizard is a full-screen gate, so it owns the page's.
+    await expect(page.getByRole('heading', { name: 'illo3d', level: 1 })).toBeVisible()
   })
 
   test('dashboard without saved shop shows welcome wizard', async ({ page }) => {
