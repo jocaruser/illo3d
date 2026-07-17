@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures'
+import { readMockCsv } from './helpers/readMockCsv'
 
 test.describe('Record purchase flow', () => {
   test.describe.configure({ mode: 'serial' })
@@ -85,22 +86,8 @@ test.describe('Record purchase flow', () => {
     await expect(page.getByText('e2e filament marker')).toBeVisible({ timeout: 15000 })
   })
 
-  test('overhead purchase does not append inventory sheet', async ({ page, openCsvShop }) => {
+  test('overhead purchase does not add an inventory item', async ({ page, openCsvShop }) => {
     void openCsvShop
-    const appendPayloads: { sheetName?: string }[] = []
-    page.on('request', (req) => {
-      if (req.method() !== 'POST' || !req.url().includes('/api/sheets/append')) {
-        return
-      }
-      const raw = req.postData()
-      if (!raw) return
-      try {
-        appendPayloads.push(JSON.parse(raw) as { sheetName?: string })
-      } catch {
-        /* ignore */
-      }
-    })
-
     await expect(page.getByRole('heading', { name: 'Transactions' })).toBeVisible({
       timeout: 10000,
     })
@@ -136,7 +123,19 @@ test.describe('Record purchase flow', () => {
         .filter({ hasText: 'e2e no inventory' }),
     ).toBeVisible()
 
-    expect(appendPayloads.filter((p) => p.sheetName === 'inventory')).toHaveLength(0)
+    // Prove the negative on the real write surface: persist the workbook and
+    // read the CSVs back. The expense must land in transactions.csv while
+    // inventory.csv stays free of it (INV1 is the positive control that we
+    // are reading the right file).
+    await page.getByTestId('workbook-save').click()
+    await expect(page.getByText(/workbook saved|libro guardado/i)).toBeVisible({
+      timeout: 20000,
+    })
+    const transactionsCsv = await readMockCsv(page, 'transactions.csv')
+    expect(transactionsCsv).toContain('e2e no inventory')
+    const inventoryCsv = await readMockCsv(page, 'inventory.csv')
+    expect(inventoryCsv).toContain('INV1')
+    expect(inventoryCsv).not.toContain('e2e no inventory')
   })
 
   test('successful purchase navigates to transaction detail', async ({ page }) => {
