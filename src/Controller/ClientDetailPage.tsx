@@ -43,28 +43,27 @@ export function ClientDetailPage() {
   )
   const [archivingJob, setArchivingJob] = useState<Job | null>(null)
 
-  const client = useMemo(
-    () => em.clients.find(clientId),
-    [em, clientId, revision]
-  )
-  const jobs = useMemo(
-    () => em.jobs.findByClient(clientId),
-    [em, clientId, revision]
-  )
+  const client = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return em.clients.find(clientId)
+  }, [em, clientId, revision])
+  const jobs = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return em.jobs.findByClient(clientId)
+  }, [em, clientId, revision])
 
-  const metrics = useMemo(
-    () =>
-      computeClientMetrics({
-        clientId,
-        jobs: em.jobs.findAll(),
-        transactions: em.transactions.findAll(),
-        pieces: em.pieces.findAll(),
-        pieceItems: em.pieceItems.findAll(),
-        inventory: em.inventory.findAll(),
-        lots: em.lots.findAll(),
-      }),
-    [em, clientId, revision]
-  )
+  const metrics = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return computeClientMetrics({
+      clientId,
+      jobs: em.jobs.findAll(),
+      transactions: em.transactions.findAll(),
+      pieces: em.pieces.findAll(),
+      pieceItems: em.pieceItems.findAll(),
+      inventory: em.inventory.findAll(),
+      lots: em.lots.findAll(),
+    })
+  }, [em, clientId, revision])
 
   const jobRows = useMemo(() => {
     const clientName = client?.name ?? ''

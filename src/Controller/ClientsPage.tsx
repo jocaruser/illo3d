@@ -24,10 +24,14 @@ export function ClientsPage() {
   const [dialog, setDialog] = useState<{ editing: Client | null } | null>(null)
   const [archiving, setArchiving] = useState<Client | null>(null)
 
-  const clients = useMemo(() => em.clients.findActive(), [em, revision])
+  const clients = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return em.clients.findActive()
+  }, [em, revision])
 
   /** Tag names per client id, used for the tooltip and for the search blob. */
   const tagNamesByClient = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
     const names = new Map<string, string[]>()
     for (const link of em.tagLinks.findActive()) {
       if (link.entityType !== 'client') continue

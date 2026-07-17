@@ -1,17 +1,19 @@
-import type { ReactElement, ReactNode } from 'react'
+import type { ReactElement } from 'react'
 import { render } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import type { SheetName } from '@/Config/schema'
-import { initI18n } from '@/I18n'
 import { EntityManager } from '@/Repository/EntityManager'
 import { appendRecord, emptyMatrix } from '@/Repository/Matrix'
 import type { SheetMatrix } from '@/Repository/WorkbookRepositoryInterface'
 import type { SheetRecord } from '@/Entity/SheetEntity'
 import type { Clock } from '@/Service/Clock'
 import type { TabAccess } from '@/Store/TabAccess'
+import { i18n } from './i18n'
+import { LocationDisplay } from './LocationDisplay'
+import { Providers } from './Providers'
 
-export const i18n = initI18n('en')
+export { i18n }
 
 /** A `Clock` frozen at a fixed instant so ids, dates and bands stay stable. */
 export class FixedClock implements Clock {
@@ -61,14 +63,6 @@ export function createWorld(
   return { tabs, em: new EntityManager(tabs, clock, () => 'test@example.com') }
 }
 
-function Providers({ children }: { children: ReactNode }) {
-  return (
-    <I18nextProvider i18n={i18n}>
-      <MemoryRouter>{children}</MemoryRouter>
-    </I18nextProvider>
-  )
-}
-
 /** Render with i18n + a plain router. `rerender` keeps both providers mounted. */
 export function renderWithProviders(ui: ReactElement) {
   return render(ui, { wrapper: Providers })
@@ -79,12 +73,6 @@ interface RenderRouteOptions {
   path: string
   /** Initial location, e.g. `/clients/CL1`. */
   entry: string
-}
-
-/** Reports the router's current path so navigations can be asserted. */
-export function LocationDisplay() {
-  const location = useLocation()
-  return <div data-testid="location">{location.pathname}</div>
 }
 
 /** Render a page behind its real route pattern, with a live location readout. */

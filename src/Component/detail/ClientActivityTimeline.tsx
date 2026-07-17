@@ -22,10 +22,10 @@ export function ClientActivityTimeline({ clientId, revision = 0 }: ClientActivit
   const { t } = useTranslation()
   const em = useEntityManager()
 
-  const entries = useMemo(
-    () => buildClientActivityTimeline(em, clientId),
-    [em, clientId, revision]
-  )
+  const entries = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return buildClientActivityTimeline(em, clientId)
+  }, [em, clientId, revision])
 
   const resolvePieceJob = useCallback(
     (pieceId: string) => em.pieces.find(pieceId)?.jobId ?? null,

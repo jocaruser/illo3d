@@ -1,33 +1,27 @@
 # illo3d v3 — Architecture
 
-This document describes the ground-up rewrite of illo3d (the "v3 rewrite"). It preserves the
-product intent and feature set of the v2 app, completes the two abandoned v2 work streams
-(audit logging and the v2 data-model ideas), and reorganizes the codebase along **Symfony
-conventions** so backend developers feel at home.
+This document is the map of the v3 rewrite: a ground-up reimplementation preserving the v2
+product intent and feature set, completing the two abandoned v2 work streams (audit logging
+and the v2 data-model ideas), and organized along **Symfony conventions**.
 
-## Goals
+The *why* behind each load-bearing choice lives in the ADRs under
+[`specs/decisions/`](specs/decisions/):
 
-1. **Same product, cleaner skeleton.** Every feature of the v2 app is preserved: clients, jobs
-   (kanban + statuses), pieces with BOM lines and inventory consumption, inventory with
-   purchase lots and thresholds, transactions with the purchase flow, tags, CRM notes with
-   @mentions, global fuzzy search, dashboard KPIs, Google Drive/Sheets and Local CSV backends,
-   EN/ES i18n, dark theme, responsive layout.
-2. **Finish the audit log** (the unfinished v2 work): every domain mutation now writes an
-   `audit_log` row (full before/after snapshots + `fieldsChanged`), and the Audit Log page
-   displays them. Notes and tag links stay first-class sheets (main-spec flavor, not the
-   abandoned event-sourcing flavor).
-3. **Adopt the v2-data-model intent with minimal schema change**: jobs gain `due_date`
-   (nullable, drives a new **calendar view** and the due-date badges), inventory gains
-   `colour` (nullable, filament swatches). Jobs keep their status enum and job-based kanban —
-   the abandoned branch's own retrospective (`KANBAN_FEATURE_ANALYSIS.md`) concluded the
-   piece-based kanban regressed UX; we adopt its recommended hybrid: job cards show piece
-   progress.
-4. **Built-in migration wizard**: fully functional (the v2 modal had a dead Continue button).
-   Declarative plans (`V1ToV2`, `V2ToV3`) chained by a registry, executed against an isolated
-   working copy with an optional backup and an atomic metadata-version commit. Live per-entity
-   progress in the wizard grid.
-5. **Perfect code coverage**: Vitest coverage thresholds are set to 100% and enforced by
-   `make test`.
+| ADR | Decision |
+|---|---|
+| [ADR-0001](specs/decisions/ADR-0001-symfony-style-architecture.md) | Symfony-style layout; entity classes, repositories with two backends, EntityManager |
+| [ADR-0002](specs/decisions/ADR-0002-workbook-snapshot-unit-of-work.md) | In-memory workbook snapshot with explicit Save |
+| [ADR-0003](specs/decisions/ADR-0003-client-side-persistence.md) | Memory-only token; shop in localStorage; handle in IndexedDB |
+| [ADR-0004](specs/decisions/ADR-0004-additive-schema-and-migration-wizard.md) | Additive-only schema evolution behind the migration wizard |
+| [ADR-0005](specs/decisions/ADR-0005-audit-logging-at-repository-layer.md) | Audit logging at the repository layer |
+| [ADR-0006](specs/decisions/ADR-0006-job-based-hybrid-kanban.md) | Job-based hybrid kanban, not piece-based |
+| [ADR-0007](specs/decisions/ADR-0007-github-pages-platform.md) | GitHub Pages platform and everything it forces |
+
+Feature scope in one line: clients, jobs (kanban + calendar), pieces with BOM lines and
+inventory consumption, inventory with purchase lots/thresholds/colours, transactions and the
+purchase flow, tags, CRM notes with @mentions, global fuzzy search, dashboard KPIs, audit log,
+migration wizard, Google Drive and Local CSV backends, EN/ES i18n, dark theme, responsive
+layout, 100% coverage thresholds enforced by `make test`.
 
 ## Schema v3
 
@@ -122,40 +116,13 @@ fixtures/                # golden CSV shop scenarios (v3), incl. pre-v2-upgrade 
 - **Theme**: class-based dark mode with CSS custom-property tokens; initialized before React
   mounts to avoid flash.
 
-## Platform constraint: GitHub Pages
+## Platform constraints and persistence
 
-The app ships as a **static bundle on GitHub Pages** (`.github/workflows/deploy.yml`, on push to
-`main`). There is no server at runtime, ever. This is the hard constraint; the rules below are
-the things that follow from it and therefore cannot change. See
-`openspec/specs/github-pages-deployment/spec.md` and `openspec/specs/security-headers/spec.md`.
+The app ships as a static bundle on GitHub Pages — no server at runtime, ever. HashRouter,
+the `/illo3d/` base path, meta-tag CSP (theme init from the bundle; no `'unsafe-inline'`),
+and build-time-only secrets all follow from that: see
+[ADR-0007](specs/decisions/ADR-0007-github-pages-platform.md).
 
-- **HashRouter, not BrowserRouter.** A static host serves no rewrite rules, so deep links must
-  live in the fragment: `/#/clients/CL1`. `src/Config/routes.tsx` wires the hash router and
-  nothing may switch to history-based routing.
-- **Base path `/illo3d/` in production** (`/` in dev) via `vite.config.ts` `base`, so assets
-  resolve under the repo subpath.
-- **No backend and no server-side secrets.** `VITE_GOOGLE_CLIENT_ID` is injected at build time
-  from repo secrets. The Vite plugins that serve and write fixture CSVs are dev/e2e-only and must
-  never become a production dependency — the Local CSV backend writes through the File System
-  Access API directly, and the Google backend talks to the Sheets/Drive APIs from the browser.
-- **CSP and security headers live in `index.html` meta tags**, because there is no server to send
-  real headers: script/connect allowlists for Google Identity and the Sheets/Drive APIs,
-  `frame-ancestors 'none'`, `referrer strict-origin-when-cross-origin`, `nosniff`, and a
-  restrictive `Permissions-Policy`. Theme init therefore runs from the bundle rather than an
-  inline `<script>`, so `script-src` needs no `'unsafe-inline'`.
-
-## Client-side persistence (a design decision, not a platform constraint)
-
-Static hosting says *where* state may live (the browser) but not *which* browser store. v2 put
-OAuth credentials and the active shop in `sessionStorage`, which meant every new tab dropped the
-user back at the setup wizard. v3 makes a deliberate choice per kind of state:
-
-| State | Store | Why |
-|---|---|---|
-| Google access token | **memory only** | A token in `localStorage` is readable by any XSS and outlives the tab for no benefit: the GIS token client already renews silently, so a reload simply re-acquires one. Never persisted. |
-| Active shop, backend choice | **`localStorage`** | Not secret (a folder id and a spreadsheet id). Persisting them lets a returning user land straight in their shop instead of re-running the wizard — the v2 behaviour users felt as friction. |
-| Local CSV directory handle | **IndexedDB** | The only store that can hold a `FileSystemDirectoryHandle`; re-permissioned on use. |
-| Language, theme | **`localStorage`** | Preferences, unchanged from v2. |
-
-Consequence: opening a shop is idempotent across reloads and tabs, and signing out is an
-explicit act that clears the persisted shop rather than a side effect of closing a tab.
+Browser persistence is decided per kind of state — Google access token in memory only, active
+shop and backend choice in `localStorage`, the directory handle in IndexedDB, preferences in
+`localStorage`: see [ADR-0003](specs/decisions/ADR-0003-client-side-persistence.md).

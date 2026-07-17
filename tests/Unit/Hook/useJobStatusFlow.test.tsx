@@ -1,7 +1,8 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { JobStatusFlowDialogs } from '@/Component/dialog/JobStatusFlowDialogs'
 import type { Job, JobStatus } from '@/Entity/Job'
-import { JobStatusFlowDialogs, useJobStatusFlow } from '@/Hook/useJobStatusFlow'
+import { useJobStatusFlow } from '@/Hook/useJobStatusFlow'
 import { renderWithProviders } from '../Component/helpers/renderWithProviders'
 import {
   currentEm,

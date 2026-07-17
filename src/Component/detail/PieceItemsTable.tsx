@@ -48,11 +48,14 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
   }, [drafting])
 
   const service = useMemo(() => new PieceService(em), [em])
-  const lines = useMemo(
-    () => em.pieceItems.findActiveByPiece(piece.id),
-    [em, piece.id, revision]
-  )
-  const inventory = useMemo(() => em.inventory.findActive(), [em, revision])
+  const lines = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return em.pieceItems.findActiveByPiece(piece.id)
+  }, [em, piece.id, revision])
+  const inventory = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return em.inventory.findActive()
+  }, [em, revision])
   const inventoryById = useMemo(
     () => new Map(inventory.map((item) => [item.id, item])),
     [inventory]

@@ -5,12 +5,13 @@ import { AlertBox } from '@/Component/AlertBox'
 import { CreateJobDialog } from '@/Component/detail/CreateJobDialog'
 import { JobsTable } from '@/Component/detail/JobsTable'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
+import { JobStatusFlowDialogs } from '@/Component/dialog/JobStatusFlowDialogs'
 import { ListTablePageHeader } from '@/Component/layout/ListTablePageHeader'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
 import { toast } from '@/Component/Toast'
 import type { Job } from '@/Entity/Job'
 import { useEntityManager } from '@/Hook/useEntityManager'
-import { JobStatusFlowDialogs, useJobStatusFlow } from '@/Hook/useJobStatusFlow'
+import { useJobStatusFlow } from '@/Hook/useJobStatusFlow'
 import { LifecycleService } from '@/Service/LifecycleService'
 import { jobPricingState } from '@/Service/Pricing/jobPricing'
 import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
@@ -41,15 +42,20 @@ export function JobsPage() {
     [flow]
   )
 
-  const jobs = useMemo(() => em.jobs.findActive(), [em, revision])
+  const jobs = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return em.jobs.findActive()
+  }, [em, revision])
 
   const clientNames = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
     const names = new Map<string, string>()
     for (const client of em.clients.findAll()) names.set(client.id, client.name)
     return names
   }, [em, revision])
 
   const tagNamesByJob = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
     const names = new Map<string, string[]>()
     for (const link of em.tagLinks.findActive()) {
       if (link.entityType !== 'job') continue

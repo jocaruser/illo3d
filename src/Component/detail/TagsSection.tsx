@@ -25,10 +25,10 @@ export function TagsSection({ entityType, entityId }: TagsSectionProps) {
   const prefix = entityType === 'client' ? 'clientDetail' : 'jobDetail'
 
   const service = useMemo(() => new TagService(em), [em])
-  const tags = useMemo(
-    () => service.listTagsForEntity(entityType, entityId),
-    [service, entityType, entityId, revision]
-  )
+  const tags = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return service.listTagsForEntity(entityType, entityId)
+  }, [service, entityType, entityId, revision])
 
   /** Every active tag not already linked to this entity. */
   const options = useMemo<ComboboxItem[]>(() => {

@@ -1,4 +1,4 @@
-.PHONY: help init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate ci audit react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
+.PHONY: help init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
 
 APP = docker compose exec app
 E2E_VITE_PORT ?= 5174
@@ -70,11 +70,14 @@ quality-gate: build lint react-doctor test e2e-test ## Sequential full gate: bui
 # CI entrypoint: the independent checks run in parallel, then e2e (it owns the
 # container's Vite port and CPU, so racing it against the unit suite flakes).
 ci: ## Run all checks; fast ones in parallel, then e2e
-	$(MAKE) -j4 build lint react-doctor test audit
+	$(MAKE) -j4 budget lint react-doctor test audit
 	$(MAKE) e2e-test
 
 audit: ## Dependency vulnerability gate (fails on high/critical)
 	$(APP) pnpm audit --audit-level=high
+
+budget: build ## Performance budget: gzipped bundle within limits (P2)
+	$(APP) node scripts/check-bundle-budget.mjs
 
 lint: ## ESLint (0 errors required)
 	$(APP) pnpm lint

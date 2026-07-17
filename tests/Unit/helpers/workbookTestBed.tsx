@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react'
 import { render } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { SHEET_NAMES, type SheetName } from '@/Config/schema'
 import type { SheetRecord } from '@/Entity/SheetEntity'
 import { initI18n } from '@/I18n'
@@ -10,6 +10,7 @@ import { appendRecord, emptyMatrix } from '@/Repository/Matrix'
 import type { SheetMatrix } from '@/Repository/WorkbookRepositoryInterface'
 import type { Clock } from '@/Service/Clock'
 import type { TabAccess } from '@/Store/TabAccess'
+import { LocationProbe } from './LocationProbe'
 
 export const i18n = initI18n('en')
 
@@ -58,11 +59,6 @@ export function createTestEm(
     new FixedClock(instant),
     () => 'test@example.com'
   )
-}
-
-function LocationProbe() {
-  const location = useLocation()
-  return <span data-testid="location">{location.pathname}</span>
 }
 
 interface RenderRouteOptions {

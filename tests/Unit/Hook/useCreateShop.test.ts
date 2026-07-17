@@ -197,7 +197,8 @@ describe('useCreateShop', () => {
       await result.current.createShop()
     })
 
-    const workbookRepo = ShopProvisioningService.mock.calls[0][1] as {
+    const provisioningArgs = ShopProvisioningService.mock.calls[0] as unknown[]
+    const workbookRepo = provisioningArgs[1] as {
       createWorkbook: () => Promise<string>
     }
     await expect(workbookRepo.createWorkbook()).resolves.toBe('SS-GOOGLE')
@@ -262,7 +263,8 @@ describe('useCreateShop', () => {
       await result.current.createShop()
     })
 
-    const injectedClock = ShopProvisioningService.mock.calls[0][2] as {
+    const provisioningArgs = ShopProvisioningService.mock.calls[0] as unknown[]
+    const injectedClock = provisioningArgs[2] as {
       now: () => Date
     }
     expect(injectedClock.now()).toBeInstanceOf(Date)

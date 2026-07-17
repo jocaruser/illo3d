@@ -56,6 +56,7 @@ export function JobMaterialsSummary({
   const em = useEntityManager()
 
   const rows = useMemo<MaterialRow[]>(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
     // Each entry keeps a Set mirror of the row's `usedIn` for constant-time checks.
     const byInventory = new Map<
       string,

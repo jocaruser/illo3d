@@ -359,7 +359,8 @@ describe('useMigration', () => {
       await result.current.start(args)
     })
 
-    const injectedClock = createLocalCsvMigrationTarget.mock.calls[0][3] as {
+    const targetArgs = createLocalCsvMigrationTarget.mock.calls[0] as unknown[]
+    const injectedClock = targetArgs[3] as {
       now: () => Date
     }
     expect(injectedClock.now()).toBeInstanceOf(Date)

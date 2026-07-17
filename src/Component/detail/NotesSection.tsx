@@ -38,10 +38,10 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
 
   const prefix = entityType === 'client' ? 'clientDetail' : 'jobDetail'
   const service = useMemo(() => new NoteService(em), [em])
-  const notes = useMemo(
-    () => em.crmNotes.findActiveByEntity(entityType, entityId),
-    [em, entityType, entityId, revision]
-  )
+  const notes = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return em.crmNotes.findActiveByEntity(entityType, entityId)
+  }, [em, entityType, entityId, revision])
   const prominent = useMemo(
     () => notes.filter((note) => note.isProminent()),
     [notes]

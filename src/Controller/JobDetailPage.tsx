@@ -11,12 +11,13 @@ import { NotesSection } from '@/Component/detail/NotesSection'
 import { PiecesTable } from '@/Component/detail/PiecesTable'
 import { TagsSection } from '@/Component/detail/TagsSection'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
+import { JobStatusFlowDialogs } from '@/Component/dialog/JobStatusFlowDialogs'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
 import { SectionHeading } from '@/Component/layout/SectionHeading'
 import { NotFoundCard } from '@/Component/NotFoundCard'
 import { toast } from '@/Component/Toast'
 import { useEntityManager } from '@/Hook/useEntityManager'
-import { JobStatusFlowDialogs, useJobStatusFlow } from '@/Hook/useJobStatusFlow'
+import { useJobStatusFlow } from '@/Hook/useJobStatusFlow'
 import { JobService } from '@/Service/JobService'
 import { LifecycleService } from '@/Service/LifecycleService'
 import { jobPricingState } from '@/Service/Pricing/jobPricing'
@@ -51,15 +52,18 @@ export function JobDetailPage() {
     [flow]
   )
 
-  const job = useMemo(() => em.jobs.find(jobId), [em, jobId, revision])
-  const pieces = useMemo(
-    () => em.pieces.findByJob(jobId).filter((piece) => !piece.isDeleted()),
-    [em, jobId, revision]
-  )
-  const pricing = useMemo(
-    () => jobPricingState(em.pieces.findCountingByJob(jobId)),
-    [em, jobId, revision]
-  )
+  const job = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return em.jobs.find(jobId)
+  }, [em, jobId, revision])
+  const pieces = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return em.pieces.findByJob(jobId).filter((piece) => !piece.isDeleted())
+  }, [em, jobId, revision])
+  const pricing = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return jobPricingState(em.pieces.findCountingByJob(jobId))
+  }, [em, jobId, revision])
   const clientName = useMemo(() => {
     if (job === null) return ''
     return em.clients.find(job.clientId)?.name ?? job.clientId

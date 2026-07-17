@@ -61,6 +61,7 @@ export function JobWidgetGrid({
   )
 
   const totals = useMemo<MaterialTotals>(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
     const need = new Map<string, number>()
     for (const piece of em.pieces.findByJob(job.id)) {
       if (piece.isDeleted()) continue
