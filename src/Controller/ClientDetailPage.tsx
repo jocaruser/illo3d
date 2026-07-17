@@ -5,7 +5,10 @@ import { ClientActivityTimeline } from '@/Component/detail/ClientActivityTimelin
 import { ClientJobsTable } from '@/Component/detail/ClientJobsTable'
 import { CreateClientDialog } from '@/Component/detail/CreateClientDialog'
 import { CreateJobDialog } from '@/Component/detail/CreateJobDialog'
-import { EntityDetailPage, type DetailField } from '@/Component/detail/EntityDetailPage'
+import {
+  EntityDetailPage,
+  type DetailField,
+} from '@/Component/detail/EntityDetailPage'
 import { NotesSection } from '@/Component/detail/NotesSection'
 import { TagsSection } from '@/Component/detail/TagsSection'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
@@ -33,12 +36,21 @@ export function ClientDetailPage() {
   const [query, setQuery] = useState('')
   const [editOpen, setEditOpen] = useState(false)
   const [archiveOpen, setArchiveOpen] = useState(false)
-  const [jobDialogOpen, setJobDialogOpen] = useState(false)
-  const [editingJob, setEditingJob] = useState<Job | null>(null)
+  // One value covers the whole job-dialog session: null is closed, `editing:
+  // null` is create mode, and a job is edit mode.
+  const [jobDialog, setJobDialog] = useState<{ editing: Job | null } | null>(
+    null
+  )
   const [archivingJob, setArchivingJob] = useState<Job | null>(null)
 
-  const client = useMemo(() => em.clients.find(clientId), [em, clientId, revision])
-  const jobs = useMemo(() => em.jobs.findByClient(clientId), [em, clientId, revision])
+  const client = useMemo(
+    () => em.clients.find(clientId),
+    [em, clientId, revision]
+  )
+  const jobs = useMemo(
+    () => em.jobs.findByClient(clientId),
+    [em, clientId, revision]
+  )
 
   const metrics = useMemo(
     () =>
@@ -56,7 +68,9 @@ export function ClientDetailPage() {
 
   const jobRows = useMemo(() => {
     const clientName = client?.name ?? ''
-    return fuzzyFilter(jobs, query, (job) => jobSearchBlob(job, { clientName }, t))
+    return fuzzyFilter(jobs, query, (job) =>
+      jobSearchBlob(job, { clientName }, t)
+    )
   }, [jobs, query, client, t])
 
   if (client === null || client.isDeleted()) {
@@ -75,7 +89,10 @@ export function ClientDetailPage() {
     { label: t('clients.phone'), value: client.phone },
   ]
   if (client.preferredContact !== '') {
-    fields.push({ label: t('clients.preferredContact'), value: client.preferredContact })
+    fields.push({
+      label: t('clients.preferredContact'),
+      value: client.preferredContact,
+    })
   }
   if (client.leadSource !== '') {
     fields.push({
@@ -93,7 +110,10 @@ export function ClientDetailPage() {
   }
   fields.push({ label: t('clients.createdAt'), value: client.createdAt })
   if (client.notes !== '') {
-    fields.push({ label: t('clientDetail.sheetNoteLabel'), value: client.notes })
+    fields.push({
+      label: t('clientDetail.sheetNoteLabel'),
+      value: client.notes,
+    })
   }
 
   const confirmArchiveClient = () => {
@@ -116,17 +136,14 @@ export function ClientDetailPage() {
     bump()
   }
 
-  const openJobEdit = (job: Job) => {
-    setEditingJob(job)
-    setJobDialogOpen(true)
-  }
+  const openJobEdit = (job: Job) => setJobDialog({ editing: job })
 
-  const openJobCreate = () => {
-    setEditingJob(null)
-    setJobDialogOpen(true)
-  }
+  const openJobCreate = () => setJobDialog({ editing: null })
 
-  const jobsEmptyMessage = jobs.length === 0 ? t('clientDetail.jobsEmpty') : t('listTable.noMatches')
+  const editingJob = jobDialog?.editing ?? null
+
+  const jobsEmptyMessage =
+    jobs.length === 0 ? t('clientDetail.jobsEmpty') : t('listTable.noMatches')
 
   return (
     <EntityDetailPage
@@ -155,16 +172,30 @@ export function ClientDetailPage() {
         </>
       }
     >
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5" data-testid="client-metrics">
-        <StatCard label={t('clientDetail.metricPaidLedger')} value={formatCurrency(metrics.paidLedger)} tone="positive" />
+      <div
+        className="grid grid-cols-2 gap-3 lg:grid-cols-5"
+        data-testid="client-metrics"
+      >
+        <StatCard
+          label={t('clientDetail.metricPaidLedger')}
+          value={formatCurrency(metrics.paidLedger)}
+          tone="positive"
+        />
         <StatCard
           label={t('clientDetail.metricOutstanding')}
           value={formatCurrency(metrics.outstandingJobs)}
         />
-        <StatCard label={t('clientDetail.metricJobCount')} value={String(metrics.jobCount)} />
+        <StatCard
+          label={t('clientDetail.metricJobCount')}
+          value={String(metrics.jobCount)}
+        />
         <StatCard
           label={t('clientDetail.metricAvgJobPrice')}
-          value={metrics.averageJobPrice === null ? '—' : formatCurrency(metrics.averageJobPrice)}
+          value={
+            metrics.averageJobPrice === null
+              ? '—'
+              : formatCurrency(metrics.averageJobPrice)
+          }
         />
         <StatCard
           label={t('clientDetail.metricMaterials')}
@@ -218,10 +249,10 @@ export function ClientDetailPage() {
       />
 
       <CreateJobDialog
-        open={jobDialogOpen}
+        open={jobDialog !== null}
         presetClientId={editingJob === null ? client.id : undefined}
         job={editingJob}
-        onClose={() => setJobDialogOpen(false)}
+        onClose={() => setJobDialog(null)}
         onCreated={bump}
         onUpdated={bump}
       />

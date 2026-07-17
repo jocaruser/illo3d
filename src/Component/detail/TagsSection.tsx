@@ -33,10 +33,12 @@ export function TagsSection({ entityType, entityId }: TagsSectionProps) {
   /** Every active tag not already linked to this entity. */
   const options = useMemo<ComboboxItem[]>(() => {
     const linked = new Set(tags.map((tag) => tag.id))
-    return em.tags
-      .findActive()
-      .filter((tag) => !linked.has(tag.id))
-      .map((tag) => ({ key: tag.id, label: tag.name }))
+    const items: ComboboxItem[] = []
+    for (const tag of em.tags.findActive()) {
+      if (linked.has(tag.id)) continue
+      items.push({ key: tag.id, label: tag.name })
+    }
+    return items
   }, [em, tags])
 
   const addByName = (name: string) => {

@@ -146,9 +146,9 @@ export function SetupWizard() {
   }, [createShop])
 
   const openFromDrive = useCallback(
-    async (folderId: string) => {
+    (folderId: string) => {
       setError(null)
-      handleOpenResult(await openShop(folderId))
+      void openShop(folderId).then(handleOpenResult)
     },
     [handleOpenResult, openShop]
   )
@@ -169,7 +169,7 @@ export function SetupWizard() {
             user={user}
             busy={busy}
             onCreate={() => void create()}
-            onOpen={(folderId) => void openFromDrive(folderId)}
+            onOpen={openFromDrive}
             onCancel={resetToWelcome}
           />
         )}

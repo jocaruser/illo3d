@@ -53,9 +53,11 @@ describe('GlobalSearchBox', () => {
   })
 
   it('is a named search field', () => {
-    renderLayout(<GlobalSearchBox />)
+    const { container } = renderLayout(<GlobalSearchBox />)
 
-    expect(screen.getByRole('search')).toBeInTheDocument()
+    // jsdom's role queries do not map <search> to `search` yet, so assert the
+    // landmark element itself.
+    expect(container.querySelector('search')).toBeInTheDocument()
     expect(searchBox()).toHaveAccessibleName('Search all entities')
     expect(searchBox()).toHaveAttribute('type', 'search')
   })

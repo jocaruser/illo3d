@@ -62,9 +62,10 @@ export class LocalCsvWorkbookRepository implements WorkbookRepositoryInterface {
   }
 
   async createWorkbook(): Promise<string> {
-    for (const sheet of SHEET_NAMES) {
-      await this.writeHeaderOnlySheet(sheet)
-    }
+    // One file per sheet, so the header-only writes can run at once.
+    await Promise.all(
+      SHEET_NAMES.map((sheet) => this.writeHeaderOnlySheet(sheet))
+    )
     return `local-${this.directory.name}`
   }
 

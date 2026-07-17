@@ -58,7 +58,7 @@ export function GlobalSearchBox() {
   }
 
   return (
-    <div role="search" className="relative">
+    <search className="relative">
       <input
         type="search"
         role="combobox"
@@ -137,6 +137,6 @@ export function GlobalSearchBox() {
           )}
         </ul>
       )}
-    </div>
+    </search>
   )
 }

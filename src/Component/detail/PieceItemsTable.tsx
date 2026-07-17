@@ -64,7 +64,8 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
   }, [onChanged])
 
   const unitCostOf = useCallback(
-    (inventoryId: string) => computeAvgUnitCost(em.lots.findActiveByInventory(inventoryId)),
+    (inventoryId: string) =>
+      computeAvgUnitCost(em.lots.findActiveByInventory(inventoryId)),
     [em]
   )
 
@@ -76,7 +77,11 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
             id: item.id,
             qty: item.qtyCurrent,
           })
-        : t('pieces.inventoryOptionUnits', { name: item.name, id: item.id, qty: item.qtyCurrent }),
+        : t('pieces.inventoryOptionUnits', {
+            name: item.name,
+            id: item.id,
+            qty: item.qtyCurrent,
+          }),
     [t]
   )
 
@@ -96,11 +101,15 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
     setDraft({ inventoryId: '', quantity: '1' })
   }
 
-  // `rawQuantity` arrives from the draft row's render scope, where `draft` is
+  // The line arrives from the draft row's render scope, where `draft` is
   // already narrowed non-null — no fallback needed here.
-  const commitDraft = (inventoryId: string, rawQuantity: string) => {
-    const quantity = Number(rawQuantity)
-    const result = service.createPieceItem({ pieceId: piece.id, inventoryId, quantity })
+  const commitDraft = (line: DraftLine) => {
+    const quantity = Number(line.quantity)
+    const result = service.createPieceItem({
+      pieceId: piece.id,
+      inventoryId: line.inventoryId,
+      quantity,
+    })
     if (!result.ok) {
       fail(result.error)
       return
@@ -138,19 +147,34 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
       <table className="w-full text-left text-xs text-text">
         <thead>
           <tr className="text-text-muted">
-            <th scope="col" className="px-2 py-1 font-semibold uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-2 py-1 font-semibold uppercase tracking-wider"
+            >
               {t('pieces.lineColId')}
             </th>
-            <th scope="col" className="px-2 py-1 font-semibold uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-2 py-1 font-semibold uppercase tracking-wider"
+            >
               {t('pieces.lineColInventory')}
             </th>
-            <th scope="col" className="px-2 py-1 font-semibold uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-2 py-1 font-semibold uppercase tracking-wider"
+            >
               {t('pieces.lineColQty')}
             </th>
-            <th scope="col" className="px-2 py-1 font-semibold uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-2 py-1 font-semibold uppercase tracking-wider"
+            >
               {t('pieces.lineColMaterialCost')}
             </th>
-            <th scope="col" className="px-2 py-1 font-semibold uppercase tracking-wider">
+            <th
+              scope="col"
+              className="px-2 py-1 font-semibold uppercase tracking-wider"
+            >
               {t('pieces.lineColStock')}
             </th>
             <th scope="col" className="px-2 py-1">
@@ -170,17 +194,23 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
               const item = inventoryById.get(line.inventoryId)
               const unitCost = unitCostOf(line.inventoryId)
               const quantity = line.quantity ?? 0
-              const cost = unitCost === null ? null : unitCost * quantity * units
+              const cost =
+                unitCost === null ? null : unitCost * quantity * units
               const redo = computeRedos(item?.qtyCurrent ?? 0, quantity * units)
               return (
                 <tr key={line.id} data-testid={`piece-item-row-${line.id}`}>
                   <td className="px-2 py-1 text-text-muted">{line.id}</td>
                   <td className="px-2 py-1">
-                    <div className="min-w-[10rem]" data-testid={`piece-item-inventory-${line.id}`}>
+                    <div
+                      className="min-w-[10rem]"
+                      data-testid={`piece-item-inventory-${line.id}`}
+                    >
                       <Combobox
                         items={options}
                         value={line.inventoryId}
-                        placeholder={t('pieces.inventoryFieldAria', { id: line.id })}
+                        placeholder={t('pieces.inventoryFieldAria', {
+                          id: line.id,
+                        })}
                         onChange={(next) => {
                           if (next === line.inventoryId) return
                           if (em.pieceItems.hasActiveLine(piece.id, next)) {
@@ -204,7 +234,9 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                       aria-label={t('pieces.qtyFieldAria', { id: line.id })}
                       defaultValue={line.quantity ?? ''}
                       key={`${line.id}-${revision}`}
-                      onBlur={(event) => updateQuantity(line, event.target.value)}
+                      onBlur={(event) =>
+                        updateQuantity(line, event.target.value)
+                      }
                     />
                   </td>
                   <td className="px-2 py-1 tabular-nums">
@@ -242,7 +274,9 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                     items={options}
                     value={null}
                     placeholder={t('pieces.searchInventory')}
-                    onChange={(inventoryId) => commitDraft(inventoryId, draft.quantity)}
+                    onChange={(inventoryId) =>
+                      commitDraft({ inventoryId, quantity: draft.quantity })
+                    }
                   />
                 </div>
               </td>
@@ -254,7 +288,9 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                   className="w-20 px-2 py-1"
                   aria-label={t('pieces.quantity')}
                   value={draft.quantity}
-                  onChange={(event) => setDraft({ ...draft, quantity: event.target.value })}
+                  onChange={(event) =>
+                    setDraft({ ...draft, quantity: event.target.value })
+                  }
                 />
               </td>
               <td className="px-2 py-1 text-text-muted">—</td>

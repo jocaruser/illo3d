@@ -9,13 +9,17 @@ import type { SheetMatrix } from './WorkbookRepositoryInterface'
  */
 
 /** Normalize a raw matrix to the canonical shape for a sheet. */
-export function normalizeMatrix(sheet: SheetName, matrix: SheetMatrix): SheetMatrix {
+export function normalizeMatrix(
+  sheet: SheetName,
+  matrix: SheetMatrix
+): SheetMatrix {
   const header = [...SHEET_HEADERS[sheet]]
-  const rows = matrix
-    .slice(1)
-    .map((row) => padRow(row, header.length))
-    .filter((row) => row.some((cell) => cell.trim() !== ''))
-  return [header, ...rows]
+  const rows: SheetMatrix = [header]
+  for (let index = 1; index < matrix.length; index += 1) {
+    const padded = padRow(matrix[index], header.length)
+    if (padded.some((cell) => cell.trim() !== '')) rows.push(padded)
+  }
+  return rows
 }
 
 function padRow(row: string[], width: number): string[] {
@@ -44,18 +48,29 @@ export function recordToRow(sheet: SheetName, record: SheetRecord): string[] {
 }
 
 /** All data rows of a matrix as records. */
-export function matrixToRecords(sheet: SheetName, matrix: SheetMatrix): SheetRecord[] {
+export function matrixToRecords(
+  sheet: SheetName,
+  matrix: SheetMatrix
+): SheetRecord[] {
   return matrix.slice(1).map((row) => rowToRecord(sheet, row))
 }
 
 /** Index of the data row whose `id` column matches (0-based over data rows), or -1. */
-export function findRowIndexById(sheet: SheetName, matrix: SheetMatrix, id: string): number {
+export function findRowIndexById(
+  sheet: SheetName,
+  matrix: SheetMatrix,
+  id: string
+): number {
   const idColumn = SHEET_HEADERS[sheet].indexOf('id')
   return matrix.slice(1).findIndex((row) => (row[idColumn] ?? '') === id)
 }
 
 /** Return a new matrix with the record appended as the last data row. */
-export function appendRecord(sheet: SheetName, matrix: SheetMatrix, record: SheetRecord): SheetMatrix {
+export function appendRecord(
+  sheet: SheetName,
+  matrix: SheetMatrix,
+  record: SheetRecord
+): SheetMatrix {
   return [...matrix, recordToRow(sheet, record)]
 }
 
@@ -66,7 +81,7 @@ export function appendRecord(sheet: SheetName, matrix: SheetMatrix, record: Shee
 export function updateRecordById(
   sheet: SheetName,
   matrix: SheetMatrix,
-  record: SheetRecord,
+  record: SheetRecord
 ): SheetMatrix {
   const index = findRowIndexById(sheet, matrix, record.id ?? '')
   if (index === -1) {
@@ -78,14 +93,22 @@ export function updateRecordById(
 }
 
 /** Return a new matrix without the row matching `id` (used for hard-deleted tag links). */
-export function removeRecordById(sheet: SheetName, matrix: SheetMatrix, id: string): SheetMatrix {
+export function removeRecordById(
+  sheet: SheetName,
+  matrix: SheetMatrix,
+  id: string
+): SheetMatrix {
   const index = findRowIndexById(sheet, matrix, id)
   if (index === -1) return matrix
   return matrix.filter((_, rowIndex) => rowIndex !== index + 1)
 }
 
 /** Record for `id`, or null. */
-export function findRecordById(sheet: SheetName, matrix: SheetMatrix, id: string): SheetRecord | null {
+export function findRecordById(
+  sheet: SheetName,
+  matrix: SheetMatrix,
+  id: string
+): SheetRecord | null {
   const index = findRowIndexById(sheet, matrix, id)
   if (index === -1) return null
   return rowToRecord(sheet, matrix[index + 1])

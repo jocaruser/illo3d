@@ -22,8 +22,9 @@ export function JobsPage() {
   const navigate = useNavigate()
   const [revision, bump] = useReducer((count: number) => count + 1, 0)
   const [query, setQuery] = useState('')
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editing, setEditing] = useState<Job | null>(null)
+  // One value covers the whole dialog session: null is closed, `editing: null`
+  // is create mode, and a job is edit mode.
+  const [dialog, setDialog] = useState<{ editing: Job | null } | null>(null)
   const [archiving, setArchiving] = useState<Job | null>(null)
 
   // Confirming the shared flow commits a status change straight to the
@@ -63,29 +64,35 @@ export function JobsPage() {
     (clientId: string) => clientNames.get(clientId) ?? clientId,
     [clientNames]
   )
-  const tagNames = useCallback((jobId: string) => tagNamesByJob.get(jobId) ?? [], [tagNamesByJob])
+  const tagNames = useCallback(
+    (jobId: string) => tagNamesByJob.get(jobId) ?? [],
+    [tagNamesByJob]
+  )
+  // No revision dependency: callers re-run it whenever their own inputs bump,
+  // and each call reads the entity manager fresh.
   const pricingOf = useCallback(
     (jobId: string) => jobPricingState(em.pieces.findCountingByJob(jobId)),
-    [em, revision]
+    [em]
   )
 
   const rows = useMemo(
     () =>
       fuzzyFilter(jobs, query, (job) =>
-        jobSearchBlob(job, { clientName: clientName(job.clientId), tagNamesLine: tagNames(job.id).join(' ') }, t)
+        jobSearchBlob(
+          job,
+          {
+            clientName: clientName(job.clientId),
+            tagNamesLine: tagNames(job.id).join(' '),
+          },
+          t
+        )
       ),
     [jobs, query, clientName, tagNames, t]
   )
 
-  const openCreate = () => {
-    setEditing(null)
-    setDialogOpen(true)
-  }
+  const openCreate = () => setDialog({ editing: null })
 
-  const openEdit = (job: Job) => {
-    setEditing(job)
-    setDialogOpen(true)
-  }
+  const openEdit = (job: Job) => setDialog({ editing: job })
 
   const confirmArchive = (job: Job) => {
     new LifecycleService(em).archiveJob(job.id)
@@ -94,7 +101,8 @@ export function JobsPage() {
     bump()
   }
 
-  const emptyMessage = jobs.length === 0 ? t('jobs.empty') : t('listTable.noMatches')
+  const emptyMessage =
+    jobs.length === 0 ? t('jobs.empty') : t('listTable.noMatches')
 
   return (
     <div className="space-y-6">
@@ -120,7 +128,9 @@ export function JobsPage() {
       />
 
       {/* The flow blocks paid/cancelled until every counting piece is priced. */}
-      {statusFlow.error !== null && <AlertBox variant="warning">{t(statusFlow.error)}</AlertBox>}
+      {statusFlow.error !== null && (
+        <AlertBox variant="warning">{t(statusFlow.error)}</AlertBox>
+      )}
 
       <JobsTable
         rows={rows}
@@ -140,9 +150,9 @@ export function JobsPage() {
       <JobStatusFlowDialogs flow={statusFlow} />
 
       <CreateJobDialog
-        open={dialogOpen}
-        job={editing}
-        onClose={() => setDialogOpen(false)}
+        open={dialog !== null}
+        job={dialog?.editing ?? null}
+        onClose={() => setDialog(null)}
         onCreated={(jobId) => void navigate(`/jobs/${jobId}`)}
         onUpdated={bump}
       />

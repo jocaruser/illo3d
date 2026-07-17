@@ -57,15 +57,14 @@ export function useJobStatusFlow(): JobStatusFlow {
   const [, setRevision] = useState(0)
 
   const commit = (
-    job: Job,
-    next: JobStatus,
+    target: { job: Job; next: JobStatus },
     options?: { incomeAmount: number }
   ): void => {
     setBusy(true)
     const result =
       options === undefined
-        ? service.updateJobStatus(job, next)
-        : service.updateJobStatus(job, next, {
+        ? service.updateJobStatus(target.job, target.next)
+        : service.updateJobStatus(target.job, target.next, {
             createIncomeTransaction: createIncome,
             incomeAmount: options.incomeAmount,
           })
@@ -110,17 +109,20 @@ export function useJobStatusFlow(): JobStatusFlow {
       return
     }
 
-    commit(job, next)
+    commit({ job, next })
   }
 
   const confirm = (): void => {
     if (dialog === null) return
     setDialog(null)
     if (dialog.kind === 'paid') {
-      commit(dialog.job, dialog.next, { incomeAmount: dialog.total })
+      commit(
+        { job: dialog.job, next: dialog.next },
+        { incomeAmount: dialog.total }
+      )
       return
     }
-    commit(dialog.job, dialog.next)
+    commit({ job: dialog.job, next: dialog.next })
   }
 
   const cancel = (): void => {

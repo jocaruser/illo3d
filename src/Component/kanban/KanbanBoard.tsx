@@ -40,8 +40,11 @@ export function KanbanBoard() {
   // Drops mutate the snapshot in place; bumping re-reads the board.
   const [, setRevision] = useState(0)
 
-  const staleDays = metadata?.kanban?.autoCardsHideAfterXDays ?? DEFAULT_KANBAN_STALE_DAYS
-  const clientNames = new Map(em.clients.findAll().map((client) => [client.id, client.name]))
+  const staleDays =
+    metadata?.kanban?.autoCardsHideAfterXDays ?? DEFAULT_KANBAN_STALE_DAYS
+  const clientNames = new Map(
+    em.clients.findAll().map((client) => [client.id, client.name])
+  )
   const pieces = em.pieces.findAll()
   const pieceItems = em.pieceItems.findAll()
   const inventory = em.inventory.findAll()
@@ -54,17 +57,19 @@ export function KanbanBoard() {
       clientName: clientNames.get(job.clientId) ?? '',
       pricing: jobPricingState(countingPieces),
       benefit: jobBenefit(job, pieces, pieceItems, inventory, lots),
-      piecesDone: countingPieces.filter((piece) => piece.status === 'done').length,
+      piecesDone: countingPieces.filter((piece) => piece.status === 'done')
+        .length,
       piecesTotal: countingPieces.length,
       dueBand: dueDateBand(daysSinceDueDate(job, em.clock)),
       dueDay: job.effectiveDueDate().slice(0, 10),
     }
   }
 
-  const cards = em.jobs
-    .findActive()
-    .filter((job) => !shouldHideJobOnKanban(job, staleDays, em.clock))
-    .map(buildCard)
+  const cards: KanbanCard[] = []
+  for (const job of em.jobs.findActive()) {
+    if (shouldHideJobOnKanban(job, staleDays, em.clock)) continue
+    cards.push(buildCard(job))
+  }
 
   const jobsById = new Map(cards.map((card) => [card.job.id, card.job]))
 
@@ -76,7 +81,11 @@ export function KanbanBoard() {
   const handleDropCard = (jobId: string, target: KanbanDropTarget): void => {
     const job = jobsById.get(jobId)
     if (job === undefined) return
-    const result = service.applyKanbanDrop(job.id, target.status, target.insertBeforeJobId)
+    const result = service.applyKanbanDrop(
+      job.id,
+      target.status,
+      target.insertBeforeJobId
+    )
     if (result.kind === 'needs-dialog') {
       flow.requestStatusChange(job, target.status)
       return

@@ -1,6 +1,10 @@
 import type { ReactNode } from 'react'
 import { cx } from '@/Component/cx'
-import { alertRole, alertVariantClasses, type AlertVariant } from '@/Component/AlertBox'
+import {
+  alertRole,
+  alertVariantClasses,
+  type AlertVariant,
+} from '@/Component/alertVariants'
 
 interface AlertStripProps {
   children: ReactNode
@@ -8,7 +12,11 @@ interface AlertStripProps {
   className?: string
 }
 
-export function AlertStrip({ children, variant = 'info', className }: AlertStripProps) {
+export function AlertStrip({
+  children,
+  variant = 'info',
+  className,
+}: AlertStripProps) {
   return (
     <div
       role={alertRole(variant)}

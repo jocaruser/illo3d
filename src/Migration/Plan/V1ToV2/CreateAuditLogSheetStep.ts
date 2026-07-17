@@ -56,12 +56,16 @@ export class CreateAuditLogSheetStep extends MigrationStep {
 
     report.update('wizard.migrationStepAuditBackfill')
     const usedIds: string[] = []
-    for (const sheet of DATA_SHEET_NAMES as readonly DataSheetName[]) {
-      const matrix = await ctx.repo.readSheetMatrix(
-        ctx.workingWorkbookId,
-        sheet
+    const dataSheets = DATA_SHEET_NAMES as readonly DataSheetName[]
+    // The sheets are independent, so read them all at once; the backfill below
+    // still walks them in canonical order for deterministic ids.
+    const matrices = await Promise.all(
+      dataSheets.map((sheet) =>
+        ctx.repo.readSheetMatrix(ctx.workingWorkbookId, sheet)
       )
-      for (const record of matrixToRecords(sheet, matrix)) {
+    )
+    for (const [sheetIndex, sheet] of dataSheets.entries()) {
+      for (const record of matrixToRecords(sheet, matrices[sheetIndex])) {
         if (record.id.trim() === '') continue
         const entry = new AuditEntry()
         entry.id = nextId('AL', usedIds)

@@ -16,7 +16,7 @@ function errorMessage(error: unknown): string {
 export class WorkbookService {
   constructor(
     private readonly repo: WorkbookRepositoryInterface,
-    private readonly workbookId: string,
+    private readonly workbookId: string
   ) {}
 
   async hydrate(): Promise<void> {
@@ -29,12 +29,16 @@ export class WorkbookService {
     try {
       const tabs = {} as WorkbookTabs
       let loaded = 0
-      for (const sheet of SHEET_NAMES) {
-        const matrix = await this.repo.readSheetMatrix(this.workbookId, sheet)
-        tabs[sheet] = normalizeMatrix(sheet, matrix)
-        loaded += 1
-        useOperationStore.getState().progress(loaded, sheet)
-      }
+      // Sheets are independent, so read them all at once and report progress
+      // as each one completes.
+      await Promise.all(
+        SHEET_NAMES.map(async (sheet) => {
+          const matrix = await this.repo.readSheetMatrix(this.workbookId, sheet)
+          tabs[sheet] = normalizeMatrix(sheet, matrix)
+          loaded += 1
+          useOperationStore.getState().progress(loaded, sheet)
+        })
+      )
       useWorkbookStore.getState().hydrateTabs(tabs, this.workbookId)
     } catch (error) {
       useWorkbookStore.getState().setStatus('error', errorMessage(error))
@@ -54,11 +58,19 @@ export class WorkbookService {
     try {
       const snapshot = useWorkbookStore.getState().tabs
       let written = 0
-      for (const sheet of SHEET_NAMES) {
-        await this.repo.replaceSheetMatrix(this.workbookId, sheet, snapshot[sheet])
-        written += 1
-        useOperationStore.getState().progress(written, sheet)
-      }
+      // The snapshot has no cross-sheet ordering requirement, so write every
+      // sheet at once and report progress as each one completes.
+      await Promise.all(
+        SHEET_NAMES.map(async (sheet) => {
+          await this.repo.replaceSheetMatrix(
+            this.workbookId,
+            sheet,
+            snapshot[sheet]
+          )
+          written += 1
+          useOperationStore.getState().progress(written, sheet)
+        })
+      )
       useWorkbookStore.getState().endSave(true)
     } catch (error) {
       useWorkbookStore.getState().endSave(false)

@@ -21,10 +21,12 @@ export function resolvePlanChain(
   if (fromMajor > toMajor) {
     throw new Error(`Cannot migrate downward from v${fromMajor} to v${toMajor}`)
   }
+  // Every registered plan starts at a distinct major, so keying is lossless.
+  const planByFromMajor = new Map(plans.map((plan) => [plan.fromMajor, plan]))
   const chain: MigrationPlan[] = []
   let current = fromMajor
   while (current < toMajor) {
-    const plan = plans.find((candidate) => candidate.fromMajor === current)
+    const plan = planByFromMajor.get(current)
     if (!plan) {
       throw new Error(
         `No migration plan found from v${current} (target v${toMajor})`

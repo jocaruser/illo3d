@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Card } from '@/Component/Card'
+import { trapFocusKeyDown } from '@/Component/dialog/trapFocus'
 import { useOperationStore } from '@/Store/operationStore'
 
 /**
@@ -21,6 +22,7 @@ export function BlockingOverlay() {
       role="alertdialog"
       aria-modal="true"
       aria-label={t(message)}
+      onKeyDown={trapFocusKeyDown}
       className="fixed inset-0 z-50 flex items-center justify-center bg-surface p-4"
     >
       <Card className="w-full max-w-sm p-6">

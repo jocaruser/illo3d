@@ -68,13 +68,14 @@ function tagNamesLine(
   links: TagLink[],
   tagNameById: Map<string, string>,
   entityType: 'client' | 'job',
-  entityId: string,
+  entityId: string
 ): string | undefined {
-  const names = links
-    .filter((link) => link.entityType === entityType && link.entityId === entityId)
-    .map((link) => tagNameById.get(link.tagId)?.trim() ?? '')
-    .filter((name) => name !== '')
-    .map(formatTagNameTitleCase)
+  const names: string[] = []
+  for (const link of links) {
+    if (link.entityType !== entityType || link.entityId !== entityId) continue
+    const name = tagNameById.get(link.tagId)?.trim() ?? ''
+    if (name !== '') names.push(formatTagNameTitleCase(name))
+  }
   return names.length > 0 ? names.join(' ') : undefined
 }
 
@@ -88,13 +89,18 @@ function buildRows(em: EntityManager, t: Translate): SearchRow[] {
 
   for (const client of clients) {
     rows.push({
-      blob: clientSearchBlob(client, tagNamesLine(tagLinks, tagNameById, 'client', client.id)),
+      blob: clientSearchBlob(
+        client,
+        tagNamesLine(tagLinks, tagNameById, 'client', client.id)
+      ),
       hit: {
         kind: 'client',
         id: client.id,
         navigateTo: `/clients/${client.id}`,
         primaryLine: client.name,
-        secondaryLine: [client.id, client.email].filter((part) => part !== '').join(' · '),
+        secondaryLine: [client.id, client.email]
+          .filter((part) => part !== '')
+          .join(' · '),
       },
     })
   }
@@ -107,7 +113,7 @@ function buildRows(em: EntityManager, t: Translate): SearchRow[] {
           clientName: clientName(clients, job.clientId),
           tagNamesLine: tagNamesLine(tagLinks, tagNameById, 'job', job.id),
         },
-        t,
+        t
       ),
       hit: {
         kind: 'job',
@@ -121,7 +127,11 @@ function buildRows(em: EntityManager, t: Translate): SearchRow[] {
 
   for (const piece of em.pieces.findActive()) {
     rows.push({
-      blob: pieceSearchBlob(piece, { jobLabel: jobLabel(jobs, piece.jobId) }, t),
+      blob: pieceSearchBlob(
+        piece,
+        { jobLabel: jobLabel(jobs, piece.jobId) },
+        t
+      ),
       hit: {
         kind: 'piece',
         id: piece.id,
@@ -142,7 +152,9 @@ function buildRows(em: EntityManager, t: Translate): SearchRow[] {
       hit: {
         kind: isClientNote ? 'client_note' : 'job_note',
         id: note.id,
-        navigateTo: isClientNote ? `/clients/${note.entityId}` : `/jobs/${note.entityId}`,
+        navigateTo: isClientNote
+          ? `/clients/${note.entityId}`
+          : `/jobs/${note.entityId}`,
         primaryLine: noteLine(note.body),
         secondaryLine: parentLabel,
       },
@@ -154,7 +166,7 @@ function buildRows(em: EntityManager, t: Translate): SearchRow[] {
       blob: transactionSearchBlob(
         transaction,
         { clientLabel: clientName(clients, transaction.clientId) },
-        t,
+        t
       ),
       hit: {
         kind: 'transaction',
@@ -205,11 +217,17 @@ function tieBreak(a: SearchRow, b: SearchRow): number {
  * Global fuzzy search across every active entity in the snapshot: at most 10
  * results, exact id matches first, deterministic kind+id tiebreak.
  */
-export function globalSearch(em: EntityManager, query: string, t: Translate): GlobalSearchHit[] {
+export function globalSearch(
+  em: EntityManager,
+  query: string,
+  t: Translate
+): GlobalSearchHit[] {
   const trimmed = query.trim()
   if (trimmed.length < 2) return []
   const matched = fuzzyFilter(buildRows(em, t), trimmed, (row) => row.blob)
   const exact = matched.filter((row) => row.hit.id === trimmed).sort(tieBreak)
   const fuzzy = matched.filter((row) => row.hit.id !== trimmed).sort(tieBreak)
-  return [...exact, ...fuzzy].slice(0, GLOBAL_SEARCH_MAX_RESULTS).map((row) => row.hit)
+  return [...exact, ...fuzzy]
+    .slice(0, GLOBAL_SEARCH_MAX_RESULTS)
+    .map((row) => row.hit)
 }

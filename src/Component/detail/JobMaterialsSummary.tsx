@@ -36,7 +36,11 @@ export interface MaterialRow {
   usedIn: string[]
 }
 
-const typeOrder: Record<InventoryType, number> = { filament: 0, consumable: 1, equipment: 2 }
+const typeOrder: Record<InventoryType, number> = {
+  filament: 0,
+  consumable: 1,
+  equipment: 2,
+}
 
 const bandClasses: Record<RedoBand, string> = {
   safe: 'text-success',
@@ -44,12 +48,19 @@ const bandClasses: Record<RedoBand, string> = {
   risky: 'text-danger',
 }
 
-export function JobMaterialsSummary({ jobId, revision = 0 }: JobMaterialsSummaryProps) {
+export function JobMaterialsSummary({
+  jobId,
+  revision = 0,
+}: JobMaterialsSummaryProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
 
   const rows = useMemo<MaterialRow[]>(() => {
-    const byInventory = new Map<string, MaterialRow>()
+    // Each entry keeps a Set mirror of the row's `usedIn` for constant-time checks.
+    const byInventory = new Map<
+      string,
+      { row: MaterialRow; usedIn: Set<string> }
+    >()
     for (const piece of em.pieces.findByJob(jobId)) {
       if (piece.isDeleted()) continue
       const units = piece.hasValidUnits() ? (piece.units as number) : 1
@@ -60,27 +71,39 @@ export function JobMaterialsSummary({ jobId, revision = 0 }: JobMaterialsSummary
         const quantity = (line.quantity ?? 0) * units
         if (existing === undefined) {
           byInventory.set(item.id, {
-            inventoryId: item.id,
-            name: item.name,
-            type: item.type,
-            quantity,
-            cost: null,
-            remaining: item.qtyCurrent,
-            redos: null,
-            usedIn: [piece.name],
+            row: {
+              inventoryId: item.id,
+              name: item.name,
+              type: item.type,
+              quantity,
+              cost: null,
+              remaining: item.qtyCurrent,
+              redos: null,
+              usedIn: [piece.name],
+            },
+            usedIn: new Set([piece.name]),
           })
         } else {
-          existing.quantity += quantity
-          if (!existing.usedIn.includes(piece.name)) existing.usedIn.push(piece.name)
+          existing.row.quantity += quantity
+          if (!existing.usedIn.has(piece.name)) {
+            existing.usedIn.add(piece.name)
+            existing.row.usedIn.push(piece.name)
+          }
         }
       }
     }
 
-    const result = [...byInventory.values()]
-    for (const row of result) {
-      const unitCost = computeAvgUnitCost(em.lots.findActiveByInventory(row.inventoryId))
+    const result: MaterialRow[] = []
+    for (const { row } of byInventory.values()) {
+      const unitCost = computeAvgUnitCost(
+        em.lots.findActiveByInventory(row.inventoryId)
+      )
       row.cost = unitCost === null ? null : unitCost * row.quantity
-      row.redos = row.type === 'filament' ? computeRedos(row.remaining, row.quantity).redos : null
+      row.redos =
+        row.type === 'filament'
+          ? computeRedos(row.remaining, row.quantity).redos
+          : null
+      result.push(row)
     }
 
     return result.sort((a, b) => {
@@ -93,7 +116,10 @@ export function JobMaterialsSummary({ jobId, revision = 0 }: JobMaterialsSummary
   const overall = useMemo(() => {
     const filament = rows.filter((row) => row.redos !== null)
     if (filament.length === 0) return null
-    const worst = filament.reduce((min, row) => Math.min(min, row.redos as number), Infinity)
+    const worst = filament.reduce(
+      (min, row) => Math.min(min, row.redos as number),
+      Infinity
+    )
     return { redos: worst, band: redoBand(worst) }
   }, [rows])
 
@@ -102,7 +128,9 @@ export function JobMaterialsSummary({ jobId, revision = 0 }: JobMaterialsSummary
       <SectionHeading>{t('jobs.materialsSummaryTitle')}</SectionHeading>
 
       {rows.length === 0 ? (
-        <p className="text-sm text-text-muted">{t('jobs.materialsSummaryEmpty')}</p>
+        <p className="text-sm text-text-muted">
+          {t('jobs.materialsSummaryEmpty')}
+        </p>
       ) : (
         <>
           <DataTable>
@@ -118,7 +146,10 @@ export function JobMaterialsSummary({ jobId, revision = 0 }: JobMaterialsSummary
             </TableHead>
             <TableBody>
               {rows.map((row) => (
-                <TableRow key={row.inventoryId} data-testid={`job-material-row-${row.inventoryId}`}>
+                <TableRow
+                  key={row.inventoryId}
+                  data-testid={`job-material-row-${row.inventoryId}`}
+                >
                   <TableCell>{row.name}</TableCell>
                   <TableCell className="tabular-nums">{row.quantity}</TableCell>
                   <TableCell className="tabular-nums">
@@ -132,8 +163,12 @@ export function JobMaterialsSummary({ jobId, revision = 0 }: JobMaterialsSummary
                   >
                     {row.redos === null ? '—' : row.redos}
                   </TableCell>
-                  <TableCell className="tabular-nums text-text-muted">{row.remaining}</TableCell>
-                  <TableCell className="text-text-muted">{row.usedIn.join(', ')}</TableCell>
+                  <TableCell className="tabular-nums text-text-muted">
+                    {row.remaining}
+                  </TableCell>
+                  <TableCell className="text-text-muted">
+                    {row.usedIn.join(', ')}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -142,7 +177,9 @@ export function JobMaterialsSummary({ jobId, revision = 0 }: JobMaterialsSummary
           <p className="text-sm" data-testid="job-materials-overall-risk">
             {t('jobs.overallRisk')}:{' '}
             {overall === null ? (
-              <span className="text-text-muted">{t('jobs.riskFactorNone')}</span>
+              <span className="text-text-muted">
+                {t('jobs.riskFactorNone')}
+              </span>
             ) : (
               <span className={bandClasses[overall.band]}>
                 {t('pieces.redo.safe', { count: overall.redos })}

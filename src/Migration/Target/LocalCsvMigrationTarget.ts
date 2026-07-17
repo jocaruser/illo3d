@@ -45,10 +45,11 @@ async function copyShopFiles(
   from: FileSystemDirectoryHandle,
   to: FileSystemDirectoryHandle
 ): Promise<void> {
-  for (const sheet of SHEET_NAMES) {
-    await copyFileIfPresent(from, to, `${sheet}.csv`)
-  }
-  await copyFileIfPresent(from, to, METADATA_FILE_NAME)
+  // Every file is independent, so copy them all at once.
+  await Promise.all([
+    ...SHEET_NAMES.map((sheet) => copyFileIfPresent(from, to, `${sheet}.csv`)),
+    copyFileIfPresent(from, to, METADATA_FILE_NAME),
+  ])
 }
 
 /**
@@ -93,9 +94,13 @@ export function createLocalCsvMigrationTarget(
             )
             await copyShopFiles(sourceHandle, backupHandle)
           }
-          for (const sheet of SHEET_NAMES) {
-            await copyFileIfPresent(workingHandle, sourceHandle, `${sheet}.csv`)
-          }
+          // The migrated CSVs are independent of each other; only the metadata
+          // flip below must come after all of them.
+          await Promise.all(
+            SHEET_NAMES.map((sheet) =>
+              copyFileIfPresent(workingHandle, sourceHandle, `${sheet}.csv`)
+            )
+          )
           const folderRepo = new LocalCsvFolderRepository(sourceHandle)
           const metadata = await folderRepo.readMetadata(sourceHandle.name)
           if (metadata === null) {

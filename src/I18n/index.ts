@@ -11,7 +11,9 @@ export type Language = (typeof SUPPORTED_LANGUAGES)[number]
  * Reads the persisted language without importing the preferences store —
  * i18n must initialize before React (and before Zustand hydration).
  */
-export function readPersistedLanguage(storage: Pick<Storage, 'getItem'>): Language {
+export function readPersistedLanguage(
+  storage: Pick<Storage, 'getItem'>
+): Language {
   try {
     const raw = storage.getItem('user-preferences-storage')
     if (raw === null) return 'en'
@@ -34,5 +36,3 @@ export function initI18n(language: Language): typeof i18n {
   })
   return i18n
 }
-
-export default i18n

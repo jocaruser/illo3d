@@ -75,9 +75,12 @@ export class GSheetWorkbookRepository implements WorkbookRepositoryInterface {
     })
     const payload = (await response.json()) as SpreadsheetResponse
     const spreadsheetId = payload.spreadsheetId ?? ''
-    for (const sheet of SHEET_NAMES) {
-      await this.writeValues(spreadsheetId, sheet, [[...SHEET_HEADERS[sheet]]])
-    }
+    // Each header row lands on its own sheet, so write them all at once.
+    await Promise.all(
+      SHEET_NAMES.map((sheet) =>
+        this.writeValues(spreadsheetId, sheet, [[...SHEET_HEADERS[sheet]]])
+      )
+    )
     return spreadsheetId
   }
 

@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/react'
-import { AlertBox, type AlertVariant } from '@/Component/AlertBox'
+import { AlertBox } from '@/Component/AlertBox'
+import type { AlertVariant } from '@/Component/alertVariants'
 import { renderWithProviders } from './helpers/renderWithProviders'
 
 const statusVariants: Array<[AlertVariant, string]> = [

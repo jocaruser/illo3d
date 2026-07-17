@@ -1,4 +1,4 @@
-import { useEffect, useId, useState, type FormEvent } from 'react'
+import { useId, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DialogShell } from '@/Component/dialog/DialogShell'
 import { FormError } from '@/Component/form/FormError'
@@ -18,19 +18,33 @@ interface CreatePieceDialogProps {
   onCreated?: (pieceId: string) => void
 }
 
-export function CreatePieceDialog({ open, onClose, jobId, onCreated }: CreatePieceDialogProps) {
+/**
+ * Mounting the body only while open keeps every fresh dialog free of the last
+ * one's draft, with no reset effect.
+ */
+export function CreatePieceDialog({
+  open,
+  onClose,
+  jobId,
+  onCreated,
+}: CreatePieceDialogProps) {
+  if (!open) return null
+  return (
+    <PieceDialogBody onClose={onClose} jobId={jobId} onCreated={onCreated} />
+  )
+}
+
+function PieceDialogBody({
+  onClose,
+  jobId,
+  onCreated,
+}: Omit<CreatePieceDialogProps, 'open'>) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const titleId = useId()
   const nameId = useId()
   const [name, setName] = useState('')
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    if (!open) return
-    setName('')
-    setError('')
-  }, [open])
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -45,7 +59,7 @@ export function CreatePieceDialog({ open, onClose, jobId, onCreated }: CreatePie
   }
 
   return (
-    <DialogShell open={open} onClose={onClose} labelledBy={titleId}>
+    <DialogShell open onClose={onClose} labelledBy={titleId}>
       <h2 id={titleId} className="font-display text-xl font-semibold text-text">
         {t('pieces.createTitle')}
       </h2>

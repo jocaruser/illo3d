@@ -2,6 +2,7 @@ import { useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowRightIcon } from '@heroicons/react/20/solid'
 import { AlertBox } from '@/Component/AlertBox'
+import { trapFocusKeyDown } from '@/Component/dialog/trapFocus'
 import { useMigration } from '@/Hook/useMigration'
 import type { MigrationCandidate } from '@/Hook/useOpenShop'
 import { useMigrationStore } from '@/Store/migrationStore'
@@ -65,6 +66,7 @@ export function MigrationWizardModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        onKeyDown={trapFocusKeyDown}
         className="my-auto w-full max-w-3xl rounded-lg border border-border bg-surface-elevated p-6 shadow-xl"
       >
         <h2

@@ -19,7 +19,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
           const isLast = index === items.length - 1
           return (
             <li
-              key={`${index}-${item.label}`}
+              key={`${item.to ?? ''}|${item.label}`}
               className="flex items-center gap-1"
               aria-current={isLast ? 'page' : undefined}
             >
@@ -29,7 +29,9 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
                   {item.label}
                 </Link>
               ) : (
-                <span className={isLast ? 'font-medium text-text' : undefined}>{item.label}</span>
+                <span className={isLast ? 'font-medium text-text' : undefined}>
+                  {item.label}
+                </span>
               )}
             </li>
           )

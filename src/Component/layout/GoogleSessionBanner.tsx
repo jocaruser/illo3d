@@ -3,6 +3,12 @@ import { AlertStrip } from '@/Component/AlertStrip'
 import { ensureGoogleAccessToken } from '@/Security/GoogleSession'
 import { useAuthStore } from '@/Store/authStore'
 
+const handleReauthenticate = (): void => {
+  void ensureGoogleAccessToken().catch(() => {
+    // The auth store already flagged the failure; the banner stays put.
+  })
+}
+
 /**
  * Surfaces a dead Google session. The retry runs the canonical token path from
  * a user gesture — which is exactly what silent renewal lacked when it failed;
@@ -13,12 +19,6 @@ export function GoogleSessionBanner() {
   const needsReauth = useAuthStore((state) => state.googleSessionNeedsReauth)
 
   if (!needsReauth) return null
-
-  const handleReauthenticate = (): void => {
-    void ensureGoogleAccessToken().catch(() => {
-      // The auth store already flagged the failure; the banner stays put.
-    })
-  }
 
   return (
     <AlertStrip

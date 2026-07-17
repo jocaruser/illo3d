@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { trapFocusKeyDown } from './trapFocus'
 
 interface DialogShellProps {
   open: boolean
@@ -8,7 +9,12 @@ interface DialogShellProps {
   children: ReactNode
 }
 
-export function DialogShell({ open, onClose, labelledBy, children }: DialogShellProps) {
+export function DialogShell({
+  open,
+  onClose,
+  labelledBy,
+  children,
+}: DialogShellProps) {
   const panelRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -36,6 +42,7 @@ export function DialogShell({ open, onClose, labelledBy, children }: DialogShell
         aria-modal="true"
         aria-labelledby={labelledBy}
         tabIndex={-1}
+        onKeyDown={trapFocusKeyDown}
         className="dialog-panel-enter relative w-full max-w-md rounded-lg border border-border bg-surface-elevated p-6 shadow-xl focus:outline-none"
       >
         {children}

@@ -32,13 +32,12 @@ export function JobCard({ card, onStatusChange }: JobCardProps) {
   const selectId = useId()
   const { job, pricing } = card
 
-  const handleDragStart = (event: DragEvent<HTMLDivElement>): void => {
+  const handleDragStart = (event: DragEvent<HTMLLIElement>): void => {
     setDragJobId(event.dataTransfer, job.id)
   }
 
   return (
-    <div
-      role="listitem"
+    <li
       draggable
       onDragStart={handleDragStart}
       data-job-id={job.id}
@@ -56,14 +55,18 @@ export function JobCard({ card, onStatusChange }: JobCardProps) {
 
       <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
         {pricing.complete ? (
-          <span className="font-medium text-text">{formatCurrency(pricing.total)}</span>
+          <span className="font-medium text-text">
+            {formatCurrency(pricing.total)}
+          </span>
         ) : (
           <span className="rounded border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-xs font-medium text-warning">
             {t('jobs.totalIncomplete')}
           </span>
         )}
         {card.benefit !== null && (
-          <span className="text-xs text-text-muted">({formatCurrency(card.benefit)})</span>
+          <span className="text-xs text-text-muted">
+            ({formatCurrency(card.benefit)})
+          </span>
         )}
       </div>
 
@@ -92,7 +95,9 @@ export function JobCard({ card, onStatusChange }: JobCardProps) {
         id={selectId}
         className="sr-only"
         value={job.status}
-        onChange={(event) => onStatusChange(job, event.target.value as JobStatus)}
+        onChange={(event) =>
+          onStatusChange(job, event.target.value as JobStatus)
+        }
       >
         {JOB_STATUSES.map((status) => (
           <option key={status} value={status}>
@@ -100,6 +105,6 @@ export function JobCard({ card, onStatusChange }: JobCardProps) {
           </option>
         ))}
       </select>
-    </div>
+    </li>
   )
 }

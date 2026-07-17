@@ -56,6 +56,7 @@ export function ColourEditor({ itemId, colour }: ColourEditorProps) {
           <input
             id="inventory-colour-picker"
             data-testid="inventory-detail-colour-picker"
+            aria-label={t('inventoryDetail.colourPickerLabel')}
             type="color"
             value={HEX.test(value) ? value : PICKER_FALLBACK}
             onChange={(event) => setValue(event.target.value)}

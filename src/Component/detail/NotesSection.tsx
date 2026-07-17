@@ -9,8 +9,12 @@ import { MentionLinkify } from '@/Component/MentionLinkify'
 import { RelativeTime } from '@/Component/RelativeTime'
 import { Select } from '@/Component/Select'
 import { toast } from '@/Component/Toast'
-import type { AlertVariant } from '@/Component/AlertBox'
-import { NOTE_SEVERITIES, type CrmNote, type NoteEntityType } from '@/Entity/CrmNote'
+import type { AlertVariant } from '@/Component/alertVariants'
+import {
+  NOTE_SEVERITIES,
+  type CrmNote,
+  type NoteEntityType,
+} from '@/Entity/CrmNote'
 import { useEntityManager } from '@/Hook/useEntityManager'
 import { NoteService } from '@/Service/NoteService'
 
@@ -38,11 +42,17 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
     () => em.crmNotes.findActiveByEntity(entityType, entityId),
     [em, entityType, entityId, revision]
   )
-  const prominent = useMemo(() => notes.filter((note) => note.isProminent()), [notes])
+  const prominent = useMemo(
+    () => notes.filter((note) => note.isProminent()),
+    [notes]
+  )
 
   const severityOptions = useMemo(
     () =>
-      NOTE_SEVERITIES.map((value) => ({ value, label: t(`clientDetail.severity.${value}`) })),
+      NOTE_SEVERITIES.map((value) => ({
+        value,
+        label: t(`clientDetail.severity.${value}`),
+      })),
     [t]
   )
 
@@ -93,10 +103,16 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
       <SectionHeading>{t(`${prefix}.notesTitle`)}</SectionHeading>
 
       {prominent.length > 0 && (
-        <div className="space-y-1" data-testid={`${entityType}-notes-severity-strip`}>
+        <div
+          className="space-y-1"
+          data-testid={`${entityType}-notes-severity-strip`}
+        >
           {prominent.map((note) => (
             <AlertStrip key={note.id} variant={note.severity as AlertVariant}>
-              <MentionLinkify text={note.body} resolvePieceJob={resolvePieceJob} />
+              <MentionLinkify
+                text={note.body}
+                resolvePieceJob={resolvePieceJob}
+              />
             </AlertStrip>
           ))}
         </div>
@@ -155,7 +171,11 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
                       onChange={(event) => setEditSeverity(event.target.value)}
                     />
                   </div>
-                  <button type="button" className="btn-primary" onClick={() => saveEdit(note.id)}>
+                  <button
+                    type="button"
+                    className="btn-primary"
+                    onClick={() => saveEdit(note.id)}
+                  >
                     {t(`${prefix}.saveNote`)}
                   </button>
                   <button
@@ -172,7 +192,10 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
               <div className="flex flex-wrap items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="whitespace-pre-wrap break-words text-sm text-text">
-                    <MentionLinkify text={note.body} resolvePieceJob={resolvePieceJob} />
+                    <MentionLinkify
+                      text={note.body}
+                      resolvePieceJob={resolvePieceJob}
+                    />
                   </p>
                   <p className="mt-1 text-xs text-text-muted">
                     {t(`clientDetail.severity.${note.severity}`)}

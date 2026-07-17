@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Combobox, type ComboboxItem } from '@/Component/Combobox'
 import { Select, type SelectOption } from '@/Component/Select'
@@ -27,6 +27,8 @@ interface CreatePurchaseDialogProps {
 }
 
 interface LineDraft {
+  /** Stable render key — drafts have no persisted identity to key on. */
+  id: number
   mode: 'existing' | 'new'
   inventoryId: string
   name: string
@@ -35,8 +37,12 @@ interface LineDraft {
   amount: string
 }
 
+let lastDraftLineId = 0
+
 function emptyLine(): LineDraft {
+  lastDraftLineId += 1
   return {
+    id: lastDraftLineId,
     mode: 'existing',
     inventoryId: '',
     name: '',
@@ -48,6 +54,25 @@ function emptyLine(): LineDraft {
 
 function isInventoryCategory(category: string): boolean {
   return (INVENTORY_PURCHASE_CATEGORIES as readonly string[]).includes(category)
+}
+
+function toLineInput(line: LineDraft): PurchaseLineInput {
+  const quantity = parseNumericCell(line.quantity) ?? NaN
+  const lineAmount = parseNumericCell(line.amount) ?? NaN
+  return line.mode === 'new'
+    ? {
+        mode: 'new',
+        name: line.name,
+        type: line.type,
+        quantity,
+        amount: lineAmount,
+      }
+    : {
+        mode: 'existing',
+        inventoryId: line.inventoryId,
+        quantity,
+        amount: lineAmount,
+      }
 }
 
 /**
@@ -103,31 +128,13 @@ function PurchaseDialogBody({
       )
     )
 
-  const handleToggleInventory = (next: boolean) => {
+  const handleToggleInventory = (event: ChangeEvent<HTMLInputElement>) => {
+    const next = event.target.checked
     setAddToInventory(next)
     if (!next) return
     // Stock can only come from a material category, and a purchase needs a line.
     if (!isInventoryCategory(category)) setCategory('filament')
-    setLines((current) => (current.length === 0 ? [emptyLine()] : current))
-  }
-
-  const toLineInput = (line: LineDraft): PurchaseLineInput => {
-    const quantity = parseNumericCell(line.quantity) ?? NaN
-    const lineAmount = parseNumericCell(line.amount) ?? NaN
-    return line.mode === 'new'
-      ? {
-          mode: 'new',
-          name: line.name,
-          type: line.type,
-          quantity,
-          amount: lineAmount,
-        }
-      : {
-          mode: 'existing',
-          inventoryId: line.inventoryId,
-          quantity,
-          amount: lineAmount,
-        }
+    if (lines.length === 0) setLines([emptyLine()])
   }
 
   const handleSubmit = () => {
@@ -236,7 +243,7 @@ function PurchaseDialogBody({
           <input
             type="checkbox"
             checked={addToInventory}
-            onChange={(event) => handleToggleInventory(event.target.checked)}
+            onChange={handleToggleInventory}
             className="h-4 w-4 rounded border-border text-primary focus:ring-primary"
           />
           {t('purchase.addToInventory')}
@@ -245,126 +252,20 @@ function PurchaseDialogBody({
         {addToInventory && (
           <div className="space-y-4">
             {lines.map((line, index) => (
-              <div
-                key={index}
-                className="space-y-3 rounded-md border border-border p-3"
-              >
-                <div className="flex gap-2">
-                  {(['existing', 'new'] as const).map((mode) => (
-                    <button
-                      key={mode}
-                      type="button"
-                      aria-pressed={line.mode === mode}
-                      onClick={() => updateLine(index, { mode })}
-                      className={cx(
-                        'rounded-md px-3 py-1 text-xs font-medium',
-                        line.mode === mode
-                          ? 'bg-primary text-white'
-                          : 'border border-border text-text-muted'
-                      )}
-                    >
-                      {mode === 'existing'
-                        ? t('purchase.lineExisting')
-                        : t('purchase.lineNew')}
-                    </button>
-                  ))}
-                </div>
-
-                {line.mode === 'existing' ? (
-                  <FormGroup>
-                    {/* Combobox owns its input id, so the label wraps it to associate. */}
-                    <FormLabel className="space-y-1">
-                      {t('purchase.inventoryItem')}
-                      <Combobox
-                        items={inventoryItems}
-                        value={
-                          line.inventoryId === '' ? null : line.inventoryId
-                        }
-                        onChange={(key) =>
-                          updateLine(index, { inventoryId: key })
-                        }
-                        placeholder={t('purchase.searchInventory')}
-                      />
-                    </FormLabel>
-                  </FormGroup>
-                ) : (
-                  <>
-                    <FormGroup>
-                      <FormLabel htmlFor={`purchase-line-${index}-name`}>
-                        {t('purchase.inventoryName')}
-                      </FormLabel>
-                      <FormInput
-                        id={`purchase-line-${index}-name`}
-                        data-testid={`purchase-line-${index}-new-name`}
-                        type="text"
-                        value={line.name}
-                        onChange={(event) =>
-                          updateLine(index, { name: event.target.value })
-                        }
-                      />
-                    </FormGroup>
-                    <FormGroup>
-                      <FormLabel htmlFor={`purchase-line-${index}-type`}>
-                        {t('purchase.inventoryTypeLabel')}
-                      </FormLabel>
-                      <Select
-                        id={`purchase-line-${index}-type`}
-                        options={INVENTORY_TYPES.map((value) => ({
-                          value,
-                          label: t(`purchase.inventoryType.${value}`),
-                        }))}
-                        value={line.type}
-                        onChange={(event) =>
-                          updateLine(index, {
-                            type: event.target.value as InventoryType,
-                          })
-                        }
-                      />
-                    </FormGroup>
-                  </>
-                )}
-
-                <div className="flex gap-3">
-                  <FormGroup className="flex-1">
-                    <FormLabel htmlFor={`purchase-line-${index}-qty`}>
-                      {`${t('purchase.quantity')} ${quantityHint(line)}`}
-                    </FormLabel>
-                    <FormInput
-                      id={`purchase-line-${index}-qty`}
-                      data-testid={`purchase-line-${index}-qty`}
-                      type="number"
-                      step=".01"
-                      min="0"
-                      value={line.quantity}
-                      onChange={(event) =>
-                        updateLine(index, { quantity: event.target.value })
-                      }
-                    />
-                  </FormGroup>
-                  <FormGroup className="flex-1">
-                    <FormLabel htmlFor={`purchase-line-${index}-amount`}>
-                      {t('purchase.lineAmount')}
-                    </FormLabel>
-                    <FormInput
-                      id={`purchase-line-${index}-amount`}
-                      data-testid={`purchase-line-${index}-amount`}
-                      type="number"
-                      step=".01"
-                      min="0"
-                      value={line.amount}
-                      onChange={(event) =>
-                        updateLine(index, { amount: event.target.value })
-                      }
-                    />
-                  </FormGroup>
-                </div>
-              </div>
+              <PurchaseLineEditor
+                key={line.id}
+                line={line}
+                index={index}
+                inventoryItems={inventoryItems}
+                quantityHint={quantityHint(line)}
+                onPatch={updateLine}
+              />
             ))}
             <button
               type="button"
               data-testid="purchase-add-line"
               className="btn-secondary"
-              onClick={() => setLines((current) => [...current, emptyLine()])}
+              onClick={() => setLines([...lines, emptyLine()])}
             >
               {t('purchase.addLine')}
             </button>
@@ -388,5 +289,130 @@ function PurchaseDialogBody({
         </div>
       </div>
     </DialogShell>
+  )
+}
+
+interface PurchaseLineEditorProps {
+  line: LineDraft
+  /** Position drives the field ids and testids, and addresses the patch. */
+  index: number
+  inventoryItems: ComboboxItem[]
+  quantityHint: string
+  onPatch: (index: number, patch: Partial<LineDraft>) => void
+}
+
+/** One purchase line: existing-vs-new toggle, item fields, quantity and amount. */
+function PurchaseLineEditor({
+  line,
+  index,
+  inventoryItems,
+  quantityHint,
+  onPatch,
+}: PurchaseLineEditorProps) {
+  const { t } = useTranslation()
+  return (
+    <div className="space-y-3 rounded-md border border-border p-3">
+      <div className="flex gap-2">
+        {(['existing', 'new'] as const).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            aria-pressed={line.mode === mode}
+            onClick={() => onPatch(index, { mode })}
+            className={cx(
+              'rounded-md px-3 py-1 text-xs font-medium',
+              line.mode === mode
+                ? 'bg-primary text-white'
+                : 'border border-border text-text-muted'
+            )}
+          >
+            {mode === 'existing'
+              ? t('purchase.lineExisting')
+              : t('purchase.lineNew')}
+          </button>
+        ))}
+      </div>
+
+      {line.mode === 'existing' ? (
+        <FormGroup>
+          {/* Combobox owns its input id, so the label wraps it to associate. */}
+          <FormLabel className="space-y-1">
+            {t('purchase.inventoryItem')}
+            <Combobox
+              items={inventoryItems}
+              value={line.inventoryId === '' ? null : line.inventoryId}
+              onChange={(key) => onPatch(index, { inventoryId: key })}
+              placeholder={t('purchase.searchInventory')}
+            />
+          </FormLabel>
+        </FormGroup>
+      ) : (
+        <>
+          <FormGroup>
+            <FormLabel htmlFor={`purchase-line-${index}-name`}>
+              {t('purchase.inventoryName')}
+            </FormLabel>
+            <FormInput
+              id={`purchase-line-${index}-name`}
+              data-testid={`purchase-line-${index}-new-name`}
+              type="text"
+              value={line.name}
+              onChange={(event) => onPatch(index, { name: event.target.value })}
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormLabel htmlFor={`purchase-line-${index}-type`}>
+              {t('purchase.inventoryTypeLabel')}
+            </FormLabel>
+            <Select
+              id={`purchase-line-${index}-type`}
+              options={INVENTORY_TYPES.map((value) => ({
+                value,
+                label: t(`purchase.inventoryType.${value}`),
+              }))}
+              value={line.type}
+              onChange={(event) =>
+                onPatch(index, {
+                  type: event.target.value as InventoryType,
+                })
+              }
+            />
+          </FormGroup>
+        </>
+      )}
+
+      <div className="flex gap-3">
+        <FormGroup className="flex-1">
+          <FormLabel htmlFor={`purchase-line-${index}-qty`}>
+            {`${t('purchase.quantity')} ${quantityHint}`}
+          </FormLabel>
+          <FormInput
+            id={`purchase-line-${index}-qty`}
+            data-testid={`purchase-line-${index}-qty`}
+            type="number"
+            step=".01"
+            min="0"
+            value={line.quantity}
+            onChange={(event) =>
+              onPatch(index, { quantity: event.target.value })
+            }
+          />
+        </FormGroup>
+        <FormGroup className="flex-1">
+          <FormLabel htmlFor={`purchase-line-${index}-amount`}>
+            {t('purchase.lineAmount')}
+          </FormLabel>
+          <FormInput
+            id={`purchase-line-${index}-amount`}
+            data-testid={`purchase-line-${index}-amount`}
+            type="number"
+            step=".01"
+            min="0"
+            value={line.amount}
+            onChange={(event) => onPatch(index, { amount: event.target.value })}
+          />
+        </FormGroup>
+      </div>
+    </div>
   )
 }

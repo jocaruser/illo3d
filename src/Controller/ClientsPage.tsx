@@ -19,8 +19,9 @@ export function ClientsPage() {
   const navigate = useNavigate()
   const [revision, bump] = useReducer((count: number) => count + 1, 0)
   const [query, setQuery] = useState('')
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editing, setEditing] = useState<Client | null>(null)
+  // One value covers the whole dialog session: null is closed, `editing: null`
+  // is create mode, and a client is edit mode.
+  const [dialog, setDialog] = useState<{ editing: Client | null } | null>(null)
   const [archiving, setArchiving] = useState<Client | null>(null)
 
   const clients = useMemo(() => em.clients.findActive(), [em, revision])
@@ -50,15 +51,9 @@ export function ClientsPage() {
     [clients, query, tagNames]
   )
 
-  const openCreate = () => {
-    setEditing(null)
-    setDialogOpen(true)
-  }
+  const openCreate = () => setDialog({ editing: null })
 
-  const openEdit = (client: Client) => {
-    setEditing(client)
-    setDialogOpen(true)
-  }
+  const openEdit = (client: Client) => setDialog({ editing: client })
 
   const handleSaved = (client: Client, mode: 'create' | 'edit') => {
     if (mode === 'create') {
@@ -75,7 +70,8 @@ export function ClientsPage() {
     bump()
   }
 
-  const emptyMessage = clients.length === 0 ? t('clients.empty') : t('listTable.noMatches')
+  const emptyMessage =
+    clients.length === 0 ? t('clients.empty') : t('listTable.noMatches')
 
   return (
     <div className="space-y-6">
@@ -103,9 +99,9 @@ export function ClientsPage() {
       />
 
       <CreateClientDialog
-        open={dialogOpen}
-        client={editing}
-        onClose={() => setDialogOpen(false)}
+        open={dialog !== null}
+        client={dialog?.editing ?? null}
+        onClose={() => setDialog(null)}
         onSaved={handleSaved}
       />
 
