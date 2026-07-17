@@ -54,6 +54,7 @@
   },
   "errors": {
     "googleSession": "Tu sesión de Google ha caducado. Vuelve a iniciar sesión con Google e inténtalo de nuevo.",
+    "unexpected": "Algo inesperado ha fallado en segundo plano. Si algo no cuadra, recarga la aplicación.",
     "routeTitle": "No se pudo mostrar esta página",
     "routeDescription": "Ha ocurrido algo inesperado. Puedes intentarlo de nuevo.",
     "retry": "Reintentar",
