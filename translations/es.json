@@ -399,7 +399,7 @@
     "concept": "Concepto",
     "client": "Cliente",
     "balance": "Balance",
-    "empty": "Aún no hay transacciones. Añade datos en Google Sheets.",
+    "empty": "Aún no hay transacciones. Registrar una compra o cobrar un trabajo crea una.",
     "connecting": "Conectando a Google Sheets...",
     "error": "Error",
     "retry": "Reintentar",
