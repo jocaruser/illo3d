@@ -47,7 +47,7 @@ When fixing a confirmed bug or regression, follow the TDD workflow:
 - Do not `git add` OpenSpec change folders unless the user explicitly requests it.
 
 ### 6. Version Must Be Bumped in Every PR
-- Every PR **must** increment `APP_VERSION` in `src/config/version.ts`.
+- Every PR **must** increment `APP_VERSION` in `src/Config/version.ts`.
 - Follow semver: bump major for breaking changes, minor for new features, patch for bug fixes.
 - Do this **before** creating the PR commit so the version reflects the change being merged.
 

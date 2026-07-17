@@ -65,6 +65,11 @@ as siblings of — but separate from — the decision records in `specs/decision
   Text that carries a promise, a warning or an explanation
   appears in the spec verbatim;
   button captions and other trivial labels stay out.
+- **Technical artefacts may be linked, never described.**
+  Where a behaviour is anchored by a source of truth in the repository —
+  the version constant, the schema diagram —
+  the spec may link to it as a reference for maintainers.
+  The prose around the link stays user-observable.
 - **Readability is the prime rule.**
   Specs are written to be read:
   short files, short paragraphs,

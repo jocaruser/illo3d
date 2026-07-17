@@ -22,6 +22,8 @@ schema changes (`jobs.due_date`, `inventory.colour`).
    Drive) with an optional user-chosen backup; the `illo3d.metadata.json` version flip is the
    LAST operation — the atomic commit. A failed run leaves the source shop untouched and
    still openable at its old version.
+   *Superseded by ADR-0012: runs are now in-memory, and persistence happens only on the
+   user's explicit submit. The other points of this ADR stand.*
 4. The v1→v2 plan backfills one `migration` audit entry per pre-existing row, giving the
    audit trail a defined starting point.
 5. `schema.dbml` mirrors `src/Config/schema.ts` and is updated in the same PR as any schema
