@@ -60,6 +60,11 @@ const bandClasses: Record<RedoBand, string> = {
   risky: 'text-danger',
 }
 
+/** Store money at cent precision so the saved price matches the one shown. */
+function roundMoney(value: number): number {
+  return Math.round(value * 100) / 100
+}
+
 function cellOf(piece: Piece, key: PieceSortKey): SortValue {
   if (key === 'id') return piece.id
   if (key === 'name') return piece.name
@@ -406,7 +411,8 @@ export function PiecesTable({ rows, emptyMessage, onChanged }: PiecesTableProps)
                             : t('jobs.suggestedPrice.label')
                         }
                         onClick={() =>
-                          !suggestion.error && saveField(piece, { price: suggestion.suggestedPrice })
+                          !suggestion.error &&
+                          saveField(piece, { price: roundMoney(suggestion.suggestedPrice) })
                         }
                       >
                         {suggestion.error

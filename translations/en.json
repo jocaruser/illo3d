@@ -585,13 +585,14 @@
     "colDueDate": "Due date",
     "dueDate": "Due date",
     "dueDateEditAria": "Due date for job {{id}}",
-    "dueDateOverdueDays": "{{count}} days past due",
     "dueDateOnTrack": "On track",
     "dueDateInherited": "Inherited from the creation date",
     "filamentGrams": "{{grams}} g",
     "consumableUnits": "{{units}} units",
     "riskFactorNone": "No filament lines",
-    "searchPlaceholder": "Search jobs…"
+    "searchPlaceholder": "Search jobs…",
+    "dueDateOverdueDays_one": "{{count}} day past due",
+    "dueDateOverdueDays_other": "{{count}} days past due"
   },
   "wizard": {
     "welcomeTitle": "illo3d",

@@ -585,13 +585,14 @@
     "colDueDate": "Fecha de entrega",
     "dueDate": "Fecha de entrega",
     "dueDateEditAria": "Fecha de entrega del trabajo {{id}}",
-    "dueDateOverdueDays": "{{count}} días de retraso",
     "dueDateOnTrack": "En plazo",
     "dueDateInherited": "Heredada de la fecha de creación",
     "filamentGrams": "{{grams}} g",
     "consumableUnits": "{{units}} unidades",
     "riskFactorNone": "Sin líneas de filamento",
-    "searchPlaceholder": "Buscar trabajos…"
+    "searchPlaceholder": "Buscar trabajos…",
+    "dueDateOverdueDays_one": "{{count}} día de retraso",
+    "dueDateOverdueDays_other": "{{count}} días de retraso"
   },
   "wizard": {
     "welcomeTitle": "illo3d",
