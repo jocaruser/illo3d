@@ -110,7 +110,7 @@ test.describe('Google Drive setup wizard', () => {
     // When headers fail validation, the app shows structure error with detail
     // Error message: "This shop's files do not match the layout this app expects: ..."
     await expect(
-      page.getByText(/does not match the layout|no coinciden con el formato/i),
+      page.getByText(/do not match the layout|no coinciden con el formato/i),
     ).toBeVisible({ timeout: 10000 })
   })
 

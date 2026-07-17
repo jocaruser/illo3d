@@ -43,8 +43,10 @@ describe('ThemeToggle', () => {
     expect(screen.getByTestId('theme-toggle-dark')).toBeDisabled()
   })
 
-  it('exposes an accessible group label', () => {
+  it('exposes accessible labels for the group and each button', () => {
     renderToggle()
     expect(screen.getByRole('group')).toHaveAccessibleName('Theme')
+    expect(screen.getByTestId('theme-toggle-light')).toHaveAccessibleName('Light mode')
+    expect(screen.getByTestId('theme-toggle-dark')).toHaveAccessibleName('Dark mode')
   })
 })

@@ -29,15 +29,24 @@ specs lead, code follows.
 
 ## Checklist
 
+Statuses: unplanned → questions answered → **drafted (awaiting confirmation)** → confirmed & committed.
+
 Done:
 
 - [x] `welcome/` — welcome, local-folder, google-drive
 - [x] `migration/` — wizard, v1-to-v2, v2-to-v3
 
+In flight:
+
+- [ ] `navigation.spec.md` — **drafted, awaiting confirmation**
+  (breadcrumb rule lives here; page specs must link to it, never restate it)
+- [ ] `saving.spec.md` — **drafted, awaiting confirmation**
+  (two-tabs truth backed by ADR-0013, also drafted)
+- [ ] `not-found.spec.md` — **drafted, awaiting confirmation**
+  (own loose file per round 7; details specs link here for soft-deleted pages)
+
 Loose surfaces, not yet planned:
 
-- [ ] `navigation.spec.md` — header, menu, breadcrumbs (not-found home TBD)
-- [ ] `saving.spec.md` — the save/refresh/dirty contract, leave warning
 - [ ] `search.spec.md` — global search
 - [ ] `profile.spec.md` — identity, sign out, version row
   (whether theme/language stay inside it: TBD)
@@ -53,7 +62,6 @@ Pages, not yet planned:
 - [ ] `inventory/` — list; details (item, lots, consumption)
 - [ ] `transactions/` — list, purchase, expense details
 - [ ] `audit-log/`
-- [ ] not-found (home TBD, likely inside navigation)
 
 ## Spec-led deviations awaiting implementation
 

@@ -34,6 +34,7 @@ export function ThemeToggle() {
           data-testid={`theme-toggle-${code}`}
           disabled={theme === code}
           aria-pressed={theme === code}
+          aria-label={t(code === 'light' ? 'profileMenu.lightMode' : 'profileMenu.darkMode')}
           onClick={() => choose(code)}
           className={cx(
             'px-3 py-1 transition-colors',
