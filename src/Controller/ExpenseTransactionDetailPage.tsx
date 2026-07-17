@@ -29,9 +29,9 @@ const SUM_TOLERANCE = 0.01
 
 export function ExpenseTransactionDetailPage() {
   const { t } = useTranslation()
-  const { id = '' } = useParams()
+  const { transactionId = '' } = useParams<{ transactionId: string }>()
   const em = useEntityManager()
-  const transaction = em.transactions.find(id)
+  const transaction = em.transactions.find(transactionId)
 
   // Income is generated from a paid job and has nothing to edit here.
   if (transaction === null || !transaction.isExpense()) {

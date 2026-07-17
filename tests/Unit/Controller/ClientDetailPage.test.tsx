@@ -30,7 +30,7 @@ function seedWorld(): TestWorld {
         phone: '600',
         notes: 'sheet level note',
         preferred_contact: 'email',
-        lead_source: 'referred by @CL2',
+        lead_source: 'referred by @CL2 who saw @P1',
         address: '1 Main St',
         created_at: '2024-01-02',
       },
@@ -81,6 +81,8 @@ describe('ClientDetailPage', () => {
     expect(screen.getByText('2024-01-02')).toBeInTheDocument()
     expect(screen.getByText('sheet level note')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: '@CL2' })).toHaveAttribute('href', '/clients/CL2')
+    // A piece mention resolves through to its job's detail anchor.
+    expect(screen.getByRole('link', { name: '@P1' })).toHaveAttribute('href', '/jobs/J1#piece-P1')
   })
 
   it('omits optional fields that are empty', () => {
@@ -185,6 +187,18 @@ describe('ClientDetailPage', () => {
       .slice(1)
       .map((row) => within(row).getAllByRole('cell')[0].textContent)
     expect(ids).toEqual(expected)
+  })
+
+  it('flips the default created sort to ascending', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('button', { name: 'Created, sorted descending' }))
+    const ids = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => within(row).getAllByRole('cell')[0].textContent)
+    expect(ids).toEqual(['J1', 'J2', 'J3'])
   })
 
   it('filters the jobs table and shows the no-matches message', async () => {

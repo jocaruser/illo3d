@@ -26,9 +26,9 @@ const BACK_TO = '/inventory'
 
 export function InventoryDetailPage() {
   const { t } = useTranslation()
-  const { id = '' } = useParams()
+  const { inventoryId = '' } = useParams<{ inventoryId: string }>()
   const em = useEntityManager()
-  const item = em.inventory.find(id)
+  const item = em.inventory.find(inventoryId)
 
   // Archived and soft-deleted items are off the list, so they are off here too.
   if (item === null || !item.isActive()) {

@@ -39,7 +39,7 @@ function seedWorkbook(): FakeTabs {
 
 function renderDetail(id = 'T11') {
   return renderRoute(<ExpenseTransactionDetailPage />, {
-    path: '/transactions/:id',
+    path: '/transactions/:transactionId',
     entry: `/transactions/${id}`,
   })
 }

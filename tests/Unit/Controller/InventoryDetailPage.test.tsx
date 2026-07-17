@@ -57,7 +57,7 @@ function seedWorkbook(): FakeTabs {
 
 function renderDetail(id = 'INV1') {
   return renderRoute(<InventoryDetailPage />, {
-    path: '/inventory/:id',
+    path: '/inventory/:inventoryId',
     entry: `/inventory/${id}`,
   })
 }
