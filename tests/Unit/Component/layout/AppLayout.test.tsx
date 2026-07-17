@@ -19,6 +19,10 @@ vi.mock('@/Component/layout/FaviconUpdater', () => ({
   FaviconUpdater: () => <div data-testid="favicon-updater" />,
 }))
 
+vi.mock('@/Component/layout/WorkbookBootstrap', () => ({
+  WorkbookBootstrap: () => null,
+}))
+
 vi.mock('sonner', () => ({
   Toaster: ({ theme }: { theme: string }) => (
     <div data-testid="toaster" data-theme={theme} />

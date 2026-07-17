@@ -128,6 +128,33 @@ describe('JobMaterialsSummary', () => {
     expect(summaryRows()[0][1]).toBe('55')
   })
 
+  it('orders same-type materials by name and names a piece only once', () => {
+    // A second filament forces the same-type name comparison, and a second
+    // piece called "Shell" must not repeat in the usedIn column.
+    world.tabs.seed('inventory', [
+      { id: 'INV5', type: 'filament', name: 'ABS Red', qty_current: '100', created_at: '2024-01-01T00:00:00.000Z' },
+    ])
+    world.tabs.seed('pieces', [
+      { id: 'P5', job_id: 'J1', name: 'Shell', status: 'pending', units: '1', created_at: '2024-05-01T14:00:00.000Z' },
+    ])
+    world.tabs.seed('piece_items', [
+      { id: 'PI8', piece_id: 'P1', inventory_id: 'INV5', quantity: '4' },
+      { id: 'PI9', piece_id: 'P5', inventory_id: 'INV1', quantity: '5' },
+    ])
+    renderWithProviders(<JobMaterialsSummary jobId="J1" />)
+
+    const rows = summaryRows()
+    expect(rows.map((cells) => cells[0])).toEqual([
+      'ABS Red',
+      'PLA White',
+      'Nozzle',
+      'Ender 3',
+    ])
+    // 35g from Shell (P1) and Arm plus 5g from the second Shell, named once.
+    expect(rows[1][1]).toBe('40')
+    expect(rows[1][5]).toBe('Shell, Arm')
+  })
+
   it('treats a line with no quantity as zero', () => {
     const line = world.em.pieceItems.find('PI2')
     if (line !== null) {

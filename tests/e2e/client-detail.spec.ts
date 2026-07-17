@@ -124,7 +124,7 @@ test.describe('Client detail CRM', () => {
 
     const pieceLink = page
       .getByTestId('client-note-row-CN3')
-      .getByRole('link', { name: 'Phone case bottom shell' })
+      .getByRole('link', { name: '@P2' })
     await expect(pieceLink).toBeVisible({ timeout: 15000 })
     await pieceLink.click()
     await expect(page).toHaveURL(/\/jobs\/J1/)
@@ -148,11 +148,11 @@ test.describe('Client detail CRM', () => {
       page.getByRole('heading', { name: 'Beta LLC' }),
     ).toBeVisible({ timeout: 15000 })
 
-    await expect(
-      page
-        .getByTestId('client-note-row-CN2')
-        .getByRole('link', { name: 'Phone case prototype' }),
-    ).toBeVisible({ timeout: 15000 })
+    const jobLink = page
+      .getByTestId('client-note-row-CN2')
+      .getByRole('link', { name: '@J1' })
+    await expect(jobLink).toBeVisible({ timeout: 15000 })
+    await expect(jobLink).toHaveAttribute('href', '#/jobs/J1')
   })
 
   test('client detail shows fixture tag', async ({ page, openCsvShop }) => {

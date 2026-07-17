@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { InventoryDetailPage } from '@/Controller/InventoryDetailPage'
 import type { EntityManager } from '@/Repository/EntityManager'
@@ -209,6 +209,21 @@ describe('InventoryDetailPage', () => {
       )
       expect(inventoryRow('INV1')?.warnRed).toBe(100)
     })
+
+    it('rejects blank yellow and orange tiers too', async () => {
+      const user = userEvent.setup()
+      renderDetail()
+
+      await user.clear(screen.getByTestId('inventory-detail-warn-yellow'))
+      await user.clear(screen.getByTestId('inventory-detail-warn-orange'))
+      await user.click(screen.getByTestId('inventory-detail-save-thresholds'))
+
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Could not save thresholds.'
+      )
+      const item = inventoryRow('INV1')
+      expect([item?.warnYellow, item?.warnOrange]).toEqual([300, 200])
+    })
   })
 
   describe('ColourEditor', () => {
@@ -245,6 +260,20 @@ describe('InventoryDetailPage', () => {
 
       await user.click(screen.getByTestId('inventory-detail-save-colour'))
       expect(inventoryRow('INV1')?.colour).toBe('')
+    })
+
+    it('mirrors a colour chosen in the picker into the hex field', () => {
+      renderDetail()
+
+      fireEvent.change(screen.getByTestId('inventory-detail-colour-picker'), {
+        target: { value: '#123456' },
+      })
+
+      expect(screen.getByTestId('inventory-detail-colour-hex')).toHaveValue(
+        '#123456'
+      )
+      // Picking alone saves nothing yet.
+      expect(inventoryRow('INV1')?.colour).toBe('#ff0000')
     })
 
     it('rejects a hex that is not #RRGGBB', async () => {
@@ -356,6 +385,35 @@ describe('InventoryDetailPage', () => {
         screen.getByRole('heading', { name: 'Purchase lots' })
       ).toBeInTheDocument()
       expect(screen.getByText('No purchase lots yet.')).toBeInTheDocument()
+    })
+
+    it('starts blank for a lot with no stored figures and refuses to save it as-is', async () => {
+      const user = userEvent.setup()
+      tabs = new FakeTabs()
+      tabs.seed('inventory', {
+        id: 'INV1',
+        type: 'filament',
+        name: 'PLA White',
+      })
+      // A legacy row can miss both figures; the editor must not invent zeros.
+      tabs.seed('lots', {
+        id: 'L1',
+        inventory_id: 'INV1',
+        transaction_id: 'T11',
+      })
+      mocks.em = createTestEm(tabs)
+      renderDetail()
+
+      expect(screen.getByTestId('inventory-detail-lot-qty-L1')).toHaveValue(null)
+      expect(screen.getByTestId('inventory-detail-lot-amount-L1')).toHaveValue(null)
+
+      await user.click(screen.getByTestId('inventory-detail-save-lot-L1'))
+
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Enter a positive quantity for this lot.'
+      )
+      expect(mocks.toast.error).toHaveBeenCalledWith('Could not save lot.')
+      expect(createTestEm(tabs).lots.find('L1')?.quantity).toBeUndefined()
     })
   })
 

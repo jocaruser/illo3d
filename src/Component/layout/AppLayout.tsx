@@ -6,6 +6,7 @@ import { BreadcrumbBar } from '@/Component/layout/BreadcrumbBar'
 import { FaviconUpdater } from '@/Component/layout/FaviconUpdater'
 import { GoogleSessionBanner } from '@/Component/layout/GoogleSessionBanner'
 import { OperationToast } from '@/Component/layout/OperationToast'
+import { WorkbookBootstrap } from '@/Component/layout/WorkbookBootstrap'
 import { SetupWizard } from '@/Component/wizard/SetupWizard'
 import { useShopStore } from '@/Store/shopStore'
 import { useUserPreferencesStore } from '@/Store/userPreferencesStore'
@@ -32,6 +33,7 @@ export function AppLayout() {
       <BlockingOverlay />
       <OperationToast />
       <FaviconUpdater />
+      <WorkbookBootstrap />
 
       {activeShop === null && (
         <div

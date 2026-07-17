@@ -296,6 +296,42 @@ describe('PieceItemsTable', () => {
     expect(toastMock.error).toHaveBeenCalledWith('Action failed. Please try again.')
   })
 
+  it('renders a line with no stored quantity as blank and costs it as zero', () => {
+    world.tabs.seed('piece_items', [
+      { id: 'PI2', piece_id: 'P1', inventory_id: 'INV2' },
+    ])
+    renderTable()
+
+    const row = screen.getByTestId('piece-item-row-PI2')
+    expect(screen.getByTestId('piece-item-qty-PI2')).toHaveValue(null)
+    // 0 × €1/unit; nothing needed, so the run is trivially safe.
+    expect(within(row).getByText('€0.00')).toBeInTheDocument()
+    expect(within(row).getByText(/Safe/)).toBeInTheDocument()
+  })
+
+  it('treats a line onto vanished inventory as out of stock', () => {
+    world.tabs.seed('piece_items', [
+      { id: 'PI2', piece_id: 'P1', inventory_id: 'INV404', quantity: '10' },
+    ])
+    renderTable()
+
+    const row = screen.getByTestId('piece-item-row-PI2')
+    // No lots resolve, so no cost; zero stock against a 20g need is risky.
+    expect(within(row).getByText('—')).toBeInTheDocument()
+    expect(within(row).getByText('Risky (no redo margin)')).toBeInTheDocument()
+  })
+
+  it('flags a line whose stock covers exactly one redo as tight', () => {
+    // 10 nozzles against 2 × 2 units needed: one spare run, no more.
+    world.tabs.seed('piece_items', [
+      { id: 'PI2', piece_id: 'P1', inventory_id: 'INV2', quantity: '2' },
+    ])
+    renderTable()
+
+    const row = screen.getByTestId('piece-item-row-PI2')
+    expect(within(row).getByText('Tight (1 redo)')).toBeInTheDocument()
+  })
+
   it('treats a piece with unset units as a single unit for costing', () => {
     world.em.pieceItems.save(
       Object.assign(world.em.pieceItems.find('PI1') as never, { id: 'PI2', pieceId: 'P2' })

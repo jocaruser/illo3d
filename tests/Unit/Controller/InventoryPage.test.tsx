@@ -234,6 +234,30 @@ describe('InventoryPage', () => {
       await user.click(screen.getByRole('button', { name: /sort by created/i }))
       expect(names()).toEqual(['Ender 3', 'PLA White'])
     })
+
+    it('breaks ties in the sorted column by id', async () => {
+      const user = userEvent.setup()
+      const tabs = new FakeTabs()
+      tabs.seed('inventory', {
+        id: 'INV2',
+        type: 'consumable',
+        name: 'Tape',
+        qty_current: '5',
+      })
+      tabs.seed('inventory', {
+        id: 'INV1',
+        type: 'consumable',
+        name: 'Glue',
+        qty_current: '5',
+      })
+      mocks.em = createTestEm(tabs)
+      renderRoute(<InventoryPage />)
+
+      await user.click(screen.getByRole('button', { name: /sort by qty/i }))
+      expect(
+        bodyRows().map((row) => within(row).getAllByRole('cell')[0].textContent)
+      ).toEqual(['INV1', 'INV2'])
+    })
   })
 
   describe('search', () => {

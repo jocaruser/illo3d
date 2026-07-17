@@ -136,6 +136,34 @@ describe('JobDetailPage', () => {
     expect(widget('filament')).toHaveTextContent('0 g')
   })
 
+  it('aggregates degenerate lines without letting them skew the widgets', () => {
+    world.tabs.seed('inventory', [
+      // Runs out after this job: 30g left against a 20g need.
+      { id: 'INV5', type: 'filament', name: 'PLA Blue', qty_current: '30', created_at: '2024-01-01T00:00:00.000Z' },
+      // Plenty of stock, but examined after PLA Blue already set the risk.
+      { id: 'INV6', type: 'filament', name: 'PLA Green', qty_current: '900', created_at: '2024-01-01T00:00:00.000Z' },
+    ])
+    world.tabs.seed('piece_items', [
+      // Unknown inventory: skipped entirely.
+      { id: 'PI3', piece_id: 'P1', inventory_id: 'INV404', quantity: '5' },
+      // Equipment with no lots: neither filament nor consumable, no cost.
+      { id: 'PI4', piece_id: 'P1', inventory_id: 'INV3', quantity: '1' },
+      // No quantity: nothing to count.
+      { id: 'PI5', piece_id: 'P1', inventory_id: 'INV5' },
+      { id: 'PI6', piece_id: 'P1', inventory_id: 'INV5', quantity: '10' },
+      { id: 'PI7', piece_id: 'P1', inventory_id: 'INV6', quantity: '10' },
+    ])
+    renderPage()
+
+    // 20g of PLA White + 20g Blue + 20g Green; PI5 adds nothing.
+    expect(widget('filament')).toHaveTextContent('60 g')
+    expect(widget('consumibles')).toHaveTextContent('2 units')
+    // Only PLA White and the nozzles have lots to price.
+    expect(widget('material-cost')).toHaveTextContent('€10.40')
+    // 30g Blue against a 20g run leaves no full redo; Green cannot relax it.
+    expect(widget('risk-factor')).toHaveTextContent('0 redos (PLA Blue)')
+  })
+
   it('computes total and benefit once every piece is priced', async () => {
     const user = userEvent.setup()
     renderPage()
@@ -258,6 +286,52 @@ describe('JobDetailPage', () => {
     await user.click(screen.getByRole('option', { name: 'Delivered' }))
 
     expect(world.em.jobs.find('J1')?.status).toBe('delivered')
+  })
+
+  it('marks the job paid through the confirmation dialog and refreshes the widgets', async () => {
+    const user = userEvent.setup()
+    // Price the outstanding piece so the paid transition is allowed.
+    const piece = world.em.pieces.find('P2')
+    if (piece !== null) {
+      piece.price = 8
+      piece.units = 1
+      world.em.pieces.save(piece)
+    }
+    renderPage()
+
+    await user.click(within(widget('status')).getByRole('combobox'))
+    await user.click(screen.getByRole('option', { name: 'Paid' }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(
+      within(dialog).getByRole('heading', { name: 'Mark job as paid' })
+    ).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm' }))
+
+    expect(world.em.jobs.find('J1')?.status).toBe('paid')
+    // €21 × 2 + €8 × 1, booked as income by the confirmed dialog.
+    expect(
+      world.em.transactions.findAll().some((transaction) => transaction.amount === 50)
+    ).toBe(true)
+  })
+
+  it('keeps the stored due date when the service refuses the edit', async () => {
+    const user = userEvent.setup()
+    // A legacy row can miss its client; the update then fails validation.
+    world.tabs.seed('jobs', [
+      { id: 'J4', client_id: '', description: 'Orphan row', status: 'draft', created_at: '2024-05-04T09:00:00.000Z', due_date: '2024-05-10' },
+    ])
+    renderPage('/jobs/J4')
+
+    await user.click(screen.getByTestId('job-due-date-edit'))
+    const input = screen.getByLabelText('Due date for job J4')
+    await user.clear(input)
+    await user.type(input, '2024-06-30')
+    await user.tab()
+
+    expect(toastMock.error).toHaveBeenCalledWith('Select a client')
+    expect(toastMock.success).not.toHaveBeenCalled()
+    expect(world.em.jobs.find('J4')?.dueDate).toBe('2024-05-10')
   })
 
   it('blocks paid while a piece is unpriced', async () => {

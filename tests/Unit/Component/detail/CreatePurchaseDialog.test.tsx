@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { fireEvent, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CreatePurchaseDialog } from '@/Component/detail/CreatePurchaseDialog'
 import type { EntityManager } from '@/Repository/EntityManager'
@@ -105,6 +105,21 @@ describe('CreatePurchaseDialog', () => {
       expect(after.inventory.findAll()).toHaveLength(2)
     })
 
+    it('records the purchase on an edited date', async () => {
+      const user = userEvent.setup()
+      renderDialog()
+
+      fireEvent.change(screen.getByLabelText('Date'), {
+        target: { value: '2026-07-20' },
+      })
+      await fill(user, amountField(), '12')
+      await user.click(submit())
+
+      expect(createTestEm(tabs).transactions.find('T1')?.date).toBe(
+        '2026-07-20'
+      )
+    })
+
     it('offers every expense category', () => {
       renderDialog()
 
@@ -167,6 +182,26 @@ describe('CreatePurchaseDialog', () => {
       // 'electric' cannot buy stock, so the dialog moves to a category that can.
       expect(screen.getByLabelText('Category')).toHaveValue('filament')
       expect(screen.getByTestId('purchase-line-0-qty')).toBeInTheDocument()
+    })
+
+    it('keeps the drafted lines when inventory is toggled off and on again', async () => {
+      const user = userEvent.setup()
+      renderDialog()
+
+      await user.click(addToInventory())
+      await fill(user, screen.getByTestId('purchase-line-0-qty'), '250')
+
+      await user.click(addToInventory())
+      expect(
+        screen.queryByTestId('purchase-line-0-qty')
+      ).not.toBeInTheDocument()
+
+      await user.click(addToInventory())
+      // The earlier draft resurfaces instead of a fresh empty line.
+      expect(screen.getByTestId('purchase-line-0-qty')).toHaveValue(250)
+      expect(
+        screen.queryByTestId('purchase-line-1-qty')
+      ).not.toBeInTheDocument()
     })
 
     it('keeps a category that is already a material one', async () => {
@@ -366,6 +401,22 @@ describe('CreatePurchaseDialog', () => {
         expect(screen.getByRole('alert')).toHaveTextContent(
           'Quantity must be greater than zero'
         )
+      })
+
+      it('asks for a quantity when the field is left blank', async () => {
+        const user = userEvent.setup()
+        renderDialog()
+
+        await user.click(addToInventory())
+        await user.click(screen.getByRole('button', { name: 'New item' }))
+        await fill(user, screen.getByTestId('purchase-line-0-new-name'), 'PETG')
+        await fill(user, screen.getByTestId('purchase-line-0-amount'), '20')
+        await user.click(submit())
+
+        expect(screen.getByRole('alert')).toHaveTextContent(
+          'Quantity must be greater than zero'
+        )
+        expect(onCreated).not.toHaveBeenCalled()
       })
 
       it('asks for a positive line cost', async () => {

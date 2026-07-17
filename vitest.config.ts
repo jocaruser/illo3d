@@ -19,8 +19,16 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{ts,tsx}'],
-      // main.tsx only wires the DOM entry point; everything it composes is covered.
-      exclude: ['src/main.tsx'],
+      exclude: [
+        // Wires the DOM entry point only; everything it composes is covered.
+        'src/main.tsx',
+        // Erasable type declarations with zero executable code.
+        'src/Repository/WorkbookRepositoryInterface.ts',
+        'src/Repository/FolderRepositoryInterface.ts',
+        'src/Migration/MigrationContext.ts',
+        'src/Migration/MigrationPlan.ts',
+        'src/Migration/MigrationTarget.ts',
+      ],
       thresholds: {
         statements: 100,
         branches: 100,

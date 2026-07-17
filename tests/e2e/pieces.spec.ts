@@ -1,6 +1,11 @@
 import type { Page } from '@playwright/test'
 import { test, expect } from './fixtures'
 
+/** The status control is a Combobox input inside the `piece-status-<id>` wrapper. */
+function pieceStatus(page: Page, pieceId: string) {
+  return page.getByTestId(`piece-status-${pieceId}`).getByRole('combobox')
+}
+
 async function commitPieceUnits(page: Page, pieceId: string, units: string) {
   const input = page.getByTestId(`piece-units-${pieceId}`)
   await input.fill(units)
@@ -45,15 +50,13 @@ test.describe('Job pieces (job detail)', () => {
       page.getByRole('heading', { name: /pieces|piezas/i })
     ).toBeVisible()
     await expect(page.getByRole('table').filter({ hasText: /Expand/ })).toBeVisible({ timeout: 15000 })
-    const piecesTable = page.getByRole('table').filter({ hasText: /Expand/ })
-    await expect(piecesTable.getByText('Phone case top shell')).toBeVisible()
+    // Piece name, units and price are inline-edit inputs now, not plain text.
+    await expect(page.getByTestId('piece-name-P1')).toHaveValue('Phone case top shell')
     await expect(page.getByTestId('piece-units-P1')).toBeVisible()
 
     await page.getByTestId('expand-piece-P1').click()
-    await expect(
-      page.locator('#piece-items-P1').getByRole('cell', { name: '42', exact: true })
-    ).toBeVisible()
-    await expect(page.locator('#piece-items-P1').getByRole('combobox').first()).toHaveValue('PLA White')
+    await expect(page.getByTestId('piece-item-qty-PI1')).toHaveValue('42')
+    await expect(page.locator('#piece-items-P1').getByRole('combobox').first()).toHaveValue(/^PLA White/)
   })
 
   test('create piece appends row', async ({ page, openCsvShop }) => {
@@ -80,7 +83,10 @@ test.describe('Job pieces (job detail)', () => {
 
     await page.getByRole('button', { name: /create piece|crear pieza/i }).click()
 
-    await expect(page.getByText('e2e piece marker')).toBeVisible({
+    // The new row's name renders as an inline-edit input, not text.
+    await expect(
+      page.locator('[data-testid^="piece-name-"][value="e2e piece marker"]')
+    ).toBeVisible({
       timeout: 20000,
     })
   })
@@ -107,7 +113,8 @@ test.describe('Job pieces (job detail)', () => {
     await page.waitForSelector('.cursor-pointer', { timeout: 5000 })
     await page.locator('.cursor-pointer').first().click()
 
-    await expect(combobox).toHaveValue('Ender 3', { timeout: 10000 })
+    // Committed lines label their inventory as 'Name (ID) — N left'.
+    await expect(combobox).toHaveValue(/^Ender 3/, { timeout: 10000 })
 
     const qtyInput = p2Detail.locator('input[type="number"]').last()
     await qtyInput.fill('7')
@@ -133,7 +140,7 @@ test.describe('Job pieces (job detail)', () => {
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
     await commitPieceUnits(page, 'P2', '1')
-    await page.getByTestId('piece-status-P2').focus()
+    await pieceStatus(page, 'P2').focus()
     await page.getByRole('option', { name: /^done$/i }).click()
     await expect(
       page.getByRole('heading', { name: /complete piece|completar pieza/i })
@@ -146,7 +153,7 @@ test.describe('Job pieces (job detail)', () => {
     await expect(
       page.getByRole('heading', { name: /complete piece|completar pieza/i })
     ).not.toBeVisible({ timeout: 15000 })
-    await expect(page.getByTestId('piece-status-P2')).toHaveValue(/^done$/i)
+    await expect(pieceStatus(page, 'P2')).toHaveValue(/^done$/i)
   })
 
   test('revert piece to pending shows restore checkbox', async ({
@@ -164,14 +171,14 @@ test.describe('Job pieces (job detail)', () => {
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
     await commitPieceUnits(page, 'P2', '1')
-    await page.getByTestId('piece-status-P2').focus()
+    await pieceStatus(page, 'P2').focus()
     await page.getByRole('option', { name: /^done$/i }).click()
     await page.getByRole('button', { name: /confirm|confirmar/i }).click()
-    await expect(page.getByTestId('piece-status-P2')).toHaveValue(/^done$/i, {
+    await expect(pieceStatus(page, 'P2')).toHaveValue(/^done$/i, {
       timeout: 15000,
     })
 
-    await page.getByTestId('piece-status-P2').focus()
+    await pieceStatus(page, 'P2').focus()
     await page.getByRole('option', { name: /^pending$/i }).click()
     await expect(
       page.getByRole('heading', { name: /revert piece|revertir estado/i })
@@ -184,7 +191,7 @@ test.describe('Job pieces (job detail)', () => {
     await expect(
       page.getByRole('heading', { name: /revert piece|revertir estado/i })
     ).not.toBeVisible({ timeout: 15000 })
-    await expect(page.getByTestId('piece-status-P2')).toHaveValue(/^pending$/i)
+    await expect(pieceStatus(page, 'P2')).toHaveValue(/^pending$/i)
   })
 
   test('skip inventory decrement via checkbox still completes piece', async ({
@@ -202,13 +209,13 @@ test.describe('Job pieces (job detail)', () => {
     await expect(page).toHaveURL(/\/jobs\/J1/)
 
     await commitPieceUnits(page, 'P1', '1')
-    await page.getByTestId('piece-status-P1').focus()
+    await pieceStatus(page, 'P1').focus()
     await page.getByRole('option', { name: /^done$/i }).click()
     await page
       .getByRole('checkbox', { name: /decrement|descontar/i })
       .setChecked(false)
     await page.getByRole('button', { name: /confirm|confirmar/i }).click()
-    await expect(page.getByTestId('piece-status-P1')).toHaveValue(/^done$/i, {
+    await expect(pieceStatus(page, 'P1')).toHaveValue(/^done$/i, {
       timeout: 15000,
     })
   })
@@ -230,15 +237,19 @@ test.describe('Job pieces (job detail)', () => {
     await page.getByTestId('add-piece-button').click()
     await page.getByPlaceholder(/e.g. top shell|carcasa superior/i).fill('no-lines-piece')
     await page.getByRole('button', { name: /create piece|crear pieza/i }).click()
-    await expect(page.getByText('no-lines-piece')).toBeVisible({
+    // The new row's name renders as an inline-edit input, not text.
+    const newPieceName = page.locator('[data-testid^="piece-name-"][value="no-lines-piece"]')
+    await expect(newPieceName).toBeVisible({
       timeout: 20000,
     })
 
     const newPieceRow = page
       .locator('tbody tr')
-      .filter({ has: page.getByText('no-lines-piece') })
+      .filter({ has: newPieceName })
       .first()
-    const statusSelect = newPieceRow.locator('[data-testid^="piece-status-"]')
+    const statusSelect = newPieceRow
+      .locator('[data-testid^="piece-status-"]')
+      .getByRole('combobox')
     await statusSelect.focus()
     await page.getByRole('option', { name: /^done$/i }).click()
     await expect(

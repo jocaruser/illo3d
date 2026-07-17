@@ -42,6 +42,7 @@ export function JobCard({ card, onStatusChange }: JobCardProps) {
       draggable
       onDragStart={handleDragStart}
       data-job-id={job.id}
+      data-testid={`kanban-drag-${job.id}`}
       className="cursor-grab rounded-lg border border-border bg-surface-elevated p-3 shadow-sm active:cursor-grabbing"
     >
       <Link

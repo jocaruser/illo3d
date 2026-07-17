@@ -96,8 +96,10 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
     setDraft({ inventoryId: '', quantity: '1' })
   }
 
-  const commitDraft = (inventoryId: string) => {
-    const quantity = Number(draft?.quantity ?? '1')
+  // `rawQuantity` arrives from the draft row's render scope, where `draft` is
+  // already narrowed non-null — no fallback needed here.
+  const commitDraft = (inventoryId: string, rawQuantity: string) => {
+    const quantity = Number(rawQuantity)
     const result = service.createPieceItem({ pieceId: piece.id, inventoryId, quantity })
     if (!result.ok) {
       fail(result.error)
@@ -240,7 +242,7 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                     items={options}
                     value={null}
                     placeholder={t('pieces.searchInventory')}
-                    onChange={commitDraft}
+                    onChange={(inventoryId) => commitDraft(inventoryId, draft.quantity)}
                   />
                 </div>
               </td>
@@ -252,11 +254,7 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                   className="w-20 px-2 py-1"
                   aria-label={t('pieces.quantity')}
                   value={draft.quantity}
-                  onChange={(event) =>
-                    setDraft((current) =>
-                      current === null ? current : { ...current, quantity: event.target.value }
-                    )
-                  }
+                  onChange={(event) => setDraft({ ...draft, quantity: event.target.value })}
                 />
               </td>
               <td className="px-2 py-1 text-text-muted">—</td>

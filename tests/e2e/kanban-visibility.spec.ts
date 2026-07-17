@@ -8,6 +8,7 @@ import {
 import { replaceDatePlaceholdersInFixture } from './helpers/prepareKanbanFixture'
 
 const SCENARIO = 'kanban-stale-jobs'
+const FIXTURES_ROOT = process.env.E2E_FIXTURES_DIR ?? '.e2e-fixtures'
 
 test.use({ storageState: { cookies: [], origins: [] } })
 
@@ -28,7 +29,7 @@ async function openShopWithFixture(page: Parameters<typeof mockDirectoryPicker>[
 test.describe('Kanban visibility', () => {
   test.beforeEach(async ({ page }) => {
     copyGoldenFixtureToE2eRoot(SCENARIO)
-    const fixtureDir = path.join(process.cwd(), '.e2e-fixtures', SCENARIO)
+    const fixtureDir = path.join(process.cwd(), FIXTURES_ROOT, SCENARIO)
     replaceDatePlaceholdersInFixture(fixtureDir)
     await openShopWithFixture(page)
   })
@@ -81,7 +82,7 @@ test.describe('Kanban visibility', () => {
 test.describe('Kanban visibility with custom threshold', () => {
   test.beforeEach(async ({ page }) => {
     copyGoldenFixtureToE2eRoot(SCENARIO)
-    const fixtureDir = path.join(process.cwd(), '.e2e-fixtures', SCENARIO)
+    const fixtureDir = path.join(process.cwd(), FIXTURES_ROOT, SCENARIO)
     replaceDatePlaceholdersInFixture(fixtureDir)
     const metadataPath = path.join(fixtureDir, 'illo3d.metadata.json')
     const fs = await import('node:fs')

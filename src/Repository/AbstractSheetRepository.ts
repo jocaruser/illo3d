@@ -56,8 +56,9 @@ export abstract class AbstractSheetRepository<T extends EntityWithId> {
 
   /** Next prefixed id derived from the ids currently in the snapshot. */
   nextId(): string {
+    // rowToRecord fills every canonical column, so `id` is always a string.
     const ids = matrixToRecords(this.sheet, this.tabs.getTab(this.sheet)).map(
-      (record) => record.id ?? '',
+      (record) => record.id,
     )
     return nextId(this.idPrefix, ids)
   }

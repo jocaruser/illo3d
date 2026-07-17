@@ -20,6 +20,7 @@ export function ListTableSearchField({ value, onChange, placeholder }: ListTable
       <input
         id={id}
         type="search"
+        data-testid="list-table-search"
         value={value}
         onChange={handleChange}
         placeholder={placeholder ?? t('listTable.searchPlaceholder')}

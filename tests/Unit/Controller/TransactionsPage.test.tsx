@@ -296,6 +296,27 @@ describe('TransactionsPage', () => {
       await user.click(screen.getByRole('button', { name: /sort by client/i }))
       expect(rowIds()).toEqual(['T1', 'T11', 'T12'])
     })
+
+    it('shows and ranks a transaction with no stored amount as zero', async () => {
+      const user = userEvent.setup()
+      tabs.seed('transactions', {
+        id: 'T14',
+        date: '2026-01-22',
+        type: 'expense',
+        category: 'other',
+        concept: 'Amount pending',
+      })
+      mocks.em = createTestEm(tabs)
+      renderRoute(<TransactionsPage />)
+
+      const row = bodyRows().find(
+        (candidate) => within(candidate).queryByText('T14') !== null
+      ) as HTMLElement
+      expect(within(row).getByText('€0.00')).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: /sort by amount/i }))
+      expect(rowIds()).toEqual(['T11', 'T12', 'T14', 'T1'])
+    })
   })
 
   describe('search', () => {

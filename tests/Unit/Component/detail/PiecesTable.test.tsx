@@ -278,6 +278,47 @@ describe('PiecesTable', () => {
     expect(screen.getByText(/Run stock: Risky/)).toBeInTheDocument()
   })
 
+  it('shows a tight run margin when the stock covers exactly one redo', async () => {
+    const user = userEvent.setup()
+    // 2 glue sticks against 1 needed per run: one spare run only.
+    const glue = world.em.inventory.find('INV4')
+    if (glue !== null) {
+      glue.qtyCurrent = 2
+      world.em.inventory.save(glue)
+    }
+    renderTable()
+
+    await user.click(screen.getByRole('button', { name: 'Expand piece P3' }))
+    expect(screen.getByText(/Run stock: Tight \(1 redo\)/)).toBeInTheDocument()
+  })
+
+  it('prices the benefit of a piece whose only line has no purchase data', () => {
+    // P3's glue has no lots: the material cost contribution is simply unknown,
+    // so the benefit falls back to the full line total.
+    const piece = world.em.pieces.find('P3')
+    if (piece !== null) {
+      piece.price = 10
+      world.em.pieces.save(piece)
+    }
+    renderTable()
+
+    const row = screen.getByTestId('piece-name-P3').closest('tr') as HTMLElement
+    expect(within(row).getAllByText('€10.00').length).toBeGreaterThan(0)
+  })
+
+  it('ranks a line onto vanished inventory or with no quantity as zero stock', async () => {
+    const user = userEvent.setup()
+    // Third line on P1: unknown inventory and no quantity at all. It must not
+    // crash the margin maths, and P1 keeps a risky margin.
+    world.tabs.seed('piece_items', [
+      { id: 'PI9', piece_id: 'P1', inventory_id: 'INV404' },
+    ])
+    renderTable()
+
+    await user.click(screen.getByRole('button', { name: 'Expand piece P1' }))
+    expect(screen.getByText(/Run stock: Risky/)).toBeInTheDocument()
+  })
+
   it('omits the run margin for a piece with no lines', async () => {
     const user = userEvent.setup()
     renderTable()
@@ -413,6 +454,42 @@ describe('PiecesTable', () => {
       await user.click(within(dialog).getByRole('checkbox'))
       await user.click(within(dialog).getByRole('button', { name: 'Confirm' }))
       expect(world.em.pieces.find('P1')?.status).toBe('done')
+    })
+
+    it('lists a vanished inventory item by id in the shortfall and skips unquantified lines', async () => {
+      const user = userEvent.setup()
+      world.tabs.seed('piece_items', [
+        // Unknown inventory: zero on hand, so it must appear in the warning.
+        { id: 'PI8', piece_id: 'P1', inventory_id: 'INV404', quantity: '1' },
+        // No quantity: nothing to reserve, so it must not appear at all.
+        { id: 'PI9', piece_id: 'P1', inventory_id: 'INV3' },
+      ])
+      renderTable()
+
+      await user.click(statusBox('P1'))
+      await user.click(screen.getByRole('option', { name: 'Done' }))
+
+      const dialog = screen.getByRole('dialog')
+      expect(within(dialog).getByText('INV404: need 2, have 0')).toBeInTheDocument()
+      expect(within(dialog).queryByText(/INV3/)).not.toBeInTheDocument()
+    })
+
+    it('surfaces a service refusal that carries no shortfall detail', async () => {
+      const user = userEvent.setup()
+      renderTable()
+
+      await user.click(statusBox('P1'))
+      await user.click(screen.getByRole('option', { name: 'Done' }))
+
+      // The lines vanish (say, in another tab) between opening and confirming.
+      world.em.pieceItems.remove('PI1')
+      world.em.pieceItems.remove('PI2')
+      await user.click(screen.getByRole('button', { name: 'Confirm' }))
+
+      expect(screen.getByRole('alert')).toHaveTextContent(
+        'Add at least one material line'
+      )
+      expect(world.em.pieces.find('P1')?.status).toBe('pending')
     })
 
     it('cancels a status change', async () => {

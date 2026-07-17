@@ -153,6 +153,17 @@ describe('AuditLogRepository', () => {
     tabs.seed('audit_log', { ...base, id: 'AL2', timestamp: '2026-01-02T00:00:00.000Z' })
     // Duplicate id + timestamp exercises the equal-keys tiebreak branch.
     tabs.seed('audit_log', { ...base, id: 'AL2', timestamp: '2026-01-02T00:00:00.000Z' })
-    expect(em.auditLog.findAll().map((entry) => entry.id)).toEqual(['AL2', 'AL2', 'AL3', 'AL1'])
+    // Seeded after its same-timestamp siblings so the id tiebreak compares both ways.
+    tabs.seed('audit_log', { ...base, id: 'AL4', timestamp: '2026-01-02T00:00:00.000Z' })
+    // Oldest entry seeded last so the comparator also sees an older left-hand side.
+    tabs.seed('audit_log', { ...base, id: 'AL0', timestamp: '2025-12-31T00:00:00.000Z' })
+    expect(em.auditLog.findAll().map((entry) => entry.id)).toEqual([
+      'AL2',
+      'AL2',
+      'AL3',
+      'AL4',
+      'AL1',
+      'AL0',
+    ])
   })
 })
