@@ -5,6 +5,7 @@ import {
   useWorkbookService,
   type UseWorkbookService,
 } from '@/Hook/useWorkbookService'
+import { LocationProbe } from '../../helpers/LocationProbe'
 import { renderLayout } from './renderLayout'
 
 vi.mock('@/Hook/useWorkbookService', () => ({ useWorkbookService: vi.fn() }))
@@ -57,13 +58,19 @@ describe('WorkbookActions', () => {
     expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
   })
 
-  it('enables Save for a dirty, ready workbook', async () => {
+  it('opens the save preview instead of writing anything', async () => {
     mockService({ dirty: true, ready: true })
-    renderLayout(<WorkbookActions />)
+    renderLayout(
+      <>
+        <LocationProbe />
+        <WorkbookActions />
+      </>
+    )
 
     await userEvent.click(screen.getByRole('button', { name: 'Save' }))
 
-    expect(api.save).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('location')).toHaveTextContent('/save')
+    expect(api.save).not.toHaveBeenCalled()
   })
 
   it('refreshes on demand', async () => {

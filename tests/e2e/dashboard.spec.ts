@@ -47,7 +47,10 @@ test.describe('Dashboard', () => {
     ).not.toHaveAttribute('aria-current', 'page')
   })
 
-  test('save button triggers success toast', async ({ page, openCsvShop }) => {
+  test('save button opens the preview and Save all triggers success toast', async ({
+    page,
+    openCsvShop,
+  }) => {
     void openCsvShop
 
     await expect(page).toHaveURL(/\/dashboard/)
@@ -75,15 +78,18 @@ test.describe('Dashboard', () => {
       timeout: 20000,
     })
 
-    // Click Save and expect toast
+    // Save opens the preview; Save all writes and toasts
     await page.getByTestId('workbook-save').click()
+    await expect(page).toHaveURL(/\/save/)
+    await expect(page.getByTestId('save-preview-page')).toBeVisible({ timeout: 10000 })
+    await page.getByTestId('save-preview-save-all').click()
 
     await expect(
       page.locator('[data-sonner-toast]').getByText(/saved|guardado/i),
     ).toBeVisible({ timeout: 10000 })
   })
 
-  test('blocking overlay appears during save and prevents interaction', async ({
+  test('save preview blocks nothing and Save all completes the write', async ({
     page,
     openCsvShop,
   }) => {
@@ -114,16 +120,17 @@ test.describe('Dashboard', () => {
       timeout: 20000,
     })
 
-    // Click Save
+    // Save opens the preview; Save all runs the write on the preview's own cards
     await page.getByTestId('workbook-save').click()
+    await expect(page.getByTestId('save-preview-page')).toBeVisible({ timeout: 10000 })
+    await page.getByTestId('save-preview-save-all').click()
 
-    // Overlay should appear briefly (may be fast in tests)
     // Verify save completes and toast appears
     await expect(
       page.locator('[data-sonner-toast]').getByText(/saved|guardado/i),
     ).toBeVisible({ timeout: 10000 })
 
-    // Verify overlay is gone (blocking removed)
-    await expect(page.locator('.fixed.inset-0')).not.toBeVisible({ timeout: 5000 })
+    // No blocking overlay is left behind
+    await expect(page.getByTestId('blocking-overlay')).not.toBeVisible({ timeout: 5000 })
   })
 })

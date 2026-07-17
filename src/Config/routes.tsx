@@ -45,6 +45,9 @@ const InventoryDetailPage = lazy(async () => ({
 const AuditLogPage = lazy(async () => ({
   default: (await import('@/Controller/AuditLogPage')).AuditLogPage,
 }))
+const SavePreviewPage = lazy(async () => ({
+  default: (await import('@/Controller/SavePreviewPage')).SavePreviewPage,
+}))
 
 /** v2 signed users in at `/login`; v3 has no login page — the wizard covers it. */
 function RootRedirect() {
@@ -94,6 +97,7 @@ export const routes: RouteObject[] = [
         element: page(<InventoryDetailPage />),
       },
       { path: '/audit-log', element: page(<AuditLogPage />) },
+      { path: '/save', element: page(<SavePreviewPage />) },
       { path: '*', element: page(<NotFoundRoute />) },
     ],
   },

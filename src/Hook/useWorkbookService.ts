@@ -21,7 +21,8 @@ export interface UseWorkbookService {
   cancelRefresh(): void
   /** True while a dirty refresh waits for the user's answer. */
   needsConfirm: boolean
-  save(): Promise<void>
+  /** Save the workbook; resolves true on success (failures are toasted). */
+  save(options?: { blocking?: boolean }): Promise<boolean>
   dirty: boolean
   status: WorkbookStatus
   /** A workbook is open and idle: the only state in which Save makes sense. */
@@ -90,26 +91,31 @@ export function useWorkbookService(): UseWorkbookService {
     setNeedsConfirm(false)
   }, [])
 
-  const save: () => Promise<void> = useCallback(async () => {
-    if (service === null) return
-    try {
-      await service.save()
-      toast.success(t('workbook.saveSuccess'))
-    } catch (error) {
-      if (error instanceof GoogleSessionError) {
-        toast.error(t('errors.googleSession'))
-        return
-      }
-      toast.error(t('workbook.saveError'), {
-        action: {
-          label: t('workbook.retry'),
-          onClick: () => {
-            void save()
+  const save: (options?: { blocking?: boolean }) => Promise<boolean> = useCallback(
+    async (options?: { blocking?: boolean }) => {
+      if (service === null) return false
+      try {
+        await service.save(options)
+        toast.success(t('workbook.saveSuccess'))
+        return true
+      } catch (error) {
+        if (error instanceof GoogleSessionError) {
+          toast.error(t('errors.googleSession'))
+          return false
+        }
+        toast.error(t('workbook.saveError'), {
+          action: {
+            label: t('workbook.retry'),
+            onClick: () => {
+              void save(options)
+            },
           },
-        },
-      })
-    }
-  }, [service, t])
+        })
+        return false
+      }
+    },
+    [service, t]
+  )
 
   return {
     hydrate,

@@ -3,13 +3,14 @@ import { useOperationStore } from '@/Store/operationStore'
 
 /**
  * The non-blocking face of a long operation: loads keep the app usable, so
- * their progress lives in a corner card instead of an overlay.
+ * their progress lives in a corner card instead of an overlay. Non-blocking
+ * saves are excluded — their progress is the save preview's own stepper.
  */
 export function OperationToast() {
   const { t } = useTranslation()
   const operation = useOperationStore((state) => state.operation)
 
-  if (operation === null || operation.blocking) return null
+  if (operation === null || operation.blocking || operation.kind === 'save') return null
 
   const { message, sheetName, current, total } = operation
   const percent = total > 0 ? Math.round((current / total) * 100) : 0

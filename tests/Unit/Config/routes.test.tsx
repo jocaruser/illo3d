@@ -38,6 +38,9 @@ vi.mock('@/Controller/InventoryDetailPage', () => ({
 vi.mock('@/Controller/AuditLogPage', () => ({
   AuditLogPage: () => <p>audit log page</p>,
 }))
+vi.mock('@/Controller/SavePreviewPage', () => ({
+  SavePreviewPage: () => <p>save preview page</p>,
+}))
 
 vi.mock('@/Component/wizard/SetupWizard', () => ({
   SetupWizard: () => <div data-testid="setup-wizard" />,
@@ -127,6 +130,7 @@ describe('routes', () => {
       ['/inventory', 'inventory page'],
       ['/inventory/INV1', 'inventory detail page'],
       ['/audit-log', 'audit log page'],
+      ['/save', 'save preview page'],
     ])('%s renders its controller', async (path, content) => {
       renderRoute(path)
 
