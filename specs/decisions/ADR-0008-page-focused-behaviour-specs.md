@@ -1,6 +1,6 @@
 # ADR-0008: Store behaviour specs as page-focused, non-technical files
 
-- Status: Proposed
+- Status: Accepted
 - Date: 2026-07-17
 
 ## Context
@@ -83,8 +83,12 @@ as siblings of — but separate from — the decision records in `specs/decision
   is intentionally not used for this project;
   `specs/features/README.md` should point here once the tree lands.
 
-## Pending before acceptance
+## Open points, tracked through the migration
 
-- The full ownership map for shared rules, proposed file by file.
-- The disposition of the retired `openspec/` tree,
-  and how the OpenSpec workflow skills are pointed at this layout.
+- The ownership map for shared rules is settled incrementally:
+  each page is planned and confirmed file by file,
+  and owners are agreed as the pages that exercise them come up.
+- The disposition of the retired `openspec/` tree —
+  and pointing the OpenSpec workflow skills at this layout —
+  is decided once the migration proves the format.
+  Until then `openspec/specs/` remains the frozen v2 record.
