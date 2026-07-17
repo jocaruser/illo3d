@@ -398,7 +398,7 @@
     "concept": "Concept",
     "client": "Client",
     "balance": "Balance",
-    "empty": "No transactions yet. Add data in Google Sheets.",
+    "empty": "No transactions yet. Recording a purchase or paying a job creates one.",
     "connecting": "Connecting to Google Sheets...",
     "error": "Error",
     "retry": "Retry",
