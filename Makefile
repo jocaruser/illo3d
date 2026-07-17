@@ -102,13 +102,18 @@ imports-fixture: ## Regenerate fixtures/imports from docs/sources
 	node scripts/build-imports-fixture.mjs
 
 # Vite runs in app (Alpine + musl node_modules); Playwright runs in playwright image (glibc browsers).
-# Start e2e Vite with nohup so it survives the exec shell exiting (plain `vite &` can be SIGHUP'd).
+# The suite exercises the PRODUCTION bundle: `vite build` with the e2e env baked in (import.meta.env
+# is inlined at build time), served by `vite preview` so minification/CSP/chunking issues fail e2e.
+# `--base=/` because specs address the server root (GitHub Pages' /illo3d/ base is path-only).
+# `tsc` is skipped here — typechecking is the build gate's job.
+# Start the server with nohup so it survives the exec shell exiting (plain `vite &` can be SIGHUP'd).
 # -T disables pseudo-TTY allocation to prevent signal issues when the exec session detaches.
-e2e-test: ## Playwright e2e suite (dedicated Vite on :5174)
+e2e-test: ## Playwright e2e suite against a production build (Vite preview on :5174)
 	docker compose up -d app
 	docker compose exec app rm -rf .e2e-fixtures
 	docker compose exec app sh -c 'kill $$(cat /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid 2>/dev/null) 2>/dev/null; rm -f /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).log; true'
-	docker compose exec -d -T app sh -c 'VITE_E2E=true VITE_FIXTURES_ROOT=/app/.e2e-fixtures VITE_GOOGLE_CLIENT_ID=e2e-mock-google-client-id nohup pnpm exec vite --port $(E2E_VITE_PORT) --host 0.0.0.0 >>/tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).log 2>&1 & echo $$! > /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid'
+	docker compose exec -T app sh -c 'VITE_E2E=true VITE_GOOGLE_CLIENT_ID=e2e-mock-google-client-id pnpm exec vite build --base=/ --outDir dist-e2e --logLevel warn'
+	docker compose exec -d -T app sh -c 'VITE_FIXTURES_ROOT=/app/.e2e-fixtures nohup pnpm exec vite preview --base=/ --port $(E2E_VITE_PORT) --host 0.0.0.0 --outDir dist-e2e >>/tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).log 2>&1 & echo $$! > /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid'
 	@n=0; until docker compose exec app wget -q -O- http://127.0.0.1:$(E2E_VITE_PORT)/ >/dev/null 2>&1; do \
 		n=$$((n+1)); \
 		if [ $$n -gt 120 ]; then echo 'E2E: Vite did not become ready on port $(E2E_VITE_PORT) (see /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).log in app container)'; docker compose exec app sh -c 'kill $$(cat /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid 2>/dev/null) 2>/dev/null; rm -f /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid'; exit 1; fi; \
