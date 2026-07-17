@@ -1,8 +1,8 @@
 # Clients
 
 Every active client, with "Add client" to create one.
-The table behaves as
-[all lists do](../jobs/list.spec.md#how-lists-behave-all-of-them);
+The table behaves
+[as all lists do](../jobs/list.spec.md#how-lists-behave-all-of-them);
 an empty shop has its saying-so row.
 
 | Column | Notes |

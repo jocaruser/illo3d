@@ -35,8 +35,8 @@ Two actions, side by side:
 Below them, the working path for opening:
 **"Or paste folder ID"**, with the guidance
 "Find the ID in the folder URL: drive.google.com/drive/folders/ID_HERE".
-Opening validates the folder exactly like a
-[local one](local-folder.spec.md#what-the-folders-contents-decide):
+Opening validates the folder exactly like
+[a local one](local-folder.spec.md#what-the-folders-contents-decide):
 a current shop opens,
 an older shop goes through the [migration wizard](../migration/wizard.spec.md),
 anything else explains what is wrong —

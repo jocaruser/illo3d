@@ -6,8 +6,8 @@ with a coloured edge — red, orange or amber —
 for the severest threshold it crossed.
 Pressing an item opens it in the inventory.
 
-The thresholds themselves belong to each material
-(a future `inventory/` spec owns them);
+The thresholds themselves belong to
+[each material](../inventory/details/item.spec.md);
 a threshold set to zero never alerts.
 
 When nothing is low:

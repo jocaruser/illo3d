@@ -23,6 +23,10 @@ but were never recorded as a decision.
   if any counting piece lacks a price or units,
   every surface shows an explicit *incomplete* marker,
   never a partial number.
+  The one deliberate exception is the dashboard's
+  expected-benefit *estimate*,
+  which sums only fully described pieces
+  and is named an estimate for that reason.
 - **Paid is gated on completeness**:
   a job cannot become paid (or cancelled)
   while its total is incomplete.

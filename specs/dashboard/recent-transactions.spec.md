@@ -9,7 +9,6 @@ A movement's description links to what explains it:
 a job's income links to the job,
 a purchase with materials links to its own details page,
 anything else is plain text —
-the same rule the transactions page uses
-(a future `transactions/` spec owns it).
+[the ledger's own rule](../transactions/list.spec.md).
 
 With no movements yet: "No entries yet."

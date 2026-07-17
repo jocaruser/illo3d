@@ -33,7 +33,7 @@ usable before any shop exists:
 
 Two cards, each naming a storage choice and its promise.
 Pressing a card acts immediately —
-there is no intermediate "create or open?" step.
+the door itself asks no questions first.
 
 | Door | Promise (shown on the card) | Pressing it |
 |---|---|---|
@@ -54,6 +54,5 @@ click Google Drive again to open the Google sign-in window."
 - While a chosen flow is working
   → both doors are disabled until it finishes or fails.
 - On a browser without local-folder support
-  → pressing **Local folder** explains:
-  "Local folder storage needs a Chromium-based browser
-  (for example Chrome or Edge)."
+  → pressing **Local folder** says so
+  ([local folder](local-folder.spec.md) owns the message).

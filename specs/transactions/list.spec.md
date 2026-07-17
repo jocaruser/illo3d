@@ -14,8 +14,8 @@ records income
 Only [a purchase's own page](expense-details.spec.md)
 can amend anything, and only its own numbers.
 
-The table behaves as
-[all lists do](../jobs/list.spec.md#how-lists-behave-all-of-them).
+The table behaves
+[as all lists do](../jobs/list.spec.md#how-lists-behave-all-of-them).
 
 | Column | Notes |
 |---|---|

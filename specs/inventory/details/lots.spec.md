@@ -2,8 +2,8 @@
 
 Every batch this material was bought in, newest first:
 its date, quantity, cost,
-and a link to the purchase that created it
-(a future `transactions/expense-details.spec.md` describes that page).
+and a link to
+[the purchase that created it](../../transactions/expense-details.spec.md).
 
 Quantity and cost edit in place, per lot —
 corrections, not bookkeeping:

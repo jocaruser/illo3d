@@ -1,7 +1,7 @@
 # Dashboard — the jobs board
 
 Five columns — Draft, In progress, Delivered, Paid, Cancelled —
-one card per active job.
+one card per job that is not archived or deleted.
 An empty column says "No jobs".
 
 ## A card
@@ -9,13 +9,13 @@ An empty column says "No jobs".
 Each card shows the job's description and its client,
 and as much of its money story as is known:
 the job's total when every piece is priced
-(the pricing rules are the job page's —
-a future `jobs/` spec owns them),
+(the rules are
+[the job's widgets'](../jobs/details/widgets.spec.md)),
 with the expected benefit in brackets after it;
 an *incomplete* marker instead, when pricing is missing.
 Below, the making progress — "‹done›/‹total› pieces done" —
-and a lateness badge coloured by how far past due the job is
-(the due-date colouring is also the job page's rule).
+and a lateness badge coloured on
+[the due-date scale](../jobs/details/widgets.spec.md#due-date).
 Pressing a card opens the job.
 
 ## Moving cards
@@ -27,8 +27,7 @@ Each card also carries a "Move to column" control for keyboards.
 Moving is changing the job's status,
 so it obeys the job's own gates —
 moving into Paid or Cancelled, or out of Paid,
-asks the same questions the job page would
-(a future `jobs/` spec owns those dialogs).
+asks [the same questions the job page would](../jobs/details/widgets.spec.md#scenarios--changing-status).
 A refused move leaves the card where it was.
 
 ## Cards that retire themselves

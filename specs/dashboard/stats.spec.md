@@ -20,8 +20,11 @@ each fully described piece
 (units and price set, materials listed, material costs known)
 contributes its revenue minus its material cost.
 
-Pieces missing any of that simply do not count —
-the figure never guesses.
+Pieces missing any of that simply do not count,
+so the figure can be partial —
+it is an *estimate* of what is described,
+the [one sanctioned exception](../decisions/ADR-0015-derived-pricing-and-income-on-paid.md)
+to the incomplete-marker rule.
 When nothing qualifies, the card explains what to add instead of showing 0:
 "Add units, per-unit prices, and material lines with lot costs
 on draft or in-progress jobs to see expected benefit."

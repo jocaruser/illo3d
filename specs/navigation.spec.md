@@ -15,10 +15,8 @@ From left to right:
   Inventory, Audit Log.
 - **Refresh and Save** — the workbook controls
   (their meaning is [saving](saving.spec.md)'s).
-- **Search** — the global search box
-  (a future `search.spec.md` will describe it).
-- **The profile avatar** — opening the profile menu
-  (a future `profile.spec.md` will describe it).
+- **Search** — [the global search box](search.spec.md).
+- **The profile avatar** — opening [the profile menu](profile.spec.md).
 
 The current section's link is visibly active,
 and stays active on that section's details pages:

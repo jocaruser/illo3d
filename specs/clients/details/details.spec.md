@@ -18,8 +18,7 @@ Everything about one client:
   creating one already assigned to them.
 
 A back link returns to [the list](../list.spec.md);
-breadcrumbs name the client
-([navigation](../../navigation.spec.md)).
+breadcrumbs behave as [navigation](../../navigation.spec.md) says.
 
 Lifecycle behaves exactly as
 [a job's page](../../jobs/details/details.spec.md#lifecycle-on-this-page) —

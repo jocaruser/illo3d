@@ -5,14 +5,14 @@ Everything about one job, top to bottom:
 - [The widgets](widgets.spec.md) — identity, status, money, risk.
 - Tags and notes —
   the same sections every client has;
-  their mechanics will be owned by the future `clients/details/` specs.
+  [tags](../../clients/details/tags.spec.md)
+  and [notes](../../clients/details/notes.spec.md) own the mechanics.
 - [The pieces](pieces-table.spec.md) — what is being made.
 - [The materials summary](materials-summary.spec.md) —
   what the making consumes.
 
 A back link returns to [the list](../list.spec.md);
-breadcrumbs name the job by its description
-([navigation](../../navigation.spec.md)).
+breadcrumbs behave as [navigation](../../navigation.spec.md) says.
 
 ## Lifecycle on this page
 
