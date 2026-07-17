@@ -61,6 +61,10 @@ as siblings of — but separate from — the decision records in `specs/decision
   a gate, a dialog, a cascade, a fallback —
   it must leave the prose and become a `Scenarios` bullet
   (*condition → outcome*).
+- **Meaningful copy is quoted; incidental labels are not.**
+  Text that carries a promise, a warning or an explanation
+  appears in the spec verbatim;
+  button captions and other trivial labels stay out.
 - **Readability is the prime rule.**
   Specs are written to be read:
   short files, short paragraphs,
