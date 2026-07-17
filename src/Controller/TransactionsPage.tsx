@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { ColoredNumber } from '@/Component/ColoredNumber'
+import { ColouredNumber } from '@/Component/ColouredNumber'
 import { CreatePurchaseDialog } from '@/Component/detail/CreatePurchaseDialog'
 import {
   TransactionsTable,
@@ -80,9 +80,9 @@ export function TransactionsPage() {
           <>
             <span className="text-sm font-medium text-text-muted">
               {`${t('transactions.balance')}: `}
-              <ColoredNumber value={balance}>
+              <ColouredNumber value={balance}>
                 {formatCurrency(balance)}
-              </ColoredNumber>
+              </ColouredNumber>
             </span>
             <button
               type="button"

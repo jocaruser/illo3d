@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Card, CardBody } from '@/Component/Card'
-import { ColoredNumber } from '@/Component/ColoredNumber'
+import { ColouredNumber } from '@/Component/ColouredNumber'
 import { useEntityManager } from '@/Hook/useEntityManager'
 import { expectedBenefit } from '@/Service/Pricing/expectedBenefit'
 import { formatCurrency } from '@/Service/Pricing/money'
@@ -35,7 +35,7 @@ export function ExpectedBenefitCard() {
           <p className="mt-1 text-sm text-text-muted">{t('dashboard.expectedBenefitEmpty')}</p>
         ) : (
           <p className="mt-1 font-display text-2xl font-semibold">
-            <ColoredNumber value={total}>{formatCurrency(total)}</ColoredNumber>
+            <ColouredNumber value={total}>{formatCurrency(total)}</ColouredNumber>
           </p>
         )}
       </CardBody>

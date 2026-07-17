@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { Card, CardBody, CardHeader, CardTitle } from '@/Component/Card'
-import { ColoredNumber } from '@/Component/ColoredNumber'
+import { ColouredNumber } from '@/Component/ColouredNumber'
 import type { Transaction } from '@/Entity/Transaction'
 import { useEntityManager } from '@/Hook/useEntityManager'
 import { formatCurrency } from '@/Service/Pricing/money'
@@ -70,9 +70,9 @@ export function RecentTransactions() {
                 <span className="min-w-0 truncate text-sm">{conceptOf(transaction)}</span>
                 <span className="flex shrink-0 items-center gap-3 text-sm">
                   <span className="text-text-muted">{transaction.date}</span>
-                  <ColoredNumber value={transaction.amount ?? 0}>
+                  <ColouredNumber value={transaction.amount ?? 0}>
                     {formatCurrency(transaction.amount ?? 0)}
-                  </ColoredNumber>
+                  </ColouredNumber>
                 </span>
               </li>
             ))}

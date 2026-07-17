@@ -46,6 +46,7 @@ These rules apply to every installation profile, regardless of selected capabili
 - `code-style` — Automatically detects and follows project-specific linting and parsing rules by analysing package.json and config files. See [`docs/aircury/capabilities/code-style.md`](./docs/aircury/capabilities/code-style.md).
 - `frontend` — Frontend standards with a self-contained UI workflow skill See [`docs/aircury/capabilities/frontend.md`](./docs/aircury/capabilities/frontend.md).
 - `resilience` — Error-handling and structured-logging standards with curated resilience skills See [`docs/aircury/capabilities/resilience.md`](./docs/aircury/capabilities/resilience.md).
+- `language` — British business English guidance for project communication
 
 Detailed capability rules are generated as separate files under [`docs/aircury/capabilities/`](./docs/aircury/capabilities/). `FRAMEWORK.md` remains the governing entrypoint; linked capability docs define the detailed standards for enabled capabilities.
 
@@ -53,6 +54,9 @@ This installation uses Custom Architecture. The project-specific architecture so
 
 ## Coding Standards
 
+- Use British English spelling in documentation, specs, commit messages, skill text, and user-facing copy.
+- Prefer British English identifiers and names when introducing new code, unless an external API, tool, or established project interface requires a different spelling.
+- Order date entry controls Day-before-Month in UI: date pickers, recurrence editors, and numeric day/month selectors. Expose date entry through a shared date primitive with this order built in; do not hand-roll date control ordering per screen.
 - Use explicit names that reflect the problem space.
 - Keep functions small, cohesive, and intention-revealing.
 - Prefer immutable data and side-effect isolation.
@@ -89,6 +93,8 @@ Before starting any task:
 
 While executing work:
 
+- Use British English spelling in documentation, specs, commit messages, skill text, and user-facing copy unless an external interface requires a different spelling.
+- Order date entry controls Day-before-Month in any UI you generate or modify, preferably via the project's shared date primitive.
 - All observable behaviour changes MUST update `specs/features/` before the work is done.
 - Follow TDD for observable behaviour changes when automated testing is feasible: failing test, minimum implementation, refactor.
 - Preserve SOLID design, Clean Code, and explicit architecture boundaries in every change.

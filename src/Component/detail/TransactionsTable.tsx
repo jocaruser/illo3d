@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { ColoredNumber } from '@/Component/ColoredNumber'
+import { ColouredNumber } from '@/Component/ColouredNumber'
 import {
   DataTable,
   TableBody,
@@ -138,12 +138,12 @@ export function TransactionsTable({
                   {t(`transactions.type.${transaction.type}`)}
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-right">
-                  <ColoredNumber
+                  <ColouredNumber
                     value={amount}
                     forceRed={transaction.isExpense()}
                   >
                     {formatCurrency(amount)}
-                  </ColoredNumber>
+                  </ColouredNumber>
                 </TableCell>
                 <TableCell>{transaction.category}</TableCell>
                 <TableCell>
