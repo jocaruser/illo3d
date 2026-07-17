@@ -8,9 +8,9 @@ a list of days on a narrow one —
 with controls for the previous month, "Today", and the next.
 Today's square is highlighted.
 
-Each active job appears on its due date
+Each job that is not archived or deleted appears on its due date
 (a job with no due date sits on its creation date instead —
-the fallback is the job page's rule),
+[the widgets' fallback](../jobs/details/widgets.spec.md#due-date)),
 as a small chip with its description and client,
 coloured by the same lateness scale as the
 [board's badges](kanban.spec.md).

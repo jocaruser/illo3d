@@ -29,7 +29,7 @@ then its name with its context —
 a piece shows its job,
 a note shows a snippet of what matched.
 
-## Choosing
+## Scenarios — choosing
 
 - Pressing a suggestion, or Enter on a highlighted one,
   → goes to that thing:
@@ -40,5 +40,5 @@ a note shows a snippet of what matched.
 - Arrow keys move the highlight, stopping at the ends.
 - Escape → closes the list and clears the box.
 
-Searching never changes which section of the
-[header](navigation.spec.md) is lit — only going somewhere does.
+Searching never changes which section of
+[the header](navigation.spec.md) is lit — only going somewhere does.

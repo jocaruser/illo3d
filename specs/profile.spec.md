@@ -17,14 +17,14 @@ Top to bottom:
   Locally: the folder's name.
 - **Preferences.**
   The same language (EN/ES) and theme (light/dark) choices
-  as the [welcome screen](welcome/welcome.spec.md) —
+  as [the welcome screen](welcome/welcome.spec.md) —
   one preference, editable from either place.
 - **Versions.**
   One quiet line: "App ‹version› · Shop ‹version›" —
   the app you are running,
   and the version your shop's files are on
-  (they only differ transiently; the
-  [migration wizard](migration/wizard.spec.md) exists to close the gap).
+  (they only differ transiently;
+  [the migration wizard](migration/wizard.spec.md) exists to close the gap).
 - Two placeholders that do nothing yet,
   visibly disabled: "Edit metadata.json" and "Changelog".
 - **Sign out.**

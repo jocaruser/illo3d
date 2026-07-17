@@ -5,8 +5,10 @@ stores the shop as plain files in a folder you pick on your own computer.
 The folder's contents decide what happens next —
 there is no create-or-open question to answer.
 
-Local folders need a Chromium-based browser (for example Chrome or Edge);
-other browsers are told so and nothing else happens.
+This door owns the browser constraint:
+"Local folder storage needs a Chromium-based browser
+(for example Chrome or Edge)." —
+other browsers are told exactly that, and nothing else happens.
 
 ## Picking the folder
 

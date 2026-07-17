@@ -95,6 +95,15 @@ The spec is the contract; these are the known places the code lags it:
   (`welcome/local-folder.spec.md`):
   a real shop with a corrupt metadata file gets the "create new shop" offer,
   and confirming overwrites it; wants a defensive check.
+- **Pieces table lags the children-are-history rule**
+  (`jobs/details/details.spec.md`):
+  the client's jobs table shows archived/deleted children as specified,
+  but the job's pieces table hides soft-deleted pieces
+  and has no archived styling or un-archive action yet.
+- **Sign-out discards unsaved edits without confirming**
+  (`profile.spec.md`):
+  Refresh confirms and tab-close warns; sign-out should ask the same
+  discard question before resetting.
 - **Local re-permission on reopen**
   (`welcome/local-folder.spec.md`):
   "the browser may first ask you to re-allow access" is unverified;

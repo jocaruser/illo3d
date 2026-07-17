@@ -1,14 +1,14 @@
 # Inventory
 
 Every active material — but no "add" button:
-**materials are born from purchases**
-(a future `transactions/purchase.spec.md` describes it),
+**materials are born from
+[purchases](../transactions/purchase.spec.md)**,
 and the empty state teaches exactly that:
 "No inventory items yet.
 Record a purchase with "Add to inventory" to create items."
 
-The table behaves as
-[all lists do](../jobs/list.spec.md#how-lists-behave-all-of-them).
+The table behaves
+[as all lists do](../jobs/list.spec.md#how-lists-behave-all-of-them).
 
 | Column | Notes |
 |---|---|

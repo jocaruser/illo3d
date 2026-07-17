@@ -30,7 +30,7 @@ The purchase becomes lines, one per material bought:
   and what that line cost;
 - the total — "Total (line items)" — sums itself
   and stops being editable;
-- "Add another" grows the list;
+- another line is one press away;
   at least one line is required,
   and only material categories
   (filament, consumable, equipment) apply.

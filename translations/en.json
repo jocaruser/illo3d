@@ -379,7 +379,7 @@
     "lotAmountInvalid": "Enter a non-negative amount for this lot (0 is allowed).",
     "lotSaveError": "Could not save lot.",
     "archiveConfirmTitle": "Archive inventory?",
-    "archiveConfirmMessage": "Archive “{{name}}” and all its purchase lots? You can unarchive from the sheet if needed.",
+    "archiveConfirmMessage": "Archive “{{name}}” and all its purchase lots? You can un-archive it later.",
     "archiveError": "Could not archive this item.",
     "colourHeading": "Swatch colour",
     "colourPickerLabel": "Colour picker",

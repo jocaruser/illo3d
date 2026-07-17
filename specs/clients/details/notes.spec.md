@@ -24,7 +24,7 @@ Writing `@` and an id — `@CL1`, `@J4`, `@P2` —
 links the note to that thing:
 rendered as a link wherever the note appears
 (a piece mention opens its job, scrolled to the piece).
-An id that matches nothing stays plain text, harmlessly.
+An id that matches nothing → plain text, harmlessly.
 The client's *lead source* field understands
 the same mentions —
 "Referred by @CL2" links to the referrer.

@@ -5,8 +5,8 @@ The single most important contract in the app:
 Creating, editing, archiving —
 every change lives only in the app's memory,
 and the shop's files change only at the moment of saving.
-(The [migration wizard](migration/wizard.spec.md) follows the same
-philosophy with its own submit.)
+(The [migration wizard](migration/wizard.spec.md)
+follows the same philosophy with its own submit.)
 
 ## Knowing where you stand
 

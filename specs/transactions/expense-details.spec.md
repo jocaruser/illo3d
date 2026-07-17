@@ -19,13 +19,17 @@ saved together by one "Save changes":
 - **each purchase lot** — the material (linked),
   its quantity and its cost.
 
-One rule binds them:
-**the lots must account for the total**.
-While they differ, the page says exactly how —
-"Lot line amounts sum to €‹lots› but this expense total is €‹total›.
-Adjust the fields so they match before saving." —
-and Save stays blocked until they agree
-(to the cent; a purchase without lots skips the rule).
+One rule binds them: **the lots must account for the total**.
+
+Scenarios:
+
+- The lot amounts and the total disagree
+  → the page says exactly how —
+  "Lot line amounts sum to €‹lots› but this expense total is €‹total›.
+  Adjust the fields so they match before saving." —
+  and Save stays blocked until they agree, to the cent.
+- The purchase has no lots
+  → only the total applies; nothing blocks.
 
 Amending here fixes the record —
 it does not re-run the purchase:

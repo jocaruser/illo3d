@@ -379,7 +379,7 @@
     "lotAmountInvalid": "Introduce un importe no negativo para este lote (0 permitido).",
     "lotSaveError": "No se pudo guardar el lote.",
     "archiveConfirmTitle": "¿Archivar inventario?",
-    "archiveConfirmMessage": "¿Archivar «{{name}}» y todos sus lotes de compra? Puedes desarchivar desde la hoja si hace falta.",
+    "archiveConfirmMessage": "¿Archivar «{{name}}» y todos sus lotes de compra? Puedes desarchivarlo más adelante.",
     "archiveError": "No se pudo archivar este artículo.",
     "colourHeading": "Color del material",
     "colourPickerLabel": "Selector de color",
