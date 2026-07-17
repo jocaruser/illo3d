@@ -36,13 +36,13 @@ Done:
 - [x] `welcome/` — welcome, local-folder, google-drive
 - [x] `migration/` — wizard, v1-to-v2, v2-to-v3
 
-In flight:
+Committed with the merge to main, content still open to amendment:
 
-- [ ] `navigation.spec.md` — **drafted, awaiting confirmation**
+- [x] `navigation.spec.md`
   (breadcrumb rule lives here; page specs must link to it, never restate it)
-- [ ] `saving.spec.md` — **drafted, awaiting confirmation**
-  (two-tabs truth backed by ADR-0013, also drafted)
-- [ ] `not-found.spec.md` — **drafted, awaiting confirmation**
+- [x] `saving.spec.md`
+  (two-tabs truth backed by ADR-0013)
+- [x] `not-found.spec.md`
   (own loose file per round 7; details specs link here for soft-deleted pages)
 
 Loose surfaces, not yet planned:
