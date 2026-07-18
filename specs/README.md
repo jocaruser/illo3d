@@ -59,6 +59,18 @@ Rulings now in force:
 - **ADR-0015 dissolves into specs** (pending, in the sweep).
 - **Parked for full respecs**: the kanban (pieces, not jobs)
   and the timeline (shared, most entities).
+- **Base templates with specialisation slots** (second pass):
+  `shared/list.spec.md` and `shared/details.spec.md`
+  are default specs that name their blanks,
+  never naming entities;
+  a page file opens with the formula —
+  lives at, follows, title, columns, departures.
+  Each Add button points at the entity's own `create.spec.md`
+  (files come with the sweep);
+  list tables end in an Edit / Archive Actions column
+  unless the page says otherwise;
+  details pages carry the responsive widgets grid,
+  and [a job's widgets](jobs/details/widgets.spec.md) are the model.
 
 Sample built for sign-off:
 `shared/`, the two ADRs, the `inventory/` branch,
@@ -69,11 +81,12 @@ The sweep of everything else awaits that sign-off:
       remembered view choice, not-paid-nor-cancelled figures,
       no-breadcrumbs line, kanban park banner
 - [ ] `jobs/` and `clients/` — openers, shell references,
-      dialog extraction to `shared/`
+      the specialisation formula, their `create.spec.md` files
 - [ ] `transactions/` and `audit-log/` — openers, linking references,
       type-only delete entries
 - [ ] `welcome/`, `migration/`, loose root files — openers
-- [ ] `shared/dialogs.spec.md` — creation/edit dialogs extracted
+- [ ] `shared/dialogs.spec.md` — creation/edit dialog mechanics
+      backing each entity's `create.spec.md`
       (side-panel respec expected later)
 - [ ] ADR-0015 → a shared pricing spec
 - [ ] delete `specs/features/` (its redirect folds in here)
@@ -113,7 +126,7 @@ Self-directed, awaiting Carlos's review:
 1. ~~Notes and tags ownership~~ — resolved by Carlos's shared-folder
    decision: page-agnostic mechanics now live in `specs/shared/`
    and pages link to them.
-2. ~~How-lists-behave owner~~ — same resolution: `shared/lists.spec.md`.
+2. ~~How-lists-behave owner~~ — same resolution: `shared/list.spec.md`.
 3. Sign-out discards unsaved changes without the confirmation Refresh asks
    for — specced as truth in `profile.spec.md`; fix queued as a task. Fix it?
 4. Two backend-inappropriate strings were fixed to spec them honestly:
@@ -178,6 +191,10 @@ New from the review round (2026-07-18):
   ("client | job") widen with it.
 - **Metadata editing** — `entities/metadata.spec.md` gains the
   profile menu's "Edit metadata.json" entry (today visibly disabled).
+- **List pages converge on the shared header row** —
+  title, search, optional Add — and the default Actions column;
+  **details pages converge on the widgets grid**
+  (the material page's form fields become widgets).
 
 ## When the migration completes
 
