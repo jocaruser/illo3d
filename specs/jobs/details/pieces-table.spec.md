@@ -19,7 +19,7 @@ Each row edits in place:
 | Line total | units × price, when both are set |
 | Benefit | The line's revenue minus its material cost |
 | Stock / redo | The run's margin — green ≥ 2 redos, amber 1, red 0 |
-| Status | Pending / Done / Failed — see the scenarios |
+| Status | Pending / Done / Failed, picked with [the dropdown](../../shared/dropdown.spec.md) — see the scenarios |
 | Created | |
 
 **The suggested price** — "Use ‹price› / unit" —

@@ -11,7 +11,7 @@ every money figure shows **"Incomplete pricing"** instead of a number.
 | Widget | Shows |
 |---|---|
 | ID | The job's id and description, with the page's Edit / Archive actions |
-| Status | The current status, editable — see the scenarios below |
+| Status | The current status, editable with [the dropdown](../../shared/dropdown.spec.md) — see the scenarios below |
 | Total | The derived total, or "Incomplete pricing" |
 | Client | The client's name, opening their page |
 | Due date | Lateness, colour-coded — see below |

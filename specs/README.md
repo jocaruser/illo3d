@@ -88,6 +88,8 @@ Rulings now in force:
   and every use declares its label;
   decided over the two-picker alternative
   after the interactive consolidation report.
+  Status selectors — a job's, a piece's — are dropdown uses;
+  archive and delete stay plain actions.
 - **Fourth pass**: widget kinds carry their behaviour —
   an editable date opens the browser's built-in calendar picker,
   money is green at zero or above and red below,
