@@ -1,18 +1,23 @@
 # A client's jobs
 
-The client's jobs, embedded —
-showing *all* of them
-per [the children-are-history rule](../../shared/lifecycle.spec.md#children-are-history-not-clutter):
-active ones normally,
-archived ones struck through with Un-archive,
-soft-deleted ones struck through as "Deleted entity".
+A section of [a client's page](details.spec.md):
+their jobs, embedded,
+rendered as [tables render](../../shared/table.spec.md) —
+archived ones struck through with their own Un-archive,
+deleted ones nonexistent.
+Its search box behaves
+[as every search box does](../../shared/search-box.spec.md).
 
-Columns are the essentials of
-[the jobs list](../../jobs/list.spec.md):
-description (opening the job), status, total, created —
-money rules included.
-A search box appears once there is something to search.
+| Column | Viewport | Notes |
+|---|---|---|
+| ID | Always | Opens the job |
+| Description | Always | |
+| Status | Always | [The dropdown](../../shared/dropdown.spec.md), with [the widgets'](../../jobs/details/widgets.spec.md#scenarios--changing-status) gates |
+| Due date | Medium+ | |
+| Created | Wide+ | |
+| Actions | Always | Edit and Archive; archived rows offer Un-archive instead |
 
-"Add job" opens the usual creation dialog
-with the client already chosen.
-An empty section says "No jobs for this client yet."
+**"Add job"** opens [the create flow](../../jobs/create.spec.md)
+with the client already chosen —
+the new job appears here, without leaving the page.
+The quiet empty row: "No jobs for this client yet."

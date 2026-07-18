@@ -1,27 +1,25 @@
 # Clients
 
-Every active client, with "Add client" to create one.
-The table behaves
-[as all lists do](../shared/list.spec.md);
-an empty shop has its saying-so row.
+The listing page for the shop's clients.
+It lives at `#/clients`
+and follows [the list page](../shared/list.spec.md);
+its title is "Clients",
+its Add button **"Add client"** — [the create flow](create.spec.md).
 
-| Column | Notes |
-|---|---|
-| ID | Opens the client |
-| Name | Hovering shows the client's tags — "Tags: ‹list›" |
-| Email, Phone, Notes, Created | |
-| Actions | Edit, Archive |
+| Column | Viewport | Notes |
+|---|---|---|
+| ID | Always | Opens the client |
+| Name | Always | Hovering shows the client's tags — "Tags: ‹list›" |
+| Email | Always | |
+| Phone | Medium+ | |
+| Notes | Always | The record's free-text note |
+| Created | Wide+ | |
+| Actions | Always | Edit ([the same dialog](create.spec.md), prefilled) and Archive |
 
-## Scenarios
+Deleted clients do not exist; archived ones render
+[as every table shows them](../shared/table.spec.md).
+The quiet empty row: "No clients yet."
 
-- **Add client** → a dialog: name is required,
-  everything else optional —
-  email, phone, notes, preferred contact,
-  lead source (which may mention things — see
-  [notes](../shared/notes.spec.md#mentions) for how mentions work),
-  and a multiline address.
-  Creating lands on the new client's page.
-- **Edit** → the same dialog, prefilled.
-- **Archive** → asks first, naming the consequence:
-  "Archive ‹name›? Linked jobs and their data will be archived."
-  ([ADR-0014](../ADRs/ADR-0014-archive-then-delete-lifecycle.md)).
+**Archive** asks first, naming the consequence:
+"Archive ‹name›? Linked jobs and their data will be archived."
+([ADR-0014](../ADRs/ADR-0014-archive-then-delete-lifecycle.md)).

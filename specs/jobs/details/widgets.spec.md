@@ -1,6 +1,6 @@
 # A job's widgets
 
-The top of the page is a grid of small cards.
+[The widgets](../../shared/widgets.spec.md) of a job's page.
 Money follows one law throughout
 ([pricing](../../shared/pricing.spec.md)):
 **a job's total is the sum of units × per-unit price over its pieces** —
@@ -8,24 +8,25 @@ deleted pieces excluded, archived ones still counting —
 and when any counting piece lacks a price or units,
 every money figure shows **"Incomplete pricing"** instead of a number.
 
-| Widget | Shows |
-|---|---|
-| ID | The job's id and description, with the page's Edit / Archive actions |
-| Status | The current status, editable with [the dropdown](../../shared/dropdown.spec.md) — see the scenarios below |
-| Total | The derived total, or "Incomplete pricing" |
-| Client | The client's name, opening their page |
-| Due date | Lateness, colour-coded — see below |
-| Benefit | Total minus material cost, or "Incomplete pricing" |
-| Filament | Grams of filament the pieces will consume |
-| Consumables | Units of consumables likewise |
-| Risk factor | The redo margin — see below |
-| Material cost | What the pieces' materials cost, at average purchase prices |
+In order:
+
+| Widget | Kind | Shows |
+|---|---|---|
+| ID | Text | The job's id and description — a double-width card carrying Edit and [the lifecycle actions](../../shared/lifecycle.spec.md) |
+| Status | Choice | [The dropdown](../../shared/dropdown.spec.md) — the scenarios below |
+| Total | Money | The derived total, or "Incomplete pricing" |
+| Client | Text | The client's name, opening their page |
+| Due date | Date | Editable in place; lateness-coloured — below |
+| Benefit | Money | Total minus material cost, or "Incomplete pricing" |
+| Filament | Number | "‹grams› g" the pieces will consume |
+| Consumables | Number | "‹units› units" likewise |
+| Risk factor | Number | The redo margin — below |
+| Material cost | Money | The pieces' materials at average purchase prices |
 
 ## Due date
 
-Editable in place.
 Colour measures days past due:
-amber from three, orange from five, red from seven.
+yellow from three, orange from five, red from seven.
 A job with no due date measures from its creation date instead.
 (The [board](../../dashboard/kanban.spec.md)
 and [calendar](../../dashboard/calendar.spec.md) reuse this scale.)
@@ -37,7 +38,7 @@ how many times the whole job could be re-printed from current stock —
 its *redos*.
 The widget shows the worst one:
 "‹n› redos (‹material›)",
-green from two, amber at one, red at none.
+green from two, yellow at one, red at none.
 A job using no filament says "No filament lines".
 
 ## Scenarios — changing status

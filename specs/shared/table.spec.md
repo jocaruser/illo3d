@@ -21,6 +21,8 @@ Every use of this spec answers, specifically:
 
 - Which columns, in what order.
 - Which columns each viewport keeps —
-  a Viewport column in the same columns table;
+  a Viewport column in the same columns table,
+  in four words: **Always**, or **Small+**, **Medium+**, **Wide+**
+  (the app's three break widths, narrow phones upwards);
   what identifies the row always remains.
 - The quiet empty row's wording ("No purchase lots yet.").
