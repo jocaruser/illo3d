@@ -60,6 +60,17 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 | `make build` | Typecheck and production build to `dist/` |
 | `make preview` | Preview production build |
 
+### Specs wiki
+
+The behaviour specs in `specs/` are published as a public wiki:
+**`https://<your-username>.github.io/illo3d/specs/`** (VitePress; see `wiki/`).
+
+| Target | Purpose |
+|--------|---------|
+| `make wiki-dev` | Wiki dev server on <http://localhost:5176> (hot-reloads on spec edits) |
+| `make wiki-build` | Full wiki build via `scripts/build-wiki.sh`: latest specs plus a frozen snapshot per release tag that contains `specs/` |
+| `make wiki-preview` | Serve the built wiki on <http://localhost:5176> |
+
 ### Dependencies
 
 | Target | Purpose |
@@ -98,10 +109,11 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 
 ## Deployment
 
-The app is deployed to **GitHub Pages** automatically on every push to `main`.
+The app and the specs wiki are deployed together to **GitHub Pages** as one artifact.
 
-- **Live URL:** `https://<your-username>.github.io/illo3d/`
-- **Workflow:** `.github/workflows/deploy.yml`
+- **App URL:** `https://<your-username>.github.io/illo3d/`
+- **Wiki URL:** `https://<your-username>.github.io/illo3d/specs/` (version menu lists release snapshots)
+- **Workflow:** `.github/workflows/deploy.yml` — runs on every push to `main` touching `specs/` or the wiki tooling (so spec edits publish without a release), on manual dispatch, and via the release workflow after tagging
 
 ### Required repository setup
 

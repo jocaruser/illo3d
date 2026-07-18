@@ -1,4 +1,4 @@
-.PHONY: help init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
+.PHONY: help init up down logs dev build preview wiki-dev wiki-build wiki-preview install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
 
 APP = docker compose exec app
 E2E_VITE_PORT ?= 5174
@@ -50,6 +50,16 @@ build: ## Typecheck and production build
 
 preview: ## Preview the production build
 	$(APP) pnpm preview --host
+
+# ============ SPECS WIKI ============
+wiki-dev: ## Specs wiki dev server on :5176
+	$(APP) pnpm wiki:dev
+
+wiki-build: ## Build specs wiki (latest + release snapshots)
+	$(APP) pnpm wiki:build
+
+wiki-preview: ## Preview the built specs wiki on :5176
+	$(APP) pnpm wiki:preview
 
 # ============ DEPENDENCIES ============
 install: ## pnpm install inside the app container

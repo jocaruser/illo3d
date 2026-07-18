@@ -2,6 +2,13 @@ name: Deploy to GitHub Pages
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'specs/**'
+      - 'wiki/**'
+      - 'scripts/build-wiki.sh'
+      - '.github/workflows/deploy.yml'
 
 permissions:
   contents: read
@@ -17,6 +24,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Release tags feed the wiki version menu; git history feeds
+          # per-page last-updated dates.
+          fetch-depth: 0
 
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -33,6 +44,13 @@ jobs:
         run: pnpm build
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+
+      - name: Build specs wiki
+        run: pnpm wiki:build
+        env:
+          WIKI_BASE: /illo3d/specs/
+          WIKI_OUT_DIR: dist/specs
+          WIKI_ORIGIN: https://jocaruser.github.io
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
