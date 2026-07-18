@@ -83,7 +83,7 @@ Rulings now in force:
   base templates never cite an entity's spec as a model.
 - **Fourth pass**: widget kinds carry their behaviour —
   an editable date opens the browser's built-in calendar picker,
-  money is green above zero and red below,
+  money is green at zero or above and red below,
   only text can link;
   the table base names the questions every use answers —
   columns and order, per-viewport columns, empty wording.
@@ -215,6 +215,10 @@ New from the review round (2026-07-18):
   title, search, optional Add — and the default Actions column;
   **details pages converge on the widgets grid**
   (the material page's form fields become widgets).
+- **Money at zero renders green** —
+  `ColouredNumber` currently mutes zero;
+  align it when money colouring becomes one shared rule
+  (the ADR-0015 dissolution).
 - **One shared fuzzy matcher behind every search**
   ([ADR-0017](decisions/ADR-0017-fuzzy-matching-in-every-search.md)) —
   the global search and the tag box

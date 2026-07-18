@@ -15,7 +15,7 @@ Five kinds of widget:
   ([linking](linking.spec.md)).
 - **Number** — just a number: a quantity, with its unit.
 - **Money** — an amount:
-  green above zero, red below it, neither at zero.
+  green at zero or above, red below.
 - **Date** — a moment, or a deadline.
   Marked editable, it opens the browser's
   built-in calendar picker.
