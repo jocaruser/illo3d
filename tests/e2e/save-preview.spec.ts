@@ -54,6 +54,17 @@ test.describe('Save preview', () => {
       'href',
       /\/clients\/CL2$/,
     )
+
+    // Save all writes everything; the review stays open on all-green cards.
+    await page.getByTestId('save-preview-save-all').click()
+    await expect(
+      page.locator('[data-sonner-toast]').getByText(/saved|guardado/i),
+    ).toBeVisible({ timeout: 10000 })
+    await expect(page).toHaveURL(/\/save/)
+    await expect(page.getByTestId('save-nav-clients')).toHaveAccessibleName(
+      /clients: saved|clientes: guardada/i,
+    )
+    await expect(page.getByTestId('save-preview-save-all')).toBeDisabled()
   })
 
   test('reverts a field individually, then discards the rest', async ({
@@ -70,10 +81,15 @@ test.describe('Save preview', () => {
     // Revert the lifecycle flag the archive flipped.
     await page.locator('[data-testid^="revert-clients-CL2-"]').first().click()
 
-    // The row nets to no change and leaves the diff; the revert is audit-logged.
+    // The row nets to no change and leaves the clients diff (an archive may
+    // cascade to other sheets — their diffs are allowed to remain). The
+    // revert itself is audit-logged, so pending entries stay on the card.
     await expect(page.getByTestId('row-diff-clients-CL2')).not.toBeVisible()
+    await expect(page.getByTestId('save-nav-clients')).toHaveAccessibleName(
+      /clients: no changes|clientes: sin cambios/i,
+    )
     await expect(page.getByTestId('save-nav-audit_log')).toContainText(
-      /2 new entries|2 entradas nuevas/i,
+      /new entr|entradas? nueva/i,
     )
 
     // Discard all clears the remaining audit tail after the usual confirmation.

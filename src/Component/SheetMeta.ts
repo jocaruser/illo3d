@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ComponentType, SVGProps } from 'react'
 import {
   ArchiveBoxIcon,
   BanknotesIcon,
@@ -15,30 +15,29 @@ import {
 } from '@heroicons/react/24/outline'
 import type { SheetName } from '@/Config/schema'
 
-const ICON_CLASS = 'h-4 w-4 shrink-0'
+export type SheetIconComponent = ComponentType<SVGProps<SVGSVGElement>>
 
 /**
  * Icon and label per workbook sheet, shared by every sheet-card surface —
  * the migration wizard's step grid and the save preview's sheet nav speak
- * the same visual language on purpose.
+ * the same visual language on purpose. Icons are component references, not
+ * elements: callers render them with their own sizing classes.
  */
-export const SHEET_ICON: Record<SheetName, ReactNode> = {
-  clients: <UsersIcon className={ICON_CLASS} aria-hidden="true" />,
-  crm_notes: <ChatBubbleLeftRightIcon className={ICON_CLASS} aria-hidden="true" />,
-  tags: <TagIcon className={ICON_CLASS} aria-hidden="true" />,
-  tag_links: <LinkIcon className={ICON_CLASS} aria-hidden="true" />,
-  jobs: <BriefcaseIcon className={ICON_CLASS} aria-hidden="true" />,
-  pieces: <CubeIcon className={ICON_CLASS} aria-hidden="true" />,
-  piece_items: <Squares2X2Icon className={ICON_CLASS} aria-hidden="true" />,
-  inventory: <BuildingStorefrontIcon className={ICON_CLASS} aria-hidden="true" />,
-  lots: <ArchiveBoxIcon className={ICON_CLASS} aria-hidden="true" />,
-  transactions: <BanknotesIcon className={ICON_CLASS} aria-hidden="true" />,
-  audit_log: <ClipboardDocumentListIcon className={ICON_CLASS} aria-hidden="true" />,
+export const SHEET_ICON: Record<SheetName, SheetIconComponent> = {
+  clients: UsersIcon,
+  crm_notes: ChatBubbleLeftRightIcon,
+  tags: TagIcon,
+  tag_links: LinkIcon,
+  jobs: BriefcaseIcon,
+  pieces: CubeIcon,
+  piece_items: Squares2X2Icon,
+  inventory: BuildingStorefrontIcon,
+  lots: ArchiveBoxIcon,
+  transactions: BanknotesIcon,
+  audit_log: ClipboardDocumentListIcon,
 }
 
-export const FALLBACK_SHEET_ICON = (
-  <DocumentTextIcon className={ICON_CLASS} aria-hidden="true" />
-)
+export const FALLBACK_SHEET_ICON: SheetIconComponent = DocumentTextIcon
 
 /**
  * i18n key of each sheet's human label. The keys live under the wizard
