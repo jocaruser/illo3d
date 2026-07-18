@@ -3,7 +3,7 @@
 The jobs page lists every active job — newest first —
 with "Add job" to create one.
 Archived and deleted jobs are absent
-([ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md));
+([ADR-0014](../ADRs/ADR-0014-archive-then-delete-lifecycle.md));
 an empty shop says "No jobs yet."
 
 The table behaves
@@ -33,4 +33,4 @@ The table behaves
 - **Archive** → asks first;
   confirming archives the job *and everything it owns* —
   pieces, material lines, notes, tag links
-  ([ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md)).
+  ([ADR-0014](../ADRs/ADR-0014-archive-then-delete-lifecycle.md)).

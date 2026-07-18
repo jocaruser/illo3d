@@ -1,7 +1,7 @@
 # Lifecycle on a details page
 
 How the three states of
-[ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md)
+[ADR-0014](../ADRs/ADR-0014-archive-then-delete-lifecycle.md)
 look and act on the page of any entity that has one:
 
 - An **active** entity is editable,
@@ -28,4 +28,4 @@ show their archived children struck through,
 each with its own Un-archive;
 deleted children are simply absent,
 as is every trace of them
-([ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md)).
+([ADR-0014](../ADRs/ADR-0014-archive-then-delete-lifecycle.md)).

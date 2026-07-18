@@ -18,7 +18,7 @@ against the app's own
 Versions have three numbers,
 and **only the first — the major — matters here**:
 majors change only when the shop's data layout changes
-([`schema.dbml`](../../schema.dbml), [ADR-0011](../decisions/ADR-0011-semver-and-per-pr-bump.md)).
+([`schema.dbml`](../../schema.dbml), [ADR-0011](../ADRs/ADR-0011-semver-and-per-pr-bump.md)).
 A shop from an older minor or patch release simply opens;
 a shop whose major is behind gets this wizard.
 

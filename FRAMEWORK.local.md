@@ -14,7 +14,9 @@ There is no `specs/features/` capability layout in this project:
 where `FRAMEWORK.md` or capability docs speak of `specs/features/`,
 the page-focused tree is the target.
 `openspec/specs/` is the frozen v2 record — history, never updated.
-New ADRs go to `specs/decisions/`.
+ADRs live in `specs/ADRs/`:
+where `FRAMEWORK.md` or capability docs say `specs/decisions/`,
+that folder is the target.
 
 Frontend capability overrides
 (`docs/aircury/capabilities/frontend.md` is framework-maintained

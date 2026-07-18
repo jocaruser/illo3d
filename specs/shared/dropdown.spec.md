@@ -10,7 +10,7 @@ Two modes:
 - **Searchable** — the default.
   Typing filters the set live,
   matching as every search does
-  ([ADR-0017](../decisions/ADR-0017-fuzzy-matching-in-every-search.md)).
+  ([ADR-0017](../ADRs/ADR-0017-fuzzy-matching-in-every-search.md)).
   Nothing matching says "No matching items", quietly, in the list.
 - **Creatable** — searchable, plus one thing:
   a name typed that is not in the set

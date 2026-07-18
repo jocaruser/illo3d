@@ -19,5 +19,5 @@ audit entries, transaction descriptions, timelines,
   its page stays reachable, read-only.
 - A deleted thing cannot be referenced at all —
   whatever pointed at it went with it
-  ([ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md)).
+  ([ADR-0014](../ADRs/ADR-0014-archive-then-delete-lifecycle.md)).
 - An id that matches nothing renders as plain text, harmlessly.

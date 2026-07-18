@@ -2,7 +2,7 @@
 
 Five figures across the top of the page.
 Money follows
-[the derived-pricing law](../../decisions/ADR-0015-derived-pricing-and-income-on-paid.md).
+[the derived-pricing law](../../ADRs/ADR-0015-derived-pricing-and-income-on-paid.md).
 
 | Metric | Means |
 |---|---|

@@ -24,7 +24,7 @@ when a change to a screen maps to exactly one file.
 ## Decision
 
 Behaviour specs live at the repository root under `specs/`,
-as siblings of — but separate from — the decision records in `specs/decisions/`.
+as siblings of — but separate from — the decision records in `specs/ADRs/`.
 
 - **Page-focused tree.**
   Folders mirror the app's navigation (`jobs/`, `clients/`, `dashboard/`, ...),
@@ -32,9 +32,10 @@ as siblings of — but separate from — the decision records in `specs/decision
   e.g. `specs/jobs/details/widgets.spec.md`.
 - **Global behaviour lives in loose root files, not a group folder.**
   Behaviour that belongs to no page —
-  theme, language, saving, setup, migration —
+  navigation, search, the profile menu, not-found —
   is a meaningfully named file directly under `specs/`,
-  e.g. `specs/theme.spec.md`.
+  taking a folder of its own when it warrants one
+  (`saving/`, `migration/`).
 - **The tree deepens as complexity grows.**
   When a file grows past comfortable reading,
   it becomes a folder of smaller files:
@@ -50,15 +51,15 @@ as siblings of — but separate from — the decision records in `specs/decision
   A future agent must be able to rebuild the product's behaviour
   from these specs in any technology.
 - **Page-agnostic mechanics live in `specs/shared/`.**
-  A section or behaviour that several pages place without owning —
-  notes, tags, how lists behave, the details-page lifecycle —
+  A section, control or behaviour that several pages place
+  without owning —
+  notes, tags, tables, lists, the dropdown,
+  the details-page lifecycle —
   is one file under `shared/`, linked from every page that shows it,
   so no page accidentally becomes its home.
   A rule that one page genuinely exercises stays owned by that page
   (job money in the job's widgets, consumption in the pieces table)
   and is referenced from the others with ordinary Markdown links.
-  *(Amended 2026-07-18: shared/ replaces pure owning-page placement
-  for page-agnostic mechanics, on review feedback.)*
 - **Shared files are base templates; page files are specialisations.**
   A `shared/` mechanic is written as the default spec,
   naming its blanks and never naming entities;
@@ -67,14 +68,12 @@ as siblings of — but separate from — the decision records in `specs/decision
   and fills exactly those blanks
   (`shared/list.spec.md` behind every list page,
   `shared/details.spec.md` behind every details page and its widgets).
-  *(Amended 2026-07-18: specialisation formula, second review pass.)*
 - **Every file opens by placing itself.**
   A spec's first lines say what it is and where it lives:
   a page — "A page at `#/inventory/{id}`" — with its address,
   or a section — `A section of [a material's page](…)` —
   with its parent linked.
   The main file of a details folder is always `details.spec.md`.
-  *(Amended 2026-07-18: identity openers, on review feedback.)*
 - **Hybrid voice, with one house rule.**
   Prose and tables carry everything linear.
   The moment behaviour branches —
@@ -110,13 +109,10 @@ as siblings of — but separate from — the decision records in `specs/decision
   readers arriving via links follow one hop.
 - The feature-focused `specs/features/` convention from the ai-framework
   is intentionally not used for this project;
-  `specs/features/README.md` should point here once the tree lands.
+  `FRAMEWORK.local.md` carries the override.
 
 ## Open points, tracked through the migration
 
-- The ownership map for shared rules is settled incrementally:
-  each page is planned and confirmed file by file,
-  and owners are agreed as the pages that exercise them come up.
 - The disposition of the retired `openspec/` tree —
   and pointing the OpenSpec workflow skills at this layout —
   is decided once the migration proves the format.

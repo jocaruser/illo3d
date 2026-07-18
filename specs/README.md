@@ -3,12 +3,12 @@
 This tree is the canonical, non-technical record of what illo3d does,
 organised by what a user navigates.
 The format is decided in
-[ADR-0008](decisions/ADR-0008-page-focused-behaviour-specs.md)
+[ADR-0008](ADRs/ADR-0008-page-focused-behaviour-specs.md)
 (page-focused files, hybrid voice, user-observable scope,
 identity openers, shared mechanics, quoted meaningful copy),
 written under
-[ADR-0009](decisions/ADR-0009-semantic-line-breaks.md) (semantic line breaks)
-and [ADR-0010](decisions/ADR-0010-british-english.md) (British English).
+[ADR-0009](ADRs/ADR-0009-semantic-line-breaks.md) (semantic line breaks)
+and [ADR-0010](ADRs/ADR-0010-british-english.md) (British English).
 
 Until this migration completes,
 `openspec/specs/` remains the frozen v2 record —
@@ -55,8 +55,8 @@ Rulings now in force:
   deleted is repository-filtered, cascades along causation
   (a job's income dies with it), leaves no dangling reference,
   and is remembered only by the audit log, by kind, never by name —
-  [ADR-0014](decisions/ADR-0014-archive-then-delete-lifecycle.md)
-  rewritten, [ADR-0016](decisions/ADR-0016-repositories-filter-deleted.md)
+  [ADR-0014](ADRs/ADR-0014-archive-then-delete-lifecycle.md)
+  rewritten, [ADR-0016](ADRs/ADR-0016-repositories-filter-deleted.md)
   new.
 - **Search speaks only in `search.spec.md`** —
   other files stop mentioning it.
@@ -76,7 +76,7 @@ Rulings now in force:
   details pages carry the responsive widgets grid.
 - **Third pass**: the search box is its own shared spec,
   and fuzzy matching is decided once for every search
-  ([ADR-0017](decisions/ADR-0017-fuzzy-matching-in-every-search.md));
+  ([ADR-0017](ADRs/ADR-0017-fuzzy-matching-in-every-search.md));
   sorting belongs to every table (`shared/table.spec.md`);
   rows usually open their details page, nothing enforced;
   list pages carry breadcrumbs;
@@ -116,7 +116,7 @@ The sweep of everything else awaits that sign-off:
       the specialisation formula, their `create.spec.md` files;
       the jobs widgets spec declares order and kinds
 - [ ] `search.spec.md` and the tags box — reference
-      [ADR-0017](decisions/ADR-0017-fuzzy-matching-in-every-search.md)
+      [ADR-0017](ADRs/ADR-0017-fuzzy-matching-in-every-search.md)
       and `shared/search-box.spec.md`
 - [ ] `transactions/` and `audit-log/` — openers, linking references,
       type-only delete entries
@@ -183,7 +183,7 @@ The spec is the contract; these are the known places the code lags it.
 From the first drafting pass:
 
 - **In-memory migration with Confirm and close**
-  ([ADR-0012](decisions/ADR-0012-in-memory-migration-with-explicit-submit.md),
+  ([ADR-0012](ADRs/ADR-0012-in-memory-migration-with-explicit-submit.md),
   `migration/wizard.spec.md`):
   implemented on `feat/spec-divergences-implementation`,
   pending merge.
@@ -244,7 +244,7 @@ New from the review round (2026-07-18):
   align it when money colouring becomes one shared rule
   (the ADR-0015 dissolution).
 - **One shared fuzzy matcher behind every search**
-  ([ADR-0017](decisions/ADR-0017-fuzzy-matching-in-every-search.md)) —
+  ([ADR-0017](ADRs/ADR-0017-fuzzy-matching-in-every-search.md)) —
   the global search and the tag box
   need verifying against it and aligning.
 

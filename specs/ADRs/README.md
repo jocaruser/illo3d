@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-`specs/decisions/` stores ADRs that preserve architectural and workflow intent.
+`specs/ADRs/` stores ADRs that preserve architectural and workflow intent.
 
 - Create a new ADR when a material decision is introduced or superseded.
 - ADRs are editable only while `Status: Draft`.

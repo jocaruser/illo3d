@@ -55,5 +55,5 @@ The same shop can be open in two tabs, or on two devices.
 The app does not notice:
 **the last save wins, silently**,
 overwriting whatever was saved before it
-([ADR-0013](../decisions/ADR-0013-last-save-wins.md)).
+([ADR-0013](../ADRs/ADR-0013-last-save-wins.md)).
 One person, one place at a time is the intended way to work.

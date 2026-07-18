@@ -24,4 +24,4 @@ an empty shop has its saying-so row.
 - **Edit** → the same dialog, prefilled.
 - **Archive** → asks first, naming the consequence:
   "Archive ‹name›? Linked jobs and their data will be archived."
-  ([ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md)).
+  ([ADR-0014](../ADRs/ADR-0014-archive-then-delete-lifecycle.md)).

@@ -39,4 +39,4 @@ The three that edit in place:
 "Archive "‹name›" and all its purchase lots?
 You can un-archive it later." —
 the cascade of
-[ADR-0014](../../decisions/ADR-0014-archive-then-delete-lifecycle.md).
+[ADR-0014](../../ADRs/ADR-0014-archive-then-delete-lifecycle.md).
