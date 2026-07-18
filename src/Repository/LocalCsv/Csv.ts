@@ -4,6 +4,27 @@
  * round-trip), and tolerates both LF and CRLF input.
  */
 
+/**
+ * Cells opening with a formula trigger (`=`, `+`, `-`, `@`, tab) execute as
+ * formulas/DDE when the exported file is opened in Excel or LibreOffice (CSV
+ * formula injection). Such cells are stored with a leading apostrophe — the
+ * spreadsheet convention for "literal text" — and the apostrophe is stripped
+ * again on parse so values round-trip unchanged (a genuine leading `'` before
+ * a trigger gains one more `'` on write, symmetric with the strip). Plain
+ * numbers are exempt: negative amounts are data, not formulas.
+ */
+const FORMULA_TRIGGER = /^'*[=+\-@\t]/
+
+function needsFormulaGuard(cell: string): boolean {
+  // A cell that parses as a number is data (e.g. a negative amount), not a formula.
+  return FORMULA_TRIGGER.test(cell) && Number.isNaN(Number(cell))
+}
+
+function unguardCell(cell: string): string {
+  if (cell.startsWith("'") && needsFormulaGuard(cell.slice(1))) return cell.slice(1)
+  return cell
+}
+
 /** Parse CSV text into rows of string cells. Empty text → no rows. */
 export function parseCsv(text: string): string[][] {
   const rows: string[][] = []
@@ -40,7 +61,7 @@ export function parseCsv(text: string): string[][] {
     row.push(cell)
     rows.push(row)
   }
-  return rows
+  return rows.map((cells) => cells.map(unguardCell))
 }
 
 /** Serialize rows to CRLF-terminated CSV, quoting cells that need it. */
@@ -52,6 +73,7 @@ export function serializeCsv(matrix: string[][]): string {
 }
 
 function serializeCell(cell: string): string {
-  if (!/[",\r\n]/.test(cell)) return cell
-  return `"${cell.replace(/"/g, '""')}"`
+  const guarded = needsFormulaGuard(cell) ? `'${cell}` : cell
+  if (!/[",\r\n]/.test(guarded)) return guarded
+  return `"${guarded.replace(/"/g, '""')}"`
 }

@@ -18,8 +18,15 @@ function okResponse(body = ''): Response {
   return { ok: true, status: 200, text: async () => body } as Response
 }
 
-function errorResponse(status: number, body: string): Response {
-  return { ok: false, status, text: async () => body } as Response
+function errorResponse(
+  status: number,
+  body: string,
+  retryAfter?: string
+): Response {
+  const headers = new Headers(
+    retryAfter === undefined ? {} : { 'Retry-After': retryAfter }
+  )
+  return { ok: false, status, headers, text: async () => body } as Response
 }
 
 beforeEach(() => {
@@ -47,9 +54,9 @@ describe('driveFetch', () => {
   })
 
   it('truncates long error bodies to a snippet', async () => {
-    authorizedFetchMock.mockResolvedValue(errorResponse(500, 'x'.repeat(1000)))
+    authorizedFetchMock.mockResolvedValue(errorResponse(403, 'x'.repeat(1000)))
     await expect(driveFetch('/files/F1')).rejects.toThrow(
-      `(500): ${'x'.repeat(300)}`
+      `(403): ${'x'.repeat(300)}`
     )
   })
 
@@ -66,6 +73,92 @@ describe('sheetsFetch', () => {
       'https://sheets.googleapis.com/v4/spreadsheets/S1',
       undefined
     )
+  })
+})
+
+describe('retry with backoff', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('retries a 429 after the base delay and succeeds', async () => {
+    authorizedFetchMock
+      .mockResolvedValueOnce(errorResponse(429, 'rate limited'))
+      .mockResolvedValueOnce(okResponse('done'))
+
+    const pending = driveFetch('/files/F1')
+    await vi.advanceTimersByTimeAsync(500)
+
+    expect((await pending).ok).toBe(true)
+    expect(authorizedFetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('backs off exponentially across consecutive failures', async () => {
+    authorizedFetchMock
+      .mockResolvedValueOnce(errorResponse(503, 'unavailable'))
+      .mockResolvedValueOnce(errorResponse(503, 'unavailable'))
+      .mockResolvedValueOnce(okResponse('done'))
+
+    const pending = sheetsFetch('/spreadsheets/S1')
+    await vi.advanceTimersByTimeAsync(500)
+    expect(authorizedFetchMock).toHaveBeenCalledTimes(2)
+
+    // The second retry waits 1000ms, not another 500ms.
+    await vi.advanceTimersByTimeAsync(999)
+    expect(authorizedFetchMock).toHaveBeenCalledTimes(2)
+    await vi.advanceTimersByTimeAsync(1)
+
+    expect((await pending).ok).toBe(true)
+    expect(authorizedFetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('honours the Retry-After header over the computed delay', async () => {
+    authorizedFetchMock
+      .mockResolvedValueOnce(errorResponse(429, 'rate limited', '2'))
+      .mockResolvedValueOnce(okResponse())
+
+    const pending = driveFetch('/files/F1')
+    await vi.advanceTimersByTimeAsync(1999)
+    expect(authorizedFetchMock).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(1)
+
+    expect((await pending).ok).toBe(true)
+    expect(authorizedFetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('falls back to exponential backoff on a malformed Retry-After', async () => {
+    authorizedFetchMock
+      .mockResolvedValueOnce(errorResponse(429, 'rate limited', 'soon'))
+      .mockResolvedValueOnce(okResponse())
+
+    const pending = driveFetch('/files/F1')
+    await vi.advanceTimersByTimeAsync(500)
+
+    expect((await pending).ok).toBe(true)
+    expect(authorizedFetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('gives up after three attempts and throws the final status', async () => {
+    authorizedFetchMock.mockResolvedValue(errorResponse(500, 'boom'))
+
+    const expectation = expect(driveFetch('/files/F1')).rejects.toThrow(
+      'Google API request failed (500): boom'
+    )
+    await vi.advanceTimersByTimeAsync(1500)
+
+    await expectation
+    expect(authorizedFetchMock).toHaveBeenCalledTimes(3)
+  })
+
+  it('does not retry non-retryable statuses', async () => {
+    authorizedFetchMock.mockResolvedValue(errorResponse(403, 'forbidden'))
+
+    await expect(driveFetch('/files/F1')).rejects.toThrow('(403)')
+    expect(authorizedFetchMock).toHaveBeenCalledTimes(1)
   })
 })
 

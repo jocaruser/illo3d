@@ -210,19 +210,11 @@ jobs:
       - name: Bundle budget (P2)
         run: docker compose exec app node scripts/check-bundle-budget.mjs
 
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: dist/
-          retention-days: 1
-
   # ============================================================
   # JOB 5: E2E Tests (Requires built app + playwright image)
   # ============================================================
   e2e-test:
     runs-on: ubuntu-latest
-    needs: build
     steps:
       - uses: actions/checkout@v4
 
@@ -257,12 +249,6 @@ jobs:
           tags: illo3d-playwright:latest
           cache-from: type=gha
 
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: dist/
-
       - name: Start services
         run: docker compose up -d
 
@@ -278,7 +264,7 @@ jobs:
   # ============================================================
   auto-merge:
     runs-on: ubuntu-latest
-    needs: [lint, react-doctor, unit-test, build, e2e-test]
+    needs: [lint, react-doctor, unit-test, build, e2e-test, audit]
     if: ${{ !github.event.pull_request.draft && github.event.pull_request.head.repo.full_name == github.repository }}
     permissions:
       contents: write

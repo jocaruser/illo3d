@@ -2,8 +2,12 @@ import { authorizedFetch } from '@/Security/GoogleSession'
 
 /**
  * Thin transport layer for the Google backend. Every request flows through
- * `authorizedFetch` (bearer token + one silent renewal on 401) and non-2xx
- * responses become errors carrying the status and a response-body snippet.
+ * `authorizedFetch` (bearer token + one silent renewal on 401). Rate-limited
+ * (429) and transient server (5xx) responses are retried with exponential
+ * backoff — honouring a `Retry-After` header when Google sends one — before
+ * any remaining non-2xx response becomes an error carrying the status and a
+ * response-body snippet. The Sheets/Drive calls the app makes are
+ * replace-style writes, so re-sending one after a server error is safe.
  */
 
 const DRIVE_BASE = 'https://www.googleapis.com/drive/v3'
@@ -12,8 +16,32 @@ const UPLOAD_BASE = 'https://www.googleapis.com/upload/drive/v3'
 
 const MULTIPART_BOUNDARY = 'illo3d-multipart'
 
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 504])
+/** Total tries per request: the first attempt plus two retries. */
+const MAX_ATTEMPTS = 3
+const BASE_RETRY_DELAY_MS = 500
+
+function retryDelayMs(response: Response, attempt: number): number {
+  const retryAfterSeconds = Number(response.headers.get('Retry-After'))
+  if (!Number.isNaN(retryAfterSeconds) && retryAfterSeconds > 0)
+    return retryAfterSeconds * 1000
+  return BASE_RETRY_DELAY_MS * 2 ** attempt
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 async function apiFetch(url: string, init?: RequestInit): Promise<Response> {
-  const response = await authorizedFetch(url, init)
+  let response = await authorizedFetch(url, init)
+  for (
+    let attempt = 0;
+    attempt < MAX_ATTEMPTS - 1 && RETRYABLE_STATUSES.has(response.status);
+    attempt++
+  ) {
+    await sleep(retryDelayMs(response, attempt))
+    response = await authorizedFetch(url, init)
+  }
   if (!response.ok) {
     const snippet = (await response.text()).slice(0, 300)
     throw new Error(
