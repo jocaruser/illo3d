@@ -27,5 +27,5 @@ When both are empty, one line covers them:
 You can un-archive it later." —
 the cascade of
 [ADR-0014](../../decisions/ADR-0014-archive-then-delete-lifecycle.md).
-Breadcrumbs and lifecycle otherwise behave as
-[everywhere else](../../jobs/details/details.spec.md#lifecycle-on-this-page).
+Breadcrumbs behave as [navigation](../../navigation.spec.md) says;
+lifecycle as [every details page does](../../shared/lifecycle.spec.md).

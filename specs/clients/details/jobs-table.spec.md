@@ -2,7 +2,7 @@
 
 The client's jobs, embedded —
 showing *all* of them
-per [the children-are-history rule](../../jobs/details/details.spec.md#children-are-history-not-clutter):
+per [the children-are-history rule](../../shared/lifecycle.spec.md#children-are-history-not-clutter):
 active ones normally,
 archived ones struck through with Un-archive,
 soft-deleted ones struck through as "Deleted entity".

@@ -45,7 +45,8 @@ Self-directed, awaiting Carlos's review:
 
 - [x] `search.spec.md`, `profile.spec.md`, `entities/metadata.spec.md`
 - [x] `dashboard/` — overview, stats, kanban, calendar, stock-alerts, recent-transactions
-- [x] `jobs/` — list (owns how-lists-behave); details: overview, widgets
+- [x] `shared/` — notes, tags, lists, lifecycle (page-agnostic mechanics)
+- [x] `jobs/` — list; details: overview, widgets
   (owns totals, due colours, paid dialogs), pieces-table (owns consumption),
   materials-summary
 - [x] `clients/` — list; details: overview, metrics, notes (owns mentions
@@ -58,10 +59,10 @@ Self-directed, awaiting Carlos's review:
 
 ## Questions for review
 
-1. Notes and tags mechanics are owned by `clients/details/` (the CRM heart);
-   jobs' identical sections link over and have no files of their own. Agreed?
-2. The how-lists-behave rule is owned by `jobs/list.spec.md`
-   (first list written). Keep, or prefer another owner?
+1. ~~Notes and tags ownership~~ — resolved by Carlos's shared-folder
+   decision: page-agnostic mechanics now live in `specs/shared/`
+   (notes, tags, lists, lifecycle) and pages link to them.
+2. ~~How-lists-behave owner~~ — same resolution: `shared/lists.spec.md`.
 3. Sign-out discards unsaved changes without the confirmation Refresh asks
    for — specced as truth in `profile.spec.md`; fix queued as a task. Fix it?
 4. Two backend-inappropriate strings were fixed to spec them honestly:

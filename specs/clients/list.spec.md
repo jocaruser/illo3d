@@ -2,7 +2,7 @@
 
 Every active client, with "Add client" to create one.
 The table behaves
-[as all lists do](../jobs/list.spec.md#how-lists-behave-all-of-them);
+[as all lists do](../shared/lists.spec.md);
 an empty shop has its saying-so row.
 
 | Column | Notes |
@@ -18,7 +18,7 @@ an empty shop has its saying-so row.
   everything else optional —
   email, phone, notes, preferred contact,
   lead source (which may mention things — see
-  [notes](details/notes.spec.md#mentions) for how mentions work),
+  [notes](../shared/notes.spec.md#mentions) for how mentions work),
   and a multiline address.
   Creating lands on the new client's page.
 - **Edit** → the same dialog, prefilled.

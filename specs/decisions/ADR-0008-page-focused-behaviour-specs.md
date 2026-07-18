@@ -49,12 +49,16 @@ as siblings of — but separate from — the decision records in `specs/decision
   libraries, storage formats, column names, module names — is banned.
   A future agent must be able to rebuild the product's behaviour
   from these specs in any technology.
-- **Cross-page rules live in their owning page.**
-  A rule that appears on several pages
-  (job totals, archive cascades, save semantics)
-  is written once, in the page that primarily exercises it,
-  and referenced from the others with ordinary Markdown links,
-  e.g. `[job total](../jobs/details/widgets.spec.md)`.
+- **Page-agnostic mechanics live in `specs/shared/`.**
+  A section or behaviour that several pages place without owning —
+  notes, tags, how lists behave, the details-page lifecycle —
+  is one file under `shared/`, linked from every page that shows it,
+  so no page accidentally becomes its home.
+  A rule that one page genuinely exercises stays owned by that page
+  (job money in the job's widgets, consumption in the pieces table)
+  and is referenced from the others with ordinary Markdown links.
+  *(Amended 2026-07-18: shared/ replaces pure owning-page placement
+  for page-agnostic mechanics, on review feedback.)*
 - **Hybrid voice, with one house rule.**
   Prose and tables carry everything linear.
   The moment behaviour branches —

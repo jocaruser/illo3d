@@ -1,8 +1,8 @@
 # Notes
 
-Notes are the diary of a client — and of a job:
-this file owns the mechanics,
-and a job's notes section behaves identically.
+Notes are the diary of a client — and of a job.
+This shared file owns the mechanics;
+the pages only place the section.
 
 A note is plain text with a **severity**,
 added in place ("Plain text note"),
