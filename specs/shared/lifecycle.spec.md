@@ -2,20 +2,16 @@
 
 How the three states of
 [ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md)
-look and act on the page of any entity that has one.
-The state itself is changed with
-[the dropdown](dropdown.spec.md);
-what each change asks is below.
+look and act on the page of any entity that has one:
 
-- An **active** entity is editable, and offers **Edit**.
-  Its state offers **Archived**,
-  which asks first, naming its cascade —
+- An **active** entity is editable,
+  and offers **Edit** and **Archive**.
+  Archiving asks first, naming its cascade —
   each page quotes its own wording.
 - An **archived** entity is frozen:
-  read-only everywhere on the page, nothing editable.
-  Its state offers **Active** — back, no questions asked —
-  and **Deleted**, which asks first
-  and says there is no way back.
+  read-only everywhere on the page, nothing editable,
+  offering **Un-archive** and **Delete**.
+  Deleting asks first, and says there is no way back.
 - A **deleted** entity has no page:
   its address is [not found](../not-found.spec.md),
   like everything else about it.

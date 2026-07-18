@@ -225,10 +225,6 @@ New from the review round (2026-07-18):
   title, search, optional Add — and the default Actions column;
   **details pages converge on the widgets grid**
   (the material page's form fields become widgets).
-- **Lifecycle state moves into the dropdown** on every
-  details page — today Edit / Archive / Soft-delete render
-  as buttons beside the title;
-  the state becomes a dropdown pick, confirmations unchanged.
 - **One generic dropdown replaces the four pickers**
   (`shared/dropdown.spec.md`) —
   `Select`, dead `FormSelect`, `Combobox`
