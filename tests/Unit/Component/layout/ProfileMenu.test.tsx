@@ -2,6 +2,7 @@ import { act, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { fireEvent } from '@testing-library/react'
 import { ProfileMenu } from '@/Component/layout/ProfileMenu'
+import { APP_VERSION } from '@/Config/version'
 import { useShopMetadata } from '@/Hook/useShopMetadata'
 import { applyTheme } from '@/Theme/initTheme'
 import { useAuthStore } from '@/Store/authStore'
@@ -269,7 +270,7 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       expect(screen.getByTestId('profile-menu-version')).toHaveTextContent(
-        'App 3.0.0 · Shop 3.0.0'
+        `App ${APP_VERSION} · Shop 3.0.0`
       )
     })
 
@@ -279,7 +280,7 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       expect(screen.getByTestId('profile-menu-version')).toHaveTextContent(
-        'App 3.0.0 · Shop —'
+        `App ${APP_VERSION} · Shop —`
       )
     })
 

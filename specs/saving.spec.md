@@ -83,7 +83,8 @@ Scenarios:
 
 - The save completes
   → "Workbook saved." confirms it,
-  the review closes, and Save disables again.
+  the review stays open — every card saved, nothing left to write —
+  and Save disables again until the next edit.
 - The save fails partway
   → the run halts on a red card,
   "Could not save workbook." offers **Retry**,

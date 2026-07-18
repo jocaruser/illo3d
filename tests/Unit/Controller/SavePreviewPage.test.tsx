@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { I18nextProvider } from 'react-i18next'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -9,6 +9,7 @@ import {
   type UseWorkbookService,
 } from '@/Hook/useWorkbookService'
 import { appendRecord, findRecordById, updateRecordById } from '@/Repository/Matrix'
+import { SHEET_NAMES } from '@/Config/schema'
 import { useOperationStore } from '@/Store/operationStore'
 import { emptyTabs, useWorkbookStore } from '@/Store/workbookStore'
 import { LocationProbe } from '../helpers/LocationProbe'
@@ -156,18 +157,87 @@ describe('SavePreviewPage', () => {
     expect(screen.getByTestId('save-nav-audit_log')).toHaveTextContent('2 new entries')
   })
 
-  it('saves without the blocking overlay and returns whence it came', async () => {
+  it('saves without the blocking overlay and stays open on all-green cards', async () => {
+    seedDirtyWorkbook()
+    mockService()
+    // Emit what the real service emits, so the page captures the run.
+    api.save.mockImplementation(async () => {
+      const operations = useOperationStore.getState()
+      operations.start('save', {
+        total: SHEET_NAMES.length,
+        blocking: false,
+        message: 'workbook.savingWorkbook',
+      })
+      SHEET_NAMES.forEach((sheet, index) => {
+        operations.progress(index + 1, sheet)
+      })
+      operations.finish()
+      return true
+    })
+    renderPage()
+
+    await userEvent.click(screen.getByTestId('save-preview-save-all'))
+
+    expect(api.save).toHaveBeenCalledWith({ blocking: false })
+    expect(screen.getByTestId('location')).toHaveTextContent('/save')
+    expect(screen.getByTestId('save-nav-clients')).toHaveAccessibleName('Clients: Saved')
+    expect(screen.getByTestId('save-nav-tags')).toHaveAccessibleName('Tags: Saved')
+  })
+
+  it('falls back to marking every sheet saved when no progress was observed', async () => {
     seedDirtyWorkbook()
     mockService()
     renderPage()
 
     await userEvent.click(screen.getByTestId('save-preview-save-all'))
 
-    expect(api.save).toHaveBeenCalledWith({ blocking: false })
-    expect(screen.getByTestId('location')).toHaveTextContent('/clients')
+    expect(screen.getByTestId('location')).toHaveTextContent('/save')
+    expect(screen.getByTestId('save-nav-jobs')).toHaveAccessibleName('Jobs: Saved')
   })
 
-  it('stays on the preview when the save fails', async () => {
+  it('a new edit clears the finished run from the cards', async () => {
+    seedDirtyWorkbook()
+    mockService()
+    renderPage()
+
+    await userEvent.click(screen.getByTestId('save-preview-save-all'))
+    expect(screen.getByTestId('save-nav-clients')).toHaveAccessibleName('Clients: Saved')
+
+    // Another mutation lands (e.g. an edit elsewhere in the app).
+    act(() => {
+      useWorkbookStore.getState().mutateTab('tags', (matrix) => [...matrix])
+    })
+
+    expect(screen.getByTestId('save-nav-clients')).not.toHaveAccessibleName(
+      'Clients: Saved'
+    )
+  })
+
+  it('stays on the preview and keeps the red cards when the save fails', async () => {
+    seedDirtyWorkbook()
+    mockService()
+    api.save.mockImplementation(async () => {
+      const operations = useOperationStore.getState()
+      operations.start('save', {
+        total: SHEET_NAMES.length,
+        blocking: false,
+        message: 'workbook.savingWorkbook',
+      })
+      operations.progress(1, 'clients')
+      operations.fail('jobs')
+      operations.finish()
+      return false
+    })
+    renderPage()
+
+    await userEvent.click(screen.getByTestId('save-preview-save-all'))
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/save')
+    expect(screen.getByTestId('save-nav-clients')).toHaveAccessibleName('Clients: Saved')
+    expect(screen.getByTestId('save-nav-jobs')).toHaveAccessibleName('Jobs: Failed')
+  })
+
+  it('leaves the diff statuses alone when a failed save produced no progress', async () => {
     seedDirtyWorkbook()
     mockService()
     api.save.mockResolvedValue(false)
@@ -175,7 +245,20 @@ describe('SavePreviewPage', () => {
 
     await userEvent.click(screen.getByTestId('save-preview-save-all'))
 
-    expect(screen.getByTestId('location')).toHaveTextContent('/save')
+    expect(screen.getByTestId('save-nav-clients')).toHaveAccessibleName('Clients: Changed')
+  })
+
+  it('shows the audit log card as changeless when only sheet data moved', async () => {
+    // A mutation that (atypically) logged nothing: the diff has no entries.
+    const tabs = emptyTabs()
+    useWorkbookStore.getState().hydrateTabs(tabs, 'wb-1')
+    useWorkbookStore.getState().mutateTab('tags', (matrix) => [...matrix])
+    mockService()
+    renderPage()
+
+    await userEvent.click(screen.getByTestId('save-nav-audit_log'))
+
+    expect(screen.getByText('No changes')).toBeInTheDocument()
   })
 
   it('discard all runs through the refresh confirmation', async () => {
