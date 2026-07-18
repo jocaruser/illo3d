@@ -75,39 +75,12 @@ Self-directed, awaiting Carlos's review:
 
 ## Spec-led deviations awaiting implementation
 
-The spec is the contract; these are the known places the code lags it:
-
-- **In-memory migration with Confirm and close**
-  ([ADR-0012](decisions/ADR-0012-in-memory-migration-with-explicit-submit.md),
-  `migration/wizard.spec.md`):
-  today's code persists a working copy and commits automatically;
-  the spec requires an in-memory run, backup written only at its step,
-  and an explicit submit. E2e assertions on working-copy artefacts
-  must change with it.
-- **Hop-aware wizard explanation**:
-  the modal's description block always tells the v2 story;
-  each hop should describe itself,
-  with the shared promise reduced to "No data is removed or altered."
-- **Newer-shop-than-app experience**:
-  a shop stamped with a newer major shows the wizard with nowhere to go;
-  needs a distinct "this shop needs a newer app" outcome, then a spec update.
-- **Damaged-metadata overwrite guard**
-  (`welcome/local-folder.spec.md`):
-  a real shop with a corrupt metadata file gets the "create new shop" offer,
-  and confirming overwrites it; wants a defensive check.
-- **Pieces table lags the children-are-history rule**
-  (`jobs/details/details.spec.md`):
-  the client's jobs table shows archived/deleted children as specified,
-  but the job's pieces table hides soft-deleted pieces
-  and has no archived styling or un-archive action yet.
-- **Sign-out discards unsaved edits without confirming**
-  (`profile.spec.md`):
-  Refresh confirms and tab-close warns; sign-out should ask the same
-  discard question before resetting.
-- **Local re-permission on reopen**
-  (`welcome/local-folder.spec.md`):
-  "the browser may first ask you to re-allow access" is unverified;
-  check the lapsed-permission path, likely add a friendly re-allow prompt.
+The full audited backlog lives in [DIVERGENCES.md](DIVERGENCES.md) —
+a four-way spec-versus-code audit consolidated into one implementation
+queue (35 items, large to small), the spec amendments it forced,
+and the rulings taken.
+That file is the single source of truth for what the code owes the specs;
+this README no longer keeps its own copy.
 
 ## When the migration completes
 
