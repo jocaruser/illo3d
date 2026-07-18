@@ -86,7 +86,10 @@ Rulings now in force:
   money is green at zero or above and red below,
   only text can link;
   the table base names the questions every use answers —
-  columns and order, per-viewport columns, empty wording.
+  columns and order, empty wording,
+  and per-viewport columns as a Viewport column
+  of the columns table
+  (the identifier always remains; actions may hide).
 
 Sample built for sign-off:
 `shared/`, the two ADRs, the `inventory/` branch,

@@ -21,5 +21,6 @@ Every use of this spec answers, specifically:
 
 - Which columns, in what order.
 - Which columns each viewport keeps —
-  what identifies the row, and its actions, always remain.
+  a Viewport column in the same columns table;
+  what identifies the row always remains.
 - The quiet empty row's wording ("No purchase lots yet.").
