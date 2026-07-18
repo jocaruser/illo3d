@@ -118,7 +118,7 @@ Before finishing substantial frontend work, verify:
 - The `frontend-ui-workflow` skill is self-contained and includes bundled references for structural extraction, behavioral extraction, style extraction, clean implementation planning, and final UI generation.
 - Use it to generate or update `specs/features/<name>/layout.md`, `specs/features/<name>/experience.md`, `specs/features/<name>/implementation-plan.md`, and `specs/ui/style-guide.md` when the task is substantial.
 - Load `vercel-react-best-practices` only when React/Next performance, hooks, rendering, data-fetching, bundle, or server/client boundary patterns matter.
-- For substantial frontend work, read `specs/ui/frontend-workflow.md` before implementing.
+- For substantial frontend work, follow the self-contained `frontend-ui-workflow` skill and its bundled references (the former `specs/ui/frontend-workflow.md` bridge doc is removed).
 
 - Maintain `specs/ui/style-guide.md` as the canonical source for all visual tokens and reusable patterns.
 - Frontend work is frontend-only by default: do not modify backend files, API endpoints, server actions, schemas, migrations, services, jobs, queues, auth policies, or infrastructure unless the user explicitly authorizes backend work.
