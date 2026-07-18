@@ -13,6 +13,10 @@ and [ADR-0010](decisions/ADR-0010-british-english.md) (British English).
 Until this migration completes,
 `openspec/specs/` remains the frozen v2 record —
 do not update it; it is history.
+There is no `specs/features/` capability layout:
+where framework rules speak of one,
+this tree is the target
+(`FRAMEWORK.local.md` carries the override).
 
 ## How this migration works
 
@@ -121,7 +125,8 @@ The sweep of everything else awaits that sign-off:
       backing each entity's `create.spec.md`
       (side-panel respec expected later)
 - [ ] ADR-0015 → a shared pricing spec
-- [ ] delete `specs/features/` (its redirect folds in here)
+- [x] delete `specs/features/` and the `ui/` scaffolding —
+      done; redirects folded in here and into `FRAMEWORK.local.md`
 
 ## Checklist
 
@@ -167,8 +172,9 @@ Self-directed, awaiting Carlos's review:
    created). Review the new wording.
 5. American spellings remain in pre-ADR-0010 ADRs and framework-generated
    files per adoption-on-next-edit.
-6. `FRAMEWORK.local.md` still names `openspec/specs/` as canonical;
-   flip it to this tree after review? The fate of `openspec/` stays open.
+6. ~~`FRAMEWORK.local.md` names `openspec/specs/` as canonical~~ —
+   flipped to this tree with the `specs/features/` deletion.
+   The fate of `openspec/` (frozen v2 history) stays open.
 
 ## Spec-led deviations awaiting implementation
 
