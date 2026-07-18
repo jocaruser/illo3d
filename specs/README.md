@@ -10,9 +10,6 @@ written under
 [ADR-0009](ADRs/ADR-0009-semantic-line-breaks.md) (semantic line breaks)
 and [ADR-0010](ADRs/ADR-0010-british-english.md) (British English).
 
-Until this migration completes,
-`openspec/specs/` remains the frozen v2 record —
-do not update it; it is history.
 There is no `specs/features/` capability layout:
 where framework rules speak of one,
 this tree is the target
@@ -173,8 +170,9 @@ Self-directed, awaiting Carlos's review:
 5. American spellings remain in pre-ADR-0010 ADRs and framework-generated
    files per adoption-on-next-edit.
 6. ~~`FRAMEWORK.local.md` names `openspec/specs/` as canonical~~ —
-   flipped to this tree with the `specs/features/` deletion.
-   The fate of `openspec/` (frozen v2 history) stays open.
+   flipped to this tree with the `specs/features/` deletion;
+   ~~the fate of `openspec/`~~ decided: removed entirely,
+   with its tooling, on Carlos's ruling (2026-07-19).
 
 ## Spec-led deviations awaiting implementation
 
@@ -250,6 +248,7 @@ New from the review round (2026-07-18):
 
 ## When the migration completes
 
-Point `FRAMEWORK.local.md`'s specification-location note at this tree,
-decide the fate of `openspec/`,
-and fold this checklist away.
+Fold this checklist away —
+the other completion duties are done:
+`FRAMEWORK.local.md` points here,
+and the old spec set is removed.

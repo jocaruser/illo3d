@@ -5,7 +5,7 @@
 
 ## Context
 
-The v2 spec set (`openspec/specs/`, 46 capability-focused files)
+The previous v2 spec set (46 capability-focused files)
 drifted badly during the v3 rewrite:
 it described removed libraries, storage columns and internal module names,
 so by the time it was needed as a source of truth it was part lie.
@@ -15,7 +15,7 @@ which requires a format that is cheap to keep true
 and survives implementation rewrites.
 
 Two structural options were considered:
-feature-focused files (the OpenSpec/ai-framework default)
+feature-focused files (the ai-framework default)
 and page-focused files, where the tree mirrors what a user navigates.
 The maintainer thinks in pages,
 and sync duties are easier to scope
@@ -110,10 +110,5 @@ as siblings of — but separate from — the decision records in `specs/ADRs/`.
 - The feature-focused `specs/features/` convention from the ai-framework
   is intentionally not used for this project;
   `FRAMEWORK.local.md` carries the override.
-
-## Open points, tracked through the migration
-
-- The disposition of the retired `openspec/` tree —
-  and pointing the OpenSpec workflow skills at this layout —
-  is decided once the migration proves the format.
-  Until then `openspec/specs/` remains the frozen v2 record.
+- The previous spec set and its tooling are removed:
+  this tree is the only behaviour record.

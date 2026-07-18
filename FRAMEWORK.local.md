@@ -13,7 +13,6 @@ Canonical behaviour specs live in the page-focused `specs/` tree
 There is no `specs/features/` capability layout in this project:
 where `FRAMEWORK.md` or capability docs speak of `specs/features/`,
 the page-focused tree is the target.
-`openspec/specs/` is the frozen v2 record — history, never updated.
 ADRs live in `specs/ADRs/`:
 where `FRAMEWORK.md` or capability docs say `specs/decisions/`,
 that folder is the target.
