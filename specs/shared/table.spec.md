@@ -1,12 +1,12 @@
-# How tables render
+# The table
 
-Every table in the app — list pages and embedded sections alike —
-keeps its shape whatever the data holds:
+The default spec for every table in the app —
+list pages and embedded sections alike.
+Whatever the data holds:
 
 - The header row always renders.
   When there are no rows,
   one quiet row spans the table and says so —
-  each table names its own wording ("No purchase lots yet.") —
   never a missing table, never a bare gap.
 - Every data column sorts on click,
   ascending then descending,
@@ -16,5 +16,10 @@ keeps its shape whatever the data holds:
   ([lifecycle](lifecycle.spec.md)).
   Deleted entities have no rows anywhere
   ([ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md)).
-- Narrow screens hide the less essential columns;
+
+Every use of this spec answers, specifically:
+
+- Which columns, in what order.
+- Which columns each viewport keeps —
   what identifies the row, and its actions, always remain.
+- The quiet empty row's wording ("No purchase lots yet.").

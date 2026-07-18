@@ -16,6 +16,9 @@ The rows load from the `inventory` table
 | Avg unit cost | What a unit has cost on average, from its purchases; a dash before any purchase |
 | Created | |
 
+Narrow screens drop only Type;
+every other column stays at every width.
+
 Where it departs from the default:
 
 - **No Add button** — materials are created by

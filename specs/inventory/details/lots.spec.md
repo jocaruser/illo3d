@@ -11,6 +11,8 @@ rendered as [tables render](../../shared/table.spec.md).
 | Qty | The units it added |
 | Amount | What it cost |
 
+Every column stays at every width.
+
 Nothing here edits:
 a lot is corrected on
 [the purchase's own page](../../transactions/expense-details.spec.md),

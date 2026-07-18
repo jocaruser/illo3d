@@ -13,4 +13,6 @@ rendered as [tables render](../../shared/table.spec.md).
 | Qty | The units of this material the piece takes |
 | Cost | That quantity at the material's average purchase price — the same figure as [the job's materials summary](../../jobs/details/materials-summary.spec.md) |
 
+Every column stays at every width.
+
 Empty says "No consumption recorded for this material yet."
