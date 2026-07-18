@@ -69,8 +69,18 @@ Rulings now in force:
   (files come with the sweep);
   list tables end in an Edit / Archive Actions column
   unless the page says otherwise;
-  details pages carry the responsive widgets grid,
-  and [a job's widgets](jobs/details/widgets.spec.md) are the model.
+  details pages carry the responsive widgets grid.
+- **Third pass**: the search box is its own shared spec,
+  and fuzzy matching is decided once for every search
+  ([ADR-0017](decisions/ADR-0017-fuzzy-matching-in-every-search.md));
+  sorting belongs to every table (`shared/table.spec.md`);
+  rows usually open their details page, nothing enforced;
+  list pages carry breadcrumbs;
+  widgets get their own base spec —
+  five kinds: text, number, money, date, choice —
+  and each details page's widgets spec
+  declares order, kind and in-place edits;
+  base templates never cite an entity's spec as a model.
 
 Sample built for sign-off:
 `shared/`, the two ADRs, the `inventory/` branch,
@@ -81,7 +91,11 @@ The sweep of everything else awaits that sign-off:
       remembered view choice, not-paid-nor-cancelled figures,
       no-breadcrumbs line, kanban park banner
 - [ ] `jobs/` and `clients/` — openers, shell references,
-      the specialisation formula, their `create.spec.md` files
+      the specialisation formula, their `create.spec.md` files;
+      the jobs widgets spec declares order and kinds
+- [ ] `search.spec.md` and the tags box — reference
+      [ADR-0017](decisions/ADR-0017-fuzzy-matching-in-every-search.md)
+      and `shared/search-box.spec.md`
 - [ ] `transactions/` and `audit-log/` — openers, linking references,
       type-only delete entries
 - [ ] `welcome/`, `migration/`, loose root files — openers
@@ -195,6 +209,10 @@ New from the review round (2026-07-18):
   title, search, optional Add — and the default Actions column;
   **details pages converge on the widgets grid**
   (the material page's form fields become widgets).
+- **One shared fuzzy matcher behind every search**
+  ([ADR-0017](decisions/ADR-0017-fuzzy-matching-in-every-search.md)) —
+  the global search and the tag box
+  need verifying against it and aligning.
 
 ## When the migration completes
 
