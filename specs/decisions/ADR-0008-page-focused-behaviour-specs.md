@@ -59,6 +59,13 @@ as siblings of — but separate from — the decision records in `specs/decision
   and is referenced from the others with ordinary Markdown links.
   *(Amended 2026-07-18: shared/ replaces pure owning-page placement
   for page-agnostic mechanics, on review feedback.)*
+- **Every file opens by placing itself.**
+  A spec's first lines say what it is and where it lives:
+  a page — "A page at `#/inventory/{id}`" — with its address,
+  or a section — `A section of [a material's page](…)` —
+  with its parent linked.
+  The main file of a details folder is always `details.spec.md`.
+  *(Amended 2026-07-18: identity openers, on review feedback.)*
 - **Hybrid voice, with one house rule.**
   Prose and tables carry everything linear.
   The moment behaviour branches —
