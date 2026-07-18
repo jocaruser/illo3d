@@ -6,20 +6,8 @@ Archived and deleted jobs are absent
 ([ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md));
 an empty shop says "No jobs yet."
 
-## How lists behave (all of them)
-
-This rule is written once, here,
-for every list page in the app:
-
-- One search box filters the rows from the second character typed,
-  forgiving small typos,
-  matching anything about the row —
-  including its id and dates as fragments ("2026-06").
-  No matches shows a saying-so row, never a blank table.
-- Every data column sorts on click, ascending then descending,
-  ties broken by id so order never jitters.
-- Narrow screens hide the less essential columns;
-  what identifies the row and its actions always remain.
+The table behaves
+[as all lists do](../shared/lists.spec.md).
 
 ## The columns
 

@@ -15,7 +15,7 @@ Only [a purchase's own page](expense-details.spec.md)
 can amend anything, and only its own numbers.
 
 The table behaves
-[as all lists do](../jobs/list.spec.md#how-lists-behave-all-of-them).
+[as all lists do](../shared/lists.spec.md).
 
 | Column | Notes |
 |---|---|

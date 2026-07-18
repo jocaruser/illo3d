@@ -2,9 +2,9 @@
 
 Tags are shared labels —
 one pool for the whole shop,
-attachable to clients and jobs alike:
-this file owns the mechanics,
-and a job's tags section behaves identically.
+attachable to clients and jobs alike.
+This shared file owns the mechanics;
+the pages only place the section.
 
 The section shows the attached tags as chips,
 each removable in place.
@@ -20,4 +20,4 @@ Scenarios — submitting the box:
 - A tag the owner already has → quietly refused.
 
 Tags surface wherever their owner does:
-in list tooltips, and in [search](../../search.spec.md).
+in list tooltips, and in [search](../search.spec.md).
