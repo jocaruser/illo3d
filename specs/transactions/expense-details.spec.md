@@ -33,5 +33,7 @@ Scenarios:
 
 Amending here fixes the record —
 it does not re-run the purchase:
-stock levels stay as they are,
-exactly as [lot corrections](../inventory/details/lots.spec.md) do.
+stock levels stay as they are.
+This page is the only place a lot can be corrected;
+[the material's lots table](../inventory/details/lots.spec.md)
+only reads what is amended here.

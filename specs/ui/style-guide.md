@@ -125,7 +125,7 @@ Two badge geometries recur; reuse them, do not invent a third:
   red / orange / yellow thresholds, severest wins.
   The one raw-palette exception lives here:
   the yellow tier uses `text-yellow-600 dark:text-yellow-400`
-  in the inventory table so three tiers stay tellable apart.
+  in the inventory table so the three tiers stay distinguishable.
 - **Money** (`ColouredNumber`): positive `text-success`,
   negative `text-danger`, zero muted;
   expenses force red regardless of sign.
