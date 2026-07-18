@@ -33,7 +33,10 @@ Whatever the mode:
 - ↑ and ↓ move the highlight, wrapping at the ends.
 - Enter picks the highlighted option;
   Escape closes, changing nothing.
-- Clicking an option picks it; clicking away closes.
+- Clicking an option picks it —
+  and closes the dropdown,
+  unless it multiselects, where it stays open for more.
+  Clicking away always closes.
 - An empty set says "No items available"
   instead of showing an empty list.
 - A disabled dropdown opens nothing.
