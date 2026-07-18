@@ -20,7 +20,7 @@ Five kinds of widget:
   Marked editable, it opens the browser's
   built-in calendar picker.
 - **Choice** — one value picked from a set:
-  a dropdown, a colour.
+  a [dropdown](dropdown.spec.md), a colour.
   Marked editable, it opens its picker in place.
 
 Any widget may be read-only or edit in place;

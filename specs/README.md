@@ -81,6 +81,11 @@ Rulings now in force:
   and each details page's widgets spec
   declares order, kind and in-place edits;
   base templates never cite an entity's spec as a model.
+- **Fifth pass**: one generic dropdown for the whole app
+  (`shared/dropdown.spec.md`) — three modes
+  (plain, searchable, creatable), fuzzy per ADR-0017;
+  decided over the two-picker alternative
+  after the interactive consolidation report.
 - **Fourth pass**: widget kinds carry their behaviour —
   an editable date opens the browser's built-in calendar picker,
   money is green at zero or above and red below,
@@ -218,6 +223,12 @@ New from the review round (2026-07-18):
   title, search, optional Add — and the default Actions column;
   **details pages converge on the widgets grid**
   (the material page's form fields become widgets).
+- **One generic dropdown replaces the four pickers**
+  (`shared/dropdown.spec.md`) —
+  `Select`, dead `FormSelect`, `Combobox`
+  and the kanban card's hidden select all converge on it;
+  every call site migrates,
+  and its searchable mode uses the shared fuzzy matcher.
 - **Money at zero renders green** —
   `ColouredNumber` currently mutes zero;
   align it when money colouring becomes one shared rule
