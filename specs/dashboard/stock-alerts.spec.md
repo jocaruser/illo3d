@@ -1,14 +1,11 @@
 # Dashboard — stock alerts
 
-Lists materials at or below their warning thresholds, worst first.
-Each item shows its name and current stock,
-with a coloured edge — red, orange or amber —
-for the severest threshold it crossed.
-Pressing an item opens it in the inventory.
+A section of [the dashboard](dashboard.spec.md):
+materials at or below a warning threshold, worst first.
+Each shows its name and current stock,
+edged red, orange or yellow by the severest crossed level —
+[the material's own thresholds](../inventory/details/details.spec.md):
+a level left empty never alerts; zero is a real level.
+Pressing one opens the material.
 
-The thresholds themselves belong to
-[each material](../inventory/details/details.spec.md);
-a threshold set to zero never alerts.
-
-When nothing is low:
-"All stock levels look healthy."
+When nothing is low: "All stock levels look healthy."

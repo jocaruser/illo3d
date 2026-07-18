@@ -2,7 +2,7 @@
 
 The top of the page is a grid of small cards.
 Money follows one law throughout
-([ADR-0015](../../ADRs/ADR-0015-derived-pricing-and-income-on-paid.md)):
+([pricing](../../shared/pricing.spec.md)):
 **a job's total is the sum of units × per-unit price over its pieces** —
 deleted pieces excluded, archived ones still counting —
 and when any counting piece lacks a price or units,

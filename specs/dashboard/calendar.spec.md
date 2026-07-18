@@ -1,20 +1,16 @@
 # Dashboard — the calendar
 
-The other way to see the open work: jobs placed on their due dates.
+A section of [the dashboard](dashboard.spec.md):
+the open work placed on due dates, a month at a time —
+a grid of weeks on a wide screen, a list of days on a narrow one.
+Controls: previous and next month,
+each captioned with its load — "Next month (3 jobs)" —
+and "Today". Today's square is highlighted.
+An empty month renders the same bare grid, no message.
 
-A month at a time —
-a grid of weeks on a wide screen,
-a list of days on a narrow one —
-with controls for the previous month, "Today", and the next.
-Today's square is highlighted.
-
-Each job that is not archived or deleted appears on its due date
-(a job with no due date sits on its creation date instead —
+Each job neither archived nor deleted sits on its due date
+(no due date → its creation date,
 [the widgets' fallback](../jobs/details/widgets.spec.md#due-date)),
-as a small chip with its description and client,
-coloured by the same lateness scale as the
-[board's badges](kanban.spec.md).
+as a chip — "‹description› (‹pieces›)", with its client —
+coloured on [the due-date scale](../jobs/details/widgets.spec.md#due-date).
 Pressing a chip opens the job.
-
-A month with nothing due says so:
-"No jobs due this month."

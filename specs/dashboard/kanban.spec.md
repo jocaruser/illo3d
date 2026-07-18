@@ -1,5 +1,10 @@
 # Dashboard — the jobs board
 
+> **Parked for a full respec** — the board will show pieces,
+> not jobs ([the tracker](../README.md) holds the ruling).
+> Below is today's behaviour, unchanged until that respec.
+
+A section of [the dashboard](dashboard.spec.md).
 Five columns — Draft, In progress, Delivered, Paid, Cancelled —
 one card per job that is not archived or deleted.
 An empty column says "No jobs".
@@ -9,8 +14,7 @@ An empty column says "No jobs".
 Each card shows the job's description and its client,
 and as much of its money story as is known:
 the job's total when every piece is priced
-(the rules are
-[the job's widgets'](../jobs/details/widgets.spec.md)),
+(the rules are [pricing](../shared/pricing.spec.md)'s),
 with the expected benefit in brackets after it;
 an *incomplete* marker instead, when pricing is missing.
 Below, the making progress — "‹done›/‹total› pieces done" —

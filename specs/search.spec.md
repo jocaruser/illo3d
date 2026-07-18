@@ -14,11 +14,10 @@ archived and deleted things do not appear.
 Nothing happens until the query is two characters long.
 From there, every keystroke refreshes a list of up to ten suggestions.
 
-Matching is forgiving:
-small typos still match ("Acme Coorp" finds Acme Corp),
+Matching follows
+[ADR-0017](ADRs/ADR-0017-fuzzy-matching-in-every-search.md) —
+fuzzy, anywhere, ids and dates as fragments —
 and searching an id (like "J4") puts that exact thing first.
-Dates match as fragments —
-"2026-06" finds everything dated that month.
 When nothing matches: "No matches".
 
 ## Reading a suggestion
@@ -37,8 +36,9 @@ a note shows a snippet of what matched.
   a piece opens its job, scrolled to the piece;
   a note opens whatever it is written on.
 - Enter with nothing highlighted → the first suggestion.
-- Arrow keys move the highlight, stopping at the ends.
-- Escape → closes the list and clears the box.
+- Arrows, Enter and Escape behave as
+  [the dropdown](shared/dropdown.spec.md)'s;
+  Escape also clears the box.
 
 Searching never changes which section of
 [the header](navigation.spec.md) is lit — only going somewhere does.

@@ -10,6 +10,8 @@ is treated as not being a shop at all.
 
 A user can open it — it is theirs, in their own storage —
 though the app never asks them to.
+The [profile menu](../profile.spec.md) offers
+**"Edit metadata.json"** as the app's own door to it.
 
 What it records, in user terms:
 

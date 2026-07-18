@@ -40,6 +40,8 @@ Pages earlier in the trail are links; the last entry is where you are.
 This rule is written once, here.
 Every page spec that shows breadcrumbs links to this section
 rather than restating it.
+The [dashboard](dashboard/dashboard.spec.md) — the root —
+shows none; every trail starts below it.
 
 ## Dead ends
 

@@ -1,30 +1,30 @@
 # Dashboard — the numbers
 
-Four figures, each a card; two of them are doors to the money pages.
+A section of [the dashboard](dashboard.spec.md):
+four figures, each a card; two are doors to the money pages.
 
 | Card | Shows | Pressing it |
 |---|---|---|
-| Balance | Every transaction summed — the shop's money position. Green positive, red negative. | Opens transactions |
-| Active jobs | How many jobs are draft or in progress | — |
+| Balance | Every transaction summed. Green positive, red negative. | Opens transactions |
+| Active jobs | Jobs neither paid nor cancelled | — |
 | Revenue this month | Income dated this calendar month, summed | Opens transactions |
 | Pieces completed (7 days) | Pieces finished in the last seven days | — |
 
-Archived and deleted things count in none of them.
+Deleted things count nowhere.
+Archived jobs and pieces leave the work figures;
+their money stays counted — archive never touches money
+([lifecycle](../shared/lifecycle.spec.md)).
 
 ## Expected benefit
 
 A wider card, "Expected benefit (active jobs)":
-what the open work should earn once done —
-for every draft or in-progress job,
+what the open work should earn once done.
+For every job neither paid nor cancelled,
 each fully described piece
-(units and price set, materials listed, material costs known)
-contributes its revenue minus its material cost.
-
-Pieces missing any of that simply do not count,
-so the figure can be partial —
-it is an *estimate* of what is described,
-the [one sanctioned exception](../ADRs/ADR-0015-derived-pricing-and-income-on-paid.md)
-to the incomplete-marker rule.
-When nothing qualifies, the card explains what to add instead of showing 0:
+(units and price set, materials listed, costs known)
+contributes revenue minus material cost —
+[pricing](../shared/pricing.spec.md)'s sanctioned estimate,
+partial by design, counting only what is described.
+When nothing qualifies, the card teaches instead of showing 0:
 "Add units, per-unit prices, and material lines with lot costs
 on draft or in-progress jobs to see expected benefit."

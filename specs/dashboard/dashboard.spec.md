@@ -1,23 +1,21 @@
 # Dashboard
 
-The home page: the shop at a glance, and the two most common actions
-one press away.
+A page at `#/` — the home:
+the shop at a glance, the two most common actions one press away.
+It waits for the shop's data behind a spinner,
+and shows no breadcrumbs — this is the root
+([navigation](../navigation.spec.md)).
 
-It waits for the shop's data before showing anything —
-a spinner until then — and offers, top to bottom:
+Top to bottom:
 
-- Two actions: **Record purchase**
+- **Record purchase**
   ([the purchase flow](../transactions/purchase.spec.md))
   and **Add job**
-  ([the same creation dialog as the jobs list](../jobs/list.spec.md)).
-- [The numbers](stats.spec.md) —
-  four figures and the expected benefit.
-- **The jobs board or the calendar** —
-  one at a time, chosen by a "Dashboard view" switcher
-  (Kanban / Calendar) that starts on the board:
-  [kanban](kanban.spec.md), [calendar](calendar.spec.md).
-- Side by side at the bottom:
+  ([the jobs list's dialog](../jobs/list.spec.md)).
+- [The numbers](stats.spec.md).
+- **The board or the calendar** — one at a time:
+  a Kanban / Calendar switcher that starts on the board
+  and remembers the choice across refreshes.
+- Side by side — stacked on a narrow screen:
   [stock alerts](stock-alerts.spec.md)
   and [recent transactions](recent-transactions.spec.md).
-
-Breadcrumbs behave as [navigation](../navigation.spec.md) says.

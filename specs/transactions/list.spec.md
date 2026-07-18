@@ -10,7 +10,7 @@ rows are created by things happening:
 [a purchase](purchase.spec.md) records spending,
 [paying a job](../jobs/details/widgets.spec.md#scenarios--changing-status)
 records income
-([ADR-0015](../ADRs/ADR-0015-derived-pricing-and-income-on-paid.md)).
+([pricing](../shared/pricing.spec.md)).
 Only [a purchase's own page](expense-details.spec.md)
 can amend anything, and only its own numbers.
 
