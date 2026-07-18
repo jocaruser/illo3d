@@ -113,14 +113,40 @@ describe('useWorkbookService', () => {
   })
 
   describe('save', () => {
-    it('toasts success', async () => {
+    it('toasts success and reports it', async () => {
       openShop()
       const { result } = render()
 
-      await act(() => result.current.save())
+      let saved = false
+      await act(async () => {
+        saved = await result.current.save()
+      })
 
+      expect(saved).toBe(true)
       expect(mocks.save).toHaveBeenCalledTimes(1)
       expect(toast.success).toHaveBeenCalledWith('Workbook saved.')
+    })
+
+    it('forwards the blocking option to the service', async () => {
+      openShop()
+      const { result } = render()
+
+      await act(() => result.current.save({ blocking: false }))
+
+      expect(mocks.save).toHaveBeenCalledWith({ blocking: false })
+    })
+
+    it('reports failure to the caller', async () => {
+      openShop()
+      mocks.save.mockRejectedValueOnce(new Error('offline'))
+      const { result } = render()
+
+      let saved = true
+      await act(async () => {
+        saved = await result.current.save()
+      })
+
+      expect(saved).toBe(false)
     })
 
     it('offers a retry that saves again', async () => {

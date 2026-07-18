@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
+import { APP_VERSION } from '@/Config/version'
 import {
   BACKUP_SKIPPED_KEY,
   migrationStepIds,
@@ -150,7 +151,7 @@ describe('useMigration', () => {
     expect(createLocalCsvMigrationTarget).toHaveBeenCalledWith(
       handle,
       '2.0.0',
-      '3.0.0',
+      APP_VERSION,
       clock
     )
     expect(runPlans).toHaveBeenCalledWith(
@@ -182,7 +183,7 @@ describe('useMigration', () => {
       'F1',
       'SS-OLD',
       '2.0.0',
-      '3.0.0',
+      APP_VERSION,
       clock
     )
     expect(runPlans).toHaveBeenCalledWith(

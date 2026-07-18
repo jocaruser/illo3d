@@ -48,11 +48,16 @@ export class WorkbookService {
     }
   }
 
-  async save(): Promise<void> {
+  /**
+   * Write every sheet back. `blocking` chooses the progress face: the modal
+   * overlay by default, or none when the save preview shows its own per-sheet
+   * stepper from the operation store.
+   */
+  async save(options: { blocking?: boolean } = {}): Promise<void> {
     useWorkbookStore.getState().beginSave()
     useOperationStore.getState().start('save', {
       total: SHEET_NAMES.length,
-      blocking: true,
+      blocking: options.blocking ?? true,
       message: 'workbook.savingWorkbook',
     })
     try {
@@ -62,16 +67,24 @@ export class WorkbookService {
       // sheet at once and report progress as each one completes.
       await Promise.all(
         SHEET_NAMES.map(async (sheet) => {
-          await this.repo.replaceSheetMatrix(
-            this.workbookId,
-            sheet,
-            snapshot[sheet]
-          )
+          try {
+            await this.repo.replaceSheetMatrix(
+              this.workbookId,
+              sheet,
+              snapshot[sheet]
+            )
+          } catch (error) {
+            useOperationStore.getState().fail(sheet)
+            throw error
+          }
           written += 1
           useOperationStore.getState().progress(written, sheet)
         })
       )
       useWorkbookStore.getState().endSave(true)
+      // Audit rows in the written snapshot are now persisted; rows appended
+      // after this count are the next save's diff.
+      useWorkbookStore.getState().setSavedAuditRows(snapshot.audit_log.length - 1)
     } catch (error) {
       useWorkbookStore.getState().endSave(false)
       throw error

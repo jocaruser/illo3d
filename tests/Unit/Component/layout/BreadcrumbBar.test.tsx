@@ -43,6 +43,12 @@ describe('BreadcrumbBar', () => {
     expect(crumbs()).toEqual(['Home', 'Audit Log'])
   })
 
+  it('names the save preview', () => {
+    renderLayout(<BreadcrumbBar />, ['/save'])
+
+    expect(crumbs()).toEqual(['Home', 'Save'])
+  })
+
   it('shows only Home on an unknown route', () => {
     renderLayout(<BreadcrumbBar />, ['/nowhere'])
 
