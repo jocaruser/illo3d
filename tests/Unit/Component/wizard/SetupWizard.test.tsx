@@ -94,7 +94,9 @@ vi.mock('@/Service/WorkbookService', () => ({
   }),
 }))
 vi.mock('@/Migration/registry', () => ({ resolvePlanChain }))
-vi.mock('@/Migration/orchestrator', () => ({
+vi.mock('@/Migration/orchestrator', async (importOriginal) => ({
+  // Keep the real BACKUP_* constants; only the run itself is faked.
+  ...(await importOriginal<typeof import('@/Migration/orchestrator')>()),
   runPlans: vi.fn(async () => ({ ok: true })),
 }))
 vi.mock('@/Migration/Target/LocalCsvMigrationTarget', () => ({

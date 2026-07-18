@@ -1,8 +1,10 @@
-import { act, screen } from '@testing-library/react'
+import { act, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { fireEvent } from '@testing-library/react'
 import { ProfileMenu } from '@/Component/layout/ProfileMenu'
+import { useShopImageUrl } from '@/Hook/useShopLogoUrl'
 import { useShopMetadata } from '@/Hook/useShopMetadata'
+import { persistDirectoryHandle } from '@/Repository/LocalCsv/persistDirectoryHandle'
 import { applyTheme } from '@/Theme/initTheme'
 import { useAuthStore } from '@/Store/authStore'
 import { useBackendStore } from '@/Store/backendStore'
@@ -14,9 +16,15 @@ import { i18n, renderLayout } from './renderLayout'
 
 vi.mock('@/Hook/useShopMetadata', () => ({ useShopMetadata: vi.fn() }))
 
+vi.mock('@/Hook/useShopLogoUrl', () => ({ useShopImageUrl: vi.fn() }))
+
+vi.mock('@/Repository/LocalCsv/persistDirectoryHandle', () => ({
+  persistDirectoryHandle: vi.fn(() => Promise.resolve()),
+}))
+
 vi.mock('@/Theme/initTheme', () => ({ applyTheme: vi.fn() }))
 
-function mockMetadata(userName?: string) {
+function mockMetadata(userName?: string, iconsrc?: string) {
   vi.mocked(useShopMetadata).mockReturnValue({
     metadata:
       userName === undefined
@@ -28,6 +36,7 @@ function mockMetadata(userName?: string) {
             createdAt: '2026-01-01',
             createdBy: 'local',
             userName,
+            ...(iconsrc === undefined ? {} : { iconsrc }),
           },
     loading: false,
     error: null,
@@ -64,6 +73,7 @@ describe('ProfileMenu', () => {
     installFakeLocalStorage()
     vi.clearAllMocks()
     mockMetadata()
+    vi.mocked(useShopImageUrl).mockReturnValue(null)
     useAuthStore.getState().logout()
     useShopStore.getState().clearActiveShop()
     useBackendStore.getState().clearBackend()
@@ -136,6 +146,69 @@ describe('ProfileMenu', () => {
       expect(
         screen.getByRole('button', { name: 'Toggle profile menu' })
       ).toHaveTextContent('C')
+    })
+  })
+
+  describe('local avatar (metadata.iconsrc)', () => {
+    beforeEach(() => {
+      useAuthStore.getState().loginAsLocalUser()
+      useBackendStore.getState().setBackend('local-csv')
+    })
+
+    it('resolves iconsrc and shows it in the trigger and the identity block', async () => {
+      mockMetadata('Workshop Carlos', 'icon.png')
+      vi.mocked(useShopImageUrl).mockReturnValue('blob:icon-url')
+      renderLayout(<ProfileMenu />)
+
+      expect(useShopImageUrl).toHaveBeenCalledWith('icon.png')
+      const trigger = screen.getByRole('button', {
+        name: 'Toggle profile menu',
+      })
+      expect(trigger.querySelector('img')).toHaveAttribute(
+        'src',
+        'blob:icon-url'
+      )
+
+      await openMenu()
+
+      expect(screen.getByRole('menu').querySelector('img')).toHaveAttribute(
+        'src',
+        'blob:icon-url'
+      )
+    })
+
+    it('falls back to the initial when the metadata declares no icon', () => {
+      mockMetadata('Workshop Carlos')
+      renderLayout(<ProfileMenu />)
+
+      expect(useShopImageUrl).toHaveBeenCalledWith(null)
+      expect(
+        screen.getByRole('button', { name: 'Toggle profile menu' })
+      ).toHaveTextContent('W')
+    })
+
+    it('falls back to the initial when the icon image fails to load', () => {
+      mockMetadata('Workshop Carlos', 'icon.png')
+      vi.mocked(useShopImageUrl).mockReturnValue('blob:icon-url')
+      renderLayout(<ProfileMenu />)
+
+      fireEvent.error(
+        screen
+          .getByRole('button', { name: 'Toggle profile menu' })
+          .querySelector('img') as HTMLImageElement
+      )
+
+      expect(
+        screen.getByRole('button', { name: 'Toggle profile menu' })
+      ).toHaveTextContent('W')
+    })
+
+    it('never asks for a shop image for a Google user', () => {
+      mockMetadata('Workshop Carlos', 'icon.png')
+      signInWithGoogle('https://example.com/me.jpg')
+      renderLayout(<ProfileMenu />)
+
+      expect(useShopImageUrl).toHaveBeenCalledWith(null)
     })
   })
 
@@ -296,7 +369,24 @@ describe('ProfileMenu', () => {
   })
 
   describe('sign out', () => {
-    it('clears the session, the shop, the backend and the snapshot', async () => {
+    it('clears the session, shop, backend, snapshot and folder handle', async () => {
+      signInWithGoogle()
+      openShop()
+      renderLayout(<ProfileMenu />)
+      await openMenu()
+
+      await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
+
+      expect(useAuthStore.getState().isAuthenticated).toBe(false)
+      expect(useShopStore.getState().activeShop).toBeNull()
+      expect(useBackendStore.getState().backend).toBeNull()
+      expect(useWorkbookStore.getState().dirty).toBe(false)
+      // "Nothing remembered": the persisted folder handle is cleared too.
+      expect(persistDirectoryHandle).toHaveBeenCalledWith(null)
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    })
+
+    it('asks before discarding unsaved changes and signs out on confirm', async () => {
       signInWithGoogle()
       openShop()
       act(() => {
@@ -307,11 +397,60 @@ describe('ProfileMenu', () => {
 
       await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
 
+      // Nothing is discarded yet: the Refresh discard dialog asks first.
+      expect(useAuthStore.getState().isAuthenticated).toBe(true)
+      const dialog = screen.getByRole('dialog')
+      expect(
+        within(dialog).getByRole('heading', {
+          name: 'Discard unsaved changes?',
+        })
+      ).toBeInTheDocument()
+
+      await userEvent.click(
+        within(dialog).getByRole('button', { name: 'Discard and refresh' })
+      )
+
       expect(useAuthStore.getState().isAuthenticated).toBe(false)
       expect(useShopStore.getState().activeShop).toBeNull()
-      expect(useBackendStore.getState().backend).toBeNull()
       expect(useWorkbookStore.getState().dirty).toBe(false)
-      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+      expect(persistDirectoryHandle).toHaveBeenCalledWith(null)
+    })
+
+    it('stays signed in when the discard is cancelled', async () => {
+      signInWithGoogle()
+      openShop()
+      act(() => {
+        useWorkbookStore.getState().mutateTab('clients', (matrix) => matrix)
+      })
+      renderLayout(<ProfileMenu />)
+      await openMenu()
+      await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
+
+      await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(useAuthStore.getState().isAuthenticated).toBe(true)
+      expect(useShopStore.getState().activeShop).not.toBeNull()
+      expect(useWorkbookStore.getState().dirty).toBe(true)
+      expect(persistDirectoryHandle).not.toHaveBeenCalled()
+    })
+
+    it('shrugs off a folder-handle clearing failure', async () => {
+      vi.mocked(persistDirectoryHandle).mockRejectedValueOnce(
+        new Error('storage broke')
+      )
+      signInWithGoogle()
+      renderLayout(<ProfileMenu />)
+      await openMenu()
+
+      await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
+      // Let the rejection settle through the best-effort swallow.
+      await act(async () => {
+        await Promise.resolve()
+        await Promise.resolve()
+      })
+
+      expect(useAuthStore.getState().isAuthenticated).toBe(false)
     })
   })
 

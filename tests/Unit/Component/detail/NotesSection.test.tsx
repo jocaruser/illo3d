@@ -71,6 +71,20 @@ beforeEach(() => {
 })
 
 describe('NotesSection', () => {
+  it('shows history without edit affordances when read-only', () => {
+    renderWithProviders(
+      <NotesSection entityType="client" entityId="CL1" readOnly />
+    )
+
+    // The notes and the severity strip stay visible…
+    expect(screen.getByTestId('client-note-row-CN1')).toBeInTheDocument()
+    expect(screen.getByTestId('client-notes-severity-strip')).toBeInTheDocument()
+    // …but nothing can be added, edited or deleted.
+    expect(screen.queryByTestId('client-note-add')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument()
+  })
+
   it('lists only the active notes of its own entity', () => {
     renderWithProviders(<NotesSection entityType="client" entityId="CL1" />)
 

@@ -183,6 +183,14 @@ describe('restores', () => {
     expect(em.pieces.find('P1')?.isDeleted()).toBe(true)
   })
 
+  it('restorePiece clears both flags without cascading to its items', () => {
+    const { em, service } = seededTree()
+    service.archiveJob('J1')
+    service.restorePiece('P1')
+    expect(em.pieces.find('P1')?.isActive()).toBe(true)
+    expect(em.pieceItems.find('PI1')?.isArchived()).toBe(true)
+  })
+
   it('restoreInventory clears both flags', () => {
     const context = makeEm()
     context.tabs.seed('inventory', { id: 'INV1', archived: 'true', deleted: 'true' })
@@ -195,6 +203,7 @@ describe('restores', () => {
     const { tabs, service } = seededTree()
     service.restoreClient('CL9')
     service.restoreJob('J9')
+    service.restorePiece('P9')
     service.restoreInventory('INV9')
     expect(auditTrail(tabs)).toEqual([])
   })

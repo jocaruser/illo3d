@@ -19,6 +19,16 @@ Materials gain an optional colour
 shown as a small swatch beside the material's name
 in the inventory.
 
+## What the wizard says
+
+In the [wizard's](wizard.spec.md) explanation,
+this hop contributes two bullets:
+**"Due dates on jobs"** —
+"an optional due date per job,
+powering the calendar view and lateness badges" —
+and **"Colours on materials"** —
+"an optional colour swatch beside each material in the inventory".
+
 ## What the user sees during the run
 
 Two cards:

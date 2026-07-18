@@ -35,6 +35,18 @@ beforeEach(() => {
 })
 
 describe('TagsSection', () => {
+  it('shows chips without edit affordances when read-only', () => {
+    renderWithProviders(
+      <TagsSection entityType="client" entityId="CL1" readOnly />
+    )
+
+    expect(screen.getByTestId('client-tag-chip-TG1')).toHaveTextContent('Vip')
+    expect(
+      screen.queryByRole('button', { name: 'Remove tag: Vip' })
+    ).not.toBeInTheDocument()
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+  })
+
   it('lists the linked tags of a client', () => {
     renderWithProviders(<TagsSection entityType="client" entityId="CL1" />)
 

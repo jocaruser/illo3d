@@ -6,7 +6,11 @@ import { useShopStore } from '@/Store/shopStore'
 import { installFakeLocalStorage } from '../../Store/memoryLocalStorage'
 import { renderLayout } from './renderLayout'
 
-vi.mock('@/Hook/useShopLogoUrl', () => ({ useShopLogoUrl: vi.fn() }))
+vi.mock('@/Hook/useShopLogoUrl', () => ({
+  useShopLogoUrl: vi.fn(),
+  // The embedded ProfileMenu resolves its local avatar through this.
+  useShopImageUrl: vi.fn(() => null),
+}))
 
 vi.mock('@/Hook/useShopMetadata', () => ({
   useShopMetadata: () => ({ metadata: null, loading: false, error: null }),

@@ -44,7 +44,12 @@ function formFor(client: Client | null | undefined): ClientInput {
   }
 }
 
-export function CreateClientDialog({ open, onClose, client, onSaved }: CreateClientDialogProps) {
+export function CreateClientDialog({
+  open,
+  onClose,
+  client,
+  onSaved,
+}: CreateClientDialogProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const titleId = useId()
@@ -115,15 +120,21 @@ export function CreateClientDialog({ open, onClose, client, onSaved }: CreateCli
             />
           </FormGroup>
           <FormGroup>
-            <FormLabel htmlFor="client-preferred-contact">{t('clients.preferredContact')}</FormLabel>
+            <FormLabel htmlFor="client-preferred-contact">
+              {t('clients.preferredContact')}
+            </FormLabel>
             <FormInput
               id="client-preferred-contact"
               value={form.preferredContact}
-              onChange={(event) => update('preferredContact')(event.target.value)}
+              onChange={(event) =>
+                update('preferredContact')(event.target.value)
+              }
             />
           </FormGroup>
           <FormGroup>
-            <FormLabel htmlFor="client-lead-source">{t('clients.leadSource')}</FormLabel>
+            <FormLabel htmlFor="client-lead-source">
+              {t('clients.leadSource')}
+            </FormLabel>
             <FormInput
               id="client-lead-source"
               value={form.leadSource}
@@ -134,8 +145,10 @@ export function CreateClientDialog({ open, onClose, client, onSaved }: CreateCli
 
         <FormGroup>
           <FormLabel htmlFor="client-address">{t('clients.address')}</FormLabel>
-          <FormInput
+          {/* Addresses are multiline (`clients/list.spec.md`). */}
+          <FormTextarea
             id="client-address"
+            rows={2}
             value={form.address}
             onChange={(event) => update('address')(event.target.value)}
           />

@@ -23,6 +23,8 @@ import {
 } from '@/Component/table/SortableColumnHeader'
 import { PIECE_STATUSES, type Piece, type PieceStatus } from '@/Entity/Piece'
 import { useEntityManager } from '@/Hook/useEntityManager'
+import type { EntityManager } from '@/Repository/EntityManager'
+import { LifecycleService } from '@/Service/LifecycleService'
 import { computeAvgUnitCost } from '@/Service/Pricing/avgUnitCost'
 import { formatCurrency } from '@/Service/Pricing/money'
 import {
@@ -50,8 +52,11 @@ export type PieceSortKey =
   'id' | 'name' | 'units' | 'price' | 'lineTotal' | 'status' | 'createdAt'
 
 interface PiecesTableProps {
+  /** All of the job's pieces — archived and soft-deleted rows included. */
   rows: Piece[]
   emptyMessage: string
+  /** An archived job's page renders every piece read-only. */
+  readOnly?: boolean
   /** Bump the owning page so job widgets and the materials summary recompute. */
   onChanged: () => void
 }
@@ -94,9 +99,57 @@ function cellOf(piece: Piece, key: PieceSortKey): SortValue {
   return piece.createdAt
 }
 
+/** Worst redo margin across the piece's lines for the whole run. */
+function runMarginFor(em: EntityManager, piece: Piece): RedoResult | null {
+  const lines = em.pieceItems.findActiveByPiece(piece.id)
+  if (lines.length === 0) return null
+  const units = piece.hasValidUnits() ? (piece.units as number) : 1
+  let worst: RedoResult | null = null
+  for (const line of lines) {
+    const item = em.inventory.find(line.inventoryId)
+    const redo = computeRedos(
+      item?.qtyCurrent ?? 0,
+      (line.quantity ?? 0) * units
+    )
+    if (worst === null || redo.redos < worst.redos) worst = redo
+  }
+  return worst
+}
+
+/** Inventory that cannot cover the piece's run at its current units count. */
+function shortfallFor(
+  em: EntityManager,
+  piece: Piece
+): InsufficientStockLine[] {
+  const units = piece.units as number
+  const need = new Map<string, number>()
+  for (const line of em.pieceItems.findActiveByPiece(piece.id)) {
+    if (line.quantity === undefined) continue
+    need.set(
+      line.inventoryId,
+      (need.get(line.inventoryId) ?? 0) + line.quantity * units
+    )
+  }
+  const short: InsufficientStockLine[] = []
+  for (const [inventoryId, required] of need) {
+    const item = em.inventory.find(inventoryId)
+    const have = item?.qtyCurrent ?? 0
+    if (have < required) {
+      short.push({
+        inventoryId,
+        name: item?.name ?? inventoryId,
+        have,
+        need: required,
+      })
+    }
+  }
+  return short
+}
+
 export function PiecesTable({
   rows,
   emptyMessage,
+  readOnly = false,
   onChanged,
 }: PiecesTableProps) {
   const { t } = useTranslation()
@@ -147,14 +200,20 @@ export function PiecesTable({
       ?.scrollIntoView({ block: 'center' })
   }, [hash])
 
-  /** Materials for one unit of the piece, at average lot cost. */
+  /**
+   * Materials for one unit of the piece, at average lot cost. A piece with no
+   * material lines gets no suggestion at all — never a "Use €0.00" button.
+   */
   const suggestionFor = useCallback(
-    (piece: Piece) =>
-      computeSuggestedPrice(
-        em.pieceItems.findActiveByPiece(piece.id),
+    (piece: Piece): SuggestedPriceResult | null => {
+      const lines = em.pieceItems.findActiveByPiece(piece.id)
+      if (lines.length === 0) return null
+      return computeSuggestedPrice(
+        lines,
         em.inventory.findActive(),
         em.lots.findActive()
-      ),
+      )
+    },
     [em]
   )
 
@@ -173,25 +232,12 @@ export function PiecesTable({
     [em]
   )
 
-  /** Worst redo margin across the piece's lines for the whole run. */
-  const runMargin = useCallback(
-    (piece: Piece) => {
-      const lines = em.pieceItems.findActiveByPiece(piece.id)
-      if (lines.length === 0) return null
-      const units = piece.hasValidUnits() ? (piece.units as number) : 1
-      let worst: RedoResult | null = null
-      for (const line of lines) {
-        const item = em.inventory.find(line.inventoryId)
-        const redo = computeRedos(
-          item?.qtyCurrent ?? 0,
-          (line.quantity ?? 0) * units
-        )
-        if (worst === null || redo.redos < worst.redos) worst = redo
-      }
-      return worst
-    },
-    [em]
-  )
+  /** Children are history: an archived piece is brought back one by one. */
+  const unarchive = (piece: Piece) => {
+    new LifecycleService(em).restorePiece(piece.id)
+    toast.success(t('toast.changeApplied'))
+    onChanged()
+  }
 
   const saveField = (
     piece: Piece,
@@ -264,7 +310,7 @@ export function PiecesTable({
         piece,
         next,
         kind: 'consume',
-        insufficient: shortfallFor(piece),
+        insufficient: shortfallFor(em, piece),
       })
       return
     }
@@ -276,32 +322,6 @@ export function PiecesTable({
     }
 
     apply({ piece, next }, {})
-  }
-
-  const shortfallFor = (piece: Piece): InsufficientStockLine[] => {
-    const units = piece.units as number
-    const need = new Map<string, number>()
-    for (const line of em.pieceItems.findActiveByPiece(piece.id)) {
-      if (line.quantity === undefined) continue
-      need.set(
-        line.inventoryId,
-        (need.get(line.inventoryId) ?? 0) + line.quantity * units
-      )
-    }
-    const short: InsufficientStockLine[] = []
-    for (const [inventoryId, required] of need) {
-      const item = em.inventory.find(inventoryId)
-      const have = item?.qtyCurrent ?? 0
-      if (have < required) {
-        short.push({
-          inventoryId,
-          name: item?.name ?? inventoryId,
-          have,
-          need: required,
-        })
-      }
-    }
-    return short
   }
 
   const apply = (
@@ -348,17 +368,19 @@ export function PiecesTable({
                 <PieceRowGroup
                   key={piece.id}
                   piece={piece}
+                  readOnly={readOnly}
                   open={expanded.has(piece.id)}
                   statusItems={statusItems}
                   benefit={benefit}
                   suggestion={suggestionFor(piece)}
-                  margin={runMargin(piece)}
+                  margin={runMarginFor(em, piece)}
                   onToggleExpanded={toggleExpanded}
                   onCommitName={commitName}
                   onCommitUnits={commitUnits}
                   onCommitPrice={commitPrice}
                   onSaveField={saveField}
                   onRequestStatus={requestStatus}
+                  onUnarchive={unarchive}
                   onChanged={onChanged}
                 />
               )
@@ -445,11 +467,14 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
 
 interface PieceRowGroupProps {
   piece: Piece
+  /** True on an archived job's page: even active pieces render as text. */
+  readOnly: boolean
   open: boolean
   statusItems: ComboboxItem[]
   /** Line total minus material cost for the run; undefined without a total. */
   benefit: number | undefined
-  suggestion: SuggestedPriceResult
+  /** Null for a piece with no material lines: the suggestion is suppressed. */
+  suggestion: SuggestedPriceResult | null
   /** Worst redo margin across the piece's lines, null without lines. */
   margin: RedoResult | null
   onToggleExpanded: (pieceId: string) => void
@@ -458,12 +483,19 @@ interface PieceRowGroupProps {
   onCommitPrice: (piece: Piece, raw: string) => void
   onSaveField: (piece: Piece, patch: { price: number }) => void
   onRequestStatus: (piece: Piece, next: PieceStatus) => void
+  onUnarchive: (piece: Piece) => void
   onChanged: () => void
 }
 
-/** One piece: the editable summary row plus, when expanded, its material lines. */
+/**
+ * One piece: the editable summary row plus, when expanded, its material lines.
+ * Archived and soft-deleted pieces stay listed as history — struck through and
+ * read-only, an archived one offering Un-archive, a soft-deleted one labelled
+ * "Deleted entity" (`jobs/details/details.spec.md`, children are history).
+ */
 function PieceRowGroup({
   piece,
+  readOnly,
   open,
   statusItems,
   benefit,
@@ -475,108 +507,134 @@ function PieceRowGroup({
   onCommitPrice,
   onSaveField,
   onRequestStatus,
+  onUnarchive,
   onChanged,
 }: PieceRowGroupProps) {
   const { t } = useTranslation()
   const lineTotal = piece.lineTotal()
+  const inactive = !piece.isActive()
+  const editable = !readOnly && !inactive
+  const struck = inactive && 'line-through'
 
   return (
     <Fragment>
       <TableRow>
         <TableCell>
-          <button
-            type="button"
-            id={`piece-${piece.id}`}
-            data-testid={`expand-piece-${piece.id}`}
-            aria-expanded={open}
-            aria-controls={`piece-items-${piece.id}`}
-            aria-label={
-              open
-                ? t('pieces.collapseAria', { id: piece.id })
-                : t('pieces.expandAria', { id: piece.id })
-            }
-            className="rounded p-1 text-text-muted hover:text-text"
-            onClick={() => onToggleExpanded(piece.id)}
-          >
-            {open ? (
-              <ChevronDownIcon className="h-4 w-4" aria-hidden="true" />
-            ) : (
-              <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
-            )}
-          </button>
-        </TableCell>
-        <TableCell className="text-text-muted">{piece.id}</TableCell>
-        <TableCell>
-          <FormInput
-            className="min-w-[8rem] px-2 py-1"
-            data-testid={`piece-name-${piece.id}`}
-            aria-label={t('pieces.nameFieldAria', { id: piece.id })}
-            defaultValue={piece.name}
-            key={`name-${piece.id}-${piece.name}`}
-            onBlur={(event) => onCommitName(piece, event.target.value)}
-          />
-        </TableCell>
-        <TableCell>
-          <FormInput
-            type="number"
-            step="1"
-            min="1"
-            className={cx(
-              'w-20 px-2 py-1',
-              !piece.hasValidUnits() && 'border-warning bg-warning/10'
-            )}
-            data-testid={`piece-units-${piece.id}`}
-            aria-label={t('pieces.unitsFieldAria', { id: piece.id })}
-            title={
-              piece.hasValidUnits() ? undefined : t('pieces.unitsUnsetHint')
-            }
-            defaultValue={piece.units ?? ''}
-            key={`units-${piece.id}-${piece.units ?? ''}`}
-            onBlur={(event) => onCommitUnits(piece, event.target.value)}
-          />
-        </TableCell>
-        <TableCell>
-          <div className="flex items-center gap-1">
-            <FormInput
-              type="number"
-              step="any"
-              min="0"
-              className="w-24 px-2 py-1"
-              data-testid={`piece-price-${piece.id}`}
-              aria-label={t('pieces.priceFieldAria', { id: piece.id })}
-              defaultValue={piece.price ?? ''}
-              key={`price-${piece.id}-${piece.price ?? ''}`}
-              onBlur={(event) => onCommitPrice(piece, event.target.value)}
-            />
+          {editable && (
             <button
               type="button"
-              className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
-              data-testid={`piece-suggested-${piece.id}`}
-              disabled={suggestion.error}
-              title={
-                suggestion.error
-                  ? `${t('jobs.suggestedPrice.errorIntro')} ${suggestion.missingInventoryIds.join(', ')}`
-                  : t('jobs.suggestedPrice.label')
+              id={`piece-${piece.id}`}
+              data-testid={`expand-piece-${piece.id}`}
+              aria-expanded={open}
+              aria-controls={`piece-items-${piece.id}`}
+              aria-label={
+                open
+                  ? t('pieces.collapseAria', { id: piece.id })
+                  : t('pieces.expandAria', { id: piece.id })
               }
-              onClick={() =>
-                !suggestion.error &&
-                onSaveField(piece, {
-                  price: roundMoney(suggestion.suggestedPrice),
-                })
-              }
+              className="rounded p-1 text-text-muted hover:text-text"
+              onClick={() => onToggleExpanded(piece.id)}
             >
-              {suggestion.error
-                ? t('pieces.suggestedUnavailable')
-                : t('pieces.suggestedApplyPerUnit', {
-                    price: formatCurrency(suggestion.suggestedPrice),
-                  })}
+              {open ? (
+                <ChevronDownIcon className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <ChevronRightIcon className="h-4 w-4" aria-hidden="true" />
+              )}
             </button>
-          </div>
+          )}
         </TableCell>
-        <TableCell className="tabular-nums">
+        <TableCell className={cx('text-text-muted', struck)}>
+          {piece.id}
+        </TableCell>
+        <TableCell className={cx(struck)}>
+          {editable ? (
+            <FormInput
+              className="min-w-[8rem] px-2 py-1"
+              data-testid={`piece-name-${piece.id}`}
+              aria-label={t('pieces.nameFieldAria', { id: piece.id })}
+              defaultValue={piece.name}
+              key={`name-${piece.id}-${piece.name}`}
+              onBlur={(event) => onCommitName(piece, event.target.value)}
+            />
+          ) : (
+            <span data-testid={`piece-name-text-${piece.id}`}>
+              {piece.name}
+            </span>
+          )}
+        </TableCell>
+        <TableCell className={cx('tabular-nums', struck)}>
+          {editable ? (
+            <FormInput
+              type="number"
+              step="1"
+              min="1"
+              className={cx(
+                'w-20 px-2 py-1',
+                !piece.hasValidUnits() && 'border-warning bg-warning/10'
+              )}
+              data-testid={`piece-units-${piece.id}`}
+              aria-label={t('pieces.unitsFieldAria', { id: piece.id })}
+              title={
+                piece.hasValidUnits() ? undefined : t('pieces.unitsUnsetHint')
+              }
+              defaultValue={piece.units ?? ''}
+              key={`units-${piece.id}-${piece.units ?? ''}`}
+              onBlur={(event) => onCommitUnits(piece, event.target.value)}
+            />
+          ) : (
+            (piece.units ?? '—')
+          )}
+        </TableCell>
+        <TableCell className={cx('tabular-nums', struck)}>
+          {editable ? (
+            <div className="flex items-center gap-1">
+              <FormInput
+                type="number"
+                step="any"
+                min="0"
+                className="w-24 px-2 py-1"
+                data-testid={`piece-price-${piece.id}`}
+                aria-label={t('pieces.priceFieldAria', { id: piece.id })}
+                defaultValue={piece.price ?? ''}
+                key={`price-${piece.id}-${piece.price ?? ''}`}
+                onBlur={(event) => onCommitPrice(piece, event.target.value)}
+              />
+              {suggestion !== null && (
+                <button
+                  type="button"
+                  className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
+                  data-testid={`piece-suggested-${piece.id}`}
+                  disabled={suggestion.error}
+                  title={
+                    suggestion.error
+                      ? `${t('jobs.suggestedPrice.errorIntro')} ${suggestion.missingInventoryIds.join(', ')}`
+                      : t('jobs.suggestedPrice.label')
+                  }
+                  onClick={() =>
+                    !suggestion.error &&
+                    onSaveField(piece, {
+                      price: roundMoney(suggestion.suggestedPrice),
+                    })
+                  }
+                >
+                  {suggestion.error
+                    ? t('pieces.suggestedUnavailable')
+                    : t('pieces.suggestedApplyPerUnit', {
+                        price: formatCurrency(suggestion.suggestedPrice),
+                      })}
+                </button>
+              )}
+            </div>
+          ) : piece.price === undefined ? (
+            '—'
+          ) : (
+            formatCurrency(piece.price)
+          )}
+        </TableCell>
+        <TableCell className={cx('tabular-nums', struck)}>
           {lineTotal === undefined ? '—' : formatCurrency(lineTotal)}
         </TableCell>
-        <TableCell className="tabular-nums">
+        <TableCell className={cx('tabular-nums', struck)}>
           {benefit === undefined ? (
             '—'
           ) : (
@@ -586,23 +644,50 @@ function PieceRowGroup({
           )}
         </TableCell>
         <TableCell>
-          <div
-            className="min-w-[8rem]"
-            data-testid={`piece-status-${piece.id}`}
-          >
-            <Combobox
-              items={statusItems}
-              value={piece.status}
-              placeholder={t('pieces.statusFieldAria', { id: piece.id })}
-              onChange={(next) => onRequestStatus(piece, next as PieceStatus)}
-            />
-          </div>
+          {editable ? (
+            <div
+              className="min-w-[8rem]"
+              data-testid={`piece-status-${piece.id}`}
+            >
+              <Combobox
+                items={statusItems}
+                value={piece.status}
+                placeholder={t('pieces.statusFieldAria', { id: piece.id })}
+                onChange={(next) => onRequestStatus(piece, next as PieceStatus)}
+              />
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <p className={cx('text-text-muted', struck)}>
+                {t(`pieces.status.${piece.status}`)}
+              </p>
+              {piece.isDeleted() ? (
+                <span
+                  data-testid={`piece-deleted-${piece.id}`}
+                  className="text-xs font-medium uppercase tracking-wider text-text-muted"
+                >
+                  {t('lifecycle.deletedEntity')}
+                </span>
+              ) : (
+                piece.isArchived() && (
+                  <button
+                    type="button"
+                    className="btn-secondary px-2 py-1 text-xs"
+                    data-testid={`piece-unarchive-${piece.id}`}
+                    onClick={() => onUnarchive(piece)}
+                  >
+                    {t('lifecycle.unarchive')}
+                  </button>
+                )
+              )}
+            </div>
+          )}
         </TableCell>
-        <TableCell className="text-text-muted">
+        <TableCell className={cx('text-text-muted', struck)}>
           {piece.createdAt !== '' && <RelativeTime value={piece.createdAt} />}
         </TableCell>
       </TableRow>
-      {open && (
+      {open && editable && (
         <TableRow>
           <TableCell colSpan={COLUMN_COUNT}>
             <div id={`piece-items-${piece.id}`}>

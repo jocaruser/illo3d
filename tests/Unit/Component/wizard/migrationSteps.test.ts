@@ -1,5 +1,6 @@
 import {
   doneCount,
+  migrationDescriptionBullets,
   migrationStepStates,
   stepLabelKey,
   stepStatusKey,
@@ -102,6 +103,55 @@ describe('migrationStepStates', () => {
     })
     // Other rows are untouched.
     expect(rows[1]).toEqual(live[1])
+  })
+})
+
+describe('migrationDescriptionBullets', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('derives the v2→v3 bullets from a single-hop chain', () => {
+    resolvePlanChain.mockReturnValue(chain)
+    expect(migrationDescriptionBullets('2.0.0')).toEqual([
+      {
+        labelKey: 'wizard.migrationDescriptionLabelDueDates',
+        itemKey: 'wizard.migrationDescriptionItemDueDates',
+      },
+      {
+        labelKey: 'wizard.migrationDescriptionLabelColours',
+        itemKey: 'wizard.migrationDescriptionItemColours',
+      },
+    ])
+  })
+
+  it('concatenates each hop of a chained run, in run order', () => {
+    resolvePlanChain.mockReturnValue([
+      { fromMajor: 1, toMajor: 2, toVersion: '2.0.0', steps: [] },
+      { fromMajor: 2, toMajor: 3, toVersion: '3.0.0', steps: [] },
+    ])
+    expect(
+      migrationDescriptionBullets('1.0.0').map((bullet) => bullet.labelKey)
+    ).toEqual([
+      'wizard.migrationDescriptionLabel1',
+      'wizard.migrationDescriptionLabel2',
+      'wizard.migrationDescriptionLabelDueDates',
+      'wizard.migrationDescriptionLabelColours',
+    ])
+  })
+
+  it('contributes nothing for a hop we ship no copy for', () => {
+    resolvePlanChain.mockReturnValue([
+      { fromMajor: 7, toMajor: 8, toVersion: '8.0.0', steps: [] },
+    ])
+    expect(migrationDescriptionBullets('7.0.0')).toEqual([])
+  })
+
+  it('explains nothing when the chain cannot be resolved', () => {
+    resolvePlanChain.mockImplementation(() => {
+      throw new Error('No migration plan found from v9')
+    })
+    expect(migrationDescriptionBullets('9.0.0')).toEqual([])
   })
 })
 

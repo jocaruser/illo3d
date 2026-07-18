@@ -1,10 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { NotFoundCard } from '@/Component/NotFoundCard'
 import { RelativeTime } from '@/Component/RelativeTime'
 import { ColourEditor } from '@/Component/detail/ColourEditor'
-import { EntityDetailPage } from '@/Component/detail/EntityDetailPage'
+import {
+  ArchivedEntityNotice,
+  EntityDetailPage,
+} from '@/Component/detail/EntityDetailPage'
 import {
   InventoryConsumptionTable,
   type InventoryConsumptionRow,
@@ -24,14 +27,21 @@ import { formatCurrency } from '@/Service/Pricing/money'
 
 const BACK_TO = '/inventory'
 
+type LifecycleAction = 'archive' | 'delete'
+
 export function InventoryDetailPage() {
   const { t } = useTranslation()
   const { inventoryId = '' } = useParams<{ inventoryId: string }>()
   const em = useEntityManager()
-  const item = em.inventory.find(inventoryId)
+  const [revision, bump] = useReducer((count: number) => count + 1, 0)
+  const item = useMemo(() => {
+    void revision // the workbook mutates in place; `revision` signals a change
+    return em.inventory.find(inventoryId)
+  }, [em, inventoryId, revision])
 
-  // Archived and soft-deleted items are off the list, so they are off here too.
-  if (item === null || !item.isActive()) {
+  // Only a soft-deleted material loses its address; an archived one keeps
+  // rendering read-only (ADR-0014's "reachable at its own address").
+  if (item === null || item.isDeleted()) {
     return (
       <NotFoundCard
         message={t('inventoryDetail.notFound')}
@@ -40,18 +50,24 @@ export function InventoryDetailPage() {
       />
     )
   }
-  return <InventoryDetail item={item} />
+  return <InventoryDetail item={item} onLifecycleChanged={bump} />
 }
 
 interface InventoryDetailProps {
   item: InventoryItem
+  /** Re-reads the item after Un-archive flips its lifecycle flags. */
+  onLifecycleChanged: () => void
 }
 
-function InventoryDetail({ item }: InventoryDetailProps) {
+function InventoryDetail({ item, onLifecycleChanged }: InventoryDetailProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const navigate = useNavigate()
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [lifecycle, setLifecycle] = useState<LifecycleAction | null>(null)
+
+  // Active → editors + Archive; archived → read-only with Un-archive + Soft
+  // delete; soft-deleted → not found above.
+  const archived = item.isArchived()
 
   const lots = useMemo(
     () => em.lots.findActiveByInventory(item.id),
@@ -86,11 +102,18 @@ function InventoryDetail({ item }: InventoryDetailProps) {
 
   const avgUnitCost = computeAvgUnitCost(lots)
 
-  const handleArchive = () => {
-    // Cascades to the item's active lots.
-    new LifecycleService(em).archiveInventory(item.id)
-    setConfirmOpen(false)
+  const confirmLifecycle = () => {
+    const service = new LifecycleService(em)
+    // Archiving cascades to the item's active lots.
+    if (lifecycle === 'delete') service.softDeleteInventory(item.id)
+    else service.archiveInventory(item.id)
+    setLifecycle(null)
     void navigate(BACK_TO)
+  }
+
+  const unarchive = () => {
+    new LifecycleService(em).restoreInventory(item.id)
+    onLifecycleChanged()
   }
 
   return (
@@ -113,33 +136,73 @@ function InventoryDetail({ item }: InventoryDetailProps) {
           value: <RelativeTime value={item.createdAt} />,
         },
       ]}
+      banner={archived ? <ArchivedEntityNotice /> : undefined}
       actions={
-        <button
-          type="button"
-          data-testid="entity-detail-delete"
-          className="btn-secondary"
-          onClick={() => setConfirmOpen(true)}
-        >
-          {t('lifecycle.archive')}
-        </button>
+        archived ? (
+          <>
+            <button
+              type="button"
+              data-testid="entity-detail-unarchive"
+              className="btn-secondary"
+              onClick={unarchive}
+            >
+              {t('lifecycle.unarchive')}
+            </button>
+            <button
+              type="button"
+              data-testid="entity-detail-delete"
+              className="btn-secondary"
+              onClick={() => setLifecycle('delete')}
+            >
+              {t('lifecycle.softDelete')}
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            data-testid="entity-detail-archive"
+            className="btn-secondary"
+            onClick={() => setLifecycle('archive')}
+          >
+            {t('lifecycle.archive')}
+          </button>
+        )
       }
     >
       <div className="space-y-8">
-        <QtyEditor itemId={item.id} qtyCurrent={item.qtyCurrent} />
-        <ThresholdEditor item={item} />
-        <ColourEditor itemId={item.id} colour={item.colour} />
-        <InventoryLotsTable rows={lotRows} />
+        <QtyEditor
+          itemId={item.id}
+          qtyCurrent={item.qtyCurrent}
+          readOnly={archived}
+        />
+        <ThresholdEditor item={item} readOnly={archived} />
+        <ColourEditor
+          itemId={item.id}
+          colour={item.colour}
+          readOnly={archived}
+        />
+        <InventoryLotsTable rows={lotRows} readOnly={archived} />
         <InventoryConsumptionTable rows={consumptionRows} />
       </div>
       <ConfirmDialog
-        open={confirmOpen}
-        title={t('inventoryDetail.archiveConfirmTitle')}
-        message={t('inventoryDetail.archiveConfirmMessage', {
-          name: item.name,
-        })}
-        confirmLabel={t('lifecycle.archive')}
-        onConfirm={handleArchive}
-        onCancel={() => setConfirmOpen(false)}
+        open={lifecycle !== null}
+        title={
+          lifecycle === 'delete'
+            ? t('inventoryDetail.deleteConfirmTitle')
+            : t('inventoryDetail.archiveConfirmTitle')
+        }
+        message={
+          lifecycle === 'delete'
+            ? t('inventoryDetail.deleteConfirmMessage', { name: item.name })
+            : t('inventoryDetail.archiveConfirmMessage', { name: item.name })
+        }
+        confirmLabel={
+          lifecycle === 'delete'
+            ? t('lifecycle.softDelete')
+            : t('lifecycle.archive')
+        }
+        onConfirm={confirmLifecycle}
+        onCancel={() => setLifecycle(null)}
       />
     </EntityDetailPage>
   )

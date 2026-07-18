@@ -34,11 +34,13 @@ function seedWorld(): TestWorld {
       { id: 'J1', client_id: 'CL1', description: 'Phone case', status: 'in_progress', created_at: '2024-05-01T09:00:00.000Z', due_date: '2024-05-01' },
       { id: 'J2', client_id: 'CL1', description: 'Deleted job', status: 'draft', created_at: '2024-05-02T09:00:00.000Z', deleted: 'true' },
       { id: 'J3', client_id: 'CL9', description: 'Orphan client', status: 'draft', created_at: '2024-05-03T09:00:00.000Z' },
+      { id: 'J5', client_id: 'CL1', description: 'Shelved build', status: 'draft', created_at: '2024-05-05T09:00:00.000Z', archived: 'true' },
     ],
     pieces: [
       { id: 'P1', job_id: 'J1', name: 'Shell', status: 'pending', price: '21', units: '2', created_at: '2024-05-01T10:00:00.000Z' },
       { id: 'P2', job_id: 'J1', name: 'Arm', status: 'pending', created_at: '2024-05-01T11:00:00.000Z' },
       { id: 'P3', job_id: 'J1', name: 'Gone', status: 'pending', created_at: '2024-05-01T12:00:00.000Z', deleted: 'true' },
+      { id: 'P9', job_id: 'J5', name: 'Shelved piece', status: 'pending', created_at: '2024-05-05T10:00:00.000Z', archived: 'true' },
     ],
     piece_items: [
       { id: 'PI1', piece_id: 'P1', inventory_id: 'INV1', quantity: '10' },
@@ -240,17 +242,10 @@ describe('JobDetailPage', () => {
     expect(world.em.pieces.find('P1')?.isArchived()).toBe(true)
   })
 
-  it('soft-deletes the job from the widget and returns to the list', async () => {
-    const user = userEvent.setup()
+  it('offers no soft delete while the job is active', () => {
     renderPage()
-
-    await user.click(screen.getByTestId('entity-detail-delete'))
-    const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByRole('heading', { name: 'Delete job' })).toBeInTheDocument()
-    await user.click(within(dialog).getByRole('button', { name: 'Soft delete' }))
-
-    expect(screen.getByTestId('location')).toHaveTextContent('/jobs')
-    expect(world.em.jobs.find('J1')?.isDeleted()).toBe(true)
+    expect(screen.queryByTestId('entity-detail-delete')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('entity-detail-unarchive')).not.toBeInTheDocument()
   })
 
   it('keeps the job when the lifecycle dialog is cancelled', async () => {
@@ -364,8 +359,8 @@ describe('JobDetailPage', () => {
     await user.type(dialog.getByLabelText(/Name/), 'Lid')
     await user.click(dialog.getByRole('button', { name: 'Create piece' }))
 
-    expect(world.em.pieces.find('P4')).toMatchObject({ jobId: 'J1', name: 'Lid', status: 'pending' })
-    expect(screen.getByTestId('piece-name-P4')).toHaveValue('Lid')
+    expect(world.em.pieces.find('P10')).toMatchObject({ jobId: 'J1', name: 'Lid', status: 'pending' })
+    expect(screen.getByTestId('piece-name-P10')).toHaveValue('Lid')
   })
 
   it('rejects a blank piece name', async () => {
@@ -397,8 +392,62 @@ describe('JobDetailPage', () => {
     expect(screen.getByText('No pieces yet.')).toBeInTheDocument()
   })
 
-  it('hides soft-deleted pieces', () => {
+  it('lists soft-deleted pieces struck through as deleted entities', () => {
     renderPage()
+    // Children are history: the row stays, read-only and labelled.
+    expect(screen.getByTestId('piece-name-text-P3')).toHaveTextContent('Gone')
+    expect(screen.getByTestId('piece-deleted-P3')).toHaveTextContent('Deleted entity')
     expect(screen.queryByTestId('piece-name-P3')).not.toBeInTheDocument()
+  })
+
+  describe('archived job', () => {
+    it('renders read-only with Un-archive and Soft delete only', () => {
+      renderPage('/jobs/J5')
+
+      expect(screen.getByTestId('entity-archived-notice')).toBeInTheDocument()
+      expect(screen.getByTestId('entity-detail-unarchive')).toBeInTheDocument()
+      expect(screen.getByTestId('entity-detail-delete')).toBeInTheDocument()
+      expect(screen.queryByTestId('entity-detail-edit')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('entity-detail-archive')).not.toBeInTheDocument()
+
+      // The status combobox gives way to plain text.
+      expect(within(widget('status')).queryByRole('combobox')).not.toBeInTheDocument()
+      expect(widget('status')).toHaveTextContent('Draft')
+      // The due date is no longer clickable.
+      expect(screen.queryByTestId('job-due-date-edit')).not.toBeInTheDocument()
+      // No piece can be added, and the archived piece row is read-only.
+      expect(screen.queryByTestId('add-piece-button')).not.toBeInTheDocument()
+      expect(screen.getByTestId('piece-name-text-P9')).toHaveTextContent('Shelved piece')
+      // Tags and notes lose their edit affordances.
+      expect(screen.queryByTestId('job-note-add')).not.toBeInTheDocument()
+      expect(within(screen.getByTestId('job-tags-section')).queryByRole('combobox')).not.toBeInTheDocument()
+    })
+
+    it('un-archives back to the editable state', async () => {
+      const user = userEvent.setup()
+      renderPage('/jobs/J5')
+
+      await user.click(screen.getByTestId('entity-detail-unarchive'))
+
+      expect(world.em.jobs.find('J5')?.isActive()).toBe(true)
+      expect(toastMock.success).toHaveBeenCalledWith('Change applied — save to persist it')
+      expect(screen.getByTestId('entity-detail-edit')).toBeInTheDocument()
+      expect(screen.queryByTestId('entity-archived-notice')).not.toBeInTheDocument()
+      // The cascade is not undone: the piece stays archived, offering Un-archive.
+      expect(screen.getByTestId('piece-unarchive-P9')).toBeInTheDocument()
+    })
+
+    it('soft-deletes after confirming and returns to the list', async () => {
+      const user = userEvent.setup()
+      renderPage('/jobs/J5')
+
+      await user.click(screen.getByTestId('entity-detail-delete'))
+      const dialog = screen.getByRole('dialog')
+      expect(within(dialog).getByRole('heading', { name: 'Delete job' })).toBeInTheDocument()
+      await user.click(within(dialog).getByRole('button', { name: 'Soft delete' }))
+
+      expect(screen.getByTestId('location')).toHaveTextContent('/jobs')
+      expect(world.em.jobs.find('J5')?.isDeleted()).toBe(true)
+    })
   })
 })

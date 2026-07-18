@@ -22,6 +22,15 @@ majors change only when the shop's data layout changes
 A shop from an older minor or patch release simply opens;
 a shop whose major is behind gets this wizard.
 
+The wizard only ever upgrades.
+A shop whose major is **ahead** of the app's is told so instead,
+back on the welcome screen:
+**"This shop was made by a newer version of this app.
+Update the app to open it."**
+A shop whose recorded version cannot be read at all gets
+**"This shop's version could not be read."**
+In neither case does the wizard open.
+
 However old the shop, one continuous run brings it to the current version:
 a very old shop simply has more steps in the same run.
 What each upgrade changes for the user is described per hop:

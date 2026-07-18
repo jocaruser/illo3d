@@ -49,6 +49,8 @@ describe('CreateClientDialog', () => {
     renderWithProviders(<CreateClientDialog open onClose={onClose} onSaved={onSaved} />)
 
     expect(screen.getByRole('heading', { name: 'Add client' })).toBeInTheDocument()
+    // The address is multiline (`clients/list.spec.md`).
+    expect(screen.getByLabelText('Address').tagName).toBe('TEXTAREA')
 
     await user.type(screen.getByLabelText(/Name/), 'Gamma Ltd')
     await user.type(screen.getByLabelText('Email'), 'hi@gamma.test')

@@ -1,7 +1,13 @@
 import { create } from 'zustand'
 
 export type MigrationPhase =
-  'idle' | 'backing-up' | 'migrating' | 'committing' | 'done' | 'failed'
+  | 'idle'
+  | 'backing-up'
+  | 'migrating'
+  | 'ready'
+  | 'committing'
+  | 'done'
+  | 'failed'
 
 export type MigrationStepStatus = 'pending' | 'running' | 'done' | 'failed'
 
@@ -15,8 +21,10 @@ export interface MigrationStepState {
 
 /**
  * Live progress of a migration run, streamed by the orchestrator and rendered
- * by the wizard's step grid. Deliberately NOT persisted — a reload mid-run
- * must restart the wizard from the (still untouched) source shop.
+ * by the wizard's step grid. 'ready' is the awaiting-Confirm-and-close resting
+ * state (ADR-0012). Deliberately NOT persisted — the run exists only in
+ * memory, so a reload loses it and the wizard restarts from the (still
+ * untouched) source shop.
  */
 export interface MigrationState {
   phase: MigrationPhase

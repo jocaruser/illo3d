@@ -1,8 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cx } from '@/Component/cx'
+import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
 import { APP_VERSION } from '@/Config/version'
+import { useShopImageUrl } from '@/Hook/useShopLogoUrl'
 import { useShopMetadata } from '@/Hook/useShopMetadata'
+import { persistDirectoryHandle } from '@/Repository/LocalCsv/persistDirectoryHandle'
 import { applyTheme } from '@/Theme/initTheme'
 import { useAuthStore } from '@/Store/authStore'
 import { useBackendStore } from '@/Store/backendStore'
@@ -31,6 +34,7 @@ export function ProfileMenu() {
   const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
   const [pictureFailed, setPictureFailed] = useState(false)
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   const user = useAuthStore((state) => state.user)
@@ -40,6 +44,7 @@ export function ProfileMenu() {
   const backend = useBackendStore((state) => state.backend)
   const clearBackend = useBackendStore((state) => state.clearBackend)
   const resetWorkbook = useWorkbookStore((state) => state.reset)
+  const dirty = useWorkbookStore((state) => state.dirty)
   const language = useUserPreferencesStore((state) => state.language)
   const setLanguage = useUserPreferencesStore((state) => state.setLanguage)
   const theme = useUserPreferencesStore((state) => state.theme)
@@ -66,8 +71,25 @@ export function ProfileMenu() {
   const displayName = isGoogleUser
     ? user.name
     : (metadata?.userName ?? t('profileMenu.localUserDefault'))
-  const picture = isGoogleUser ? user.picture : undefined
+  // A local shop's avatar comes from `metadata.iconsrc`, an image file in the
+  // shop folder, resolved the way the logo is.
+  const localIconUrl = useShopImageUrl(
+    isGoogleUser ? null : (metadata?.iconsrc ?? null)
+  )
+  const picture = isGoogleUser ? user.picture : (localIconUrl ?? undefined)
   const showPicture = picture !== undefined && picture !== '' && !pictureFailed
+
+  const avatar = showPicture ? (
+    <img
+      src={picture}
+      alt=""
+      aria-hidden="true"
+      className="h-full w-full object-cover"
+      onError={() => setPictureFailed(true)}
+    />
+  ) : (
+    <span aria-hidden="true">{initialOf(displayName)}</span>
+  )
 
   const handleLanguage = (code: Language): void => {
     setLanguage(code)
@@ -80,12 +102,25 @@ export function ProfileMenu() {
     applyTheme(next)
   }
 
-  const handleSignOut = (): void => {
-    setOpen(false)
+  const completeSignOut = (): void => {
+    setConfirmingSignOut(false)
     logout()
     clearActiveShop()
     clearBackend()
     resetWorkbook()
+    // "Nothing remembered": the persisted folder handle goes too. Best-effort —
+    // a storage failure must not block leaving the shop.
+    void persistDirectoryHandle(null).catch(() => {})
+  }
+
+  /** Unsaved changes get the same discard confirmation Refresh asks for. */
+  const handleSignOut = (): void => {
+    setOpen(false)
+    if (dirty) {
+      setConfirmingSignOut(true)
+      return
+    }
+    completeSignOut()
   }
 
   return (
@@ -99,17 +134,7 @@ export function ProfileMenu() {
         className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-border bg-surface-alt text-sm font-medium text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
         onClick={() => setOpen((current) => !current)}
       >
-        {showPicture ? (
-          <img
-            src={picture}
-            alt=""
-            aria-hidden="true"
-            className="h-full w-full object-cover"
-            onError={() => setPictureFailed(true)}
-          />
-        ) : (
-          <span aria-hidden="true">{initialOf(displayName)}</span>
-        )}
+        {avatar}
       </button>
 
       {open && (
@@ -118,13 +143,21 @@ export function ProfileMenu() {
           data-testid="profile-menu"
           className="absolute right-0 z-40 mt-2 w-64 rounded-lg border border-border bg-surface-elevated py-2 shadow-lg"
         >
-          <div className="border-b border-border px-4 pb-3">
-            <p className="truncate text-sm font-medium text-text">
-              {displayName}
-            </p>
-            {isGoogleUser && (
-              <p className="truncate text-xs text-text-muted">{user.email}</p>
-            )}
+          <div className="flex items-center gap-2 border-b border-border px-4 pb-3">
+            <span
+              aria-hidden="true"
+              className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border bg-surface-alt text-sm font-medium text-text"
+            >
+              {avatar}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-text">
+                {displayName}
+              </p>
+              {isGoogleUser && (
+                <p className="truncate text-xs text-text-muted">{user.email}</p>
+              )}
+            </div>
           </div>
 
           {activeShop !== null && (
@@ -227,6 +260,16 @@ export function ProfileMenu() {
           </button>
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmingSignOut}
+        title={t('workbook.discardTitle')}
+        message={t('workbook.discardMessage')}
+        confirmLabel={t('workbook.discardConfirm')}
+        cancelLabel={t('workbook.cancel')}
+        onConfirm={completeSignOut}
+        onCancel={() => setConfirmingSignOut(false)}
+      />
     </div>
   )
 }

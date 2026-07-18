@@ -7,7 +7,12 @@ import type { WorkbookRepositoryInterface } from '@/Repository/WorkbookRepositor
 export type ShopValidationResult =
   | { ok: true; shop: Shop; metadata: ShopMetadata }
   | { ok: false; error: 'not_shop' }
+  /** Shop major behind the app's — the migration wizard's territory. */
   | { ok: false; error: 'version'; shopVersion: string; appVersion: string }
+  /** Shop major ahead of the app's — only a newer app can open it. */
+  | { ok: false; error: 'version_ahead'; shopVersion: string; appVersion: string }
+  /** The recorded version is not a version at all. */
+  | { ok: false; error: 'version_unreadable'; shopVersion: string }
   | { ok: false; error: 'structure'; detail: string }
 
 export type StructureValidationResult = { ok: true } | { ok: false; detail: string }
@@ -27,7 +32,23 @@ export class ShopValidationService {
     if (metadata === null) return { ok: false, error: 'not_shop' }
 
     const shopMajor = parseMajorVersion(metadata.version)
-    if (shopMajor === null || shopMajor !== parseMajorVersion(APP_VERSION)) {
+    const appMajor = parseMajorVersion(APP_VERSION)
+    if (shopMajor === null || appMajor === null) {
+      return {
+        ok: false,
+        error: 'version_unreadable',
+        shopVersion: metadata.version,
+      }
+    }
+    if (shopMajor > appMajor) {
+      return {
+        ok: false,
+        error: 'version_ahead',
+        shopVersion: metadata.version,
+        appVersion: APP_VERSION,
+      }
+    }
+    if (shopMajor < appMajor) {
       return {
         ok: false,
         error: 'version',

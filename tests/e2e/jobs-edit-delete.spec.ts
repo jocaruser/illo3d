@@ -167,7 +167,10 @@ test.describe('Job edit and delete', () => {
     await expect(page.getByText('Drive gear')).toHaveCount(0)
   })
 
-  test('delete from detail navigates to jobs list', async ({ page, openCsvShop }) => {
+  test('soft delete lives behind archive: archived detail page is read-only and deletes to the list', async ({
+    page,
+    openCsvShop,
+  }) => {
     void openCsvShop
 
     await page.getByRole('link', { name: 'Jobs' }).click()
@@ -178,16 +181,52 @@ test.describe('Job edit and delete', () => {
     await page.getByTestId('job-detail-link-J3').click()
     await expect(page).toHaveURL(/\/jobs\/J3/)
 
+    // An active job offers Edit and Archive only — no soft delete yet.
+    await expect(page.getByTestId('entity-detail-edit')).toBeVisible()
+    await expect(page.getByTestId('entity-detail-delete')).toHaveCount(0)
+
+    await page.getByTestId('entity-detail-archive').click()
+    await page
+      .getByRole('dialog', { name: /archive job|archivar trabajo/i })
+      .getByRole('button', { name: /archive|archivar/i })
+      .click()
+    await expect(page).toHaveURL(/\/jobs$/)
+
+    // Persist the archive so revisiting the address survives any reload.
+    await page.getByTestId('workbook-save').click()
+    await expect(page.getByText(/workbook saved|libro guardado/i)).toBeVisible({
+      timeout: 20000,
+    })
+
+    // The archived page still renders — read-only, Un-archive + Soft delete.
+    await page.goto('/#/jobs/J3')
+    await expect(page.getByTestId('entity-archived-notice')).toBeVisible({
+      timeout: 15000,
+    })
+    await expect(page.getByTestId('entity-detail-unarchive')).toBeVisible()
+    await expect(page.getByTestId('entity-detail-edit')).toHaveCount(0)
+    await expect(page.getByTestId('add-piece-button')).toHaveCount(0)
+
     await page.getByTestId('entity-detail-delete').click()
     await page
-      .getByRole('dialog', {
-        name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,
-      })
+      .getByRole('dialog', { name: /delete job|eliminar trabajo/i })
       .getByRole('button', { name: /soft delete|eliminar/i })
       .click()
 
     await expect(page).toHaveURL(/\/jobs$/)
     await expect(page.getByRole('row', { name: /Desk organizer/i })).toHaveCount(0)
+
+    await page.getByTestId('workbook-save').click()
+    // A finished save leaves nothing to save: the button disables again.
+    await expect(page.getByTestId('workbook-save')).toBeDisabled({
+      timeout: 20000,
+    })
+
+    // A soft-deleted job's address stops resolving.
+    await page.goto('/#/jobs/J3')
+    await expect(page.getByText(/job not found|trabajo no encontrado/i)).toBeVisible({
+      timeout: 15000,
+    })
   })
 
   test('job detail shows CRM tags and notes', async ({ page, openCsvShop }) => {

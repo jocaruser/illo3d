@@ -37,6 +37,7 @@ function seedWorld(): TestWorld {
       { id: 'CL2', name: 'Bare Co', created_at: '2024-01-03' },
       { id: 'CL3', name: 'Gone Co', created_at: '2024-01-04', deleted: 'true' },
       { id: 'CL4', name: 'Empty Co', created_at: '2024-01-05' },
+      { id: 'CL5', name: 'Cold Co', created_at: '2024-01-06', archived: 'true' },
     ],
     jobs: [
       { id: 'J1', client_id: 'CL1', description: 'Phone case', status: 'paid', created_at: '2024-05-01T09:00:00.000Z', due_date: '2024-05-30' },
@@ -91,6 +92,9 @@ describe('ClientDetailPage', () => {
     renderPage('/clients/CL2')
 
     expect(screen.getByRole('heading', { name: 'Bare Co' })).toBeInTheDocument()
+    // Fields are shown only when filled — email and phone included.
+    expect(screen.queryByText('Email')).not.toBeInTheDocument()
+    expect(screen.queryByText('Phone')).not.toBeInTheDocument()
     expect(screen.queryByText('Preferred contact')).not.toBeInTheDocument()
     expect(screen.queryByText('Lead source')).not.toBeInTheDocument()
     expect(screen.queryByText('Address')).not.toBeInTheDocument()
@@ -325,5 +329,62 @@ describe('ClientDetailPage', () => {
     expect(screen.getByTestId('client-tags-section')).toBeInTheDocument()
     expect(screen.getByTestId('client-notes-section')).toBeInTheDocument()
     expect(screen.getByTestId('client-activity-timeline')).toBeInTheDocument()
+  })
+
+  describe('archived client', () => {
+    it('renders read-only with Un-archive and Soft delete only', () => {
+      renderPage('/clients/CL5')
+
+      expect(screen.getByRole('heading', { name: 'Cold Co' })).toBeInTheDocument()
+      expect(screen.getByTestId('entity-archived-notice')).toBeInTheDocument()
+      expect(screen.getByTestId('entity-detail-unarchive')).toBeInTheDocument()
+      expect(screen.getByTestId('entity-detail-delete')).toBeInTheDocument()
+      expect(screen.queryByTestId('entity-detail-edit')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('entity-detail-archive')).not.toBeInTheDocument()
+
+      // No new job, note or tag can be added.
+      expect(screen.queryByTestId('add-job-button')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('client-note-add')).not.toBeInTheDocument()
+      expect(
+        within(screen.getByTestId('client-tags-section')).queryByRole('combobox')
+      ).not.toBeInTheDocument()
+    })
+
+    it('un-archives back to the editable state', async () => {
+      const user = userEvent.setup()
+      renderPage('/clients/CL5')
+
+      await user.click(screen.getByTestId('entity-detail-unarchive'))
+
+      expect(world.em.clients.find('CL5')?.isActive()).toBe(true)
+      expect(toastMock.success).toHaveBeenCalledWith('Change applied — save to persist it')
+      expect(screen.getByTestId('entity-detail-edit')).toBeInTheDocument()
+      expect(screen.queryByTestId('entity-archived-notice')).not.toBeInTheDocument()
+    })
+
+    it('soft-deletes after confirming and returns to the list', async () => {
+      const user = userEvent.setup()
+      renderPage('/clients/CL5')
+
+      await user.click(screen.getByTestId('entity-detail-delete'))
+      const dialog = screen.getByRole('dialog')
+      expect(within(dialog).getByRole('heading', { name: 'Delete client' })).toBeInTheDocument()
+      expect(within(dialog).getByText('Delete Cold Co? This cannot be undone.')).toBeInTheDocument()
+      await user.click(within(dialog).getByRole('button', { name: 'Soft delete' }))
+
+      expect(screen.getByTestId('location')).toHaveTextContent('/clients')
+      expect(world.em.clients.find('CL5')?.isDeleted()).toBe(true)
+    })
+
+    it('keeps the client when the soft delete is cancelled', async () => {
+      const user = userEvent.setup()
+      renderPage('/clients/CL5')
+
+      await user.click(screen.getByTestId('entity-detail-delete'))
+      await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      expect(world.em.clients.find('CL5')?.isDeleted()).toBe(false)
+    })
   })
 })

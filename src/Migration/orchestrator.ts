@@ -1,32 +1,29 @@
 import { useMigrationStore } from '@/Store/migrationStore'
 import type { MigrationPlan } from './MigrationPlan'
 import { toErrorMessage, type ProgressReporter } from './MigrationStep'
-import type { MigrationTarget, WorkingCopy } from './MigrationTarget'
+import type { MigrationSession, MigrationTarget } from './MigrationTarget'
 
-export type RunResult = { ok: true } | { ok: false; failedAt: string }
+/** The first card of every run — the backup of the shop as it currently is. */
+export const BACKUP_STEP_ID = 'backup'
 
-type WorkingCopyResult =
-  { ok: true; working: WorkingCopy } | { ok: false; error: string }
+/** Detail shown on the backup card when the user declined a backup. */
+export const BACKUP_SKIPPED_KEY = 'wizard.migrationBackupSkipped'
 
-async function createWorkingCopySafely(
-  target: MigrationTarget
-): Promise<WorkingCopyResult> {
-  try {
-    return { ok: true, working: await target.createWorkingCopy() }
-  } catch (error) {
-    return { ok: false, error: toErrorMessage(error) }
-  }
-}
+export type RunResult =
+  | { ok: true; session: MigrationSession }
+  | { ok: false; failedAt: string }
 
 /**
  * Drive a resolved plan chain against a migration target, streaming progress
- * through the migration store. Phases: 'backing-up' (create the working copy,
- * surfaced as the synthetic 'backup' step) → 'migrating' (every step of every
- * plan, in order) → 'committing' (atomic metadata flip) → 'done'.
+ * through the migration store. Phases: 'backing-up' (read the shop into
+ * memory, then write — or skip — the backup at its own step) → 'migrating'
+ * (every step of every plan, against the in-memory copy) → 'ready'.
  *
- * Any failure flips the phase to 'failed' and halts. The working copy is
- * deliberately left in place for inspection — the source shop is untouched
- * until commit succeeds.
+ * Per ADR-0012 nothing persists here: the run ends 'ready' with the session
+ * for `useMigration` to `persist` only when the user presses **Confirm and
+ * close**. The backup is the one deliberate exception — written at its step,
+ * it survives even a failed or abandoned run. Any failure flips the phase to
+ * 'failed' and halts with the source shop untouched.
  */
 export async function runPlans(
   plans: MigrationPlan[],
@@ -40,19 +37,27 @@ export async function runPlans(
   const stepIds = [
     ...new Set(plans.flatMap((plan) => plan.steps.map((step) => step.id))),
   ]
-  store.seedSteps(['backup', ...stepIds])
+  store.seedSteps([BACKUP_STEP_ID, ...stepIds])
 
   store.setPhase('backing-up')
-  store.updateStep('backup', { status: 'running' })
-  const created = await createWorkingCopySafely(target)
-  if (!created.ok) {
-    store.updateStep('backup', { status: 'failed', error: created.error })
-    store.setFailureMessage(created.error)
+  store.updateStep(BACKUP_STEP_ID, { status: 'running' })
+  let session: MigrationSession
+  try {
+    session = await target.open()
+    if (options.keepOriginalAsBackup) await session.writeBackup()
+  } catch (error) {
+    const message = toErrorMessage(error)
+    store.updateStep(BACKUP_STEP_ID, { status: 'failed', error: message })
+    store.setFailureMessage(message)
     store.setPhase('failed')
-    return { ok: false, failedAt: 'backup' }
+    return { ok: false, failedAt: BACKUP_STEP_ID }
   }
-  store.updateStep('backup', { status: 'done' })
-  const { working } = created
+  store.updateStep(
+    BACKUP_STEP_ID,
+    options.keepOriginalAsBackup
+      ? { status: 'done' }
+      : { status: 'done', description: BACKUP_SKIPPED_KEY }
+  )
 
   store.setPhase('migrating')
   for (const plan of plans) {
@@ -62,7 +67,7 @@ export async function runPlans(
         update: (i18nKey) =>
           store.updateStep(step.id, { description: i18nKey }),
       }
-      const result = await step.execute(working.ctx, report)
+      const result = await step.execute(session.ctx, report)
       if (result.status === 'failed') {
         store.updateStep(step.id, { status: 'failed', error: result.error })
         store.setFailureMessage(result.error)
@@ -73,16 +78,6 @@ export async function runPlans(
     }
   }
 
-  store.setPhase('committing')
-  try {
-    await working.commit({ keepOriginalAsBackup: options.keepOriginalAsBackup })
-  } catch (error) {
-    const message = toErrorMessage(error)
-    store.setFailureMessage(message)
-    store.setPhase('failed')
-    return { ok: false, failedAt: 'commit' }
-  }
-
-  store.setPhase('done')
-  return { ok: true }
+  store.setPhase('ready')
+  return { ok: true, session }
 }

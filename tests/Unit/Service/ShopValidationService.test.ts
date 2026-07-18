@@ -45,7 +45,7 @@ describe('validateShopFolder', () => {
     expect(await service.validateShopFolder('folder-1')).toEqual({ ok: false, error: 'not_shop' })
   })
 
-  it('returns version for a major mismatch', async () => {
+  it('returns version for a shop major behind the app (wizard territory)', async () => {
     const service = new ShopValidationService(
       makeFolderRepo({ ...metadata, version: '2.4.0' }),
       makeWorkbookRepo(),
@@ -58,13 +58,29 @@ describe('validateShopFolder', () => {
     })
   })
 
-  it('returns version for an unparseable shop version', async () => {
+  it('returns version_ahead for a shop major ahead of the app', async () => {
+    const service = new ShopValidationService(
+      makeFolderRepo({ ...metadata, version: '9.1.0' }),
+      makeWorkbookRepo(),
+    )
+    expect(await service.validateShopFolder('folder-1')).toEqual({
+      ok: false,
+      error: 'version_ahead',
+      shopVersion: '9.1.0',
+      appVersion: APP_VERSION,
+    })
+  })
+
+  it('returns version_unreadable for an unparseable shop version', async () => {
     const service = new ShopValidationService(
       makeFolderRepo({ ...metadata, version: 'garbage' }),
       makeWorkbookRepo(),
     )
-    const result = await service.validateShopFolder('folder-1')
-    expect(result).toMatchObject({ ok: false, error: 'version', shopVersion: 'garbage' })
+    expect(await service.validateShopFolder('folder-1')).toEqual({
+      ok: false,
+      error: 'version_unreadable',
+      shopVersion: 'garbage',
+    })
   })
 
   it('returns structure with the detail from validateStructure', async () => {

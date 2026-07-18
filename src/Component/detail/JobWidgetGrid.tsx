@@ -22,6 +22,7 @@ interface JobWidgetGridProps {
   onStatusChange: (job: Job, next: JobStatus) => void
   onEdit: () => void
   onArchive: () => void
+  onUnarchive: () => void
   onSoftDelete: () => void
   onDueDateChange: (dueDate: string) => void
 }
@@ -48,15 +49,23 @@ export function JobWidgetGrid({
   onStatusChange,
   onEdit,
   onArchive,
+  onUnarchive,
   onSoftDelete,
   onDueDateChange,
 }: JobWidgetGridProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [editingDueDate, setEditingDueDate] = useState(false)
+  // The lifecycle state machine: active jobs offer Edit + Archive and inline
+  // edits; archived ones are read-only with Un-archive + Soft delete.
+  const archived = job.isArchived()
 
   const statusItems = useMemo(
-    () => JOB_STATUSES.map((status) => ({ key: status, label: t(`jobs.status.${status}`) })),
+    () =>
+      JOB_STATUSES.map((status) => ({
+        key: status,
+        label: t(`jobs.status.${status}`),
+      })),
     [t]
   )
 
@@ -68,7 +77,10 @@ export function JobWidgetGrid({
       const units = piece.hasValidUnits() ? (piece.units as number) : 1
       for (const line of em.pieceItems.findActiveByPiece(piece.id)) {
         if (line.quantity === undefined) continue
-        need.set(line.inventoryId, (need.get(line.inventoryId) ?? 0) + line.quantity * units)
+        need.set(
+          line.inventoryId,
+          (need.get(line.inventoryId) ?? 0) + line.quantity * units
+        )
       }
     }
 
@@ -79,13 +91,19 @@ export function JobWidgetGrid({
     for (const [inventoryId, quantity] of need) {
       const item = em.inventory.find(inventoryId)
       if (item === null) continue
-      const unitCost = computeAvgUnitCost(em.lots.findActiveByInventory(inventoryId))
+      const unitCost = computeAvgUnitCost(
+        em.lots.findActiveByInventory(inventoryId)
+      )
       if (unitCost !== null) cost += unitCost * quantity
       if (item.type === 'filament') {
         filamentGrams += quantity
         const redo = computeRedos(item.qtyCurrent, quantity)
         if (risk === null || redo.redos < risk.redos) {
-          risk = { redos: redo.redos, band: redoBand(redo.redos), name: item.name }
+          risk = {
+            redos: redo.redos,
+            band: redoBand(redo.redos),
+            name: item.name,
+          }
         }
       } else if (item.type === 'consumable') {
         consumableUnits += quantity
@@ -103,32 +121,45 @@ export function JobWidgetGrid({
         colSpan={2}
         testId="job-widget-id"
         actions={
-          <>
-            <button
-              type="button"
-              className="btn-secondary px-2 py-1 text-xs"
-              data-testid="entity-detail-edit"
-              onClick={onEdit}
-            >
-              {t('jobs.editJob')}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary px-2 py-1 text-xs"
-              data-testid="entity-detail-archive"
-              onClick={onArchive}
-            >
-              {t('lifecycle.archive')}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary px-2 py-1 text-xs"
-              data-testid="entity-detail-delete"
-              onClick={onSoftDelete}
-            >
-              {t('lifecycle.softDelete')}
-            </button>
-          </>
+          archived ? (
+            <>
+              <button
+                type="button"
+                className="btn-secondary px-2 py-1 text-xs"
+                data-testid="entity-detail-unarchive"
+                onClick={onUnarchive}
+              >
+                {t('lifecycle.unarchive')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary px-2 py-1 text-xs"
+                data-testid="entity-detail-delete"
+                onClick={onSoftDelete}
+              >
+                {t('lifecycle.softDelete')}
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="btn-secondary px-2 py-1 text-xs"
+                data-testid="entity-detail-edit"
+                onClick={onEdit}
+              >
+                {t('jobs.editJob')}
+              </button>
+              <button
+                type="button"
+                className="btn-secondary px-2 py-1 text-xs"
+                data-testid="entity-detail-archive"
+                onClick={onArchive}
+              >
+                {t('lifecycle.archive')}
+              </button>
+            </>
+          )
         }
       >
         <p className="font-display text-lg font-semibold text-text">
@@ -138,12 +169,16 @@ export function JobWidgetGrid({
 
       <DetailWidget label={t('jobs.widgetStatus')} testId="job-widget-status">
         <div data-testid={`job-status-${job.id}`}>
-          <Combobox
-            items={statusItems}
-            value={job.status}
-            placeholder={t('jobs.statusFieldAria', { id: job.id })}
-            onChange={(next) => onStatusChange(job, next as JobStatus)}
-          />
+          {archived ? (
+            <p>{t(`jobs.status.${job.status}`)}</p>
+          ) : (
+            <Combobox
+              items={statusItems}
+              value={job.status}
+              placeholder={t('jobs.statusFieldAria', { id: job.id })}
+              onChange={(next) => onStatusChange(job, next as JobStatus)}
+            />
+          )}
         </div>
       </DetailWidget>
 
@@ -161,8 +196,13 @@ export function JobWidgetGrid({
         </Link>
       </DetailWidget>
 
-      <DetailWidget label={t('jobs.widgetDueDate')} testId="job-widget-due-date">
-        {editingDueDate ? (
+      <DetailWidget
+        label={t('jobs.widgetDueDate')}
+        testId="job-widget-due-date"
+      >
+        {archived ? (
+          <DueDateBadge job={job} clock={em.clock} />
+        ) : editingDueDate ? (
           <FormInput
             type="date"
             autoFocus
@@ -171,7 +211,8 @@ export function JobWidgetGrid({
             defaultValue={job.dueDate}
             onBlur={(event) => {
               setEditingDueDate(false)
-              if (event.target.value !== job.dueDate) onDueDateChange(event.target.value)
+              if (event.target.value !== job.dueDate)
+                onDueDateChange(event.target.value)
             }}
           />
         ) : (
@@ -186,38 +227,65 @@ export function JobWidgetGrid({
         )}
       </DetailWidget>
 
-      <DetailWidget label={t('jobs.widgetBeneficio')} testId="job-widget-beneficio">
+      <DetailWidget
+        label={t('jobs.widgetBeneficio')}
+        testId="job-widget-beneficio"
+      >
         {benefit === null ? (
           <JobTotal pricing={pricing} />
         ) : (
-          <span className={cx('tabular-nums', benefit < 0 ? 'text-danger' : 'text-success')}>
+          <span
+            className={cx(
+              'tabular-nums',
+              benefit < 0 ? 'text-danger' : 'text-success'
+            )}
+          >
             {formatCurrency(benefit)}
           </span>
         )}
       </DetailWidget>
 
-      <DetailWidget label={t('jobs.widgetFilament')} testId="job-widget-filament">
-        <span className="tabular-nums">{t('jobs.filamentGrams', { grams: totals.filamentGrams })}</span>
+      <DetailWidget
+        label={t('jobs.widgetFilament')}
+        testId="job-widget-filament"
+      >
+        <span className="tabular-nums">
+          {t('jobs.filamentGrams', { grams: totals.filamentGrams })}
+        </span>
       </DetailWidget>
 
-      <DetailWidget label={t('jobs.widgetConsumibles')} testId="job-widget-consumibles">
+      <DetailWidget
+        label={t('jobs.widgetConsumibles')}
+        testId="job-widget-consumibles"
+      >
         <span className="tabular-nums">
           {t('jobs.consumableUnits', { units: totals.consumableUnits })}
         </span>
       </DetailWidget>
 
-      <DetailWidget label={t('jobs.widgetRiskFactor')} testId="job-widget-risk-factor">
+      <DetailWidget
+        label={t('jobs.widgetRiskFactor')}
+        testId="job-widget-risk-factor"
+      >
         {totals.risk === null ? (
           <span className="text-text-muted">{t('jobs.riskFactorNone')}</span>
         ) : (
           <span className={bandClasses[totals.risk.band]}>
-            {t('jobs.riskFactorValue', { redos: totals.risk.redos, name: totals.risk.name })}
+            {t('jobs.riskFactorValue', {
+              redos: totals.risk.redos,
+              name: totals.risk.name,
+            })}
           </span>
         )}
       </DetailWidget>
 
-      <DetailWidget label={t('jobs.widgetMaterialCost')} testId="job-widget-material-cost">
-        <span className="tabular-nums text-danger">{formatCurrency(totals.cost)}</span>
+      <DetailWidget
+        label={t('jobs.widgetMaterialCost')}
+        testId="job-widget-material-cost"
+      >
+        <span className="tabular-nums text-danger">
+          {formatCurrency(totals.cost)}
+        </span>
       </DetailWidget>
     </WidgetGrid>
   )

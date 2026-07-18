@@ -240,9 +240,10 @@ describe('PiecesTable', () => {
     expect(apply).toHaveAttribute('title', expect.stringContaining('INV4'))
   })
 
-  it('suggests zero for a piece with no material lines', () => {
+  it('suppresses the suggestion for a piece with no material lines', () => {
     renderTable()
-    expect(screen.getByTestId('piece-suggested-P2')).toHaveTextContent('€0.00')
+    // No "Use €0.00" button: with no lines there is nothing to suggest.
+    expect(screen.queryByTestId('piece-suggested-P2')).not.toBeInTheDocument()
   })
 
   it('expands a piece to reveal its material lines, and collapses it again', async () => {
@@ -367,6 +368,105 @@ describe('PiecesTable', () => {
       .slice(1)
       .map((row) => within(row).getAllByRole('cell')[1].textContent)
     expect(ids).toEqual(expected)
+  })
+
+  describe('children are history', () => {
+    const flag = (
+      id: string,
+      patch: { archived?: string; deleted?: string }
+    ) => {
+      const piece = world.em.pieces.find(id)
+      if (piece !== null) {
+        Object.assign(piece, patch)
+        world.em.pieces.save(piece)
+      }
+    }
+
+    it('strikes an archived piece through and renders it read-only', () => {
+      flag('P1', { archived: 'true' })
+      renderTable()
+
+      expect(screen.queryByTestId('piece-name-P1')).not.toBeInTheDocument()
+      const name = screen.getByTestId('piece-name-text-P1')
+      expect(name).toHaveTextContent('Shell')
+      expect(name.closest('td')).toHaveClass('line-through')
+      expect(screen.queryByTestId('expand-piece-P1')).not.toBeInTheDocument()
+      expect(
+        screen.queryByTestId('piece-suggested-P1')
+      ).not.toBeInTheDocument()
+      expect(screen.queryByTestId('piece-status-P1')).not.toBeInTheDocument()
+
+      // Units, price and status render as plain figures.
+      const row = name.closest('tr') as HTMLElement
+      expect(within(row).getByText('2')).toBeInTheDocument()
+      expect(within(row).getByText('€21.00')).toBeInTheDocument()
+      expect(within(row).getByText('Pending')).toBeInTheDocument()
+    })
+
+    it('un-archives a piece from its row', async () => {
+      const onChanged = vi.fn()
+      const user = userEvent.setup()
+      flag('P1', { archived: 'true' })
+      renderTable(onChanged)
+
+      await user.click(screen.getByTestId('piece-unarchive-P1'))
+
+      expect(world.em.pieces.find('P1')?.isActive()).toBe(true)
+      expect(onChanged).toHaveBeenCalled()
+      expect(toastMock.success).toHaveBeenCalledWith(
+        'Change applied — save to persist it'
+      )
+    })
+
+    it('labels a soft-deleted piece as a deleted entity with no actions', () => {
+      flag('P2', { deleted: 'true' })
+      renderTable()
+
+      expect(screen.getByTestId('piece-deleted-P2')).toHaveTextContent(
+        'Deleted entity'
+      )
+      expect(
+        screen.queryByTestId('piece-unarchive-P2')
+      ).not.toBeInTheDocument()
+      const row = screen
+        .getByTestId('piece-name-text-P2')
+        .closest('tr') as HTMLElement
+      // P2 has no units and no price: both figures dash alongside the totals.
+      expect(within(row).getAllByText('—').length).toBeGreaterThanOrEqual(2)
+    })
+
+    it('ignores a deep link into an archived piece', () => {
+      window.location.hash = '#piece-P1'
+      flag('P1', { archived: 'true' })
+      renderTable()
+      expect(screen.queryByTestId('piece-item-row-PI1')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('read-only mode', () => {
+    it('renders even active pieces as text on an archived job page', () => {
+      renderWithProviders(
+        <PiecesTable
+          rows={pieces()}
+          emptyMessage="No pieces yet."
+          readOnly
+          onChanged={vi.fn()}
+        />
+      )
+
+      expect(screen.queryByTestId('piece-name-P1')).not.toBeInTheDocument()
+      const name = screen.getByTestId('piece-name-text-P1')
+      expect(name).toHaveTextContent('Shell')
+      // The piece itself is active, so nothing is struck through.
+      expect(name.closest('td')).not.toHaveClass('line-through')
+      expect(screen.queryByTestId('expand-piece-P1')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('piece-status-P1')).not.toBeInTheDocument()
+      const row = name.closest('tr') as HTMLElement
+      expect(within(row).getByText('Pending')).toBeInTheDocument()
+      expect(
+        within(row).queryByTestId('piece-unarchive-P1')
+      ).not.toBeInTheDocument()
+    })
   })
 
   describe('status flow', () => {

@@ -25,6 +25,16 @@ which is what lets the app archive things —
 and soft-delete archived things —
 without losing their history.
 
+## What the wizard says
+
+In the [wizard's](wizard.spec.md) explanation,
+this hop contributes two bullets:
+**"Audit logging"** —
+"a permanent record of every change,
+so you can see who did what and when" —
+and **"Archive & delete tracking"** —
+"keep your workspace clean without losing history".
+
 ## What the user sees during the run
 
 One card per kind of item

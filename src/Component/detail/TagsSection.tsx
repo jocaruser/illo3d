@@ -11,6 +11,8 @@ import { TagService } from '@/Service/TagService'
 interface TagsSectionProps {
   entityType: TaggableEntityType
   entityId: string
+  /** An archived entity's tags are history: shown, never edited. */
+  readOnly?: boolean
 }
 
 /**
@@ -18,7 +20,11 @@ interface TagsSectionProps {
  * option links it, typing a new name creates the tag (`TagService` reuses names
  * case-insensitively, so "vip" links the existing "Vip").
  */
-export function TagsSection({ entityType, entityId }: TagsSectionProps) {
+export function TagsSection({
+  entityType,
+  entityId,
+  readOnly = false,
+}: TagsSectionProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [revision, bump] = useReducer((count: number) => count + 1, 0)
@@ -77,29 +83,33 @@ export function TagsSection({ entityType, entityId }: TagsSectionProps) {
               className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-alt px-3 py-1 text-xs text-text"
             >
               {tag.name}
-              <button
-                type="button"
-                aria-label={`${t(`${prefix}.tagsRemove`)}: ${tag.name}`}
-                className="rounded-full text-text-muted hover:text-danger"
-                onClick={() => remove(tag.id)}
-              >
-                <XMarkIcon className="h-3.5 w-3.5" aria-hidden="true" />
-              </button>
+              {!readOnly && (
+                <button
+                  type="button"
+                  aria-label={`${t(`${prefix}.tagsRemove`)}: ${tag.name}`}
+                  className="rounded-full text-text-muted hover:text-danger"
+                  onClick={() => remove(tag.id)}
+                >
+                  <XMarkIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                </button>
+              )}
             </li>
           ))}
         </ul>
       )}
 
-      <div className="max-w-sm">
-        <Combobox
-          items={options}
-          value={null}
-          creatable
-          placeholder={t(`${prefix}.tagsComboboxPlaceholder`)}
-          onChange={addByKey}
-          onCreateItem={addByName}
-        />
-      </div>
+      {!readOnly && (
+        <div className="max-w-sm">
+          <Combobox
+            items={options}
+            value={null}
+            creatable
+            placeholder={t(`${prefix}.tagsComboboxPlaceholder`)}
+            onChange={addByKey}
+            onCreateItem={addByName}
+          />
+        </div>
+      )}
     </section>
   )
 }

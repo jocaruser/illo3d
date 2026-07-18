@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
 import { ArrowLeftIcon } from '@heroicons/react/20/solid'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { AlertStrip } from '@/Component/AlertStrip'
 import { Card } from '@/Component/Card'
 
 export interface DetailField {
@@ -8,11 +10,23 @@ export interface DetailField {
   value: ReactNode
 }
 
+/** The read-only strip every archived detail page shows above its title. */
+export function ArchivedEntityNotice() {
+  const { t } = useTranslation()
+  return (
+    <div data-testid="entity-archived-notice">
+      <AlertStrip variant="warning">{t('lifecycle.archivedNotice')}</AlertStrip>
+    </div>
+  )
+}
+
 interface EntityDetailPageProps {
   backTo: string
   backLabel: string
   title: string
   fields: DetailField[]
+  /** Lifecycle state strip (e.g. "this record is archived"), above the title. */
+  banner?: ReactNode
   /** Edit / Archive / Soft-delete controls, rendered beside the title. */
   actions?: ReactNode
   children?: ReactNode
@@ -27,6 +41,7 @@ export function EntityDetailPage({
   backLabel,
   title,
   fields,
+  banner,
   actions,
   children,
 }: EntityDetailPageProps) {
@@ -41,10 +56,16 @@ export function EntityDetailPage({
         {backLabel}
       </Link>
 
+      {banner}
+
       <header className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <h1 className="font-display text-2xl font-semibold text-text">{title}</h1>
+        <h1 className="font-display text-2xl font-semibold text-text">
+          {title}
+        </h1>
         {actions !== undefined && (
-          <div className="flex flex-wrap items-center gap-2 sm:ml-auto">{actions}</div>
+          <div className="flex flex-wrap items-center gap-2 sm:ml-auto">
+            {actions}
+          </div>
         )}
       </header>
 
@@ -55,7 +76,9 @@ export function EntityDetailPage({
               <dt className="text-xs font-medium uppercase tracking-wider text-text-muted">
                 {field.label}
               </dt>
-              <dd className="mt-0.5 break-words text-sm text-text">{field.value}</dd>
+              <dd className="mt-0.5 break-words text-sm text-text">
+                {field.value}
+              </dd>
             </div>
           ))}
         </dl>

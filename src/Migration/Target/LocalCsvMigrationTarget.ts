@@ -1,6 +1,13 @@
 import { METADATA_FILE_NAME, SHEET_NAMES } from '@/Config/schema'
+import {
+  IN_MEMORY_WORKBOOK_ID,
+  InMemoryWorkbookRepository,
+} from '@/Migration/InMemoryWorkbookRepository'
 import type { MigrationContext } from '@/Migration/MigrationContext'
-import type { MigrationTarget, WorkingCopy } from '@/Migration/MigrationTarget'
+import type {
+  MigrationSession,
+  MigrationTarget,
+} from '@/Migration/MigrationTarget'
 import { LocalCsvFolderRepository } from '@/Repository/LocalCsv/LocalCsvFolderRepository'
 import { LocalCsvWorkbookRepository } from '@/Repository/LocalCsv/LocalCsvWorkbookRepository'
 import { isoDay, type Clock } from '@/Service/Clock'
@@ -53,12 +60,13 @@ async function copyShopFiles(
 }
 
 /**
- * Local CSV migration target. The File System Access API cannot reach a
- * folder's parent, so the working copy lives INSIDE the source folder as a
- * `<YYYY-MM-DD>.v<from>.v<to>.migration` subdirectory; the optional backup
- * becomes a `<YYYY-MM-DD>.v<from>.backup` sibling. Commit copies the migrated
- * CSVs over the source files and writes the flipped metadata LAST — that
- * write is the atomic commit point.
+ * Local CSV migration target (ADR-0012). `open` reads every stored sheet CSV
+ * once into an in-memory workbook; the run mutates only that copy. The
+ * optional backup is a `<YYYY-MM-DD>.v<from>.backup` subdirectory INSIDE the
+ * shop folder (the File System Access API cannot reach a folder's parent),
+ * written at the backup step as a copy of the shop as it currently is.
+ * `persist` writes the migrated CSVs over the source files and flips the
+ * metadata version LAST — that write is the atomic commit point.
  */
 export function createLocalCsvMigrationTarget(
   sourceHandle: FileSystemDirectoryHandle,
@@ -67,51 +75,57 @@ export function createLocalCsvMigrationTarget(
   clock: Clock
 ): MigrationTarget {
   return {
-    async createWorkingCopy(): Promise<WorkingCopy> {
-      const workingName = `${isoDay(clock)}.v${fromVersion}.v${toVersion}.migration`
-      const workingHandle = await sourceHandle.getDirectoryHandle(workingName, {
-        create: true,
-      })
-      await copyShopFiles(sourceHandle, workingHandle)
+    async open(): Promise<MigrationSession> {
+      const sourceId = `local-${sourceHandle.name}`
+      const sourceRepo = new LocalCsvWorkbookRepository(sourceHandle)
+      const memory = new InMemoryWorkbookRepository()
+      const present = new Set(await sourceRepo.getSheetNames(sourceId))
+      // Read the stored sheets once; a v1 shop legitimately lacks
+      // audit_log.csv, so absent sheets stay absent. Reads are independent —
+      // only the load order into memory keeps the canonical sequence.
+      const storedSheets = SHEET_NAMES.filter((sheet) => present.has(sheet))
+      const matrices = await Promise.all(
+        storedSheets.map((sheet) => sourceRepo.readSheetMatrix(sourceId, sheet))
+      )
+      storedSheets.forEach((sheet, index) => memory.load(sheet, matrices[index]))
 
-      const repo = new LocalCsvWorkbookRepository(workingHandle)
-      const workingWorkbookId = `local-${workingName}`
       const ctx: MigrationContext = {
         backend: 'local-csv',
-        workingWorkbookId,
-        repo,
-        ensureSheet: (sheet) => repo.ensureSheet(workingWorkbookId, sheet),
+        workingWorkbookId: IN_MEMORY_WORKBOOK_ID,
+        repo: memory,
+        ensureSheet: (sheet) => memory.ensureSheet(IN_MEMORY_WORKBOOK_ID, sheet),
       }
 
       return {
         ctx,
-        async commit({ keepOriginalAsBackup }): Promise<void> {
-          if (keepOriginalAsBackup) {
-            const backupName = `${isoDay(clock)}.v${fromVersion}.backup`
-            const backupHandle = await sourceHandle.getDirectoryHandle(
-              backupName,
-              { create: true }
-            )
-            await copyShopFiles(sourceHandle, backupHandle)
-          }
-          // The migrated CSVs are independent of each other; only the metadata
-          // flip below must come after all of them.
-          await Promise.all(
-            SHEET_NAMES.map((sheet) =>
-              copyFileIfPresent(workingHandle, sourceHandle, `${sheet}.csv`)
-            )
+        async writeBackup(): Promise<void> {
+          const backupName = `${isoDay(clock)}.v${fromVersion}.backup`
+          const backupHandle = await sourceHandle.getDirectoryHandle(
+            backupName,
+            { create: true }
           )
+          await copyShopFiles(sourceHandle, backupHandle)
+        },
+        async persist(): Promise<void> {
           const folderRepo = new LocalCsvFolderRepository(sourceHandle)
           const metadata = await folderRepo.readMetadata(sourceHandle.name)
           if (metadata === null) {
             throw new Error(`Source shop is missing ${METADATA_FILE_NAME}`)
           }
+          // The migrated sheets are independent of each other; only the
+          // metadata flip below must come after all of them.
+          await Promise.all(
+            memory
+              .entries()
+              .map(([sheet, matrix]) =>
+                sourceRepo.replaceSheetMatrix(sourceId, sheet, matrix)
+              )
+          )
           // The atomic commit point: the version flip is the very last write.
           await folderRepo.writeMetadata(sourceHandle.name, {
             ...metadata,
             version: toVersion,
           })
-          await sourceHandle.removeEntry(workingName, { recursive: true })
         },
       }
     },

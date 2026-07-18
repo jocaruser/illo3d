@@ -13,6 +13,8 @@ import { InventoryService } from '@/Service/InventoryService'
 
 interface ThresholdEditorProps {
   item: InventoryItem
+  /** Archived items show the tiers but refuse edits. */
+  readOnly?: boolean
 }
 
 type Tier = 'yellow' | 'orange' | 'red'
@@ -26,7 +28,10 @@ const labelKeys: Record<Tier, string> = {
 }
 
 /** Low-stock tiers. 0 disables a tier; precedence when they overlap is red > orange > yellow. */
-export function ThresholdEditor({ item }: ThresholdEditorProps) {
+export function ThresholdEditor({
+  item,
+  readOnly = false,
+}: ThresholdEditorProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [values, setValues] = useState<Record<Tier, string>>({
@@ -66,6 +71,7 @@ export function ThresholdEditor({ item }: ThresholdEditorProps) {
               type="number"
               step="1"
               min="0"
+              disabled={readOnly}
               value={values[tier]}
               onChange={(event) =>
                 setValues((current) => ({
@@ -76,14 +82,16 @@ export function ThresholdEditor({ item }: ThresholdEditorProps) {
             />
           </FormGroup>
         ))}
-        <button
-          type="button"
-          data-testid="inventory-detail-save-thresholds"
-          className="btn-primary"
-          onClick={handleSave}
-        >
-          {t('inventoryDetail.saveThresholds')}
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            data-testid="inventory-detail-save-thresholds"
+            className="btn-primary"
+            onClick={handleSave}
+          >
+            {t('inventoryDetail.saveThresholds')}
+          </button>
+        )}
       </div>
       <FormError message={error} />
     </section>

@@ -23,7 +23,11 @@ const {
 }))
 
 vi.mock('@/Migration/registry', () => ({ resolvePlanChain }))
-vi.mock('@/Migration/orchestrator', () => ({ runPlans }))
+vi.mock('@/Migration/orchestrator', async (importOriginal) => ({
+  // Keep the real BACKUP_* constants; only the run itself is faked.
+  ...(await importOriginal<typeof import('@/Migration/orchestrator')>()),
+  runPlans,
+}))
 vi.mock('@/Migration/Target/LocalCsvMigrationTarget', () => ({
   createLocalCsvMigrationTarget,
 }))
@@ -66,12 +70,35 @@ const shop = {
 const handle = { name: 'my-shop' } as unknown as FileSystemDirectoryHandle
 
 const continueButton = () => screen.getByTestId('wizard-migration-continue')
+const confirmButton = () => screen.getByTestId('wizard-migration-confirm')
 
-function renderModal(onLogOut = vi.fn()) {
+function makeSession() {
+  return {
+    ctx: {},
+    writeBackup: vi.fn(async () => {}),
+    persist: vi.fn(async () => {}),
+  }
+}
+
+/** Make runPlans behave like the real orchestrator ending at 'ready'. */
+function mockCompletedRun(session = makeSession()) {
+  runPlans.mockImplementation(async () => {
+    const store = useMigrationStore.getState()
+    store.seedSteps(['backup', 'jobs', 'inventory'])
+    for (const id of ['backup', 'jobs', 'inventory']) {
+      store.updateStep(id, { status: 'done' })
+    }
+    store.setPhase('ready')
+    return { ok: true, session }
+  })
+  return session
+}
+
+function renderModal(onLogOut = vi.fn(), candidateOverride = candidate) {
   return {
     onLogOut,
     ...renderWithProviders(
-      <MigrationWizardModal candidate={candidate} onLogOut={onLogOut} />
+      <MigrationWizardModal candidate={candidateOverride} onLogOut={onLogOut} />
     ),
   }
 }
@@ -88,6 +115,16 @@ async function answerAndCoolDown(
   await waitFor(() => expect(continueButton()).toBeEnabled())
 }
 
+/** Run the whole migration up to the awaiting-confirmation state. */
+async function runToReady(
+  user: ReturnType<typeof userEvent.setup>,
+  answer: 'yes' | 'no' = 'yes'
+) {
+  await answerAndCoolDown(user, answer)
+  await user.click(continueButton())
+  await waitFor(() => expect(confirmButton()).toBeInTheDocument())
+}
+
 describe('MigrationWizardModal', () => {
   beforeEach(() => {
     installFakeLocalStorage()
@@ -96,7 +133,7 @@ describe('MigrationWizardModal', () => {
     // the cooldown clock stays under the test's control.
     vi.useFakeTimers({ shouldAdvanceTime: true })
     resolvePlanChain.mockReturnValue(chain)
-    runPlans.mockResolvedValue({ ok: true })
+    mockCompletedRun()
     validateShopFolder.mockResolvedValue({ ok: true, shop, metadata: {} })
     hydrate.mockResolvedValue(undefined)
     useMigrationStore.getState().reset()
@@ -129,24 +166,44 @@ describe('MigrationWizardModal', () => {
     expect(screen.getByText('3.0.0')).toBeInTheDocument()
   })
 
-  it('explains the changes as a bullet list and promises no data loss', () => {
+  it('explains the v2→v3 hop from the resolved chain and promises no data loss', () => {
     renderModal()
 
     expect(
-      screen.getByText(/Version 2 ships with two major upgrades/)
+      screen.getByText(/Your shop needs a quick update to unlock/)
     ).toBeInTheDocument()
-    expect(screen.getByText('Audit logging')).toBeInTheDocument()
+    expect(screen.getByText('Due dates on jobs')).toBeInTheDocument()
     expect(
-      screen.getByText(/a permanent record of every change/)
+      screen.getByText(/an optional due date per job/)
     ).toBeInTheDocument()
-    expect(screen.getByText('Archive & delete tracking')).toBeInTheDocument()
+    expect(screen.getByText('Colours on materials')).toBeInTheDocument()
     expect(
-      screen.getByText(/keep your workspace clean without losing history/)
+      screen.getByText(/an optional colour swatch beside each material/)
     ).toBeInTheDocument()
     expect(
-      screen.getByText(/No data is removed or altered/)
+      screen.getByText('No data is removed or altered.')
     ).toBeInTheDocument()
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
+  })
+
+  it('explains every hop of a chained v1→v3 run, in run order', () => {
+    resolvePlanChain.mockReturnValue([
+      {
+        fromMajor: 1,
+        toMajor: 2,
+        toVersion: '2.0.0',
+        steps: [{ id: 'clients' }],
+      },
+      ...chain,
+    ])
+    renderModal(vi.fn(), { ...candidate, shopVersion: '1.5.0' })
+
+    const items = screen.getAllByRole('listitem')
+    expect(items).toHaveLength(4)
+    expect(items[0]).toHaveTextContent('Audit logging')
+    expect(items[1]).toHaveTextContent('Archive & delete tracking')
+    expect(items[2]).toHaveTextContent('Due dates on jobs')
+    expect(items[3]).toHaveTextContent('Colours on materials')
   })
 
   it('summarises progress against the idle grid', () => {
@@ -170,7 +227,7 @@ describe('MigrationWizardModal', () => {
 
   it('says all done when every row has finished', () => {
     useMigrationStore.setState({
-      phase: 'done',
+      phase: 'ready',
       steps: [
         { id: 'backup', status: 'done' },
         { id: 'jobs', status: 'done' },
@@ -242,24 +299,28 @@ describe('MigrationWizardModal', () => {
     expect(screen.queryByTestId('wizard-cooldown-ring')).not.toBeInTheDocument()
   })
 
-  it('runs the migration with the chosen backup answer and enters the shop', async () => {
+  it('runs the migration in memory and offers Confirm and close, nothing written', async () => {
+    const session = mockCompletedRun()
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     renderModal()
 
-    await answerAndCoolDown(user, 'yes')
-    await user.click(continueButton())
+    await runToReady(user, 'yes')
 
-    await waitFor(() => expect(runPlans).toHaveBeenCalled())
     expect(runPlans).toHaveBeenCalledWith(
       chain,
       { kind: 'local-target' },
-      {
-        keepOriginalAsBackup: true,
-      }
+      { keepOriginalAsBackup: true }
     )
-    await waitFor(() =>
-      expect(useShopStore.getState().activeShop).toEqual(shop)
-    )
+    expect(confirmButton()).toHaveTextContent('Confirm and close')
+    expect(confirmButton()).toBeEnabled()
+    // Continue has served its purpose; the commitment control replaces it.
+    expect(
+      screen.queryByTestId('wizard-migration-continue')
+    ).not.toBeInTheDocument()
+    // Nothing persisted, validated or entered yet.
+    expect(session.persist).not.toHaveBeenCalled()
+    expect(validateShopFolder).not.toHaveBeenCalled()
+    expect(useShopStore.getState().activeShop).toBeNull()
   })
 
   it('passes a declined backup through to the orchestrator', async () => {
@@ -273,15 +334,13 @@ describe('MigrationWizardModal', () => {
       expect(runPlans).toHaveBeenCalledWith(
         chain,
         { kind: 'local-target' },
-        {
-          keepOriginalAsBackup: false,
-        }
+        { keepOriginalAsBackup: false }
       )
     )
   })
 
   it('locks the backup answers and Log out while the migration runs', async () => {
-    let release: ((value: { ok: true }) => void) | undefined
+    let release: ((value: unknown) => void) | undefined
     runPlans.mockImplementation(
       () => new Promise((resolve) => (release = resolve))
     )
@@ -299,8 +358,79 @@ describe('MigrationWizardModal', () => {
     expect(continueButton()).toBeDisabled()
 
     await act(async () => {
-      release?.({ ok: true })
+      release?.({ ok: true, session: makeSession() })
     })
+  })
+
+  it('keeps the backup answers locked while awaiting confirmation, Log out available', async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderModal()
+
+    await runToReady(user, 'yes')
+
+    // The run has already consumed the answer — changing it now would lie.
+    expect(screen.getByTestId('wizard-backup-yes')).toBeDisabled()
+    expect(screen.getByTestId('wizard-backup-no')).toBeDisabled()
+    // The unsubmitted run is deliberately abandonable.
+    expect(screen.getByTestId('wizard-migration-logout')).toBeEnabled()
+  })
+
+  it('persists and enters the shop only when Confirm and close is pressed', async () => {
+    const session = mockCompletedRun()
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderModal()
+
+    await runToReady(user, 'yes')
+    await user.click(confirmButton())
+
+    await waitFor(() => expect(session.persist).toHaveBeenCalledTimes(1))
+    await waitFor(() =>
+      expect(useShopStore.getState().activeShop).toEqual(shop)
+    )
+    expect(validateShopFolder).toHaveBeenCalledWith('F1')
+    expect(hydrate).toHaveBeenCalledTimes(1)
+  })
+
+  it('disables Confirm and close and Log out while committing', async () => {
+    const session = makeSession()
+    let release: (() => void) | undefined
+    session.persist.mockImplementation(
+      () => new Promise<void>((resolve) => (release = resolve))
+    )
+    mockCompletedRun(session)
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderModal()
+
+    await runToReady(user, 'yes')
+    await user.click(confirmButton())
+
+    await waitFor(() => expect(confirmButton()).toBeDisabled())
+    expect(screen.getByTestId('wizard-migration-logout')).toBeDisabled()
+
+    await act(async () => {
+      release?.()
+    })
+  })
+
+  it('shows the failure alert and re-arms Continue when persisting fails', async () => {
+    const session = makeSession()
+    session.persist.mockRejectedValue(new Error('folder unwritable'))
+    mockCompletedRun(session)
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    renderModal()
+
+    await runToReady(user, 'yes')
+    await user.click(confirmButton())
+
+    const alert = await screen.findByTestId('wizard-migration-failed')
+    expect(alert).toHaveTextContent('Migration failed')
+    expect(alert).toHaveTextContent('folder unwritable')
+    expect(useShopStore.getState().activeShop).toBeNull()
+    // The commitment control withdraws; the in-place retry affordance returns.
+    expect(
+      screen.queryByTestId('wizard-migration-confirm')
+    ).not.toBeInTheDocument()
+    expect(continueButton()).toBeInTheDocument()
   })
 
   it('shows the failure alert with the orchestrator message', async () => {

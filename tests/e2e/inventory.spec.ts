@@ -130,7 +130,7 @@ test.describe('Inventory page', () => {
     await expect(qtyInput).toHaveValue('1200')
   })
 
-  test('archive inventory removes from list and shows not-found', async ({
+  test('archive removes from list; the archived page is read-only until soft delete', async ({
     page,
     openCsvShop,
   }) => {
@@ -141,10 +141,34 @@ test.describe('Inventory page', () => {
       timeout: 10000,
     })
 
-    await page.getByTestId('entity-detail-delete').click()
-    await page.getByRole('dialog').getByRole('button', { name: /^archive$/i }).click()
+    await page.getByTestId('entity-detail-archive').click()
+    await page.getByRole('dialog').getByRole('button', { name: /^archive$|^archivar$/i }).click()
 
     await expect(page).toHaveURL(/\/inventory$/)
     await expect(page.getByTestId('inventory-table-link-INV2')).not.toBeVisible()
+
+    // The archived material keeps its address, rendering read-only with
+    // Un-archive and Soft delete (no editors, no saves).
+    await page.goto('/#/inventory/INV2')
+    await expect(page.getByTestId('entity-archived-notice')).toBeVisible({
+      timeout: 15000,
+    })
+    await expect(page.getByRole('heading', { name: /Ender 3/i })).toBeVisible()
+    await expect(page.getByTestId('inventory-detail-qty-current')).toBeDisabled()
+    await expect(page.getByTestId('inventory-detail-save-qty')).toHaveCount(0)
+    await expect(page.getByTestId('entity-detail-unarchive')).toBeVisible()
+
+    // Only soft delete makes the address stop resolving.
+    await page.getByTestId('entity-detail-delete').click()
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: /soft delete|eliminar/i })
+      .click()
+    await expect(page).toHaveURL(/\/inventory$/)
+
+    await page.goto('/#/inventory/INV2')
+    await expect(page.getByText(/no inventory item|no hay ningún artículo/i)).toBeVisible({
+      timeout: 15000,
+    })
   })
 })

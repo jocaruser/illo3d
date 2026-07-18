@@ -1,6 +1,9 @@
 import { screen, within } from '@testing-library/react'
 import { DetailWidget, WidgetGrid } from '@/Component/detail/DetailWidget'
-import { EntityDetailPage } from '@/Component/detail/EntityDetailPage'
+import {
+  ArchivedEntityNotice,
+  EntityDetailPage,
+} from '@/Component/detail/EntityDetailPage'
 import { renderWithProviders } from './helpers/renderDetail'
 
 describe('EntityDetailPage', () => {
@@ -46,6 +49,22 @@ describe('EntityDetailPage', () => {
       <EntityDetailPage backTo="/jobs" backLabel="Back" title="J1" fields={[]} />
     )
     expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  })
+
+  it('renders the banner slot above the title', () => {
+    renderWithProviders(
+      <EntityDetailPage
+        backTo="/jobs"
+        backLabel="Back"
+        title="J1"
+        fields={[]}
+        banner={<ArchivedEntityNotice />}
+      />
+    )
+
+    expect(screen.getByTestId('entity-archived-notice')).toHaveTextContent(
+      'This record is archived and read-only. Un-archive it to make changes.'
+    )
   })
 })
 

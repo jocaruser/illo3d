@@ -7,11 +7,14 @@ import { LanguageToggle } from '@/Component/LanguageToggle'
 import { ThemeToggle } from '@/Component/ThemeToggle'
 import { useMigration } from '@/Hook/useMigration'
 import type { MigrationCandidate } from '@/Hook/useOpenShop'
-import { useMigrationStore } from '@/Store/migrationStore'
 import { BackupQuestion } from './BackupQuestion'
 import { CooldownContinueButton } from './CooldownContinueButton'
 import { MigrationStepsGrid } from './MigrationStepsGrid'
-import { doneCount, migrationStepStates } from './migrationSteps'
+import {
+  doneCount,
+  migrationDescriptionBullets,
+  migrationStepStates,
+} from './migrationSteps'
 
 interface MigrationWizardModalProps {
   candidate: MigrationCandidate
@@ -21,7 +24,12 @@ interface MigrationWizardModalProps {
 /**
  * Shown when a shop's major version trails the app's, on both backends. The
  * user picks whether to keep a backup, waits out a short cooldown, then runs
- * the migration — which enters the shop on success, unmounting this modal.
+ * the migration — entirely in memory (ADR-0012). When every step is done,
+ * **Confirm and close** appears; only that press persists the migrated shop
+ * and opens it, unmounting this modal. Until then nothing has been written
+ * (except the backup, at its own step), so abandoning the page simply loses
+ * the run. After a failure the untouched shop can be retried in place —
+ * Continue re-arms (the spec is silent here; the affordance is deliberate).
  */
 export function MigrationWizardModal({
   candidate,
@@ -33,19 +41,21 @@ export function MigrationWizardModal({
     boolean | null
   >(null)
   const [busy, setBusy] = useState(false)
-  const { start } = useMigration()
-  const phase = useMigrationStore((state) => state.phase)
-  const liveSteps = useMigrationStore((state) => state.steps)
-  const failureMessage = useMigrationStore((state) => state.failureMessage)
+  const { start, confirm, phase, steps, failureMessage } = useMigration()
 
   const rows = migrationStepStates(
     phase,
-    liveSteps,
+    steps,
     candidate.shopVersion,
     keepOriginalAsBackup
   )
   const done = doneCount(rows)
   const allDone = rows.length > 0 && done === rows.length
+  const bullets = migrationDescriptionBullets(candidate.shopVersion)
+
+  // The run completed and awaits its Confirm and close (or is persisting).
+  const awaitingConfirm = phase === 'ready' || phase === 'committing'
+  const committing = phase === 'committing'
 
   // Null until the backup question is answered — which is exactly what makes
   // Continue eligible, so the button needs no separate "ready" flag.
@@ -79,7 +89,7 @@ export function MigrationWizardModal({
             {t('wizard.migrationTitle')}
           </h2>
           {/* Same preference controls as the welcome screen — a migrating
-              user has not reached the profile menu yet. */}
+              user has not reached the app's own controls yet. */}
           <div className="flex shrink-0 gap-2">
             <ThemeToggle />
             <LanguageToggle />
@@ -94,20 +104,15 @@ export function MigrationWizardModal({
         <div className="mt-4 space-y-2 text-sm text-text-muted">
           <p>{t('wizard.migrationDescriptionChanges')}</p>
           <ul className="list-disc space-y-1 pl-5">
-            <li>
-              <span className="font-medium text-text">
-                {t('wizard.migrationDescriptionLabel1')}
-              </span>
-              {' — '}
-              {t('wizard.migrationDescriptionItem1')}
-            </li>
-            <li>
-              <span className="font-medium text-text">
-                {t('wizard.migrationDescriptionLabel2')}
-              </span>
-              {' — '}
-              {t('wizard.migrationDescriptionItem2')}
-            </li>
+            {bullets.map((bullet) => (
+              <li key={bullet.labelKey}>
+                <span className="font-medium text-text">
+                  {t(bullet.labelKey)}
+                </span>
+                {' — '}
+                {t(bullet.itemKey)}
+              </li>
+            ))}
           </ul>
           <p>{t('wizard.migrationDescriptionActions')}</p>
         </div>
@@ -116,7 +121,7 @@ export function MigrationWizardModal({
           <BackupQuestion
             value={keepOriginalAsBackup}
             onChange={setKeepOriginalAsBackup}
-            disabled={busy}
+            disabled={busy || awaitingConfirm}
           />
         </div>
 
@@ -152,17 +157,29 @@ export function MigrationWizardModal({
             type="button"
             data-testid="wizard-migration-logout"
             className="btn-secondary"
-            disabled={busy}
+            disabled={busy || committing}
             onClick={onLogOut}
           >
             {t('wizard.migrationLogOut')}
           </button>
-          <CooldownContinueButton
-            label={t('wizard.migrationContinue')}
-            resetKey={String(keepOriginalAsBackup)}
-            busy={busy}
-            onClick={runMigration === null ? null : () => void runMigration()}
-          />
+          {awaitingConfirm ? (
+            <button
+              type="button"
+              data-testid="wizard-migration-confirm"
+              className="btn-primary"
+              disabled={committing}
+              onClick={() => void confirm(candidate.folderId)}
+            >
+              {t('wizard.migrationConfirmClose')}
+            </button>
+          ) : (
+            <CooldownContinueButton
+              label={t('wizard.migrationContinue')}
+              resetKey={String(keepOriginalAsBackup)}
+              busy={busy}
+              onClick={runMigration === null ? null : () => void runMigration()}
+            />
+          )}
         </div>
       </div>
     </div>

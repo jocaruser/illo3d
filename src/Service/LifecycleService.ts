@@ -54,6 +54,14 @@ export class LifecycleService {
     this.em.jobs.save(job)
   }
 
+  restorePiece(pieceId: string): void {
+    const piece = this.em.pieces.find(pieceId)
+    if (!piece) return
+    piece.archived = ''
+    piece.deleted = ''
+    this.em.pieces.save(piece)
+  }
+
   restoreInventory(inventoryId: string): void {
     const item = this.em.inventory.find(inventoryId)
     if (!item) return
@@ -74,7 +82,11 @@ export class LifecycleService {
     }
   }
 
-  private setJobFlag(jobId: string, flag: LifecycleFlag, parent?: AuditParent): void {
+  private setJobFlag(
+    jobId: string,
+    flag: LifecycleFlag,
+    parent?: AuditParent
+  ): void {
     const job = this.em.jobs.find(jobId)
     if (!job || job[flag].toLowerCase() === 'true') return
     job[flag] = 'true'
@@ -84,7 +96,10 @@ export class LifecycleService {
       if (piece[flag].toLowerCase() === 'true') continue
       piece[flag] = 'true'
       this.em.pieces.save(piece, jobParent)
-      const pieceParent: AuditParent = { entityName: 'piece', entityId: piece.id }
+      const pieceParent: AuditParent = {
+        entityName: 'piece',
+        entityId: piece.id,
+      }
       for (const item of this.em.pieceItems.findByPiece(piece.id)) {
         if (item[flag].toLowerCase() === 'true') continue
         item[flag] = 'true'
@@ -99,7 +114,10 @@ export class LifecycleService {
     if (!item || item[flag].toLowerCase() === 'true') return
     item[flag] = 'true'
     this.em.inventory.save(item)
-    const parent: AuditParent = { entityName: 'inventory', entityId: inventoryId }
+    const parent: AuditParent = {
+      entityName: 'inventory',
+      entityId: inventoryId,
+    }
     for (const lot of this.em.lots.findActiveByInventory(inventoryId)) {
       lot[flag] = 'true'
       this.em.lots.save(lot, parent)
@@ -110,14 +128,17 @@ export class LifecycleService {
     entityType: 'client' | 'job',
     entityId: string,
     flag: LifecycleFlag,
-    parent: AuditParent,
+    parent: AuditParent
   ): void {
     for (const note of this.em.crmNotes.findByEntity(entityType, entityId)) {
       if (note[flag].toLowerCase() === 'true') continue
       note[flag] = 'true'
       this.em.crmNotes.save(note, parent)
     }
-    for (const link of this.em.tagLinks.findActiveByEntity(entityType, entityId)) {
+    for (const link of this.em.tagLinks.findActiveByEntity(
+      entityType,
+      entityId
+    )) {
       link[flag] = 'true'
       this.em.tagLinks.save(link, parent)
     }

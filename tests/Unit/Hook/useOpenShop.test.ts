@@ -89,6 +89,49 @@ describe('useOpenShop', () => {
     expect(useShopStore.getState().activeShop).toBeNull()
   })
 
+  it('rejects a shop from a newer app with the update message, not the wizard', async () => {
+    validateShopFolder.mockResolvedValue({
+      ok: false,
+      error: 'version_ahead',
+      shopVersion: '9.0.0',
+      appVersion: '3.0.0',
+    })
+    const { result } = renderHook(() => useOpenShop(), { wrapper })
+
+    let outcome: Awaited<ReturnType<typeof result.current.openShop>> | undefined
+    await act(async () => {
+      outcome = await result.current.openShop('F1')
+    })
+
+    expect(outcome).toEqual({
+      ok: false,
+      kind: 'error',
+      message:
+        'This shop was made by a newer version of this app. Update the app to open it.',
+    })
+    expect(useShopStore.getState().activeShop).toBeNull()
+  })
+
+  it('rejects a shop whose version cannot be read, not the wizard', async () => {
+    validateShopFolder.mockResolvedValue({
+      ok: false,
+      error: 'version_unreadable',
+      shopVersion: 'garbage',
+    })
+    const { result } = renderHook(() => useOpenShop(), { wrapper })
+
+    let outcome: Awaited<ReturnType<typeof result.current.openShop>> | undefined
+    await act(async () => {
+      outcome = await result.current.openShop('F1')
+    })
+
+    expect(outcome).toEqual({
+      ok: false,
+      kind: 'error',
+      message: "This shop's version could not be read.",
+    })
+  })
+
   it('translates a not_shop rejection', async () => {
     validateShopFolder.mockResolvedValue({ ok: false, error: 'not_shop' })
     const { result } = renderHook(() => useOpenShop(), { wrapper })

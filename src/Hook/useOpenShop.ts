@@ -9,7 +9,7 @@ import { ShopValidationService } from '@/Service/ShopValidationService'
 import { WorkbookService } from '@/Service/WorkbookService'
 import { useShopStore } from '@/Store/shopStore'
 
-/** A shop whose major version does not match the app's — the wizard offers a migration. */
+/** A shop whose major version trails the app's — the wizard offers a migration. */
 export interface MigrationCandidate {
   folderId: string
   shopVersion: string
@@ -47,9 +47,10 @@ export async function enterShop(shop: Shop): Promise<void> {
 }
 
 /**
- * Opens an existing shop folder: validate, then hydrate and enter. A version
- * mismatch is not an error — it is surfaced as a migration candidate so the
- * wizard can offer the migration modal.
+ * Opens an existing shop folder: validate, then hydrate and enter. An OLDER
+ * shop is not an error — it is surfaced as a migration candidate so the
+ * wizard can offer the migration modal. A shop ahead of the app, or one whose
+ * version cannot be read, gets a plain error instead: no wizard can help it.
  */
 export function useOpenShop() {
   const { t } = useTranslation()
@@ -71,6 +72,22 @@ export function useOpenShop() {
                 shopVersion: validation.shopVersion,
                 appVersion: validation.appVersion,
               },
+            }
+          }
+          // A shop AHEAD of the app, or with an unreadable version, is not a
+          // migration candidate — it is told so on the welcome screen.
+          if (validation.error === 'version_ahead') {
+            return {
+              ok: false,
+              kind: 'error',
+              message: t('wizard.errorVersionAhead'),
+            }
+          }
+          if (validation.error === 'version_unreadable') {
+            return {
+              ok: false,
+              kind: 'error',
+              message: t('wizard.errorVersionUnreadable'),
             }
           }
           if (validation.error === 'not_shop') {

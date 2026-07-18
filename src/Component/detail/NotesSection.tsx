@@ -21,9 +21,15 @@ import { NoteService } from '@/Service/NoteService'
 interface NotesSectionProps {
   entityType: NoteEntityType
   entityId: string
+  /** An archived entity's notes are history: shown, never edited. */
+  readOnly?: boolean
 }
 
-export function NotesSection({ entityType, entityId }: NotesSectionProps) {
+export function NotesSection({
+  entityType,
+  entityId,
+  readOnly = false,
+}: NotesSectionProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [revision, bump] = useReducer((count: number) => count + 1, 0)
@@ -118,34 +124,36 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
         </div>
       )}
 
-      <div className="space-y-2 rounded-lg border border-border bg-surface-elevated p-3">
-        <FormTextarea
-          rows={2}
-          value={body}
-          aria-label={t(`${prefix}.addNote`)}
-          placeholder={t(`${prefix}.noteBodyPlaceholder`)}
-          onChange={(event) => setBody(event.target.value)}
-        />
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="w-40">
-            <Select
-              aria-label={t(`${prefix}.severityLabel`)}
-              options={severityOptions}
-              value={severity}
-              onChange={(event) => setSeverity(event.target.value)}
-            />
+      {!readOnly && (
+        <div className="space-y-2 rounded-lg border border-border bg-surface-elevated p-3">
+          <FormTextarea
+            rows={2}
+            value={body}
+            aria-label={t(`${prefix}.addNote`)}
+            placeholder={t(`${prefix}.noteBodyPlaceholder`)}
+            onChange={(event) => setBody(event.target.value)}
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="w-40">
+              <Select
+                aria-label={t(`${prefix}.severityLabel`)}
+                options={severityOptions}
+                value={severity}
+                onChange={(event) => setSeverity(event.target.value)}
+              />
+            </div>
+            <button
+              type="button"
+              className="btn-primary"
+              data-testid={`${entityType}-note-add`}
+              onClick={add}
+            >
+              {t(`${prefix}.addNote`)}
+            </button>
           </div>
-          <button
-            type="button"
-            className="btn-primary"
-            data-testid={`${entityType}-note-add`}
-            onClick={add}
-          >
-            {t(`${prefix}.addNote`)}
-          </button>
+          <FormError message={error} />
         </div>
-        <FormError message={error} />
-      </div>
+      )}
 
       <ul className="space-y-2">
         {notes.map((note) => (
@@ -207,22 +215,24 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
                     )}
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className="btn-secondary px-2 py-1 text-xs"
-                    onClick={() => startEdit(note)}
-                  >
-                    {t('common.edit')}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary px-2 py-1 text-xs"
-                    onClick={() => setDeleting(note)}
-                  >
-                    {t('common.delete')}
-                  </button>
-                </div>
+                {!readOnly && (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className="btn-secondary px-2 py-1 text-xs"
+                      onClick={() => startEdit(note)}
+                    >
+                      {t('common.edit')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary px-2 py-1 text-xs"
+                      onClick={() => setDeleting(note)}
+                    >
+                      {t('common.delete')}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </li>

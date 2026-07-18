@@ -1,6 +1,7 @@
 import {
   BACKUP_SKIPPED_KEY,
   BACKUP_STEP_ID,
+  migrationHopMajors,
   migrationStepIds,
 } from '@/Hook/useMigration'
 import type {
@@ -37,6 +38,48 @@ export function stepLabelKey(id: string): string | null {
   return STEP_LABEL_KEY[id] ?? null
 }
 
+export interface DescriptionBullet {
+  labelKey: string
+  itemKey: string
+}
+
+/** What each hop unlocks, keyed by the hop's `fromMajor`. */
+const HOP_DESCRIPTION_KEYS: Record<number, DescriptionBullet[]> = {
+  1: [
+    {
+      labelKey: 'wizard.migrationDescriptionLabel1',
+      itemKey: 'wizard.migrationDescriptionItem1',
+    },
+    {
+      labelKey: 'wizard.migrationDescriptionLabel2',
+      itemKey: 'wizard.migrationDescriptionItem2',
+    },
+  ],
+  2: [
+    {
+      labelKey: 'wizard.migrationDescriptionLabelDueDates',
+      itemKey: 'wizard.migrationDescriptionItemDueDates',
+    },
+    {
+      labelKey: 'wizard.migrationDescriptionLabelColours',
+      itemKey: 'wizard.migrationDescriptionItemColours',
+    },
+  ],
+}
+
+/**
+ * The wizard's explanation bullets, derived from the resolved plan chain: each
+ * hop contributes its own label+item pairs, in run order. A hop we ship no
+ * copy for contributes nothing (the shared promise line still renders).
+ */
+export function migrationDescriptionBullets(
+  shopVersion: string
+): DescriptionBullet[] {
+  return migrationHopMajors(shopVersion).flatMap(
+    (major) => HOP_DESCRIPTION_KEYS[major] ?? []
+  )
+}
+
 export function stepStatusKey(status: MigrationStepStatus): string {
   return STATUS_LABEL_KEY[status]
 }
@@ -45,10 +88,10 @@ export function stepStatusKey(status: MigrationStepStatus): string {
  * The rows the wizard grid renders.
  *
  * Idle runs show a static grid seeded from the resolved plan chain; once the
- * orchestrator takes over, the store is the source of truth. Declining a backup
- * pins the backup row to done/Skipped in both phases — the orchestrator still
- * makes a working copy (that is how a failed run stays recoverable), but from
- * the user's point of view no backup is being kept.
+ * orchestrator takes over, the store is the source of truth. Declining a
+ * backup pins the backup row to done/Skipped in both phases — the run still
+ * loads the shop into memory at that step, but nothing is written, so from
+ * the user's point of view the backup was simply skipped.
  */
 export function migrationStepStates(
   phase: MigrationPhase,

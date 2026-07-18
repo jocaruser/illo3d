@@ -39,6 +39,7 @@ Opening validates the folder exactly like
 [a local one](local-folder.spec.md#what-the-folders-contents-decide):
 a current shop opens,
 an older shop goes through the [migration wizard](../migration/wizard.spec.md),
+a newer or version-unreadable one is told so in the same words,
 anything else explains what is wrong —
 "This folder is not an illo3d shop."
 when there is no shop to find.

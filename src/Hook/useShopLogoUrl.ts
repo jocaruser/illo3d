@@ -8,12 +8,12 @@ interface DriveFileListResponse {
   files?: { id?: string; thumbnailLink?: string }[]
 }
 
-/** Local backend: the logo is a file next to the CSVs; read it through the handle. */
-async function readLocalLogo(
+/** Local backend: the image is a file next to the CSVs; read it through the handle. */
+async function readLocalImage(
   directory: FileSystemDirectoryHandle,
-  logo: string
+  fileName: string
 ): Promise<{ url: string; revocable: boolean }> {
-  const fileHandle = await directory.getFileHandle(logo)
+  const fileHandle = await directory.getFileHandle(fileName)
   const file = await fileHandle.getFile()
   return { url: URL.createObjectURL(file), revocable: true }
 }
@@ -22,18 +22,18 @@ async function readLocalLogo(
  * Drive backend: an `<img>` cannot send a bearer token, so use the thumbnail
  * link Drive hands out, falling back to the plain per-file view URL.
  */
-async function readDriveLogo(
+async function readDriveImage(
   folderId: string,
-  logo: string
+  fileName: string
 ): Promise<{ url: string; revocable: boolean }> {
-  const query = `name='${logo}' and '${folderId}' in parents and trashed=false`
+  const query = `name='${fileName}' and '${folderId}' in parents and trashed=false`
   const response = await driveFetch(
     `/files?q=${encodeURIComponent(query)}&fields=files(id,thumbnailLink)&pageSize=1`
   )
   const payload = (await response.json()) as DriveFileListResponse
   const file = payload.files?.[0]
   if (file?.id === undefined)
-    throw new Error(`Logo not found in Drive folder: ${logo}`)
+    throw new Error(`Image not found in Drive folder: ${fileName}`)
   return {
     url:
       file.thumbnailLink ??
@@ -43,22 +43,21 @@ async function readDriveLogo(
 }
 
 /**
- * Resolves `metadata.logo` to something an `<img src>` can render, or null
- * when the shop has no logo (callers fall back to `/logo.svg`). Object URLs
- * minted for the local backend are revoked when they go out of use.
+ * Resolves a file name relative to the shop folder (`metadata.logo`,
+ * `metadata.iconsrc`, …) to something an `<img src>` can render, or null when
+ * unset or unresolvable. Object URLs minted for the local backend are revoked
+ * when they go out of use.
  */
-export function useShopLogoUrl(): string | null {
-  const { metadata } = useShopMetadata()
+export function useShopImageUrl(fileName: string | null): string | null {
   const folderId = useShopStore((state) => state.activeShop?.folderId ?? null)
   const backend = useBackendStore((state) => state.backend)
   const localDirectoryHandle = useBackendStore(
     (state) => state.localDirectoryHandle
   )
-  const logo = metadata?.logo ?? null
   const [url, setUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    if (logo === null || logo === '' || folderId === null) {
+    if (fileName === null || fileName === '' || folderId === null) {
       setUrl(null)
       return
     }
@@ -70,9 +69,9 @@ export function useShopLogoUrl(): string | null {
       revocable: boolean
     } | null> => {
       if (backend === 'local-csv' && localDirectoryHandle !== null) {
-        return readLocalLogo(localDirectoryHandle, logo)
+        return readLocalImage(localDirectoryHandle, fileName)
       }
-      if (backend === 'google-drive') return readDriveLogo(folderId, logo)
+      if (backend === 'google-drive') return readDriveImage(folderId, fileName)
       return null
     }
 
@@ -94,7 +93,16 @@ export function useShopLogoUrl(): string | null {
       cancelled = true
       if (objectUrl !== null) URL.revokeObjectURL(objectUrl)
     }
-  }, [logo, folderId, backend, localDirectoryHandle])
+  }, [fileName, folderId, backend, localDirectoryHandle])
 
   return url
+}
+
+/**
+ * Resolves `metadata.logo` for an `<img src>`, or null when the shop has no
+ * logo (callers fall back to `/logo.svg`).
+ */
+export function useShopLogoUrl(): string | null {
+  const { metadata } = useShopMetadata()
+  return useShopImageUrl(metadata?.logo ?? null)
 }
