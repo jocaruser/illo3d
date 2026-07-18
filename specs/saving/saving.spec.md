@@ -5,7 +5,7 @@ The single most important contract in the app:
 Creating, editing, archiving —
 every change lives only in the app's memory,
 and the shop's files change only at the moment of saving.
-(The [migration wizard](migration/wizard.spec.md)
+(The [migration wizard](../migration/wizard.spec.md)
 follows the same philosophy with its own submit.)
 
 ## Knowing where you stand
@@ -55,5 +55,5 @@ The same shop can be open in two tabs, or on two devices.
 The app does not notice:
 **the last save wins, silently**,
 overwriting whatever was saved before it
-([ADR-0013](decisions/ADR-0013-last-save-wins.md)).
+([ADR-0013](../decisions/ADR-0013-last-save-wins.md)).
 One person, one place at a time is the intended way to work.
