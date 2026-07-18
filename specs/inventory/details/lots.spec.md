@@ -1,17 +1,22 @@
 # A material's purchase lots
 
-Every batch this material was bought in, newest first:
-its date, quantity, cost,
-and a link to
-[the purchase that created it](../../transactions/expense-details.spec.md).
+A section of [a material's page](details.spec.md):
+every batch this material was bought in, newest first,
+rendered as [tables render](../../shared/table.spec.md).
 
-Quantity and cost edit in place, per lot —
-corrections, not bookkeeping:
-changing a lot rewrites neither the stock level
-nor the purchase transaction.
-A quantity must be positive; a cost can be zero, never negative.
+| Column | Notes |
+|---|---|
+| Transaction | The purchase's description, opening [its page](../../transactions/expense-details.spec.md) — [linking](../../shared/linking.spec.md) |
+| Date | When the batch was bought |
+| Qty | The units it added |
+| Amount | What it cost |
+
+Nothing here edits:
+a lot is corrected on
+[the purchase's own page](../../transactions/expense-details.spec.md),
+never in this table.
 
 The lots are what "average unit cost" means everywhere:
-all active lots' costs divided by their quantities.
+the lots' costs divided by their quantities.
 
-Before any purchase: "No purchase lots yet."
+Empty says "No purchase lots yet."

@@ -7,7 +7,7 @@ for the severest threshold it crossed.
 Pressing an item opens it in the inventory.
 
 The thresholds themselves belong to
-[each material](../inventory/details/item.spec.md);
+[each material](../inventory/details/details.spec.md);
 a threshold set to zero never alerts.
 
 When nothing is low:

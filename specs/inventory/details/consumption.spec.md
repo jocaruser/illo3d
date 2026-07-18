@@ -1,13 +1,16 @@
 # A material's consumption
 
-Where this material goes:
-one row per piece that uses it —
-the quantity the piece takes,
-which piece, on which job (linked, scrolled to the piece).
+A section of [a material's page](details.spec.md):
+where the material goes —
+one row per piece that uses it,
+read straight from the pieces' material lines,
+rendered as [tables render](../../shared/table.spec.md).
 
-The rule for what consuming *means* —
-when stock actually moves —
-is [the pieces table's](../../jobs/details/pieces-table.spec.md).
+| Column | Notes |
+|---|---|
+| Job | The job making the piece, linked — [linking](../../shared/linking.spec.md) |
+| Piece | The piece's name |
+| Qty | The units of this material the piece takes |
+| Cost | That quantity at the material's average purchase price — the same figure as [the job's materials summary](../../jobs/details/materials-summary.spec.md) |
 
-Nothing using it yet:
-"No consumption recorded for this material yet."
+Empty says "No consumption recorded for this material yet."
