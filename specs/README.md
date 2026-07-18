@@ -81,6 +81,12 @@ Rulings now in force:
   and each details page's widgets spec
   declares order, kind and in-place edits;
   base templates never cite an entity's spec as a model.
+- **Fourth pass**: widget kinds carry their behaviour —
+  an editable date opens the browser's built-in calendar picker,
+  money is green above zero and red below,
+  only text can link;
+  the table base names the questions every use answers —
+  columns and order, per-viewport columns, empty wording.
 
 Sample built for sign-off:
 `shared/`, the two ADRs, the `inventory/` branch,
