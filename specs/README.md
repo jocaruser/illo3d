@@ -82,8 +82,10 @@ Rulings now in force:
   declares order, kind and in-place edits;
   base templates never cite an entity's spec as a model.
 - **Fifth pass**: one generic dropdown for the whole app
-  (`shared/dropdown.spec.md`) — three modes
-  (plain, searchable, creatable), fuzzy per ADR-0017;
+  (`shared/dropdown.spec.md`) — always searchable (the default mode),
+  creatable adds the Create row, a multiselect parameter,
+  entity options as "‹id› — ‹name›", fuzzy per ADR-0017,
+  and every use declares its label;
   decided over the two-picker alternative
   after the interactive consolidation report.
 - **Fourth pass**: widget kinds carry their behaviour —

@@ -11,7 +11,7 @@ the pages only place the section.
 The section shows the attached tags as chips,
 each removable in place.
 Adding is one box — "Type to search or create…" —
-which searches the pool as you type.
+a creatable [dropdown](dropdown.spec.md) over the pool.
 
 Scenarios — submitting the box:
 

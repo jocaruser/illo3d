@@ -16,6 +16,7 @@ Newest first.
 ## Severity
 
 One of: info, danger, warning, success, primary, secondary —
+picked with [a dropdown](dropdown.spec.md) —
 a colour, and a promise:
 any note graver than info or secondary
 also surfaces as an alert strip at the top of its section,
