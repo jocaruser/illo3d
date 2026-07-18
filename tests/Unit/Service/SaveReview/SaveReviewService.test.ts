@@ -49,4 +49,10 @@ describe('SaveReviewService.revertField', () => {
       findRecordById('clients', context.tabs.matrix('clients'), 'CL1')?.name
     ).toBe('Acme Ltd')
   })
+
+  it('treats a column the sheet does not carry as already empty', () => {
+    makeService(context).revertField('client', 'CL1', 'no_such_column', '')
+
+    expect(matrixToRecords('audit_log', context.tabs.matrix('audit_log'))).toHaveLength(0)
+  })
 })

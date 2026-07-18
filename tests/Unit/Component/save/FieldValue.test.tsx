@@ -1,5 +1,6 @@
 import { screen } from '@testing-library/react'
-import { FieldValue, referencedEntityName } from '@/Component/save/FieldValue'
+import { FieldValue } from '@/Component/save/FieldValue'
+import { referencedEntityName } from '@/Component/save/referencedEntityName'
 import type { EntityManager } from '@/Repository/EntityManager'
 import { createTestEm, FakeTabs } from '../../helpers/workbookTestBed'
 import { renderWithProviders } from '../helpers/renderWithProviders'

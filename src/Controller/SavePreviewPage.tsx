@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
@@ -37,8 +37,16 @@ export function SavePreviewPage() {
 
   const [selectedSheet, setSelectedSheet] = useState<SheetName | null>(null)
   const [showUnchanged, setShowUnchanged] = useState(false)
-  /** A failed run stays on screen (red cards) until the next attempt. */
-  const [failedRun, setFailedRun] = useState<SaveRun | null>(null)
+  /**
+   * A finished run stays on screen — all-green cards after success, red cards
+   * after a failure — until the workbook changes again.
+   */
+  const [lastRun, setLastRun] = useState<SaveRun | null>(null)
+
+  // Any new edit (including a revert) makes the finished run stale.
+  useEffect(() => {
+    setLastRun(null)
+  }, [tabs])
 
   const diff = useMemo(
     () => computeSaveDiff(unsavedAuditEntries(tabs, savedAuditRows)),
@@ -62,7 +70,7 @@ export function SavePreviewPage() {
           failedSheets: operation.failedSheets,
           active: true,
         }
-      : failedRun
+      : lastRun
 
   const items: SaveSheetNavItem[] = SHEET_NAMES.map((sheet) => {
     const changes = sheetChanges(sheet)
@@ -83,9 +91,10 @@ export function SavePreviewPage() {
   const busy = saveInProgress || !ready
 
   const handleSaveAll = async (): Promise<void> => {
-    setFailedRun(null)
-    // `finish()` clears the operation store even on failure, so keep our own
-    // copy of the last progress to leave the red cards on screen.
+    setLastRun(null)
+    // `finish()` clears the operation store even when the save is over, so
+    // keep our own copy of the last progress to leave the finished cards
+    // (green or red) on screen.
     const lastOperation: { current: OperationProgress | null } = { current: null }
     const unsubscribe = useOperationStore.subscribe((state) => {
       if (state.operation !== null) lastOperation.current = state.operation
@@ -93,12 +102,17 @@ export function SavePreviewPage() {
     const saved = await save({ blocking: false })
     unsubscribe()
     if (saved) {
-      navigate(-1)
+      // The review stays open: every sheet was written, so every card is green.
+      setLastRun({
+        doneSheets: lastOperation.current?.doneSheets ?? [...SHEET_NAMES],
+        failedSheets: [],
+        active: false,
+      })
       return
     }
     if (lastOperation.current !== null) {
       const { doneSheets, failedSheets } = lastOperation.current
-      setFailedRun({ doneSheets, failedSheets, active: false })
+      setLastRun({ doneSheets, failedSheets, active: false })
     }
   }
 
@@ -162,7 +176,7 @@ export function SavePreviewPage() {
         </div>
       </div>
 
-      {!dirty && changedSheets.length === 0 ? (
+      {!dirty && changedSheets.length === 0 && run === null ? (
         <EmptyState
           message={t('savePreview.allClean')}
           action={

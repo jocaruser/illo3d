@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { FALLBACK_SHEET_ICON, SHEET_ICON, SHEET_LABEL_KEY } from '@/Component/SheetMeta'
+import { SHEET_ICON, SHEET_LABEL_KEY } from '@/Component/SheetMeta'
 import { StepCard } from '@/Component/StepCard'
 import { cx } from '@/Component/cx'
 import type { SheetName } from '@/Config/schema'
@@ -27,35 +27,39 @@ export function SaveSheetNav({ items, selected, onSelect }: SaveSheetNavProps) {
   return (
     <nav aria-label={t('savePreview.sheetsNav')}>
       <ul className="flex gap-2 overflow-x-auto pb-2 md:flex-col md:overflow-visible md:pb-0">
-        {items.map(({ sheet, status, detail }) => (
-          <li key={sheet} className="w-44 shrink-0 md:w-auto">
-            <button
-              type="button"
-              data-testid={`save-nav-${sheet}`}
-              aria-current={selected === sheet ? 'true' : undefined}
-              aria-label={t('savePreview.sheetStatus', {
-                label: t(SHEET_LABEL_KEY[sheet]),
-                status: t(`savePreview.status.${status}`),
-              })}
-              className={cx(
-                'block w-full rounded-md text-left',
-                selected === sheet && 'ring-2 ring-primary ring-offset-2 ring-offset-surface'
-              )}
-              onClick={() => {
-                onSelect(sheet)
-              }}
-            >
-              <StepCard
-                label={t(SHEET_LABEL_KEY[sheet])}
-                status={status}
-                statusConfig={SAVE_STATUS_STYLE}
-                detail={detail}
-                icon={SHEET_ICON[sheet] ?? FALLBACK_SHEET_ICON}
-                pulse={status === 'saving'}
-              />
-            </button>
-          </li>
-        ))}
+        {items.map(({ sheet, status, detail }) => {
+          // SHEET_ICON is total over SheetName, so no fallback is needed here.
+          const Icon = SHEET_ICON[sheet]
+          return (
+            <li key={sheet} className="w-44 shrink-0 md:w-auto">
+              <button
+                type="button"
+                data-testid={`save-nav-${sheet}`}
+                aria-current={selected === sheet ? 'true' : undefined}
+                aria-label={t('savePreview.sheetStatus', {
+                  label: t(SHEET_LABEL_KEY[sheet]),
+                  status: t(`savePreview.status.${status}`),
+                })}
+                className={cx(
+                  'block w-full rounded-md text-left',
+                  selected === sheet && 'ring-2 ring-primary ring-offset-2 ring-offset-surface'
+                )}
+                onClick={() => {
+                  onSelect(sheet)
+                }}
+              >
+                <StepCard
+                  label={t(SHEET_LABEL_KEY[sheet])}
+                  status={status}
+                  statusConfig={SAVE_STATUS_STYLE}
+                  detail={detail}
+                  icon={<Icon className="h-4 w-4 shrink-0" aria-hidden="true" />}
+                  pulse={status === 'saving'}
+                />
+              </button>
+            </li>
+          )
+        })}
       </ul>
     </nav>
   )
