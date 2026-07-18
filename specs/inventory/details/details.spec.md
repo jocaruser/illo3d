@@ -6,16 +6,17 @@ and two sections below:
 [the purchase lots](lots.spec.md)
 and [the consumption](consumption.spec.md).
 
-Its widgets, in [the shell's grid](../../shared/details.spec.md):
+Its widgets, [as widgets behave](../../shared/widgets.spec.md),
+in this order:
 
-| Widget | Shows |
-|---|---|
-| ID | The material's id, name and type, with the page's Archive action |
-| Avg unit cost | What a unit has cost on average, from its purchases |
-| Created | When the material was created |
-| Current stock | Editable in place — below |
-| Warning thresholds | Editable in place — below |
-| Swatch colour | Editable in place — below |
+| Widget | Kind | Shows |
+|---|---|---|
+| ID | Text | The material's id, name and type, with the page's Archive action |
+| Avg unit cost | Money | What a unit has cost on average, from its purchases |
+| Created | Date | When the material was created |
+| Current stock | Number | Editable in place — below |
+| Warning thresholds | Number | Three levels, editable in place — below |
+| Swatch colour | Choice | A colour, editable in place — below |
 
 The three that edit in place:
 

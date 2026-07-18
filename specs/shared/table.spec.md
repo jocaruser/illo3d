@@ -8,6 +8,9 @@ keeps its shape whatever the data holds:
   one quiet row spans the table and says so —
   each table names its own wording ("No purchase lots yet.") —
   never a missing table, never a bare gap.
+- Every data column sorts on click,
+  ascending then descending,
+  ties broken by id so order never jitters.
 - Archived entities' rows render struck through and read-only,
   Un-archive their one action
   ([lifecycle](lifecycle.spec.md)).
