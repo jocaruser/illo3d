@@ -59,6 +59,15 @@ as siblings of — but separate from — the decision records in `specs/decision
   and is referenced from the others with ordinary Markdown links.
   *(Amended 2026-07-18: shared/ replaces pure owning-page placement
   for page-agnostic mechanics, on review feedback.)*
+- **Shared files are base templates; page files are specialisations.**
+  A `shared/` mechanic is written as the default spec,
+  naming its blanks and never naming entities;
+  a page file opens with the formula —
+  lives at, follows, title, its columns and departures —
+  and fills exactly those blanks
+  (`shared/list.spec.md` behind every list page,
+  `shared/details.spec.md` behind every details page and its widgets).
+  *(Amended 2026-07-18: specialisation formula, second review pass.)*
 - **Every file opens by placing itself.**
   A spec's first lines say what it is and where it lives:
   a page — "A page at `#/inventory/{id}`" — with its address,

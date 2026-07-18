@@ -2,7 +2,7 @@
 
 Every active client, with "Add client" to create one.
 The table behaves
-[as all lists do](../shared/lists.spec.md);
+[as all lists do](../shared/list.spec.md);
 an empty shop has its saying-so row.
 
 | Column | Notes |

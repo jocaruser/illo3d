@@ -7,7 +7,7 @@ Archived and deleted jobs are absent
 an empty shop says "No jobs yet."
 
 The table behaves
-[as all lists do](../shared/lists.spec.md).
+[as all lists do](../shared/list.spec.md).
 
 ## The columns
 
