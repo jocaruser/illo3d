@@ -1,6 +1,6 @@
 # ADR-0014: Public specs wiki on GitHub Pages
 
-- Status: Draft
+- Status: Accepted
 - Date: 2026-07-18
 - Amends: ADR-0007
 
