@@ -11,7 +11,7 @@ in this order:
 
 | Widget | Kind | Shows |
 |---|---|---|
-| ID | Text | The material's id, name and type, with the page's Archive action |
+| ID | Text | The material's id, name and type, with the page's [lifecycle state](../../shared/lifecycle.spec.md) |
 | Avg unit cost | Money | What a unit has cost on average, from its purchases |
 | Created | Date | When the material was created |
 | Current stock | Number | Editable in place — below |
@@ -35,7 +35,8 @@ The three that edit in place:
   for telling filaments apart at a glance:
   a colour picker, a hex field, and a clear.
 
-**Archive** asks with the consequence and the way back both named:
+Choosing **Archived** asks with the consequence
+and the way back both named:
 "Archive "‹name›" and all its purchase lots?
 You can un-archive it later." —
 the cascade of

@@ -26,7 +26,8 @@ What every one has:
 - **[Notes](notes.spec.md) and [tags](tags.spec.md)** —
   any entity may carry both;
   each page says whether it places the sections.
-- **The [lifecycle](lifecycle.spec.md) actions** for its state.
+- **Its [lifecycle](lifecycle.spec.md) state**,
+  changed with [the dropdown](dropdown.spec.md).
 - **No save buttons of its own** —
   editing changes the shop in memory;
   storing it is the header's one [Save](../saving.spec.md).
