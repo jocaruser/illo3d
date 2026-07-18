@@ -1,6 +1,10 @@
 # Notes
 
-Notes are the diary of a client — and of a job.
+Notes are an entity's diary.
+Clients and jobs place the section today,
+and any entity may —
+the data model already allows every kind
+([schema.dbml](../../schema.dbml)).
 This shared file owns the mechanics;
 the pages only place the section.
 

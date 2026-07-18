@@ -1,4 +1,10 @@
-# A client's activity
+# The activity timeline
+
+> **Parked — pending a full respec.**
+> The timeline will become a shared section that most entities carry,
+> and its content will be rethought entirely.
+> Until then, the below records today's client-only behaviour,
+> unrevised.
 
 One feed, newest first, merging everything that happened around the client:
 

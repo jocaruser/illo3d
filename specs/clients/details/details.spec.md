@@ -12,7 +12,7 @@ Everything about one client:
 - [The metrics](metrics.spec.md) — their money story in five figures.
 - [Tags](../../shared/tags.spec.md) and [notes](../../shared/notes.spec.md) —
   the same sections every job has.
-- [The activity timeline](timeline.spec.md).
+- [The activity timeline](../../shared/timeline.spec.md).
 - [Their jobs](jobs-table.spec.md), with "Add job"
   creating one already assigned to them.
 

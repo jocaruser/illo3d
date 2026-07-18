@@ -1,29 +1,31 @@
 # Lifecycle on a details page
 
-Every entity with a page of its own —
-a job, a client, a material —
-exercises its
-[lifecycle](../decisions/ADR-0014-archive-then-delete-lifecycle.md)
-there, the same way:
+How the three states of
+[ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md)
+look and act on the page of any entity that has one:
 
-- An active entity offers **Edit** and **Archive**.
-- An archived entity is read-only —
-  no editing anywhere on the page —
-  and offers **Un-archive** and **Soft delete**.
-- A soft-deleted entity's address shows
-  [not found](../not-found.spec.md),
-  and other pages call it "Deleted entity".
+- An **active** entity is editable,
+  and offers **Edit** and **Archive**.
+  Archiving asks first, naming its cascade —
+  each page quotes its own wording.
+- An **archived** entity is frozen:
+  read-only everywhere on the page, nothing editable,
+  offering **Un-archive** and **Delete**.
+  Deleting asks first, and says there is no way back.
+- A **deleted** entity has no page:
+  its address is [not found](../not-found.spec.md),
+  like everything else about it.
 
-(Today's code lags parts of this machine —
-editable archived pages, missing Un-archive controls —
-[queued](../DIVERGENCES.md) as one piece of work.)
+Away from its page, an archived entity stays visible,
+struck through wherever it would appear
+([how tables show it](table.spec.md));
+a deleted one appears nowhere at all.
 
-## Children are history, not clutter
+## Children on a parent's page
 
-Embedded tables on a details page —
-a job's pieces, a client's jobs —
-show *all* children, whatever their state:
-archived ones struck through, read-only, with an Un-archive action;
-soft-deleted ones struck through as "Deleted entity".
-The full story of a parent stays visible in one place,
-even when its parts have been tidied away.
+A parent's embedded tables — a job's pieces, a client's jobs —
+show their archived children struck through,
+each with its own Un-archive;
+deleted children are simply absent,
+as is every trace of them
+([ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md)).

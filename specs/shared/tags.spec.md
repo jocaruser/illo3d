@@ -2,7 +2,9 @@
 
 Tags are shared labels —
 one pool for the whole shop,
-attachable to clients and jobs alike.
+attachable to any entity
+([schema.dbml](../../schema.dbml) already allows every kind);
+clients and jobs place the section today.
 This shared file owns the mechanics;
 the pages only place the section.
 
@@ -19,5 +21,4 @@ Scenarios — submitting the box:
 - A genuinely new name → the tag is created and attached.
 - A tag the owner already has → quietly refused.
 
-Tags surface wherever their owner does:
-in list tooltips, and in [search](../search.spec.md).
+Tags follow their owner into list tooltips.
