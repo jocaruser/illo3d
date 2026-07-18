@@ -51,8 +51,14 @@ click Google Drive again to open the Google sign-in window."
   → back to a clean welcome screen:
   identity, storage choice and any half-open shop are all discarded.
   There are no partial states to resume.
-- While a chosen flow is working
+- While the folder picker or a shop is opening
   → both doors are disabled until it finishes or fails.
+- While the Google sign-in window is open
+  → the doors stay usable — deliberately,
+  so the hint's advice to press Google Drive again can work.
+- A flow fails
+  → the reason appears in a message beneath the doors,
+  offering "Try again".
 - On a browser without local-folder support
   → pressing **Local folder** says so
   ([local folder](local-folder.spec.md) owns the message).

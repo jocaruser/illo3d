@@ -13,18 +13,23 @@ Top to bottom:
   or simply "Local user".
 - **Where this shop lives.**
   With Google: a link, "Open Drive folder",
-  opening the shop's folder in a new tab.
+  opening the shop's folder in a new tab,
+  with the folder's name beneath it.
   Locally: the folder's name.
 - **Preferences.**
-  The same language (EN/ES) and theme (light/dark) choices
+  The same language and theme (light/dark) choices
   as [the welcome screen](welcome/welcome.spec.md) —
-  one preference, editable from either place.
+  one preference, editable from either place,
+  though here the Spanish choice is spelt "Español"
+  where the welcome toggle says "ES".
 - **Versions.**
   One quiet line: "App ‹version› · Shop ‹version›" —
   the app you are running,
-  and the version your shop's files are on
-  (they only differ transiently;
-  [the migration wizard](migration/wizard.spec.md) exists to close the gap).
+  and the version your shop's files are on.
+  They drift apart with every minor and patch release
+  and stay apart;
+  only a major upgrade —
+  [the migration wizard](migration/wizard.spec.md) — closes the gap.
 - Two placeholders that do nothing yet,
   visibly disabled: "Edit metadata.json" and "Changelog".
 - **Sign out.**

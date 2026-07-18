@@ -8,9 +8,9 @@ Money follows
 |---|---|
 | Paid (ledger) | Income actually recorded for this client, summed |
 | Outstanding (jobs) | Derived totals of their not-yet-paid, not-cancelled jobs |
-| Jobs | How many jobs they have, in any state |
+| Jobs | How many jobs they have, whatever the status — archived and deleted ones not counted |
 | Avg job price | The mean derived total of their priceable, non-cancelled jobs |
-| Materials (estimate) | What their completed pieces consumed, at average purchase prices |
+| Materials (estimate) | What their completed pieces consumed, at average purchase prices — a piece with no units counting as one |
 
 The ledger counts what happened;
 outstanding counts what should —

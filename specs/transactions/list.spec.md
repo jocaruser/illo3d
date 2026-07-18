@@ -24,7 +24,7 @@ The table behaves
 | Type | Income or Expense |
 | Amount | Income positive and green; spending negative and red |
 | Category | What kind of spending; income from jobs says "job" |
-| Concept | Links to what explains it — the job for income, [the purchase's page](expense-details.spec.md) for spending with materials; plain otherwise |
+| Concept | Links to what explains it — the job for income, [the purchase's page](expense-details.spec.md) for spending with live purchase lots; plain otherwise, including once a purchase's materials have been archived |
 | Client | Opens the client, when the movement has one |
 
 Empty ledger:

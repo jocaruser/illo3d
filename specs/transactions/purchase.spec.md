@@ -10,7 +10,14 @@ a category — filament, consumable, equipment,
 electric, maintenance or other —
 and an optional note,
 which becomes the transaction's description
-(the category stands in when the note is empty).
+(the category stands in when the note is empty,
+as its stored identifier — "filament", say —
+verbatim in every language).
+
+A cost of zero is refused anywhere in this dialog —
+"Amount must be greater than zero";
+a genuinely free batch is recorded afterwards
+as [a lot correction](../inventory/details/lots.spec.md).
 
 ## Without "Add to inventory"
 

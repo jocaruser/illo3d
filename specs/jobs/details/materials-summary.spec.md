@@ -7,8 +7,8 @@ One row per material the job's pieces use, aggregated:
 | Inventory | The material, opening its page |
 | Quantity | Everything the job needs of it, across all pieces and units |
 | Est. cost | That quantity at the material's average purchase price |
-| Remaining | Current stock |
 | Redos | For filament: how many times the job could be re-printed from stock; others show a dash |
+| Remaining | Current stock |
 | Used in | The pieces that use it |
 
 Filament first, then consumables, then equipment.

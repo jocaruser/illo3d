@@ -16,7 +16,9 @@ Scenarios — submitting the box:
 - An existing tag picked → attached.
 - A name matching an existing tag, in any capitalisation,
   → that tag is reused — the pool never gains duplicates.
-- A genuinely new name → the tag is created and attached.
+- A genuinely new name → the tag is created and attached,
+  Title-Cased into the pool
+  ("mesh repair" becomes "Mesh Repair").
 - A tag the owner already has → quietly refused.
 
 Tags surface wherever their owner does:

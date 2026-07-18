@@ -27,9 +27,15 @@ Scenarios:
   → the page says exactly how —
   "Lot line amounts sum to €‹lots› but this expense total is €‹total›.
   Adjust the fields so they match before saving." —
-  and Save stays blocked until they agree, to the cent.
+  and Save stays blocked until they agree,
+  within one cent — the honesty limit of money arithmetic.
+- Any figure unreadable as a number
+  → the mismatch check suspends itself;
+  saving then refuses the bad field on its own terms.
 - The purchase has no lots
-  → only the total applies; nothing blocks.
+  → the section says
+  "No linked purchase lots for this expense.",
+  only the total applies, and nothing blocks.
 
 Amending here fixes the record —
 it does not re-run the purchase:

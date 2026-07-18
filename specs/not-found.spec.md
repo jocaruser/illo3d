@@ -1,19 +1,23 @@
 # Not found
 
-The not-found card tells the user an address leads nowhere:
-**"This page does not exist."**
-with one way out — "Back to dashboard".
-The [header and menu](navigation.spec.md) stay in place around it;
+The not-found card tells the user an address leads nowhere,
+adapting its message and its way out to what was missed:
+
+| Missing | Message | Way out |
+|---|---|---|
+| Any unknown address | "This page does not exist." | "Back to dashboard" |
+| A job | "Job not found." | "Back to jobs" |
+| A client | "Client not found." | "Back to clients" |
+| A material | "No inventory item with this id." | "Back to inventory" |
+| An expense | "This transaction could not be found or is not an expense." | "Back to transactions" |
+
+Something soft-deleted counts as missing —
+a deleted job's or client's own page renders not-found,
+as if it no longer existed
+(each details page's spec links here for its own case).
+
+The [header and menu](navigation.spec.md) stay in place around the card;
 the user is lost, not stranded.
-
-It appears for:
-
-- any address that matches no page at all;
-- the address of something soft-deleted —
-  a deleted job's or client's own page renders not-found,
-  as if it no longer existed
-  (each details page's spec links here for its own case).
-
-Being on the not-found card changes nothing else:
+Being here changes nothing else:
 no data is touched, and unsaved edits
 ([saving](saving.spec.md)) survive the detour.

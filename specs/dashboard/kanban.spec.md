@@ -2,7 +2,8 @@
 
 Five columns — Draft, In progress, Delivered, Paid, Cancelled —
 one card per job that is not archived or deleted.
-An empty column says "No jobs".
+Each column's header counts its cards;
+an empty column says "No jobs".
 
 ## A card
 
@@ -11,18 +12,24 @@ and as much of its money story as is known:
 the job's total when every piece is priced
 (the rules are
 [the job's widgets'](../jobs/details/widgets.spec.md)),
-with the expected benefit in brackets after it;
-an *incomplete* marker instead, when pricing is missing.
-Below, the making progress — "‹done›/‹total› pieces done" —
-and a lateness badge coloured on
-[the due-date scale](../jobs/details/widgets.spec.md#due-date).
-Pressing a card opens the job.
+or an *incomplete* marker when pricing is missing —
+with the expected benefit in brackets after either,
+whenever it is computable.
+A job with at least one piece adds its making progress —
+"‹done›/‹total› pieces done".
+Last, a badge — "Due ‹date›" —
+coloured on
+[the due-date scale](../jobs/details/widgets.spec.md#due-date),
+neutral while the job is not late.
+Pressing the description opens the job;
+the rest of the card is for dragging.
 
 ## Moving cards
 
 Cards drag between and within columns;
 within a column, the drop position is kept as the ordering.
-Each card also carries a "Move to column" control for keyboards.
+Each card also carries a status control for keyboards,
+labelled "Status for job ‹id›".
 
 Moving is changing the job's status,
 so it obeys the job's own gates —
@@ -35,5 +42,7 @@ A refused move leaves the card where it was.
 Paid and Cancelled cards are for recent history, not archaeology:
 once such a job is past its due date by more than a few days
 (five, unless [the shop's metadata](../entities/metadata.spec.md)
-tunes it), its card quietly leaves the board.
+tunes it — a job with no due date measured from its creation date,
+[the widgets' fallback](../jobs/details/widgets.spec.md#due-date)),
+its card quietly leaves the board.
 The job itself is untouched — it simply stops occupying the present.

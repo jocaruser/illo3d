@@ -45,3 +45,5 @@ rather than restating it.
 
 Addresses that lead nowhere show the [not-found card](not-found.spec.md),
 inside the normal chrome.
+Two addresses from older versions redirect instead:
+`#/login` goes home, and `#/expenses` opens the transactions.

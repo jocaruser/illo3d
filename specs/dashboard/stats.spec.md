@@ -4,12 +4,14 @@ Four figures, each a card; two of them are doors to the money pages.
 
 | Card | Shows | Pressing it |
 |---|---|---|
-| Balance | Every transaction summed — the shop's money position. Green positive, red negative. | Opens transactions |
+| Balance | Every transaction summed — the shop's money position. Green positive, red negative, neutral at zero. | Opens transactions |
 | Active jobs | How many jobs are draft or in progress | — |
 | Revenue this month | Income dated this calendar month, summed | Opens transactions |
-| Pieces completed (7 days) | Pieces finished in the last seven days | — |
+| Pieces completed (7 days) | Done pieces created in the last seven days — nothing records the moment a piece was finished, so its creation stands in | — |
 
-Archived and deleted things count in none of them.
+Archived and deleted things count in none of them
+(the benefit estimate below makes the one exception,
+still counting archived pieces).
 
 ## Expected benefit
 

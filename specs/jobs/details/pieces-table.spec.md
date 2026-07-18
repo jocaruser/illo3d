@@ -17,8 +17,7 @@ Each row edits in place:
 | Units | A whole number, at least one |
 | Price / unit | Zero allowed (a gift); beside it, the suggestion — see below |
 | Line total | units × price, when both are set |
-| Benefit | The line's revenue minus its material cost |
-| Stock / redo | The run's margin — green ≥ 2 redos, amber 1, red 0 |
+| Est. benefit | The line's revenue minus its material cost |
 | Status | Pending / Done / Failed — see the scenarios |
 | Created | |
 
@@ -26,13 +25,18 @@ Each row edits in place:
 is the piece's material cost times three,
 a starting point, not a rule
 ([ADR-0015](../../decisions/ADR-0015-derived-pricing-and-income-on-paid.md)).
-It appears only when every material's cost is known.
+While any material's cost is unknown the button stays,
+disabled, reading "No suggested price available".
 
 ## Material lines
 
-A piece expands to its materials:
-each line names a material
-(picked from live stock — "‹name› (‹id›) — ‹qty› left"),
+A piece expands to its materials,
+led by the run's stock margin — a "Run stock" line:
+how many times the whole run could be re-made from current stock,
+green from two redos, amber at one, red at none.
+Each line names a material
+(picked from live stock — "‹name› (‹id›) — ‹qty› left",
+the quantity in grams, "‹qty›g left", for filament),
 a quantity per unit made,
 its cost, and its stock margin.
 "Add material line" adds a row with the picker ready;
@@ -55,8 +59,11 @@ The need is each line's quantity × the piece's units.
   You can choose whether to decrement inventory." —
   with "Decrement from inventory" ticked by default.
 - Stock cannot cover the need →
-  the dialog lists each shortage ("‹id›: need ‹n›, have ‹m›")
+  the dialog lists each shortage by material name
+  ("‹name›: need ‹n›, have ‹m›")
   and completing is still allowed with the decrement unticked.
+- Done to Failed, or back → both mean made,
+  so the switch commits silently — no dialog, no stock movement.
 - A completed piece back to Pending → **"Revert piece status"**:
   "Move this piece back to pending?
   You can choose whether to restore inventory quantities." —

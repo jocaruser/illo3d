@@ -13,7 +13,7 @@ Sign-in happens in a Google window.
 Scenarios:
 
 - Sign-in completes → the "Connect your shop" screen appears,
-  showing who is signed in (name and picture).
+  showing who is signed in (name, email and picture).
 - Sign-in fails or is abandoned
   → back to the welcome screen with
   "Sign-in did not complete. Please try again."
@@ -55,5 +55,9 @@ save the folder ID from the URL."
   → signs out entirely and returns to the welcome screen
   ([the reset contract](welcome.spec.md)).
 - Reopening the app later in the same browser
-  → the shop reopens and Google access renews silently;
-  only when that renewal fails does the app ask you to sign in again.
+  → the shop reopens and Google access renews silently.
+- That renewal fails
+  → a banner over the app warns
+  "Your Google sign-in expired.
+  Save and sync may fail until you sign in again."
+  and offers the fresh sign-in that clears it.

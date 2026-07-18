@@ -7,6 +7,11 @@ a grid of weeks on a wide screen,
 a list of days on a narrow one —
 with controls for the previous month, "Today", and the next.
 Today's square is highlighted.
+The squares completing the first and last weeks
+belong to the neighbouring months and stay empty —
+their jobs wait for their own month.
+Days are reckoned in universal time,
+so near midnight a job can sit one square from the local date.
 
 Each job that is not archived or deleted appears on its due date
 (a job with no due date sits on its creation date instead —

@@ -3,11 +3,12 @@
 A material's identity — id, type, average unit cost, created date —
 and its three editable facts:
 
-- **Current stock** — a number, zero or more,
-  two decimals at most.
+- **Current stock** — the "Qty (current)" field:
+  a number, zero or more, two decimals at most.
   Purchases and [completed pieces](../../jobs/details/pieces-table.spec.md)
   move it automatically; this edit is for corrections.
-- **Warning thresholds** — three levels: amber, orange, red.
+- **Warning thresholds** — three levels: yellow, orange, red,
+  each a whole number.
   Stock at or below a level tints it —
   [in the list](../list.spec.md)
   and on [the dashboard's alerts](../../dashboard/stock-alerts.spec.md) —

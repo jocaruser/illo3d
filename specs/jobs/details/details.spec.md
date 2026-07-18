@@ -3,13 +3,13 @@
 Everything about one job, top to bottom:
 
 - [The widgets](widgets.spec.md) — identity, status, money, risk.
+- [The materials summary](materials-summary.spec.md) —
+  what the making consumes.
 - Tags and notes —
   the same sections every client has;
   [tags](../../clients/details/tags.spec.md)
   and [notes](../../clients/details/notes.spec.md) own the mechanics.
 - [The pieces](pieces-table.spec.md) — what is being made.
-- [The materials summary](materials-summary.spec.md) —
-  what the making consumes.
 
 A back link returns to [the list](../list.spec.md);
 breadcrumbs behave as [navigation](../../navigation.spec.md) says.
@@ -27,6 +27,10 @@ is exercised:
 - A soft-deleted job's address shows
   [not found](../../not-found.spec.md),
   and other pages call it "Deleted entity".
+
+(Today the page offers Soft delete while the job is still active;
+moving it behind Archive is
+[queued](../../DIVERGENCES.md) with the rest of the lifecycle work.)
 
 ## Children are history, not clutter
 

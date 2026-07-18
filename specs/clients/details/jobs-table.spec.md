@@ -9,7 +9,7 @@ soft-deleted ones struck through as "Deleted entity".
 
 Columns are the essentials of
 [the jobs list](../../jobs/list.spec.md):
-description (opening the job), status, total, created —
+id (opening the job), description, status, total, created —
 money rules included.
 A search box appears once there is something to search.
 

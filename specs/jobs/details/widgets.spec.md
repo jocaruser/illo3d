@@ -4,9 +4,14 @@ The top of the page is a grid of small cards.
 Money follows one law throughout
 ([ADR-0015](../../decisions/ADR-0015-derived-pricing-and-income-on-paid.md)):
 **a job's total is the sum of units × per-unit price over its pieces** —
-deleted pieces excluded, archived ones still counting —
-and when any counting piece lacks a price or units,
-every money figure shows **"Incomplete pricing"** instead of a number.
+deleted pieces excluded, archived ones still counting.
+When any counting piece lacks a price or units —
+or the job has no pieces at all —
+the price-derived figures, Total and Benefit,
+show **"Incomplete pricing"** instead of a number.
+The quantity-derived figures —
+Filament, Consumables, Material cost — always show,
+counting a piece with no units as a single unit.
 
 | Widget | Shows |
 |---|---|
@@ -46,6 +51,7 @@ Draft, in progress and delivered move freely between each other.
 The edges are gated:
 
 - Moving to **Paid** or **Cancelled** with pricing incomplete
+  (a job with no pieces always is)
   → refused:
   "Set a per-unit price and a units count on every piece
   for this job before moving it to Paid or Cancelled."
@@ -57,7 +63,9 @@ The edges are gated:
   Confirming with it ticked records the income
   against the job and its client; unticked records nothing.
 - Moving to **Cancelled** → "Cancel job": "Mark this job as cancelled?"
-- Leaving **Paid** → "Change status from paid?":
+- Leaving **Paid** — to Cancelled included,
+  which asks only this graver question
+  → "Change status from paid?":
   "This job is paid and already has an income transaction.
   Changing it to "‹status›" means if you mark it paid again,
   another income transaction will be added. Continue?" —
