@@ -6,8 +6,18 @@ and two sections below:
 [the purchase lots](lots.spec.md)
 and [the consumption](consumption.spec.md).
 
-Its identity: id, name, type, average unit cost, created date.
-Its three editable facts:
+Its widgets, in [the shell's grid](../../shared/details.spec.md):
+
+| Widget | Shows |
+|---|---|
+| ID | The material's id, name and type, with the page's Archive action |
+| Avg unit cost | What a unit has cost on average, from its purchases |
+| Created | When the material was created |
+| Current stock | Editable in place — below |
+| Warning thresholds | Editable in place — below |
+| Swatch colour | Editable in place — below |
+
+The three that edit in place:
 
 - **Current stock** — a number, zero or more,
   two decimals at most.

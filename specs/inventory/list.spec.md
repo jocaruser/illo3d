@@ -1,14 +1,11 @@
 # Inventory
 
-A page at `#/inventory`:
-the shop's materials, one row each,
-loaded from the `inventory` table
+The listing page for the shop's materials.
+It lives at `#/inventory`
+and follows [the list page](../shared/list.spec.md);
+its title is "Inventory".
+The rows load from the `inventory` table
 ([schema.dbml](../../schema.dbml)).
-The table renders as [all tables do](../shared/table.spec.md)
-and behaves as [all lists do](../shared/lists.spec.md);
-its quiet empty row teaches where materials come from:
-"No inventory items yet.
-Record a purchase with “Add to inventory” to create items."
 
 | Column | Notes |
 |---|---|
@@ -19,6 +16,13 @@ Record a purchase with “Add to inventory” to create items."
 | Avg unit cost | What a unit has cost on average, from its purchases; a dash before any purchase |
 | Created | |
 
-There is no "add" button, and nothing edits here:
-everything about a material is edited
-[on its page](details/details.spec.md).
+Where it departs from the default:
+
+- **No Add button** — materials are created by
+  [purchases](../transactions/purchase.spec.md),
+  and the quiet empty row
+  ([tables](../shared/table.spec.md)) teaches that:
+  "No inventory items yet.
+  Record a purchase with “Add to inventory” to create items."
+- **No Actions column** — everything about a material is edited
+  [on its page](details/details.spec.md).
