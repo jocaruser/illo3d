@@ -1,8 +1,9 @@
 # Welcome
 
-The welcome screen is the app's front door.
-It appears whenever no shop is open,
-and its whole job is one question:
+The welcome screen is the app's front door —
+no address of its own:
+it replaces every page while no shop is open.
+Its whole job is one question:
 **"Where do you want to store your shop?"**
 
 ## When it appears — and when it doesn't
