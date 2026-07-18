@@ -19,7 +19,7 @@ The rows load from the `inventory` table
 Where it departs from the default:
 
 - **No Add button** — materials are created by
-  [purchases](../transactions/purchase.spec.md),
+  [purchases](../transactions/create.spec.md),
   and the quiet empty row
   ([tables](../shared/table.spec.md)) teaches that:
   "No inventory items yet.

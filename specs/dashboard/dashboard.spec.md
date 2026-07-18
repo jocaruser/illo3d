@@ -9,9 +9,9 @@ and shows no breadcrumbs — this is the root
 Top to bottom:
 
 - **Record purchase**
-  ([the purchase flow](../transactions/purchase.spec.md))
+  ([the purchase flow](../transactions/create.spec.md))
   and **Add job**
-  ([the jobs list's dialog](../jobs/list.spec.md)).
+  ([the create flow](../jobs/create.spec.md)).
 - [The numbers](stats.spec.md).
 - **The board or the calendar** — one at a time:
   a Kanban / Calendar switcher that starts on the board

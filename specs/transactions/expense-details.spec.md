@@ -1,8 +1,10 @@
 # A purchase's page
 
-Only purchases have a page of their own —
-income rows explain themselves through their job.
-Any other id here is [not found](../not-found.spec.md).
+A page at `#/transactions/{id}`,
+with [everything a details page has](../shared/details.spec.md)
+— only purchases have one:
+income rows explain themselves through their job,
+and any other id here is [not found](../not-found.spec.md).
 
 The header states the facts:
 id, date, type, category,
@@ -13,7 +15,10 @@ and the client if there is one.
 ## Amending
 
 Two things can be corrected here,
-saved together by one "Save changes":
+saved together by one "Save changes" —
+a declared departure from
+[the shell's no-save rule](../shared/details.spec.md),
+kept because the match rule below needs a gate:
 
 - **the expense total** — always negative, it is spending;
 - **each purchase lot** — the material (linked),

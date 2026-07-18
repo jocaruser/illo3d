@@ -1,12 +1,16 @@
 # Recording a purchase
 
-One dialog records money spent —
+The flow behind the transactions list's "Record purchase" —
+a [dialog](../shared/dialogs.spec.md), "Record purchase",
+also offered by [the dashboard](../dashboard/dashboard.spec.md).
+It records money spent —
 and, when the purchase bought materials,
 feeds the [inventory](../inventory/list.spec.md) in the same stroke.
 
 Always asked:
 the date (today, editable),
-a category — filament, consumable, equipment,
+a category — [a dropdown](../shared/dropdown.spec.md) over
+filament, consumable, equipment,
 electric, maintenance or other —
 and an optional note,
 which becomes the transaction's description
@@ -21,7 +25,8 @@ just the amount, recorded as spending. Done.
 
 The purchase becomes lines, one per material bought:
 
-- each line picks an existing material —
+- each line picks an existing material with
+  [the dropdown](../shared/dropdown.spec.md) —
   or "New item", naming and typing a material
   created by this very purchase
   (that is [the only way materials are born](../inventory/list.spec.md));

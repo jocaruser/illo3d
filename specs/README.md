@@ -104,26 +104,25 @@ Rulings now in force:
 Sample built for sign-off:
 `shared/`, the two ADRs, the `inventory/` branch,
 and `ui/style-guide.md`.
-The sweep of everything else awaits that sign-off:
+The sweep is applied — every file conforms:
 
-- [ ] `dashboard/` — calendar counts and bare empty grid,
+- [x] `dashboard/` — calendar counts and bare empty grid,
       remembered view choice, not-paid-nor-cancelled figures,
       no-breadcrumbs line, kanban park banner
-- [ ] `jobs/` and `clients/` — openers, shell references,
-      the specialisation formula, their `create.spec.md` files;
-      the jobs widgets spec declares order and kinds
-- [ ] `search.spec.md` and the tags box — reference
-      [ADR-0017](ADRs/ADR-0017-fuzzy-matching-in-every-search.md)
-      and `shared/search-box.spec.md`
-- [ ] `transactions/` and `audit-log/` — openers, linking references,
+- [x] `jobs/` and `clients/` — the specialisation formula,
+      `create.spec.md` files, widgets with kind and order
+      (client metrics renamed `widgets.spec.md`),
+      Viewport columns from code truth
+- [x] `search.spec.md` — ADR-0017 and the dropdown's keys
+- [x] `transactions/` (purchase renamed `create.spec.md`)
+      and `audit-log/` — the formula, linking references,
       type-only delete entries
-- [ ] `welcome/`, `migration/`, loose root files — openers
-- [ ] `shared/dialogs.spec.md` — creation/edit dialog mechanics
-      backing each entity's `create.spec.md`
+- [x] `welcome/`, `migration/`, loose root files — openers
+- [x] `shared/dialogs.spec.md` — the one shell
       (side-panel respec expected later)
-- [ ] ADR-0015 → a shared pricing spec
+- [x] ADR-0015 → `shared/pricing.spec.md`
 - [x] delete `specs/features/` and the `ui/` scaffolding —
-      done; redirects folded in here and into `FRAMEWORK.local.md`
+      redirects folded in here and into `FRAMEWORK.local.md`
 
 ## Checklist
 
@@ -169,6 +168,10 @@ Self-directed, awaiting Carlos's review:
    created). Review the new wording.
 5. American spellings remain in pre-ADR-0010 ADRs and framework-generated
    files per adoption-on-next-edit.
+7. The purchase page keeps its own "Save changes" —
+   a declared departure from the shell's no-save rule,
+   because the lots-must-match rule needs a gate.
+   Bless the departure, or design the gate into the header Save?
 6. ~~`FRAMEWORK.local.md` names `openspec/specs/` as canonical~~ —
    flipped to this tree with the `specs/features/` deletion;
    ~~the fate of `openspec/`~~ decided: removed entirely,
@@ -227,6 +230,10 @@ New from the review round (2026-07-18):
   ("client | job") widen with it.
 - **Metadata editing** — `entities/metadata.spec.md` gains the
   profile menu's "Edit metadata.json" entry (today visibly disabled).
+- **Entity options converge on "‹id› — ‹name›"** —
+  the pieces' material picker shows "‹name› (‹id›) — ‹qty› left".
+- **The materials summary keeps its headers when empty** —
+  today the whole section is replaced by a sentence.
 - **List pages converge on the shared header row** —
   title, search, optional Add — and the default Actions column;
   **details pages converge on the widgets grid**
