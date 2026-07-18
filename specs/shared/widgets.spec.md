@@ -25,7 +25,7 @@ Five kinds of widget:
 
 Any widget may be read-only or edit in place;
 an edit changes the shop in memory,
-stored by the header's one [Save](../saving.spec.md).
+stored by the header's one [Save](../saving/saving.spec.md).
 
 The specialisation's own widgets spec declares
 the order, the kind of each,

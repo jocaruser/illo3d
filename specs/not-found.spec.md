@@ -16,4 +16,4 @@ It appears for:
 
 Being on the not-found card changes nothing else:
 no data is touched, and unsaved edits
-([saving](saving.spec.md)) survive the detour.
+([saving](saving/saving.spec.md)) survive the detour.

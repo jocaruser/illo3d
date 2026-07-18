@@ -27,7 +27,7 @@ The product accepts the limitation and states it plainly:
 Whatever was saved earlier by another tab or device
 is overwritten wholesale, without warning.
 
-`specs/saving.spec.md` records this as observable behaviour
+`specs/saving/saving.spec.md` records this as observable behaviour
 so nobody mistakes it for an oversight.
 
 ## Consequences

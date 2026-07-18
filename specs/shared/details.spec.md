@@ -29,4 +29,4 @@ What every one has:
 - **The [lifecycle](lifecycle.spec.md) actions** for its state.
 - **No save buttons of its own** —
   editing changes the shop in memory;
-  storing it is the header's one [Save](../saving.spec.md).
+  storing it is the header's one [Save](../saving/saving.spec.md).

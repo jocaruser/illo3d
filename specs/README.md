@@ -136,7 +136,7 @@ Reviewed and confirmed in session:
 
 - [x] `welcome/` — welcome, local-folder, google-drive
 - [x] `migration/` — wizard, v1-to-v2, v2-to-v3
-- [x] `navigation.spec.md`, `saving.spec.md`, `not-found.spec.md`
+- [x] `navigation.spec.md`, `saving/`, `not-found.spec.md`
   (committed with the merge; content amendable)
 - [x] review round one — rulings above; `shared/`, decisions,
   `inventory/`, `ui/style-guide.md` corrected as the sample

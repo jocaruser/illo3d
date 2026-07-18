@@ -30,5 +30,5 @@ Top to bottom:
 - **Sign out.**
   Closes the shop and returns to the
   [welcome screen](welcome/welcome.spec.md).
-  [Unsaved changes](saving.spec.md) are discarded —
+  [Unsaved changes](saving/saving.spec.md) are discarded —
   today without the confirmation that Refresh asks for.

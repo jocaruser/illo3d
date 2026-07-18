@@ -14,7 +14,7 @@ From left to right:
 - **The section links** — Dashboard, Clients, Jobs, Transactions,
   Inventory, Audit Log.
 - **Refresh and Save** — the workbook controls
-  (their meaning is [saving](saving.spec.md)'s).
+  (their meaning is [saving](saving/saving.spec.md)'s).
 - **Search** — [the global search box](search.spec.md).
 - **The profile avatar** — opening [the profile menu](profile.spec.md).
 

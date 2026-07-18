@@ -6,7 +6,7 @@ clients, jobs, pieces, notes, transactions, materials and tags,
 all at once, as you type.
 
 Search reads what is currently loaded
-(including unsaved edits — see [saving](saving.spec.md));
+(including unsaved edits — see [saving](saving/saving.spec.md));
 archived and deleted things do not appear.
 
 ## Typing
