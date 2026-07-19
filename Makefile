@@ -1,4 +1,4 @@
-.PHONY: help init up down logs dev build preview wiki-dev wiki-build wiki-preview install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
+.PHONY: help init up down logs dev build preview wiki wiki-export install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
 
 APP = docker compose exec app
 E2E_VITE_PORT ?= 5174
@@ -52,14 +52,19 @@ preview: ## Preview the production build
 	$(APP) pnpm preview --host
 
 # ============ SPECS WIKI ============
-wiki-dev: ## Specs wiki dev server on :5176
-	$(APP) pnpm wiki:dev
+# The wiki engine lives in jocaruser/specs-wiki and ships as a Docker image;
+# it fetches specs/ from GitHub at view time, so merged spec changes are
+# visible on the published wiki with no deploy. The mounted specs/ appears
+# as the "local" entry in its version menu (refresh to see edits).
+WIKI_IMAGE ?= ghcr.io/jocaruser/specs-wiki:v1
+WIKI_ENV = -e CONTENT_REPO=jocaruser/illo3d -e SITE_TITLE="illo3d specs" -e APP_URL=https://jocaruser.github.io/illo3d/
 
-wiki-build: ## Build specs wiki (latest + release snapshots)
-	$(APP) pnpm wiki:build
+wiki: ## Specs wiki on :5176 (GitHub versions + local specs/)
+	docker run --rm -p 5176:5176 $(WIKI_ENV) -v $(PWD)/specs:/content:ro $(WIKI_IMAGE)
 
-wiki-preview: ## Preview the built specs wiki on :5176
-	$(APP) pnpm wiki:preview
+wiki-export: ## Export the wiki site to ./dist-wiki (what deploy.yml embeds)
+	rm -rf dist-wiki && mkdir -p dist-wiki
+	docker run --rm $(WIKI_ENV) -v $(PWD)/dist-wiki:/out $(WIKI_IMAGE) export
 
 # ============ DEPENDENCIES ============
 install: ## pnpm install inside the app container

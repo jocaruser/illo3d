@@ -4,9 +4,7 @@ node_modules
 # Build output
 dist
 dist-e2e
-wiki/.vitepress/dist
-wiki/.vitepress/cache
-wiki/.snapshots
+dist-wiki
 
 # Environment & secrets
 .env

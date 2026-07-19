@@ -62,14 +62,17 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 
 ### Specs wiki
 
-The behaviour specs in `specs/` are published as a public wiki:
-**`https://<your-username>.github.io/illo3d/specs/`** (VitePress; see `wiki/`).
+The behaviour specs in `specs/` are published as a public wiki at
+**`https://<your-username>.github.io/illo3d/specs/`**. The wiki is a static shell
+(engine: [jocaruser/specs-wiki](https://github.com/jocaruser/specs-wiki), pulled as a
+pinned Docker image) that **fetches the `.md` files from GitHub at view time** — merged
+spec changes are visible immediately with no deploy, and a version menu lets readers view
+the specs at any release, branch head, or commit id (ADR-0014).
 
 | Target | Purpose |
 |--------|---------|
-| `make wiki-dev` | Wiki dev server on <http://localhost:5176> (hot-reloads on spec edits) |
-| `make wiki-build` | Full wiki build via `scripts/build-wiki.sh`: latest specs plus a frozen snapshot per release tag that contains `specs/` |
-| `make wiki-preview` | Serve the built wiki on <http://localhost:5176> |
+| `make wiki` | Wiki on <http://localhost:5176>; your working-tree `specs/` appears as the **local** entry in its version menu (refresh to see edits) |
+| `make wiki-export` | Export the wiki site to `./dist-wiki`, exactly as the deploy workflow embeds it |
 
 ### Dependencies
 
@@ -109,11 +112,11 @@ The behaviour specs in `specs/` are published as a public wiki:
 
 ## Deployment
 
-The app and the specs wiki are deployed together to **GitHub Pages** as one artifact.
+The app and the specs wiki shell are deployed together to **GitHub Pages** as one artifact.
 
 - **App URL:** `https://<your-username>.github.io/illo3d/`
-- **Wiki URL:** `https://<your-username>.github.io/illo3d/specs/` (version menu lists release snapshots)
-- **Workflow:** `.github/workflows/deploy.yml` — runs on every push to `main` touching `specs/` or the wiki tooling (so spec edits publish without a release), on manual dispatch, and via the release workflow after tagging
+- **Wiki URL:** `https://<your-username>.github.io/illo3d/specs/` (content is fetched from GitHub at view time — spec pushes need **no deploy at all**; the version menu offers releases, branches, and any commit)
+- **Workflow:** `.github/workflows/deploy.yml` — runs on manual dispatch, via the release workflow after tagging, and when the pipeline itself changes; it embeds the wiki shell from the pinned `ghcr.io/jocaruser/specs-wiki:v1` image
 
 ### Required repository setup
 
