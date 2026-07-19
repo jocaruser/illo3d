@@ -4,7 +4,7 @@ A page at `#/` — the home:
 the shop at a glance, the two most common actions one press away.
 It waits for the shop's data behind a spinner,
 and shows no breadcrumbs — this is the root
-([navigation](../navigation.spec.md)).
+([navigation](../topnavbar/navbar.spec.md)).
 
 Top to bottom:
 

@@ -1,6 +1,6 @@
 # Search
 
-One search box in the [header](navigation.spec.md),
+One search box in the [header](topnavbar/navbar.spec.md),
 promising exactly what it says: **"Search everything…"** —
 clients, jobs, pieces, notes, transactions, materials and tags,
 all at once, as you type.
@@ -41,4 +41,4 @@ a note shows a snippet of what matched.
   Escape also clears the box.
 
 Searching never changes which section of
-[the header](navigation.spec.md) is lit — only going somewhere does.
+[the header](topnavbar/navbar.spec.md) is lit — only going somewhere does.

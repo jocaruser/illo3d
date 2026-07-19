@@ -15,7 +15,7 @@ is [not found](../not-found.spec.md).
 
 What every one has:
 
-- **Breadcrumbs**, as [navigation](../navigation.spec.md) says,
+- **Breadcrumbs**, as [navigation](../topnavbar/navbar.spec.md) says,
   and a back link to its list.
 - **[Widgets](widgets.spec.md)** —
   every details page shows its entity's values as widgets.

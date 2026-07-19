@@ -6,7 +6,7 @@ Specialisations link this file and fill in the blanks:
 the title, the columns, and any departures.
 
 A list page usually lives at `#/{name}`,
-with breadcrumbs as [navigation](../navigation.spec.md) says.
+with breadcrumbs as [navigation](../topnavbar/navbar.spec.md) says.
 
 Above the table, one header row:
 

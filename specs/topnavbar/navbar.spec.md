@@ -1,4 +1,4 @@
-# Navigation
+# Navbar
 
 The app's chrome: what is always on screen once a shop is open,
 and how the user moves between pages.
@@ -14,8 +14,8 @@ From left to right:
 - **The section links** — Dashboard, Clients, Jobs, Transactions,
   Inventory, Audit Log.
 - **Refresh and Save** — the workbook controls
-  (their meaning is [saving](saving/saving.spec.md)'s).
-- **Search** — [the global search box](search.spec.md).
+  (their meaning is [saving](../saving/saving.spec.md)'s).
+- **Search** — [the global search box](../search.spec.md).
 - **The profile avatar** — opening [the profile menu](profile.spec.md).
 
 The current section's link is visibly active,
@@ -40,10 +40,10 @@ Pages earlier in the trail are links; the last entry is where you are.
 This rule is written once, here.
 Every page spec that shows breadcrumbs links to this section
 rather than restating it.
-The [dashboard](dashboard/dashboard.spec.md) — the root —
+The [dashboard](../dashboard/dashboard.spec.md) — the root —
 shows none; every trail starts below it.
 
 ## Dead ends
 
-Addresses that lead nowhere show the [not-found card](not-found.spec.md),
+Addresses that lead nowhere show the [not-found card](../not-found.spec.md),
 inside the normal chrome.

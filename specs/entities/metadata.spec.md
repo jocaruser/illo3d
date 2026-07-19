@@ -10,7 +10,7 @@ is treated as not being a shop at all.
 
 A user can open it — it is theirs, in their own storage —
 though the app never asks them to.
-The [profile menu](../profile.spec.md) offers
+The [profile menu](../topnavbar/profile.spec.md) offers
 **"Edit metadata.json"** as the app's own door to it.
 
 What it records, in user terms:
@@ -21,8 +21,8 @@ What it records, in user terms:
 | version | The app version that created or last [migrated](../migration/wizard.spec.md) the shop |
 | spreadsheetId | Which data file the shop's numbers live in |
 | createdAt, createdBy | When the shop was made, and by whom |
-| logo *(optional)* | An image file beside it, shown as the shop's own mark in the [header](../navigation.spec.md) |
-| iconsrc, userName *(optional)* | A local shop's avatar image and display name for the [profile menu](../profile.spec.md) |
+| logo *(optional)* | An image file beside it, shown as the shop's own mark in the [header](../topnavbar/navbar.spec.md) |
+| iconsrc, userName *(optional)* | A local shop's avatar image and display name for the [profile menu](../topnavbar/profile.spec.md) |
 | kanban *(optional)* | Board tuning — how many days until paid or cancelled jobs leave [the dashboard's board](../dashboard/kanban.spec.md) |
 | defaultDueDate *(optional)* | How many days from now a new job's due date suggests |
 

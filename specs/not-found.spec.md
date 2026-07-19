@@ -3,7 +3,7 @@
 The not-found card tells the user an address leads nowhere:
 **"This page does not exist."**
 with one way out — "Back to dashboard".
-The [header and menu](navigation.spec.md) stay in place around it;
+The [header and menu](topnavbar/navbar.spec.md) stay in place around it;
 the user is lost, not stranded.
 
 It appears for:

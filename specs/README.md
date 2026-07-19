@@ -132,14 +132,14 @@ Reviewed and confirmed in session:
 
 - [x] `welcome/` — welcome, local-folder, google-drive
 - [x] `migration/` — wizard, v1-to-v2, v2-to-v3
-- [x] `navigation.spec.md`, `saving/`, `not-found.spec.md`
+- [x] `topnavbar/navbar.spec.md`, `saving/`, `not-found.spec.md`
   (committed with the merge; content amendable)
 - [x] review round one — rulings above; `shared/`, decisions,
   `inventory/`, `ui/style-guide.md` corrected as the sample
 
 Self-directed, awaiting Carlos's review:
 
-- [x] `search.spec.md`, `profile.spec.md`, `entities/metadata.spec.md`
+- [x] `search.spec.md`, `topnavbar/profile.spec.md`, `entities/metadata.spec.md`
 - [x] `dashboard/` — overview, stats, kanban, calendar, stock-alerts,
   recent-transactions
 - [x] `shared/` — notes, tags, lists, lifecycle, table, details,
@@ -161,7 +161,7 @@ Self-directed, awaiting Carlos's review:
    and pages link to them.
 2. ~~How-lists-behave owner~~ — same resolution: `shared/list.spec.md`.
 3. Sign-out discards unsaved changes without the confirmation Refresh asks
-   for — specced as truth in `profile.spec.md`; fix queued as a task. Fix it?
+   for — specced as truth in `topnavbar/profile.spec.md`; fix queued as a task. Fix it?
 4. Two backend-inappropriate strings were fixed to spec them honestly:
    the structure error ("Google Sheet" → "files") and the transactions empty
    state ("Add data in Google Sheets." → how transactions are actually
@@ -193,7 +193,7 @@ From the first drafting pass:
   a real shop with a corrupt metadata file gets the "create new shop" offer,
   and confirming overwrites it; wants a defensive check.
 - **Sign-out discards unsaved edits without confirming**
-  (`profile.spec.md`):
+  (`topnavbar/profile.spec.md`):
   implemented on `feat/spec-divergences-implementation`, pending merge.
 - **Local re-permission on reopen**
   (`welcome/local-folder.spec.md`):
