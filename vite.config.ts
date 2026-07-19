@@ -1,12 +1,13 @@
 import path from 'path'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { cspConnectSrcPlugin } from './vite-plugins/csp-connect-src'
 import { fixturesRootPlugin } from './vite-plugins/fixtures-root'
 import { sheetsAppendPlugin } from './vite-plugins/sheets-append'
 
 export default defineConfig(({ mode }) => ({
   base: mode === 'production' ? '/illo3d/' : '/',
-  plugins: [fixturesRootPlugin(), react(), sheetsAppendPlugin()],
+  plugins: [fixturesRootPlugin(), react(), sheetsAppendPlugin(), cspConnectSrcPlugin()],
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
   },

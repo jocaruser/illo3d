@@ -92,8 +92,8 @@ importers:
         specifier: ^15.12.0
         version: 15.15.0
       google-drive-api-mock:
-        specifier: github:jocaruser/google-drive-api-mock
-        version: https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/ea710cfea933e6e9362924d89e0134a57dbff20d
+        specifier: https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/d93eca11a4e7f68354a21f214c960d575d5e539a
+        version: https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/d93eca11a4e7f68354a21f214c960d575d5e539a
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
@@ -1830,9 +1830,9 @@ packages:
     resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
     engines: {node: '>=18'}
 
-  google-drive-api-mock@https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/ea710cfea933e6e9362924d89e0134a57dbff20d:
-    resolution: {tarball: https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/ea710cfea933e6e9362924d89e0134a57dbff20d}
-    version: 0.1.0
+  google-drive-api-mock@https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/d93eca11a4e7f68354a21f214c960d575d5e539a:
+    resolution: {tarball: https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/d93eca11a4e7f68354a21f214c960d575d5e539a}
+    version: 0.2.1
     engines: {node: '>=22.18'}
     hasBin: true
 
@@ -4415,7 +4415,7 @@ snapshots:
 
   globals@15.15.0: {}
 
-  google-drive-api-mock@https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/ea710cfea933e6e9362924d89e0134a57dbff20d: {}
+  google-drive-api-mock@https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/d93eca11a4e7f68354a21f214c960d575d5e539a: {}
 
   gopd@1.2.0: {}
 

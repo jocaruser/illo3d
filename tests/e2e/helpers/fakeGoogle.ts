@@ -1,60 +1,39 @@
+import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { test, type Page } from '@playwright/test'
-import {
-  createFakeGoogle,
-  type DriveStoreOptions,
-  type FakeGoogle,
-} from 'google-drive-api-mock'
+import { DriveStore } from 'google-drive-api-mock'
 
-export interface FakeGoogleMount extends FakeGoogle {
+export interface FakeGoogleMount {
+  store: DriveStore
   /** Disk root of the emulated Drive: seed files into it, assert files out of it. */
   rootDir: string
 }
 
-/** The data-plane hosts the emulator owns; OAuth/userinfo stay with mockGoogleOAuth. */
-function isEmulatedUrl(url: URL): boolean {
-  if (url.hostname === 'sheets.googleapis.com') return true
-  if (url.hostname !== 'www.googleapis.com') return false
-  return (
-    url.pathname.startsWith('/drive/v3/') ||
-    url.pathname.startsWith('/upload/drive/')
-  )
-}
-
 /**
- * Mounts the google-drive-api-mock emulator behind `page.route`, rooted (by
- * default) in this test's Playwright output dir. The full prod stack —
- * repositories, GoogleApiClient, authorizedFetch — runs unchanged; only the
- * network edge is redirected into the emulator, whose state is plain files.
+ * The e2e app talks to the live `google-mock` compose service (the e2e Vite
+ * build carries `VITE_GOOGLE_*_API_BASE=http://google-mock:8790/…`), so the
+ * full production stack — repositories, GoogleApiClient, authorizedFetch,
+ * real CORS preflights — runs against a real HTTP server. This helper owns
+ * the shared data directory both sides see: it resets the world per test and
+ * hands back a seeding store (the running server picks up external writes;
+ * see the emulator's disk-state spec). Sequential workers only.
+ *
+ * Clears the directory's *contents*, never the directory inode itself —
+ * unlike `copyGoldenFixtureToE2eRoot`'s rm-rf+mkdir for `.e2e-fixtures`
+ * (fixtures.ts), which is safe because only this single container ever
+ * touches that tree. `google-mock` bind-mounts THIS host path from a
+ * second, already-running container, and deleting+recreating the directory
+ * out from under an already-mounted container can leave that container's
+ * view of the path stale (observed as indefinitely hanging requests
+ * against a Docker Desktop/WSL2 bind mount).
  */
-export async function mountFakeGoogle(
-  page: Page,
-  options: Partial<DriveStoreOptions> = {}
-): Promise<FakeGoogleMount> {
-  const rootDir =
-    options.rootDir ?? path.join(test.info().outputDir, 'fake-google')
-  const fake = createFakeGoogle({ ...options, rootDir })
-
-  await page.route(isEmulatedUrl, async (route) => {
-    const request = route.request()
-    const body = request.postDataBuffer()
-    const response = await fake.handle(
-      new Request(request.url(), {
-        method: request.method(),
-        headers: request.headers(),
-        ...(body === null ? {} : { body: new Uint8Array(body) }),
-      })
-    )
-    const headers: Record<string, string> = {}
-    response.headers.forEach((value, name) => {
-      headers[name] = value
-    })
-    await route.fulfill({
-      status: response.status,
-      headers,
-      body: Buffer.from(await response.arrayBuffer()),
-    })
-  })
-
-  return { ...fake, rootDir }
+export function resetGoogleMock(): FakeGoogleMount {
+  const rootDir = path.resolve(
+    process.cwd(),
+    process.env.E2E_GOOGLE_MOCK_DATA_DIR ?? '.e2e-google-mock'
+  )
+  fs.mkdirSync(rootDir, { recursive: true })
+  for (const entry of fs.readdirSync(rootDir)) {
+    fs.rmSync(path.join(rootDir, entry), { recursive: true, force: true })
+  }
+  return { store: new DriveStore({ rootDir }), rootDir }
 }

@@ -8,19 +8,24 @@ import {
 } from '../../../src/Config/schema'
 import { APP_VERSION } from '../../../src/Config/version'
 import { FOLDER_MIME, SPREADSHEET_MIME } from 'google-drive-api-mock'
-import { mountFakeGoogle, type FakeGoogleMount } from './fakeGoogle'
+import { resetGoogleMock, type FakeGoogleMount } from './fakeGoogle'
 
 /**
- * Google-backend e2e setup: mounts the google-drive-api-mock emulator behind
- * `page.route` and seeds real state per scenario, replacing the old
- * hand-written response stubs. Every Drive/Sheets call the app makes hits an
- * emulator with actual files behind it — tests can seed by writing files
- * into `rootDir` and assert by reading them back.
+ * Google-backend e2e setup: resets the live `google-mock` service's data
+ * directory and seeds real state per scenario — no request stubbing anywhere;
+ * the app reaches the mock over HTTP because the e2e Vite build points
+ * `VITE_GOOGLE_*_API_BASE` at it. Tests seed by writing files into
+ * `rootDir` and assert by reading them back.
  */
 
-/** Wizard-created artifacts get these well-known ids via `assignId`. */
-const MOCK_SPREADSHEET_ID = 'e2eMockSpreadsheetId'
-const MOCK_FOLDER_ID = 'e2eMockFolderId'
+/**
+ * The mock assigns deterministic ids (`fake-<n>`) and every test starts from
+ * a reset world, so wizard-created artifacts land on known ids: the shop
+ * folder is created first (`fake-1`), the spreadsheet second (`fake-2`).
+ * Seeded files always pin explicit ids and never advance the counter.
+ */
+const MOCK_FOLDER_ID = 'fake-1'
+const MOCK_SPREADSHEET_ID = 'fake-2'
 
 export type PasteFolderMockMode =
   | 'off'
@@ -80,6 +85,7 @@ export function seedShopFolder(
     fake.store.setValuesRect(options.spreadsheetId, sheet, 0, 0, [header])
   }
   fake.store.createFile({
+    id: `${options.folderId}-metadata`,
     name: METADATA_FILE_NAME,
     mimeType: 'application/json',
     parents: [options.folderId],
@@ -99,30 +105,11 @@ export function seedShopFolder(
 }
 
 export async function mockDriveApis(
-  page: Page,
+  _page: Page,
   options: DriveApisMockOptions = {}
 ): Promise<FakeGoogleMount> {
-  const fake: FakeGoogleMount = await mountFakeGoogle(page, {
-    // First wizard-created folder/spreadsheet get the well-known mock ids
-    // (shop-persistence asserts the persisted spreadsheetId); everything
-    // else falls back to deterministic `fake-<n>` ids. Seeded files pass
-    // explicit ids and never reach this hook.
-    assignId: (file) => {
-      if (
-        file.mimeType === FOLDER_MIME &&
-        fake.store.get(MOCK_FOLDER_ID) === undefined
-      ) {
-        return MOCK_FOLDER_ID
-      }
-      if (
-        file.mimeType === SPREADSHEET_MIME &&
-        fake.store.get(MOCK_SPREADSHEET_ID) === undefined
-      ) {
-        return MOCK_SPREADSHEET_ID
-      }
-      return undefined
-    },
-  })
+  void _page // the data plane is a real HTTP service; only OAuth needs the page
+  const fake = resetGoogleMock()
 
   const mode = options.pasteFolderMode ?? 'off'
   if (mode === 'ok') {

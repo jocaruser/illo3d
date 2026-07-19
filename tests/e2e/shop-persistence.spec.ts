@@ -4,6 +4,7 @@ import {
   mockAndOpenGoogleShop,
   mockAndOpenLocalShop,
 } from './fixtures'
+import { MOCK_SPREADSHEET_ID } from './helpers/mockDriveApis'
 
 test.describe('Shop persistence across refresh', () => {
   test.use({ storageState: { cookies: [], origins: [] } })
@@ -15,7 +16,7 @@ test.describe('Shop persistence across refresh', () => {
     const shopStorage = await page.evaluate(() => localStorage.getItem('shop-storage'))
     expect(shopStorage).not.toBeNull()
     const parsed = JSON.parse(shopStorage!)
-    expect(parsed.state.activeShop.spreadsheetId).toBe('e2eMockSpreadsheetId')
+    expect(parsed.state.activeShop.spreadsheetId).toBe(MOCK_SPREADSHEET_ID)
 
     // Refresh page
     await page.reload({ waitUntil: 'load' })

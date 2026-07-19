@@ -28,6 +28,17 @@ services:
     networks:
       - illo3d-network
 
+  # Live Google Drive/Sheets mock for e2e (see ADR-0014): the e2e Vite build
+  # points the app here via VITE_GOOGLE_*_API_BASE, and tests seed/assert by
+  # writing files into the shared data directory. Pulled by pinned tag (not
+  # built) so bumping the emulator version is a one-line change here.
+  google-mock:
+    image: ghcr.io/jocaruser/google-drive-api-mock:v0.2.1
+    volumes:
+      - ./.e2e-google-mock:/data
+    networks:
+      - illo3d-network
+
 networks:
   illo3d-network:
     driver: bridge
