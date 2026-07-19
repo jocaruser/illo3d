@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 import { test, expect, mockDirectoryPicker } from './fixtures'
+import { APP_VERSION } from '../../src/Config/version'
 
 /**
  * The migration wizard, end to end on the local backend: opening a shop whose
@@ -42,9 +43,9 @@ test.describe('Migration wizard: v2 shop', () => {
     void prepareFixtureDir
     await openShopExpectingMigration(page, 'pre-v3-upgrade')
 
-    // The modal names both versions.
+    // The modal names both versions (target = the running app's version).
     await expect(page.getByText('2.0.0')).toBeVisible()
-    await expect(page.getByText('3.0.0')).toBeVisible()
+    await expect(page.getByText(APP_VERSION)).toBeVisible()
 
     // Declining the backup warns; deselecting withdraws the warning.
     await page.getByTestId('wizard-backup-no').click()
@@ -83,7 +84,7 @@ test.describe('Migration wizard: v1 shop', () => {
     await openShopExpectingMigration(page, 'pre-v2-upgrade')
 
     await expect(page.getByText('1.5.0')).toBeVisible()
-    await expect(page.getByText('3.0.0')).toBeVisible()
+    await expect(page.getByText(APP_VERSION)).toBeVisible()
 
     await answerBackupAndContinue(page, 'wizard-backup-yes')
 
