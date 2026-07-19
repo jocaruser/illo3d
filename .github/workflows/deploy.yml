@@ -34,6 +34,11 @@ jobs:
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
 
+      # Tripwire: the google-drive-api-mock emulator must never reach the
+      # deployed bundle, regardless of how it would get there.
+      - name: Assert emulator absent from bundle
+        run: "! grep -rl 'google-drive-api-mock' dist/"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

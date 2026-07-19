@@ -48,6 +48,9 @@ docs/*
 !docs/aircury/
 opencode.json
 
+# google-drive-api-mock dev-mode data directory (pnpm run google-mock)
+.google-mock-data/
+
 # Local playground / sandbox files
 playground/
 .e2e-fixtures-*/

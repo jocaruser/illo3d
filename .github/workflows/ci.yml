@@ -207,6 +207,11 @@ jobs:
       - name: Build
         run: make build
 
+      # Tripwire: the google-drive-api-mock emulator must never reach the
+      # bundle, regardless of how it would get there.
+      - name: Assert emulator absent from bundle
+        run: "! grep -rl 'google-drive-api-mock' dist/"
+
       - name: Bundle budget (P2)
         run: docker compose exec app node scripts/check-bundle-budget.mjs
 
