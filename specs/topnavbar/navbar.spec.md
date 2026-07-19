@@ -29,8 +29,3 @@ and Refresh and Save move to their own row.
 None of it disappears; it only rearranges.
 
 Under the header: [breadcrumbs](breadcrumbs.spec.md).
-
-## Dead ends
-
-Addresses that lead nowhere show the [not-found card](../not-found.spec.md),
-inside the normal chrome.

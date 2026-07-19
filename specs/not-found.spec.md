@@ -11,7 +11,10 @@ It appears for:
 - any address that matches no page at all;
 - the address of something soft-deleted —
   a deleted job's or client's own page renders not-found,
-  as if it no longer existed
+  as if it no longer existed:
+  [ADR-0014](ADRs/ADR-0014-archive-then-delete-lifecycle.md#delete-means-it-never-happened)
+  keeps a deleted record from ever reaching the app again,
+  so no page, total, search or link can meet one
   (each details page's spec links here for its own case).
 
 Being on the not-found card changes nothing else:
