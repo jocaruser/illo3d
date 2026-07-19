@@ -1,4 +1,4 @@
-.PHONY: help init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
+.PHONY: help init up down logs dev build preview wiki install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
 
 APP = docker compose exec app
 E2E_VITE_PORT ?= 5174
@@ -50,6 +50,13 @@ build: ## Typecheck and production build
 
 preview: ## Preview the production build
 	$(APP) pnpm preview --host
+
+# Browse the specs in a local Live Wiki (github-md-live-wiki), pulled from GHCR.
+# It fetches specs/ from GitHub, so the URL below opens them at latest; use the
+# version menu for any release, branch, or commit.
+wiki: ## Specs wiki on :5176 (open the URL it prints)
+	@echo '→ http://localhost:5176/#r=jocaruser/illo3d&p=specs'
+	docker compose up wiki
 
 # ============ DEPENDENCIES ============
 install: ## pnpm install inside the app container

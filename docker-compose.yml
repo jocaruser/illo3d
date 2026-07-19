@@ -28,6 +28,13 @@ services:
     networks:
       - illo3d-network
 
+  # Local specs wiki (see `make wiki`); off by default via its profile.
+  wiki:
+    image: ghcr.io/jocaruser/github-md-live-wiki:v2
+    ports:
+      - "5176:5176"
+    profiles: [wiki]
+
 networks:
   illo3d-network:
     driver: bridge
