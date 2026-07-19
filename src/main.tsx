@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import '@/Theme/index.css'
+import { AppErrorBoundary } from '@/Component/layout/AppErrorBoundary'
 import { Kernel } from '@/Kernel'
 import { initTheme } from '@/Theme/initTheme'
 
@@ -14,10 +15,14 @@ if (container === null) throw new Error('Missing #root container')
 createRoot(container).render(
   // StrictMode double-invokes effects, which makes Playwright races flaky.
   import.meta.env.VITE_E2E === 'true' ? (
-    <Kernel />
+    <AppErrorBoundary>
+      <Kernel />
+    </AppErrorBoundary>
   ) : (
     <StrictMode>
-      <Kernel />
+      <AppErrorBoundary>
+        <Kernel />
+      </AppErrorBoundary>
     </StrictMode>
   )
 )

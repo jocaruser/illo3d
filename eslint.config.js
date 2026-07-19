@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
   // `.pnpm-store` can hold git-dependency clone staging (lintable sources).
-  { ignores: ['dist', 'node_modules', 'coverage', '.pnpm-store', '**/*.timestamp*'] },
+  { ignores: ['dist', 'dist-e2e', 'node_modules', 'coverage', '.pnpm-store', '**/*.timestamp*'] },
   {
     files: ['scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },

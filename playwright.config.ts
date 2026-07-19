@@ -10,7 +10,8 @@
  *   (see tests/e2e/helpers/fakeGoogle.ts). Use test.describe.configure({ mode: 'serial' }) where
  *   tests in a file depend on order.
  * - fullyParallel: true lets independent files run in parallel when workers > 1 locally.
- * - When `CI` is set (e.g. ad-hoc automation): retries 2 and GitHub reporter to absorb rare flakes.
+ * - retries: 0 everywhere — a failure is a failure; retries would let real intermittent bugs
+ *   pass CI. When `CI` is set, the GitHub reporter annotates the run.
  *
  * Specs that must start logged out or without a saved shop SHALL use
  * `test.use({ storageState: { cookies: [], origins: [] } })` on their describe block.
@@ -26,12 +27,12 @@ export default defineConfig({
   testDir: './tests/e2e',
   workers: 1,
   fullyParallel: true,
-  retries: process.env.CI ? 2 : 0,
+  retries: 0,
   reporter: process.env.CI ? 'github' : 'list',
   use: {
     baseURL: process.env.PLAYWRIGHT_BASE_URL ?? e2eOrigin,
     ignoreHTTPSErrors: true,
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     // Chromium's built-in async DNS resolver (and secure DNS) can hang
     // indefinitely on Docker Compose service hostnames that the OS resolver

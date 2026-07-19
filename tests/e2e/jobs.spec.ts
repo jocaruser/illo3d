@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures'
+import { readMockCsv } from './helpers/readMockCsv'
 
 test.describe('Jobs page', () => {
   test.describe('unauthenticated', () => {
@@ -78,24 +79,11 @@ test.describe('Jobs page', () => {
     await expect(j1Status).toHaveValue(/in progress|en curso/i)
   })
 
-  test('marking in_progress job paid with income checkbox unchecked skips transaction append', async ({
+  test('marking in_progress job paid with income checkbox unchecked creates no income transaction', async ({
     page,
     openCsvShop,
   }) => {
     void openCsvShop
-    const appendPayloads: { sheetName?: string; rows?: unknown[] }[] = []
-    page.on('request', (req) => {
-      if (req.method() !== 'POST' || !req.url().includes('/api/sheets/append')) {
-        return
-      }
-      const raw = req.postData()
-      if (!raw) return
-      try {
-        appendPayloads.push(JSON.parse(raw) as { sheetName?: string; rows?: unknown[] })
-      } catch {
-        /* ignore */
-      }
-    })
     await page.getByRole('link', { name: 'Jobs' }).click()
     await expect(page.getByText(/connecting/i)).not.toBeVisible({ timeout: 15000 })
 
@@ -125,8 +113,19 @@ test.describe('Jobs page', () => {
       page.getByRole('heading', { name: /mark job as paid|marcar como pagado/i })
     ).not.toBeVisible({ timeout: 10000 })
 
-    expect(appendPayloads.filter((p) => p.sheetName === 'transactions')).toHaveLength(0)
     await expect(j2Status).toHaveValue(/^paid$/i, { timeout: 15000 })
+
+    // Prove the negative on the real write surface: persist the workbook and
+    // read the CSV back. An income created for J2 would carry ref_type=job,
+    // ref_id=J2 (the fixture's J4 row doubles as a positive control that we
+    // are reading the right file).
+    await page.getByTestId('workbook-save').click()
+    await expect(page.getByText(/workbook saved|libro guardado/i)).toBeVisible({
+      timeout: 20000,
+    })
+    const transactions = await readMockCsv(page, 'transactions.csv')
+    expect(transactions).toContain(',job,J4,')
+    expect(transactions).not.toMatch(/,job,J2,/)
   })
 
   test('marking delivered job paid shows confirmation and adds income transaction', async ({

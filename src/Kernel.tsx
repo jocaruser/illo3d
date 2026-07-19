@@ -4,6 +4,7 @@ import { I18nextProvider } from 'react-i18next'
 import { createHashRouter, RouterProvider } from 'react-router-dom'
 import { routes } from '@/Config/routes'
 import { useDirtyGuard } from '@/Hook/useDirtyGuard'
+import { useGlobalErrorHandlers } from '@/Hook/useGlobalErrorHandlers'
 import { initI18n, readPersistedLanguage } from '@/I18n'
 import { restoreDirectoryHandle } from '@/Repository/LocalCsv/persistDirectoryHandle'
 import { useBackendStore } from '@/Store/backendStore'
@@ -32,6 +33,7 @@ export function Kernel() {
   const [router] = useState(() => createHashRouter(routes))
 
   useDirtyGuard()
+  useGlobalErrorHandlers(i18n)
 
   useEffect(() => {
     // The Local CSV handle outlives the tab in IndexedDB — the only store that
