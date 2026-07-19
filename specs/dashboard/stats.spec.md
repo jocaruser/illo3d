@@ -5,7 +5,7 @@ four figures, each a card; two are doors to the money pages.
 
 | Card | Shows | Pressing it |
 |---|---|---|
-| Balance | Every transaction summed. Green positive, red negative. | Opens transactions |
+| Balance | Every transaction summed. Green at zero or above, red below. | Opens transactions |
 | Active jobs | Jobs neither paid nor cancelled | — |
 | Revenue this month | Income dated this calendar month, summed | Opens transactions |
 | Pieces completed (7 days) | Pieces finished in the last seven days | — |

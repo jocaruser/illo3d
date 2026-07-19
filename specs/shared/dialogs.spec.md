@@ -18,7 +18,7 @@ Cancel beside the confirming action.
   ([saving](../saving/saving.spec.md)).
 - A **confirmation** asks one question
   and quotes its consequence
-  ("Archive "‹name›" and all its purchase lots?").
+  ("Archive "‹name›" and all its ‹children›?").
 
 A respec is expected to swap the shell
 from a centred dialog to a side panel;

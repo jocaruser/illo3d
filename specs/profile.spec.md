@@ -25,8 +25,9 @@ Top to bottom:
   and the version your shop's files are on
   (they only differ transiently;
   [the migration wizard](migration/wizard.spec.md) exists to close the gap).
-- Two placeholders that do nothing yet,
-  visibly disabled: "Edit metadata.json" and "Changelog".
+- **"Edit metadata.json"** — the app's own door to
+  [the shop's metadata file](entities/metadata.spec.md).
+- **"Changelog"** — a placeholder, visibly disabled.
 - **Sign out.**
   Closes the shop and returns to the
   [welcome screen](welcome/welcome.spec.md).

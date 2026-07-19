@@ -21,7 +21,8 @@ Deleted jobs do not exist; archived ones render
 [as every table shows them](../shared/table.spec.md).
 The quiet empty row: "No jobs yet."
 
-**Archive** asks first;
-confirming archives the job and everything it owns —
-pieces, material lines, notes, tag links
+**Archive** asks first —
+"Archive job ‹id›? Linked pieces, notes, and tags will be archived." —
+and confirming archives the job and everything it owns,
+material lines included
 ([ADR-0014](../ADRs/ADR-0014-archive-then-delete-lifecycle.md)).

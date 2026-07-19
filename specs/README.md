@@ -57,7 +57,7 @@ Rulings now in force:
   new.
 - **Search speaks only in `search.spec.md`** —
   other files stop mentioning it.
-- **ADR-0015 dissolves into specs** (pending, in the sweep).
+- **ADR-0015 dissolved into `shared/pricing.spec.md`**.
 - **Parked for full respecs**: the kanban (pieces, not jobs)
   and the timeline (shared, most entities).
 - **Base templates with specialisation slots** (second pass):
@@ -147,12 +147,12 @@ Self-directed, awaiting Carlos's review:
 - [x] `jobs/` — list; details: overview, widgets
   (owns totals, due colours, paid dialogs), pieces-table (owns consumption),
   materials-summary
-- [x] `clients/` — list; details: overview, metrics, jobs-table
+- [x] `clients/` — list; details: overview, widgets, jobs-table
 - [x] `inventory/` — list; details: details, lots, consumption
 - [x] `transactions/` — list, purchase, expense-details
 - [x] `audit-log/audit-log.spec.md`
-- [x] ADR-0014 (archive/delete), ADR-0015 (derived pricing,
-  income on paid — dissolving), ADR-0016 (repository filtering)
+- [x] ADR-0014 (archive/delete), ADR-0016 (repository filtering),
+  `shared/pricing.spec.md` (absorbed ADR-0015)
 
 ## Questions for review
 
@@ -168,14 +168,14 @@ Self-directed, awaiting Carlos's review:
    created). Review the new wording.
 5. American spellings remain in pre-ADR-0010 ADRs and framework-generated
    files per adoption-on-next-edit.
-7. The purchase page keeps its own "Save changes" —
-   a declared departure from the shell's no-save rule,
-   because the lots-must-match rule needs a gate.
-   Bless the departure, or design the gate into the header Save?
 6. ~~`FRAMEWORK.local.md` names `openspec/specs/` as canonical~~ —
    flipped to this tree with the `specs/features/` deletion;
    ~~the fate of `openspec/`~~ decided: removed entirely,
    with its tooling, on Carlos's ruling (2026-07-19).
+7. The purchase page keeps its own "Save changes" —
+   a declared departure from the shell's no-save rule,
+   because the lots-must-match rule needs a gate.
+   Bless the departure, or design the gate into the header Save?
 
 ## Spec-led deviations awaiting implementation
 

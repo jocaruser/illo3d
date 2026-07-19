@@ -30,6 +30,5 @@ links the note to that thing:
 rendered as a link wherever the note appears,
 resolved as [linking](linking.spec.md) says —
 including its rule for ids that match nothing.
-The client's *lead source* field understands
-the same mentions —
-"Referred by @CL2" links to the referrer.
+Pages may declare other fields that understand
+the same mentions.

@@ -25,4 +25,4 @@ Every use of this spec answers, specifically:
   in four words: **Always**, or **Small+**, **Medium+**, **Wide+**
   (the app's three break widths, narrow phones upwards);
   what identifies the row always remains.
-- The quiet empty row's wording ("No purchase lots yet.").
+- The quiet empty row's wording, quoted verbatim.

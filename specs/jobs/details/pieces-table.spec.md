@@ -33,10 +33,18 @@ It appears only when every material's cost is known.
 
 ## Material lines
 
-The expanded piece shows its own small table —
-Line ID, Inventory, Quantity, Material cost, Stock / redo —
-every column at every width,
-its quiet empty row "No material lines yet."
+The expanded piece shows its own small table,
+rendered as [tables render](../../shared/table.spec.md):
+
+| Column | Viewport | Notes |
+|---|---|---|
+| Line ID | Always | |
+| Inventory | Always | The material, picked below |
+| Quantity | Always | Per unit made |
+| Material cost | Always | The line's cost at average purchase price |
+| Stock / redo | Always | The line's margin — green ≥ 2 redos, yellow 1, red 0 |
+
+The quiet empty row: "No material lines yet."
 Each line picks its material with
 [the dropdown](../../shared/dropdown.spec.md)
 from live stock ("‹name› (‹id›) — ‹qty› left"),
@@ -44,9 +52,8 @@ and a quantity per unit made.
 "Add material line" adds a row with the picker ready;
 lines delete without ceremony.
 The same material twice on one piece is refused.
-Also shown when expanded: the run's stock margin —
-green ≥ 2 redos, yellow 1, red 0 —
-the same figure as the Stock / redo column.
+Above the lines, the run's overall stock margin,
+on the same scale as the Stock / redo column.
 
 ## Scenarios — completing a piece
 
