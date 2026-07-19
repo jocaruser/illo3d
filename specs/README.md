@@ -55,7 +55,10 @@ Rulings now in force:
   [ADR-0014](ADRs/ADR-0014-archive-then-delete-lifecycle.md)
   rewritten, [ADR-0016](ADRs/ADR-0016-repositories-filter-deleted.md)
   new.
-- **Search speaks only in `search.spec.md`** —
+- **Search speaks only where it's owned** —
+  the generic mechanics in `shared/search.spec.md`,
+  the global search's own facts in `topnavbar/navbar.spec.md`
+  (dissolved from the standalone `search.spec.md`);
   other files stop mentioning it.
 - **ADR-0015 dissolved into `shared/pricing.spec.md`**.
 - **Parked for full respecs**: the kanban (pieces, not jobs)
@@ -113,7 +116,8 @@ The sweep is applied — every file conforms:
       `create.spec.md` files, widgets with kind and order
       (client metrics renamed `widgets.spec.md`),
       Viewport columns from code truth
-- [x] `search.spec.md` — ADR-0017 and the dropdown's keys
+- [x] `shared/search.spec.md` (new) and `topnavbar/navbar.spec.md`'s
+      Search section — ADR-0017 and the dropdown's keys
 - [x] `transactions/` (purchase renamed `create.spec.md`)
       and `audit-log/` — the formula, linking references,
       type-only delete entries
@@ -139,7 +143,8 @@ Reviewed and confirmed in session:
 
 Self-directed, awaiting Carlos's review:
 
-- [x] `search.spec.md`, `topnavbar/profile.spec.md`, `entities/metadata.spec.md`
+- [x] `topnavbar/` (navbar, profile, breadcrumbs, search),
+  `shared/search.spec.md`, `entities/metadata.spec.md`
 - [x] `dashboard/` — overview, stats, kanban, calendar, stock-alerts,
   recent-transactions
 - [x] `shared/` — notes, tags, lists, lifecycle, table, details,
