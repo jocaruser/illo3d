@@ -10,7 +10,8 @@
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "google-mock": "GOOGLE_DRIVE_API_MOCK_DATA_DIR=.google-mock-data google-drive-api-mock"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
@@ -41,6 +42,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^15.12.0",
+    "google-drive-api-mock": "github:jocaruser/google-drive-api-mock",
     "jsdom": "^25.0.1",
     "postcss": "^8.5.19",
     "prettier": "^3.9.5",

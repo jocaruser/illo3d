@@ -5,7 +5,8 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'coverage', '**/*.timestamp*'] },
+  // `.pnpm-store` can hold git-dependency clone staging (lintable sources).
+  { ignores: ['dist', 'node_modules', 'coverage', '.pnpm-store', '**/*.timestamp*'] },
   {
     files: ['scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
@@ -36,6 +37,26 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
+    // The Google emulator (google-drive-api-mock, a devDependency) must
+    // never enter the app bundle; tests may import it, src may not. CI
+    // greps dist/ as a second tripwire.
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['google-drive-api-mock', 'google-drive-api-mock/*'],
+              message:
+                'src/ must not import the emulator — test-only code stays out of the prod bundle.',
+            },
+          ],
+        },
       ],
     },
   }
