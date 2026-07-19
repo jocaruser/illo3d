@@ -1,4 +1,4 @@
-.PHONY: help init up down logs dev build preview wiki wiki-export install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
+.PHONY: help init up down logs dev build preview wiki install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
 
 APP = docker compose exec app
 E2E_VITE_PORT ?= 5174
@@ -52,19 +52,12 @@ preview: ## Preview the production build
 	$(APP) pnpm preview --host
 
 # ============ SPECS WIKI ============
-# The wiki engine lives in jocaruser/specs-wiki and ships as a Docker image;
-# it fetches specs/ from GitHub at view time, so merged spec changes are
-# visible on the published wiki with no deploy. The mounted specs/ appears
-# as the "local" entry in its version menu (refresh to see edits).
-WIKI_IMAGE ?= ghcr.io/jocaruser/specs-wiki:v1
-WIKI_ENV = -e CONTENT_REPO=jocaruser/illo3d -e SITE_TITLE="illo3d specs" -e APP_URL=https://jocaruser.github.io/illo3d/
-
+# The wiki fetches specs/ from GitHub at view time (engine + hosted instance:
+# https://github.com/jocaruser/github-md-live-wiki), so merged spec changes
+# publish with no deploy. Locally, the working-tree specs/ appears as the
+# "local" entry in its version menu (refresh to see edits).
 wiki: ## Specs wiki on :5176 (GitHub versions + local specs/)
-	docker run --rm -p 5176:5176 $(WIKI_ENV) -v $(PWD)/specs:/content:ro $(WIKI_IMAGE)
-
-wiki-export: ## Export the wiki site to ./dist-wiki (what deploy.yml embeds)
-	rm -rf dist-wiki && mkdir -p dist-wiki
-	docker run --rm $(WIKI_ENV) -v $(PWD)/dist-wiki:/out $(WIKI_IMAGE) export
+	docker compose up wiki
 
 # ============ DEPENDENCIES ============
 install: ## pnpm install inside the app container

@@ -1,15 +1,7 @@
 name: Deploy to GitHub Pages
 
-# The specs wiki fetches specs/ from GitHub at view time (see ADR-0014), so
-# pushes that only touch specs/ need NO deploy — readers see merged content
-# immediately. This workflow runs on manual dispatch, after a release (the
-# release workflow dispatches it), and when the pipeline itself changes.
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - '.github/workflows/deploy.yml'
 
 permissions:
   contents: read
@@ -41,16 +33,6 @@ jobs:
         run: pnpm build
         env:
           VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
-
-      - name: Embed specs wiki shell
-        run: |
-          mkdir -p dist/specs
-          docker run --rm \
-            -e CONTENT_REPO=${{ github.repository }} \
-            -e SITE_TITLE="illo3d specs" \
-            -e APP_URL=https://jocaruser.github.io/illo3d/ \
-            -v "$PWD/dist/specs:/out" \
-            ghcr.io/jocaruser/specs-wiki:v1 export
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

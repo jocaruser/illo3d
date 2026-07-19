@@ -63,16 +63,15 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 ### Specs wiki
 
 The behaviour specs in `specs/` are published as a public wiki at
-**`https://<your-username>.github.io/illo3d/specs/`**. The wiki is a static shell
-(engine: [jocaruser/specs-wiki](https://github.com/jocaruser/specs-wiki), pulled as a
-pinned Docker image) that **fetches the `.md` files from GitHub at view time** — merged
-spec changes are visible immediately with no deploy, and a version menu lets readers view
-the specs at any release, branch head, or commit id (ADR-0014).
+**<https://jocaruser.github.io/github-md-live-wiki/>**, hosted by the wiki engine's own
+repository ([jocaruser/github-md-live-wiki](https://github.com/jocaruser/github-md-live-wiki)).
+The wiki **fetches the `.md` files from GitHub at view time** — merged spec changes are
+visible immediately with no deploy anywhere — with a version menu covering any release,
+branch head, or commit id, search, and on-device translation (ADR-0014).
 
 | Target | Purpose |
 |--------|---------|
-| `make wiki` | Wiki on <http://localhost:5176>; your working-tree `specs/` appears as the **local** entry in its version menu (refresh to see edits) |
-| `make wiki-export` | Export the wiki site to `./dist-wiki`, exactly as the deploy workflow embeds it |
+| `make wiki` | Same wiki on <http://localhost:5176> via the engine's image (see the `wiki` service in `docker-compose.yml`); your working-tree `specs/` appears as the **local** entry in its version menu (refresh to see edits) |
 
 ### Dependencies
 
@@ -112,11 +111,11 @@ the specs at any release, branch head, or commit id (ADR-0014).
 
 ## Deployment
 
-The app and the specs wiki shell are deployed together to **GitHub Pages** as one artifact.
+The app is deployed to **GitHub Pages**.
 
 - **App URL:** `https://<your-username>.github.io/illo3d/`
-- **Wiki URL:** `https://<your-username>.github.io/illo3d/specs/` (content is fetched from GitHub at view time — spec pushes need **no deploy at all**; the version menu offers releases, branches, and any commit)
-- **Workflow:** `.github/workflows/deploy.yml` — runs on manual dispatch, via the release workflow after tagging, and when the pipeline itself changes; it embeds the wiki shell from the pinned `ghcr.io/jocaruser/specs-wiki:v1` image
+- **Workflow:** `.github/workflows/deploy.yml` — runs on manual dispatch, and the release workflow dispatches it after tagging
+- **Specs wiki:** hosted separately on the engine repository's Pages (<https://jocaruser.github.io/github-md-live-wiki/>); it needs no deploys from this repo — spec changes merged to `main` appear there immediately
 
 ### Required repository setup
 
@@ -124,7 +123,7 @@ The app and the specs wiki shell are deployed together to **GitHub Pages** as on
    - `VITE_GOOGLE_CLIENT_ID` — your Google OAuth client ID
 2. Go to **Settings → Pages** and set **Source** to **GitHub Actions**.
 
-The next push to `main` will trigger the deploy workflow.
+Deploys then run from **Actions → Deploy to GitHub Pages** (manual dispatch), and automatically after each release.
 
 ## Tests
 

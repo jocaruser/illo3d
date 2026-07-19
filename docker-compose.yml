@@ -15,6 +15,19 @@ services:
         aliases:
           - web
 
+  # Specs wiki (engine: jocaruser/github-md-live-wiki). Only starts when
+  # explicitly requested (make wiki) thanks to the profile.
+  wiki:
+    image: ghcr.io/jocaruser/github-md-live-wiki:v1
+    ports:
+      - "5176:5176"
+    environment:
+      - CONTENT_REPO=jocaruser/illo3d
+      - APP_URL=https://jocaruser.github.io/illo3d/
+    volumes:
+      - ./specs:/content:ro
+    profiles: [wiki]
+
   playwright:
     image: illo3d-playwright
     build:
