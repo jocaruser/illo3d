@@ -28,20 +28,7 @@ On a narrow screen the section links fold behind a menu button,
 and Refresh and Save move to their own row.
 None of it disappears; it only rearranges.
 
-## Breadcrumbs
-
-Under the header, a trail places the user:
-**Home → section → item**.
-The item is named by what it is —
-a job's description, a client's name, a material's name —
-falling back to its id when it has no name.
-Pages earlier in the trail are links; the last entry is where you are.
-
-This rule is written once, here.
-Every page spec that shows breadcrumbs links to this section
-rather than restating it.
-The [dashboard](../dashboard/dashboard.spec.md) — the root —
-shows none; every trail starts below it.
+Under the header: [breadcrumbs](breadcrumbs.spec.md).
 
 ## Dead ends
 
