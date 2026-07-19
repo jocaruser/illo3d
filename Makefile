@@ -108,15 +108,28 @@ imports-fixture: ## Regenerate fixtures/imports from docs/sources
 # `tsc` is skipped here — typechecking is the build gate's job.
 # Start the server with nohup so it survives the exec shell exiting (plain `vite &` can be SIGHUP'd).
 # -T disables pseudo-TTY allocation to prevent signal issues when the exec session detaches.
-e2e-test: ## Playwright e2e suite against a production build (Vite preview on :5174)
-	docker compose up -d app
+e2e-test: ## Playwright e2e suite against a production build (Vite preview on :5174, live google-mock)
+	docker compose up -d app google-mock
 	docker compose exec app rm -rf .e2e-fixtures
+	# .e2e-google-mock is bind-mounted into the already-running google-mock container too;
+	# only ensure it exists (each test's resetGoogleMock() clears CONTENTS, not the
+	# directory itself — recreating that inode out from under google-mock's mount can
+	# hang its requests on Docker Desktop/WSL2, see fakeGoogle.ts).
+	docker compose exec app mkdir -p .e2e-google-mock
 	docker compose exec app sh -c 'kill $$(cat /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid 2>/dev/null) 2>/dev/null; rm -f /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).log; true'
-	docker compose exec -T app sh -c 'VITE_E2E=true VITE_GOOGLE_CLIENT_ID=e2e-mock-google-client-id pnpm exec vite build --base=/ --outDir dist-e2e --logLevel warn'
+	# VITE_GOOGLE_*_API_BASE must be set on the BUILD step, not preview: vite build
+	# inlines import.meta.env at build time, and preview only serves the static
+	# output — setting them on preview alone would have zero effect.
+	docker compose exec -T app sh -c 'VITE_E2E=true VITE_GOOGLE_CLIENT_ID=e2e-mock-google-client-id VITE_GOOGLE_DRIVE_API_BASE=http://google-mock:8790/drive/v3 VITE_GOOGLE_DRIVE_UPLOAD_API_BASE=http://google-mock:8790/upload/drive/v3 VITE_GOOGLE_SHEETS_API_BASE=http://google-mock:8790/v4 pnpm exec vite build --base=/ --outDir dist-e2e --logLevel warn'
 	docker compose exec -d -T app sh -c 'VITE_FIXTURES_ROOT=/app/.e2e-fixtures nohup pnpm exec vite preview --base=/ --port $(E2E_VITE_PORT) --host 0.0.0.0 --outDir dist-e2e >>/tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).log 2>&1 & echo $$! > /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid'
 	@n=0; until docker compose exec app wget -q -O- http://127.0.0.1:$(E2E_VITE_PORT)/ >/dev/null 2>&1; do \
 		n=$$((n+1)); \
 		if [ $$n -gt 120 ]; then echo 'E2E: Vite did not become ready on port $(E2E_VITE_PORT) (see /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).log in app container)'; docker compose exec app sh -c 'kill $$(cat /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid 2>/dev/null) 2>/dev/null; rm -f /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid'; exit 1; fi; \
+		sleep 0.5; \
+	done
+	@n=0; until docker compose exec app wget -q -O- --header="Authorization: Bearer readiness" 'http://google-mock:8790/drive/v3/files?q=trashed%3Dfalse' >/dev/null 2>&1; do \
+		n=$$((n+1)); \
+		if [ $$n -gt 60 ]; then echo 'E2E: google-mock did not become ready on :8790'; exit 1; fi; \
 		sleep 0.5; \
 	done
 	docker compose run --rm -e PLAYWRIGHT_BASE_URL=http://web:$(E2E_VITE_PORT) playwright pnpm exec playwright test

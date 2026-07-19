@@ -204,3 +204,29 @@ describe('uploadMultipart', () => {
     )
   })
 })
+
+describe('API base overrides', () => {
+  it('honors VITE_GOOGLE_*_API_BASE so tests/dev can target the emulator', async () => {
+    vi.stubEnv('VITE_GOOGLE_DRIVE_API_BASE', 'http://127.0.0.1:8790/drive/v3')
+    vi.stubEnv('VITE_GOOGLE_SHEETS_API_BASE', 'http://127.0.0.1:8790/v4')
+    vi.stubEnv(
+      'VITE_GOOGLE_DRIVE_UPLOAD_API_BASE',
+      'http://127.0.0.1:8790/upload/drive/v3'
+    )
+    vi.resetModules()
+    try {
+      const fresh = await import('@/Repository/GSheet/GoogleApiClient')
+      await fresh.driveFetch('/files/F1')
+      await fresh.sheetsFetch('/spreadsheets/S1')
+      await fresh.uploadMultipart({}, 'x', { fileId: 'F9' })
+      expect(authorizedFetchMock.mock.calls.map((call) => call[0])).toEqual([
+        'http://127.0.0.1:8790/drive/v3/files/F1',
+        'http://127.0.0.1:8790/v4/spreadsheets/S1',
+        'http://127.0.0.1:8790/upload/drive/v3/files/F9?uploadType=multipart',
+      ])
+    } finally {
+      vi.unstubAllEnvs()
+      vi.resetModules()
+    }
+  })
+})

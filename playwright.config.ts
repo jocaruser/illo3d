@@ -5,8 +5,10 @@
  *   `showDirectoryPicker` (in-memory handle from `/fixtures/...`) to open the happy-path shop,
  *   then saves `storageState` to `tests/e2e/.auth/storage-state.json`. Chromium project depends
  *   on setup and loads that file.
- * - workers: 1 — single Vite server and one `.e2e-fixtures` tree; parallel workers would race CSV writes.
- *   Use test.describe.configure({ mode: 'serial' }) where tests in a file depend on order.
+ * - workers: 1 — single Vite server and one `.e2e-fixtures` tree (parallel workers would race
+ *   CSV writes), and Google-backend specs share one live google-mock service + data directory
+ *   (see tests/e2e/helpers/fakeGoogle.ts). Use test.describe.configure({ mode: 'serial' }) where
+ *   tests in a file depend on order.
  * - fullyParallel: true lets independent files run in parallel when workers > 1 locally.
  * - retries: 0 everywhere — a failure is a failure; retries would let real intermittent bugs
  *   pass CI. When `CI` is set, the GitHub reporter annotates the run.
@@ -32,6 +34,13 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // Chromium's built-in async DNS resolver (and secure DNS) can hang
+    // indefinitely on Docker Compose service hostnames that the OS resolver
+    // (curl/wget, and Vite's own dev server) resolves instantly — observed
+    // hitting the google-mock service. Force getaddrinfo-based resolution.
+    launchOptions: {
+      args: ['--disable-features=AsyncDns,DnsOverHttps'],
+    },
   },
   projects: [
     { name: 'setup', testMatch: /.*\.setup\.ts/ },

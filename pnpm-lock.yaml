@@ -91,6 +91,9 @@ importers:
       globals:
         specifier: ^15.12.0
         version: 15.15.0
+      google-drive-api-mock:
+        specifier: https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/d93eca11a4e7f68354a21f214c960d575d5e539a
+        version: https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/d93eca11a4e7f68354a21f214c960d575d5e539a
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
@@ -1826,6 +1829,12 @@ packages:
   globals@15.15.0:
     resolution: {integrity: sha512-7ACyT3wmyp3I61S4fG682L0VA2RGD9otkqGJIwNUMF1SWUombIIk+af1unuDYgMm082aHYwD+mzJvv9Iu8dsgg==}
     engines: {node: '>=18'}
+
+  google-drive-api-mock@https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/d93eca11a4e7f68354a21f214c960d575d5e539a:
+    resolution: {tarball: https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/d93eca11a4e7f68354a21f214c960d575d5e539a}
+    version: 0.2.1
+    engines: {node: '>=22.18'}
+    hasBin: true
 
   gopd@1.2.0:
     resolution: {integrity: sha512-ZUKRh6/kUFoAiTAtTYPZJ3hw9wNxx+BIBOijnlG9PnrJsCcSjs1wyyD6vJpaYtgnzDrKYRSqf3OO6Rfa93xsRg==}
@@ -4405,6 +4414,8 @@ snapshots:
   globals@14.0.0: {}
 
   globals@15.15.0: {}
+
+  google-drive-api-mock@https://codeload.github.com/jocaruser/google-drive-api-mock/tar.gz/d93eca11a4e7f68354a21f214c960d575d5e539a: {}
 
   gopd@1.2.0: {}
 
