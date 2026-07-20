@@ -1,0 +1,145 @@
+Table clients {
+  id varchar [pk, note: 'UUID assigned at creation']
+  name varchar [not null]
+  email varchar
+  phone varchar
+  notes varchar
+  preferred_contact varchar
+  lead_source varchar
+  address varchar
+  created_at varchar [not null]
+  archived varchar [note: 'non-null marks the row archived; see ADR-0014']
+  deleted varchar [note: 'non-null marks the row deleted; filtered by repositories per ADR-0016']
+}
+
+Table crm_notes {
+  id varchar [pk, note: 'UUID assigned at creation']
+  entity_type varchar [not null, note: 'client | job']
+  entity_id varchar [not null]
+  body varchar [not null]
+  referenced_entity_ids varchar [note: 'comma-separated UUIDs of @mentioned entities']
+  severity varchar [note: 'info | danger | warning | success | primary | secondary']
+  created_at varchar [not null]
+  archived varchar
+  deleted varchar
+}
+
+Table tags {
+  id varchar [pk, note: 'UUID assigned at creation']
+  name varchar [not null]
+  created_at varchar [not null]
+  archived varchar
+  deleted varchar
+}
+
+Table tag_links {
+  id varchar [pk, note: 'UUID assigned at creation']
+  tag_id varchar [not null, ref: > tags.id]
+  entity_type varchar [not null, note: 'client | job']
+  entity_id varchar [not null]
+  created_at varchar [not null]
+  archived varchar
+  deleted varchar
+}
+
+Table jobs {
+  id varchar [pk, note: 'UUID assigned at creation']
+  client_id varchar [not null, ref: > clients.id]
+  description varchar [not null]
+  status varchar [not null, note: 'draft | in_progress | delivered | paid | cancelled']
+  price numeric [note: 'job total in currency units']
+  board_order numeric [note: 'position in the kanban column (0-based)']
+  created_at varchar [not null]
+  archived varchar
+  deleted varchar
+  due_date varchar [note: 'v3: optional YYYY-MM-DD; falls back to created_at in calendar view']
+}
+
+Table pieces {
+  id varchar [pk, note: 'UUID assigned at creation']
+  job_id varchar [not null, ref: > jobs.id]
+  name varchar [not null]
+  status varchar [not null, note: 'pending | done | failed']
+  price numeric [note: 'unit price in currency units']
+  units numeric [note: 'quantity of this piece in the job']
+  created_at varchar [not null]
+  archived varchar
+  deleted varchar
+}
+
+Table piece_items {
+  id varchar [pk, note: 'UUID assigned at creation']
+  piece_id varchar [not null, ref: > pieces.id]
+  inventory_id varchar [not null, ref: > inventory.id]
+  quantity numeric [not null, note: 'units of the inventory item consumed per piece']
+  archived varchar
+  deleted varchar
+}
+
+Table inventory {
+  id varchar [pk, note: 'UUID assigned at creation']
+  type varchar [not null, note: 'filament | consumable | equipment']
+  name varchar [not null]
+  qty_current numeric [not null, note: 'current stock level']
+  warn_yellow numeric [not null, note: 'threshold for yellow badge']
+  warn_orange numeric [not null, note: 'threshold for orange badge']
+  warn_red numeric [not null, note: 'threshold for red badge']
+  created_at varchar [not null]
+  archived varchar
+  deleted varchar
+  colour varchar [note: 'v3: optional #RRGGBB swatch']
+}
+
+Table lots {
+  id varchar [pk, note: 'UUID assigned at creation']
+  inventory_id varchar [not null, ref: > inventory.id]
+  transaction_id varchar [not null, ref: > transactions.id]
+  quantity numeric [not null, note: 'units added by this lot']
+  amount numeric [not null, note: 'total cost of this lot in currency units']
+  created_at varchar [not null]
+  archived varchar
+  deleted varchar
+}
+
+Table transactions {
+  id varchar [pk, note: 'UUID assigned at creation']
+  date varchar [not null, note: 'YYYY-MM-DD']
+  type varchar [not null, note: 'income | expense']
+  amount numeric [not null]
+  category varchar [not null, note: 'filament | consumable | equipment | electric | maintenance | other']
+  concept varchar [not null]
+  ref_type varchar [note: 'job | empty; links to a job when this is income from that job']
+  ref_id varchar [note: 'UUID of the referenced entity']
+  client_id varchar [ref: > clients.id]
+  notes varchar
+  archived varchar
+  deleted varchar
+}
+
+Table metadata {
+  folder_id varchar [pk, note: 'GDrive folder ID (the shop folder), used as the natural key']
+  app varchar [not null, note: 'always "illo3d"']
+  version varchar [not null, note: 'semver string; major segment gates compatibility']
+  spreadsheet_id varchar [not null, note: 'associated spreadsheet ID for this shop']
+  created_at varchar [not null]
+  created_by varchar [not null, note: 'Google email or "local"']
+  logo varchar [note: 'optional logo filename, relative to shop folder']
+  iconsrc varchar [note: 'optional avatar image filename for local profile menu']
+  user_name varchar [note: 'optional display name for local-backend users']
+  auto_cards_hide_after_x_days numeric [note: 'days after which paid/cancelled cards leave kanban (default 5)']
+  default_due_date numeric [note: 'default days-from-now to prefill a new job due date']
+}
+
+Table audit_log {
+  id varchar [pk, note: 'UUID assigned at creation']
+  timestamp varchar [not null]
+  actor varchar [not null, note: 'Google email or "local" or "migration"']
+  entity_name varchar [not null, note: 'client | job | piece | piece_item | inventory | lot | transaction | purchase | tag | tag_link | crm_note | client_note | job_note | metadata']
+  entity_id varchar [not null, note: 'UUID of the entity that changed']
+  action varchar [not null, note: 'create | update | archive | delete | restore']
+  before_json varchar [not null, note: 'full JSON snapshot before the change (empty for create)']
+  after_json varchar [not null, note: 'full JSON snapshot after the change (empty for delete)']
+  fieldsChanged varchar [not null, note: 'comma-separated list of changed field names']
+  parent_entity_name varchar [note: 'entity kind that triggered the cascade, when applicable']
+  parent_entity_id varchar [note: 'UUID of the cascade trigger entity']
+}

@@ -5,17 +5,18 @@ product intent and feature set, completing the two abandoned v2 work streams (au
 and the v2 data-model ideas), and organized along **Symfony conventions**.
 
 The *why* behind each load-bearing choice lives in the ADRs under
-[`specs/decisions/`](specs/decisions/):
+[`specs/ADRs/`](specs/ADRs/):
 
 | ADR | Decision |
 |---|---|
-| [ADR-0001](specs/decisions/ADR-0001-symfony-style-architecture.md) | Symfony-style layout; entity classes, repositories with two backends, EntityManager |
-| [ADR-0002](specs/decisions/ADR-0002-workbook-snapshot-unit-of-work.md) | In-memory workbook snapshot with explicit Save |
-| [ADR-0003](specs/decisions/ADR-0003-client-side-persistence.md) | Memory-only token; shop in localStorage; handle in IndexedDB |
-| [ADR-0004](specs/decisions/ADR-0004-additive-schema-and-migration-wizard.md) | Additive-only schema evolution behind the migration wizard |
-| [ADR-0005](specs/decisions/ADR-0005-audit-logging-at-repository-layer.md) | Audit logging at the repository layer |
-| [ADR-0006](specs/decisions/ADR-0006-job-based-hybrid-kanban.md) | Job-based hybrid kanban, not piece-based |
-| [ADR-0007](specs/decisions/ADR-0007-github-pages-platform.md) | GitHub Pages platform and everything it forces |
+| [ADR-0001](specs/ADRs/ADR-0001-symfony-style-architecture.md) | Symfony-style layout; entity classes, repositories with two backends, EntityManager |
+| [ADR-0002](specs/ADRs/ADR-0002-workbook-snapshot-unit-of-work.md) | In-memory workbook snapshot with explicit Save |
+| [ADR-0003](specs/ADRs/ADR-0003-client-side-persistence.md) | Memory-only token; shop in localStorage; handle in IndexedDB |
+| [ADR-0004](specs/ADRs/ADR-0004-canonical-schema-definition.md) | Canonical schema definition (`schema.dbml` as source of truth) |
+| [ADR-0005](specs/ADRs/ADR-0005-audit-logging-at-repository-layer.md) | Audit logging at the repository layer |
+| [ADR-0006](specs/ADRs/ADR-0006-job-based-hybrid-kanban.md) | Job-based hybrid kanban, not piece-based |
+| [ADR-0007](specs/ADRs/ADR-0007-github-pages-platform.md) | GitHub Pages platform and everything it forces |
+| [ADR-0012](specs/ADRs/ADR-0012-migration-wizard-additive-schema-in-memory.md) | Migration wizard — additive schema evolution, in-memory execution |
 
 Feature scope in one line: clients, jobs (kanban + calendar), pieces with BOM lines and
 inventory consumption, inventory with purchase lots/thresholds/colours, transactions and the
@@ -35,8 +36,9 @@ columns by position (stored header must be a prefix of the canonical header):
 | `jobs`      | + `due_date` (nullable ISO day) |
 | `inventory` | + `colour` (nullable `#RRGGBB`) |
 
-Everything else is unchanged from v2 (11 sheets including `audit_log`). `schema.dbml` is the
-authoritative diagram and is updated in the same PR.
+Everything else is unchanged from v2 (11 sheets including `audit_log`). The DBML at
+`specs/technical/database-model/schema.dbml` is the canonical definition (ADR-0004);
+`schema.ts` is the typed runtime mirror. Both stay in sync.
 
 Migration chain: a v1 shop runs `V1ToV2` (add `archived`/`deleted` lifecycle columns,
 create `audit_log`, backfill one `migration` audit entry per existing row) then `V2ToV3`
@@ -105,12 +107,11 @@ fixtures/                # golden CSV shop scenarios (v3), incl. pre-v2-upgrade 
   the parent entity during cascades, and appends to the `audit_log` tab (which is saved like
   any other sheet). `audit_log` rows are immutable and carry no lifecycle columns.
 - **Migration**: on shop open, a metadata major-version mismatch opens the Migration Wizard.
-  The registry resolves a chain of plans from the shop's major to the app's major. Each plan is
-  an ordered list of idempotent steps executed against a **working copy** (sibling folder for
-  Local CSV, spreadsheet copy for Drive). The user chooses whether to keep a backup. The
-  version flip in `illo3d.metadata.json` is the last, atomic commit — a failed run leaves the
-  original shop untouched. Progress is streamed to the wizard's step grid via the
-  `migrationStore`.
+  The registry resolves a chain of plans from the shop's major to the app's major (ADR-0012).
+  Each plan is an ordered list of idempotent steps executed **in memory** in the app context.
+  The user chooses whether to keep a backup. After all steps complete, a Confirm and close
+  action persists the upgraded shop — that press is the commitment. Progress is streamed to
+  the wizard's step grid via the `migrationStore`.
 - **i18n**: same English/Spanish catalogs as v2 (carried over verbatim), new keys added in both
   languages. Language and theme persist in `userPreferencesStore`.
 - **Theme**: class-based dark mode with CSS custom-property tokens; initialized before React
@@ -121,8 +122,8 @@ fixtures/                # golden CSV shop scenarios (v3), incl. pre-v2-upgrade 
 The app ships as a static bundle on GitHub Pages — no server at runtime, ever. HashRouter,
 the `/illo3d/` base path, meta-tag CSP (theme init from the bundle; no `'unsafe-inline'`),
 and build-time-only secrets all follow from that: see
-[ADR-0007](specs/decisions/ADR-0007-github-pages-platform.md).
+[ADR-0007](specs/ADRs/ADR-0007-github-pages-platform.md).
 
 Browser persistence is decided per kind of state — Google access token in memory only, active
 shop and backend choice in `localStorage`, the directory handle in IndexedDB, preferences in
-`localStorage`: see [ADR-0003](specs/decisions/ADR-0003-client-side-persistence.md).
+`localStorage`: see [ADR-0003](specs/ADRs/ADR-0003-client-side-persistence.md).

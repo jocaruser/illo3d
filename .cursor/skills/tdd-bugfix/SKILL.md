@@ -3,8 +3,7 @@ name: tdd-bugfix
 description: >-
   Red-green TDD workflow for bug fixes and regressions: failing test (or revert),
   then fix, then make quality-gate. Use when the user asks for TDD on a fix,
-  a regression test, or "test first" for a bug; also apply during OpenSpec tasks
-  that are explicitly bugfixes.
+  a regression test, or "test first" for a bug.
 license: MIT
 compatibility: This repo uses `make test` / `make quality-gate` (Makefile only).
 ---
@@ -27,9 +26,6 @@ Use this when fixing a **confirmed bug** or **regression** and the user wants te
 3. **Verify**  
    - Run `make quality-gate` (build, lint, unit tests). All must pass per project rules.
 
-4. **Document in OpenSpec (when applicable)**  
-   - If work sits under `openspec/changes/<name>/`, mention the new/updated test in the relevant task or design note when it helps future readers — without expanding scope beyond what the user asked.
-
 ## Choosing test type
 
 | Situation | Prefer |
@@ -46,4 +42,3 @@ Never run `pnpm test` or `vitest` directly unless the Makefile exposes no target
 ## Related
 
 - **Quality gate**: `.cursor/rules/quality-gate.mdc` — validation after any change.  
-- **OpenSpec implementation**: `.cursor/skills/openspec-apply-change/SKILL.md` — use this TDD flow for bugfix-style tasks when requested.

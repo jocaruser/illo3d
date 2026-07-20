@@ -3,7 +3,7 @@
 The not-found card tells the user an address leads nowhere:
 **"This page does not exist."**
 with one way out — "Back to dashboard".
-The [header and menu](navigation.spec.md) stay in place around it;
+The [header and menu](topnavbar/navbar.spec.md) stay in place around it;
 the user is lost, not stranded.
 
 It appears for:
@@ -11,9 +11,12 @@ It appears for:
 - any address that matches no page at all;
 - the address of something soft-deleted —
   a deleted job's or client's own page renders not-found,
-  as if it no longer existed
+  as if it no longer existed:
+  [ADR-0014](ADRs/ADR-0014-archive-then-delete-lifecycle.md#delete-means-it-never-happened)
+  keeps a deleted record from ever reaching the app again,
+  so no page, total, search or link can meet one
   (each details page's spec links here for its own case).
 
 Being on the not-found card changes nothing else:
 no data is touched, and unsaved edits
-([saving](saving.spec.md)) survive the detour.
+([saving](saving/saving.spec.md)) survive the detour.

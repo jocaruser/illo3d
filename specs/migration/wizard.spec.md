@@ -10,8 +10,7 @@ a dialog that upgrades the shop before it can be used.
 ## When it triggers
 
 Every shop records the app version that created or last upgraded it,
-in the shop's metadata file
-(a future `entities/metadata.spec.md` will describe that file).
+in [the shop's metadata file](../entities/metadata.spec.md).
 Opening a shop compares that recorded version
 against the app's own
 ([`src/Config/version.ts`](../../src/Config/version.ts)).
@@ -19,7 +18,7 @@ against the app's own
 Versions have three numbers,
 and **only the first — the major — matters here**:
 majors change only when the shop's data layout changes
-([`schema.dbml`](../../schema.dbml), [ADR-0011](../decisions/ADR-0011-semver-and-per-pr-bump.md)).
+([`schema.dbml`](../technical/database-model/schema.dbml), [ADR-0011](../ADRs/ADR-0011-semver-and-per-pr-bump.md)).
 A shop from an older minor or patch release simply opens;
 a shop whose major is behind gets this wizard.
 
