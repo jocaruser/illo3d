@@ -28,7 +28,7 @@ What it records, in user terms:
 
 The reference for the exact shape is the code's own definition
 ([`src/Entity/ShopMetadata.ts`](../../src/Entity/ShopMetadata.ts));
-the shop's *data* layout is [`schema.dbml`](../../schema.dbml)'s.
+the shop's *data* layout is [`schema.dbml`](../technical/database-model/schema.dbml)'s.
 
 Editing this file by hand is possible but unguarded:
 a damaged file makes the folder unrecognisable as a shop —

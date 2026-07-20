@@ -46,7 +46,6 @@ const AuditLogPage = lazy(async () => ({
   default: (await import('@/Controller/AuditLogPage')).AuditLogPage,
 }))
 
-/** v2 signed users in at `/login`; v3 has no login page — the wizard covers it. */
 function RootRedirect() {
   return <Navigate to="/dashboard" replace />
 }

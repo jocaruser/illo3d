@@ -1,11 +1,11 @@
-# ADR-0016: Repositories filter deleted rows out
+# ADR-0012: Repositories filter deleted rows out
 
 - Status: Accepted
 - Date: 2026-07-18
 
 ## Context
 
-[ADR-0014](ADR-0014-archive-then-delete-lifecycle.md) promises that
+[ADR-0011](ADR-0011-archive-then-delete-lifecycle.md) promises that
 a deleted record never reaches the app.
 Such a promise fails retail if every reader must remember to filter:
 one forgotten check, and a deleted job's money surfaces in one total

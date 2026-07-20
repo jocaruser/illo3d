@@ -1,4 +1,4 @@
-# ADR-0008: Store behaviour specs as page-focused, non-technical files
+# ADR-0014: Store behaviour specs as page-focused, non-technical files
 
 - Status: Accepted
 - Date: 2026-07-17
@@ -92,8 +92,8 @@ as siblings of — but separate from — the decision records in `specs/ADRs/`.
 - **Readability is the prime rule.**
   Specs are written to be read:
   short files, short paragraphs,
-  semantic line breaks (ADR-0009),
-  British English (ADR-0010).
+  semantic line breaks (ADR-0015),
+  British English (ADR-0016).
   A spec that provokes skim-reading has failed
   regardless of its accuracy.
 

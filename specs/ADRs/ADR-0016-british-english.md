@@ -1,4 +1,4 @@
-# ADR-0010: British English throughout
+# ADR-0016: British English throughout
 
 - Status: Accepted
 - Date: 2026-07-17

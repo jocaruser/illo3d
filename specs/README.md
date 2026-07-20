@@ -3,17 +3,23 @@
 This tree is the canonical, non-technical record of what illo3d does,
 organised by what a user navigates.
 The format is decided in
-[ADR-0008](ADRs/ADR-0008-page-focused-behaviour-specs.md)
+[ADR-0014](ADRs/ADR-0014-page-focused-behaviour-specs.md)
 (page-focused files, hybrid voice, user-observable scope,
 identity openers, shared mechanics, quoted meaningful copy),
 written under
-[ADR-0009](ADRs/ADR-0009-semantic-line-breaks.md) (semantic line breaks)
-and [ADR-0010](ADRs/ADR-0010-british-english.md) (British English).
+[ADR-0015](ADRs/ADR-0015-semantic-line-breaks.md) (semantic line breaks)
+and [ADR-0016](ADRs/ADR-0016-british-english.md) (British English).
 
 There is no `specs/features/` capability layout:
 where framework rules speak of one,
 this tree is the target
 (`FRAMEWORK.local.md` carries the override).
+
+The canonical database model lives separately in
+[`specs/technical/database-model/schema.dbml`](technical/database-model/schema.dbml)
+with supporting context in
+[`specs/technical/database-model/spec.md`](technical/database-model/spec.md)
+(per [ADR-0002](ADRs/ADR-0002-local-csv-or-google-drive.md)).
 
 ## How this migration works
 
@@ -44,7 +50,7 @@ Rulings now in force:
 - **Identity openers**: every file starts by placing itself —
   a page with its address, or a section with its parent;
   details folders' main file is `details.spec.md`
-  (ADR-0008 amendment).
+  (ADR-0014 amendment).
   What a page loads may anchor to its `schema.dbml` table.
 - **Archive freezes; delete never happened**:
   archived is visible everywhere, struck through, read-only,
@@ -52,15 +58,15 @@ Rulings now in force:
   deleted is repository-filtered, cascades along causation
   (a job's income dies with it), leaves no dangling reference,
   and is remembered only by the audit log, by kind, never by name —
-  [ADR-0014](ADRs/ADR-0014-archive-then-delete-lifecycle.md)
-  rewritten, [ADR-0016](ADRs/ADR-0016-repositories-filter-deleted.md)
+  [ADR-0011](ADRs/ADR-0011-archive-then-delete-lifecycle.md)
+  rewritten, [ADR-0012](ADRs/ADR-0012-repositories-filter-deleted.md)
   new.
 - **Search speaks only where it's owned** —
   the generic mechanics in `shared/search.spec.md`,
   the global search's own facts in `topnavbar/navbar.spec.md`
   (dissolved from the standalone `search.spec.md`);
   other files stop mentioning it.
-- **ADR-0015 dissolved into `shared/pricing.spec.md`**.
+- **The pricing spec dissolved into `shared/pricing.spec.md`**.
 - **Parked for full respecs**: the kanban (pieces, not jobs)
   and the timeline (shared, most entities).
 - **Base templates with specialisation slots** (second pass):
@@ -76,7 +82,7 @@ Rulings now in force:
   details pages carry the responsive widgets grid.
 - **Third pass**: the search box is its own shared spec,
   and fuzzy matching is decided once for every search
-  ([ADR-0017](ADRs/ADR-0017-fuzzy-matching-in-every-search.md));
+  ([ADR-0013](ADRs/ADR-0013-fuzzy-matching-in-every-search.md));
   sorting belongs to every table (`shared/table.spec.md`);
   rows usually open their details page, nothing enforced;
   list pages carry breadcrumbs;
@@ -88,7 +94,7 @@ Rulings now in force:
 - **Fifth pass**: one generic dropdown for the whole app
   (`shared/dropdown.spec.md`) — always searchable (the default mode),
   creatable adds the Create row, a multiselect parameter,
-  entity options as "‹id› — ‹name›", fuzzy per ADR-0017,
+  entity options as "‹id› — ‹name›", fuzzy per ADR-0013,
   and every use declares its label;
   decided over the two-picker alternative
   after the interactive consolidation report.
@@ -117,14 +123,14 @@ The sweep is applied — every file conforms:
       (client metrics renamed `widgets.spec.md`),
       Viewport columns from code truth
 - [x] `shared/search.spec.md` (new) and `topnavbar/navbar.spec.md`'s
-      Search section — ADR-0017 and the dropdown's keys
+      Search section — ADR-0013 and the dropdown's keys
 - [x] `transactions/` (purchase renamed `create.spec.md`)
       and `audit-log/` — the formula, linking references,
       type-only delete entries
 - [x] `welcome/`, `migration/`, loose root files — openers
 - [x] `shared/dialogs.spec.md` — the one shell
       (side-panel respec expected later)
-- [x] ADR-0015 → `shared/pricing.spec.md`
+- [x] Pricing spec → `shared/pricing.spec.md`
 - [x] delete `specs/features/` and the `ui/` scaffolding —
       redirects folded in here and into `FRAMEWORK.local.md`
 
@@ -156,8 +162,8 @@ Self-directed, awaiting Carlos's review:
 - [x] `inventory/` — list; details: details, lots, consumption
 - [x] `transactions/` — list, purchase, expense-details
 - [x] `audit-log/audit-log.spec.md`
-- [x] ADR-0014 (archive/delete), ADR-0016 (repository filtering),
-  `shared/pricing.spec.md` (absorbed ADR-0015)
+- [x] ADR-0011 (archive/delete), ADR-0012 (repository filtering),
+  `shared/pricing.spec.md` (absorbed the pricing spec)
 
 ## Questions for review
 
@@ -171,7 +177,7 @@ Self-directed, awaiting Carlos's review:
    the structure error ("Google Sheet" → "files") and the transactions empty
    state ("Add data in Google Sheets." → how transactions are actually
    created). Review the new wording.
-5. American spellings remain in pre-ADR-0010 ADRs and framework-generated
+5. American spellings remain in pre-ADR-0016 ADRs and framework-generated
    files per adoption-on-next-edit.
 6. ~~`FRAMEWORK.local.md` names `openspec/specs/` as canonical~~ —
    flipped to this tree with the `specs/features/` deletion;
@@ -189,7 +195,7 @@ The spec is the contract; these are the known places the code lags it.
 From the first drafting pass:
 
 - **In-memory migration with Confirm and close**
-  ([ADR-0012](ADRs/ADR-0012-in-memory-migration-with-explicit-submit.md),
+  ([ADR-0009](ADRs/ADR-0009-migration-wizard-additive-schema-in-memory.md),
   `migration/wizard.spec.md`):
   implemented on `feat/spec-divergences-implementation`,
   pending merge.
@@ -213,7 +219,7 @@ New from the review round (2026-07-18):
   today they are filtered out of lists;
   archived pieces/jobs also need the read-only styling
   and per-row Un-archive in embedded tables.
-- **Repository-level deleted filtering** (ADR-0016) —
+- **Repository-level deleted filtering** (ADR-0012) —
   and delete must cascade along causation:
   a job's income transactions, a material's piece lines and lots.
   No undelete anywhere;
@@ -252,9 +258,9 @@ New from the review round (2026-07-18):
 - **Money at zero renders green** —
   `ColouredNumber` currently mutes zero;
   align it when money colouring becomes one shared rule
-  (the ADR-0015 dissolution).
+  (the pricing spec dissolution).
 - **One shared fuzzy matcher behind every search**
-  ([ADR-0017](ADRs/ADR-0017-fuzzy-matching-in-every-search.md)) —
+  ([ADR-0013](ADRs/ADR-0013-fuzzy-matching-in-every-search.md)) —
   the global search and the tag box
   need verifying against it and aligning.
 

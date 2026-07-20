@@ -1,4 +1,4 @@
-# ADR-0002: In-memory workbook snapshot with explicit Save
+# ADR-0003: In-memory workbook snapshot with explicit Save
 
 - Status: Accepted
 - Date: 2026-07-16

@@ -1,4 +1,4 @@
-# ADR-0011: Semantic versioning with a bump in every pull request
+# ADR-0008: Semantic versioning with a bump in every pull request
 
 - Status: Accepted
 - Date: 2026-07-17
@@ -9,7 +9,7 @@ The app carries one version constant
 (`APP_VERSION` in `src/Config/version.ts`),
 and every shop records the version that created or last upgraded it
 in its metadata file.
-ADR-0004 defines what the *major* number means for shops:
+ADR-0009 defines what the *major* number means for shops:
 a shop whose major differs from the app's cannot open
 without the migration wizard.
 The habit of bumping the version in every pull request
@@ -21,7 +21,7 @@ but lived only as an agent rule, never as a recorded decision.
 The project uses semantic versioning with one bump per pull request:
 
 - **Major** — the shop's data layout changed
-  (`schema.dbml` changed with it, per ADR-0004).
+  (`schema.dbml` changed with it, per ADR-0002).
   Existing shops require the migration wizard after this.
 - **Minor** — new behaviour, no layout change.
   Every existing shop opens unchanged.

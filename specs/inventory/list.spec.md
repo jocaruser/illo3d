@@ -5,7 +5,7 @@ It lives at `#/inventory`
 and follows [the list page](../shared/list.spec.md);
 its title is "Inventory".
 The rows load from the `inventory` table
-([schema.dbml](../../schema.dbml)).
+([schema.dbml](../technical/database-model/schema.dbml)).
 
 | Column | Viewport | Notes |
 |---|---|---|

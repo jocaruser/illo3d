@@ -1,4 +1,4 @@
-# ADR-0009: All documentation uses semantic line breaks
+# ADR-0015: All documentation uses semantic line breaks
 
 - Status: Accepted
 - Date: 2026-07-17
@@ -10,7 +10,7 @@ and it lives under version control.
 Hard-wrapped paragraphs produce noisy diffs when a single word changes;
 unwrapped paragraphs produce unreviewable single-line diffs
 and encourage the long walls of text
-that ADR-0008 identifies as the main cause of spec skim-reading.
+that ADR-0014 identifies as the main cause of spec skim-reading.
 
 Semantic line breaks ([sembr.org](https://sembr.org/))
 break lines at clause and sentence boundaries,
@@ -38,6 +38,6 @@ in agent-written documentation.
 - Diffs to documentation align with changes in meaning,
   one clause per line.
 - Prose paragraphs stay visually short in editors,
-  reinforcing the readability rule of ADR-0008.
+  reinforcing the readability rule of ADR-0014.
 - Rendered output is unchanged;
   readers of the published Markdown see ordinary paragraphs.

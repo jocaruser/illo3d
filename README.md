@@ -98,7 +98,7 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 
 ## Deployment
 
-The app is deployed to **GitHub Pages** automatically on every push to `main`.
+The app is deployed to **GitHub Pages** from CI. Deployment is release-gated: either trigger `.github/workflows/deploy.yml` manually, or run the release workflow (`.github/workflows/release.yml`) which creates a GitHub Release and then triggers deploy.
 
 - **Live URL:** `https://<your-username>.github.io/illo3d/`
 - **Workflow:** `.github/workflows/deploy.yml`

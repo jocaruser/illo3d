@@ -4,7 +4,7 @@ Notes are an entity's diary.
 Clients and jobs place the section today,
 and any entity may —
 the data model already allows every kind
-([schema.dbml](../../schema.dbml)).
+([schema.dbml](../technical/database-model/schema.dbml)).
 This shared file owns the mechanics;
 the pages only place the section.
 

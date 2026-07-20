@@ -1,4 +1,4 @@
-# ADR-0014: Archive freezes; delete never happened
+# ADR-0011: Archive freezes; delete never happened
 
 - Status: Accepted
 - Date: 2026-07-18
@@ -10,7 +10,7 @@
 
 The shop's records are business history,
 kept in storage the user owns and can read raw
-(a Google Sheet, or CSV files in a folder).
+(a Google Sheet or CSV files in a folder — see ADR-0002).
 The product needs one honest "remove" story:
 tidying must never quietly change what a total means,
 and nothing half-removed may litter the pages.
@@ -48,7 +48,7 @@ with a single step back: un-archive.
 - Only an archived record can be deleted, and there is no undo.
 - In the app's eyes the record never existed:
   repositories drop deleted rows before anything else runs
-  ([ADR-0016](ADR-0016-repositories-filter-deleted.md)),
+  ([ADR-0012](ADR-0012-repositories-filter-deleted.md)),
   so no page, total, search or link can ever meet one.
 - Deletion cascades along the same edges as archiving,
   and takes the connections too:
@@ -73,7 +73,7 @@ with a single step back: un-archive.
 
 ### What cascades where
 
-The edges, from [schema.dbml](../../schema.dbml):
+The edges, from [schema.dbml](../technical/database-model/schema.dbml):
 
 | Removing a | Takes with it |
 |---|---|

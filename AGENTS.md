@@ -74,7 +74,7 @@ The frontend follows Symfony conventions — see `ARCHITECTURE.md` for the full 
 - `translations/` — `en.json` / `es.json` message catalogs (repo root, Symfony-style)
 - `tests/Unit/` — Vitest unit tests mirroring `src/`; **coverage thresholds are 100%**
 - `tests/e2e/` — Playwright E2E tests (Chromium only, `workers: 1`, serial where needed)
-- `schema.dbml` — mirrors `src/Config/schema.ts`; update both in the same PR
+- `specs/technical/database-model/schema.dbml` — canonical schema definition (per ADR-0004); `src/Config/schema.ts` mirrors it for the runtime; root `schema.dbml` is a copy for discoverability
 - `Makefile` — Single source of truth for all dev/CI commands
 - `.cursor/rules/quality-gate.mdc` — Detailed quality gate rules
 - `playground/` — Interactive HTML playgrounds for design/copy exploration

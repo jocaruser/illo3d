@@ -1,4 +1,4 @@
-# ADR-0013: Last save wins — no multi-writer conflict detection
+# ADR-0010: Last save wins — no multi-writer conflict detection
 
 - Status: Accepted
 - Date: 2026-07-18
@@ -8,7 +8,7 @@
 A shop can be open in two browser tabs at once,
 or (on Google Drive) on two devices.
 Each open copy edits its own in-memory snapshot
-and saving writes the whole workbook (ADR-0002).
+and saving writes the whole workbook (ADR-0003).
 Nothing compares what is being written
 with what someone else may have saved in between.
 

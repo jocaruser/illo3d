@@ -3,7 +3,7 @@
 Tags are shared labels —
 one pool for the whole shop,
 attachable to any entity
-([schema.dbml](../../schema.dbml) already allows every kind);
+([schema.dbml](../technical/database-model/schema.dbml) already allows every kind);
 clients and jobs place the section today.
 This shared file owns the mechanics;
 the pages only place the section.

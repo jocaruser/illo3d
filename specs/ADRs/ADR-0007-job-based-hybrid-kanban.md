@@ -1,4 +1,4 @@
-# ADR-0006: Job-based kanban with piece progress (hybrid), not piece-based
+# ADR-0007: Job-based kanban with piece progress (hybrid), not piece-based
 
 - Status: Accepted
 - Date: 2026-07-16
