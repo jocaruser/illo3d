@@ -190,6 +190,10 @@ Self-directed, awaiting Carlos's review:
 
 ## Spec-led deviations awaiting implementation
 
+The consolidated, ordered backlog now lives in
+[DIVERGENCES.md](DIVERGENCES.md) —
+this list remains the quick reference it carries forward.
+
 The spec is the contract; these are the known places the code lags it.
 
 From the first drafting pass:
