@@ -5,7 +5,9 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'dist-e2e', 'node_modules', 'coverage', '**/*.timestamp*'] },
+  // `.claude/worktrees/` holds whole checkouts of other branches, so linting it
+  // reports thousands of errors locally that CI, which never has it, cannot see.
+  { ignores: ['dist', 'dist-e2e', 'node_modules', 'coverage', '.claude', '**/*.timestamp*'] },
   {
     files: ['scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },

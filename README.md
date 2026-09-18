@@ -8,6 +8,35 @@ Per the Aircury development standards, illo3d is an **internal tool in productio
 
 **R2 D3 C4 E4 L3 S2 Y2 O1 B1 P2 U1 A2**
 
+## AI delivery board
+
+Work on this project is queued and delivered on
+[illo3d](https://boards.aircury.net/b/illo-3d-2).
+There is one board: **production**, the real queue.
+There is no staging board for this project.
+
+The **Backlog** column of this board is the canonical backlog for
+known defects, improvements and development-standards follow-up work.
+Do not create `IMPROVEMENTS.md` or another repository-file queue.
+New actionable findings are filed through `overboards-add-card`, which
+checks the board before creating a duplicate.
+
+| What                | Production — the real queue                             |
+| ------------------- | --------------------------------------------------------- |
+| Board               | `https://boards.aircury.net/b/illo-3d-2`                  |
+| API base            | `https://api.boards.aircury.net`                          |
+| Token               | Environment variable `ILLO_3D_BOARDS_TOKEN`                |
+| Default branch      | `main`                                                     |
+| Integration branch  | `staging`                                                  |
+| Card public token   | This board sets no sequence prefix, so a card is named by its public token and reached at `https://boards.aircury.net/c/<token>` |
+
+This project documents one board and has one target.
+There is nothing to choose.
+
+The token is operator configuration, not application configuration:
+export `ILLO_3D_BOARDS_TOKEN` in the environment the agent runs in.
+Nothing in this repository reads it, so it is never committed.
+
 ## Prerequisites
 
 - **Docker** and **Docker Compose** (commands run in containers; Node and pnpm live inside the app image).
@@ -33,6 +62,8 @@ Per the Aircury development standards, illo3d is an **internal tool in productio
 
 5. Open **http://localhost:5173**.
 
+   The app publishes host port `5173` by default. Set **`APP_PORT`** to change it, or `APP_PORT=0` to let Docker pick a free one — useful when another checkout, or a delivery-pipeline runner slot, already holds 5173. Either way **`make urls`** prints the address actually bound.
+
 Day-to-day development: use **`make dev`** after **`make up`** if containers were stopped (`make down`).
 
 ## Makefile commands (by category)
@@ -48,6 +79,7 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 | Target | Purpose |
 |--------|---------|
 | `make up` | Start containers in the background |
+| `make urls` | Reprint service addresses without restarting (reads the port Docker actually bound) |
 | `make down` | Stop containers |
 | `make logs` | Follow app container logs |
 | `make clean` | Remove containers, volumes, and local images for this project |
@@ -72,9 +104,9 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 
 | Target | Purpose |
 |--------|---------|
-| `make lint` | ESLint (0 errors required) |
+| `make lint` | ESLint (0 errors required). `FILES="<paths>"` scopes to specific files (default `.`) |
 | `make format` | Prettier (write) |
-| `make test` | Vitest unit tests with **100% coverage thresholds** |
+| `make test` | Vitest unit tests with **100% coverage thresholds**. `FILES="<paths>"` scopes which test files run — the coverage thresholds still apply globally, so a scoped run can fail on coverage even when every test it ran passed |
 | `make audit` | Dependency vulnerability gate — fails on high/critical advisories |
 | `make budget` | Performance budget — gzipped bundle must stay within `scripts/check-bundle-budget.mjs` limits |
 | `make e2e-test` | Playwright e2e (dedicated Vite on port 5174, ephemeral fixtures); also runs in GitHub CI on PRs |
