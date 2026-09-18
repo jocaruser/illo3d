@@ -4,8 +4,10 @@ services:
     build: .
     volumes:
       - .:/app
+    # APP_PORT=0 publishes an ephemeral host port, so several checkouts (or runner
+    # slots) can bring the stack up on one host. `make urls` reads back what was bound.
     ports:
-      - "5173:5173"
+      - "${APP_PORT:-5173}:5173"
     working_dir: /app
     environment:
       - NODE_ENV=development

@@ -62,6 +62,8 @@ Nothing in this repository reads it, so it is never committed.
 
 5. Open **http://localhost:5173**.
 
+   The app publishes host port `5173` by default. Set **`APP_PORT`** to change it, or `APP_PORT=0` to let Docker pick a free one — useful when another checkout, or a delivery-pipeline runner slot, already holds 5173. Either way **`make urls`** prints the address actually bound.
+
 Day-to-day development: use **`make dev`** after **`make up`** if containers were stopped (`make down`).
 
 ## Makefile commands (by category)
@@ -77,7 +79,7 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 | Target | Purpose |
 |--------|---------|
 | `make up` | Start containers in the background |
-| `make urls` | Reprint service addresses without restarting |
+| `make urls` | Reprint service addresses without restarting (reads the port Docker actually bound) |
 | `make down` | Stop containers |
 | `make logs` | Follow app container logs |
 | `make clean` | Remove containers, volumes, and local images for this project |

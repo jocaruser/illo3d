@@ -20,15 +20,17 @@ init: ## Build images, start containers, install deps, seed .env
 	@echo "✅ Ready! Next steps:"
 	@echo "   1. Edit .env with your Google credentials"
 	@echo "   2. Run 'make dev' to start dev server"
-	@echo "   3. Open http://localhost:5173"
+	@echo "   3. Run 'make urls' for the address it is served on"
 
 # ============ DOCKER ============
 up: ## Start containers in the background
 	docker compose up -d
 
 urls: ## Reprint service addresses without restarting
-	@echo "App (make dev):      http://localhost:5173"
-	@echo "E2E Vite (internal):  http://localhost:$(E2E_VITE_PORT)"
+	@bound=$$(docker compose port app 5173 2>/dev/null) && [ -n "$$bound" ] \
+		&& echo "App (make dev):      http://localhost:$${bound##*:}" \
+		|| echo "App (make dev):      not running — 'make up' first (host port: $${APP_PORT:-5173})"
+	@echo "E2E preview (in-container): http://localhost:$(E2E_VITE_PORT)"
 
 down: ## Stop containers
 	docker compose down
