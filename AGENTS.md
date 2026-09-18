@@ -1,5 +1,19 @@
 # Agent Guidelines for illo3d
 
+## Session Checklist
+
+- The active **Backlog** on the board named in `README.md § AI delivery
+  board` is the canonical improvement backlog. Check its digest before
+  filing through `overboards-add-card`, preserve the finding's evidence,
+  and never create `IMPROVEMENTS.md` as a parallel queue.
+- When a user names a card by its public token, or by a
+  `https://boards.aircury.net/c/<token>` link, treat it as an AI
+  delivery-board card. Resolve the board and token from
+  `README.md § AI delivery board`, then follow the advertised card
+  lookup rather than treating it as a local file, branch name, or
+  plain-text search term. This board sets no sequence prefix, so there
+  is no `ILLO3D-<number>` form to look for.
+
 ## Framework
 
 > Framework-managed section. Add project-specific instructions outside this section.

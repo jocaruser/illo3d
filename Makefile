@@ -1,4 +1,4 @@
-.PHONY: help init up down logs dev build preview install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
+.PHONY: help init up urls down logs dev build preview install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
 
 APP = docker compose exec app
 E2E_VITE_PORT ?= 5174
@@ -25,6 +25,10 @@ init: ## Build images, start containers, install deps, seed .env
 # ============ DOCKER ============
 up: ## Start containers in the background
 	docker compose up -d
+
+urls: ## Reprint service addresses without restarting
+	@echo "App (make dev):      http://localhost:5173"
+	@echo "E2E Vite (internal):  http://localhost:$(E2E_VITE_PORT)"
 
 down: ## Stop containers
 	docker compose down
@@ -79,8 +83,8 @@ audit: ## Dependency vulnerability gate (fails on high/critical)
 budget: build ## Performance budget: gzipped bundle within limits (P2)
 	$(APP) node scripts/check-bundle-budget.mjs
 
-lint: ## ESLint (0 errors required)
-	$(APP) pnpm lint
+lint: ## ESLint (0 errors required; FILES="<paths>" to scope, default .)
+	$(APP) pnpm exec eslint $${FILES:-.} --max-warnings 0
 
 react-doctor: ## React Doctor over changed files vs main
 	$(APP) sh -c 'if ! git show-ref --quiet refs/heads/main; then git fetch origin main:refs/heads/main 2>/dev/null || true; fi; pnpm exec react-doctor . --offline --scope changed --base main --blocking warning'
@@ -89,8 +93,8 @@ format: ## Prettier (write)
 	$(APP) pnpm format
 
 # Forward CI env into the container so Vitest can tune parallelism (GitHub sets CI=true on the host).
-test: ## Vitest unit tests with 100% coverage thresholds
-	docker compose exec -e CI=${CI} -e GITHUB_ACTIONS=${GITHUB_ACTIONS} app pnpm test
+test: ## Vitest unit tests, 100% coverage thresholds (FILES="<paths>" to scope; thresholds still apply globally)
+	docker compose exec -e CI=${CI} -e GITHUB_ACTIONS=${GITHUB_ACTIONS} app pnpm exec vitest run $${FILES}
 
 restore-fixtures: ## Copy golden fixtures/ into public/fixtures/
 	rm -rf public/fixtures/*

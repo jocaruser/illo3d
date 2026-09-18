@@ -1,0 +1,3 @@
+[submodule ".agents/overboards-skills"]
+	path = .agents/overboards-skills
+	url = git@github.com:aircury/shared-agent-skills.git
