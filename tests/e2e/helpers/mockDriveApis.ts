@@ -27,7 +27,7 @@ export const PASTE_FOLDER_IDS: Record<Exclude<PasteFolderMockMode, 'off'>, strin
 }
 
 /** The seeded shop's source spreadsheet id — fixed so scenarios can assert against it. */
-const SEEDED_SPREADSHEET_ID = 'e2eOldSpreadsheet1'
+export const SEEDED_SPREADSHEET_ID = 'e2eOldSpreadsheet1'
 
 export interface SeedShopOptions {
   folderId: string
