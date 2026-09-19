@@ -7,6 +7,8 @@
  *   on setup and loads that file.
  * - workers: 1 — single Vite server and one `.e2e-fixtures` tree; parallel workers would race CSV writes.
  *   Use test.describe.configure({ mode: 'serial' }) where tests in a file depend on order.
+ *   Google-backend specs additionally share one live `google-mock` service and its data
+ *   directory (see `tests/e2e/helpers/fakeGoogle.ts`), for the same reason.
  * - fullyParallel: true lets independent files run in parallel when workers > 1 locally.
  * - retries: 0 everywhere — a failure is a failure; retries would let real intermittent bugs
  *   pass CI. When `CI` is set, the GitHub reporter annotates the run.
@@ -32,6 +34,10 @@ export default defineConfig({
     ignoreHTTPSErrors: true,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
+    // Chromium's async DNS resolver can hang indefinitely (no error, no timeout)
+    // resolving the `google-mock` compose hostname, even though curl/wget and
+    // Vite's own dev server resolve it instantly. Required, not optional polish.
+    launchOptions: { args: ['--disable-features=AsyncDns,DnsOverHttps'] },
   },
   projects: [
     { name: 'setup', testMatch: /.*\.setup\.ts/ },
