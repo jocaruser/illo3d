@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server and ephemeral fixtures), GitHub Actions CI on pull requests to `main` (Docker `app` image, install, `make build`, `make lint`, `make test`; Playwright image build and `make e2e-test`), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory local/agent `make quality-gate` (build, lint, unit tests only) plus pull-request CI that additionally runs `make e2e-test`, emphasis on thorough Vitest coverage to reduce preventable CI e2e failures, Playwright coverage mapped to feature specs, shared e2e auth/shop setup (setup project and `storageState`), multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers, setup project).
+Developer workflow and quality for illo3d: Docker-based Node/pnpm environment, Makefile commands (including `restore-fixtures` and `e2e-test` with a dedicated e2e Vite server, ephemeral fixtures, and a live `google-mock` Drive/Sheets double), GitHub Actions CI on pull requests to `main` (Docker `app` image, install, `make build`, `make lint`, `make test`; Playwright image build and `make e2e-test`), project hygiene (ignore files, env template), root README for onboarding, scaffold expectations, mandatory local/agent `make quality-gate` (build, lint, unit tests only) plus pull-request CI that additionally runs `make e2e-test`, emphasis on thorough Vitest coverage to reduce preventable CI e2e failures, Playwright coverage mapped to feature specs, shared e2e auth/shop setup (setup project and `storageState`), multi-scenario fixtures, dialog-gated control assertions, and documented Playwright execution policy (workers, serial, optional browsers, setup project).
 
 ## Repository documentation
 
@@ -592,6 +592,28 @@ The system SHALL run all e2e tests via `make e2e-test`. The e2e target SHALL sta
 
 - **WHEN** a pull request targets `main` and CI executes successfully
 - **THEN** `make e2e-test` has completed with exit code 0 in that workflow
+
+### Requirement: E2E tests exercise the Google Drive backend against a live double, not in-process stubs
+
+The Playwright suite SHALL exercise every Drive v3 and Sheets v4 operation the app performs by sending real HTTP requests to, and receiving real HTTP responses from, a live, out-of-process double (`google-drive-api-mock`, a pinned image and devDependency) — not an in-process interception of the app's own network calls. `make e2e-test` SHALL bring up a `google-mock` compose service (reached only by service name inside the compose network, no host port) and point the e2e-only production build at it via three env-var overrides on `src/Repository/GSheet/GoogleApiClient.ts`'s base URLs (`VITE_GOOGLE_DRIVE_API_BASE`, `VITE_GOOGLE_DRIVE_UPLOAD_API_BASE`, `VITE_GOOGLE_SHEETS_API_BASE`), which default to the real Google hosts when unset. `tests/e2e/helpers/mockDriveApis.ts` SHALL seed and reset scenario state directly on the double's `DriveStore` rather than stubbing per-endpoint routes, so a stateful sequence (create, then list, then read; rename or move; overwrite) is exercised faithfully. The double, and anything used only to drive it, SHALL be absent from a production build: `src/` SHALL NOT import it (enforced by an ESLint `no-restricted-imports` rule), and CI's `build` job and the Pages `deploy` job SHALL each assert the built `dist/` contains no trace of it.
+
+#### Scenario: E2E build points the app at the live double
+
+- **WHEN** `make e2e-test` runs
+- **THEN** a `google-mock` service is started on the compose network
+- **AND** the e2e production build sets `VITE_GOOGLE_DRIVE_API_BASE`, `VITE_GOOGLE_DRIVE_UPLOAD_API_BASE`, and `VITE_GOOGLE_SHEETS_API_BASE` to that service's URL
+- **AND** a Google-backend e2e spec's Drive/Sheets requests are answered by that service over real HTTP, not by an in-process route stub
+
+#### Scenario: Google-backend migration runs to completion against the double
+
+- **WHEN** a Google-backend shop with a stale major version opens and the migration wizard's backup is declined
+- **THEN** the migration engine's `copyFile`, `renameFile`, and `deleteFile` Drive calls all complete against the live double
+- **AND** the shop opens afterward with the migrated spreadsheet, and the original source spreadsheet no longer exists
+
+#### Scenario: Production build never bundles the double
+
+- **WHEN** `make build` or the Pages deploy build runs
+- **THEN** the built `dist/` directory contains no reference to `google-drive-api-mock`
 
 ### Requirement: Playwright configuration documents execution policy
 
