@@ -39,6 +39,7 @@ tsconfig.node.tsbuildinfo
 test-results/
 /public/fixtures/
 .e2e-fixtures/
+.e2e-google-mock/
 tests/e2e/.auth/
 fixtures/realdata
 .gitignore
