@@ -30,6 +30,15 @@ services:
     networks:
       - illo3d-network
 
+  # Live Drive v3 + Sheets v4 double for e2e (see specs/decisions/). Reached
+  # only from inside the compose network, by service name — no host port.
+  google-mock:
+    image: ghcr.io/jocaruser/google-drive-api-mock:v0.2.1
+    volumes:
+      - ./.e2e-google-mock:/data
+    networks:
+      - illo3d-network
+
 networks:
   illo3d-network:
     driver: bridge
