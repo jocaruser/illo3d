@@ -40,5 +40,24 @@ export default tseslint.config(
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
       ],
     },
+  },
+  {
+    // The e2e-only live-Drive/Sheets double must never reach a production
+    // bundle: `src/` importing it would ship a test-only dependency.
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['google-drive-api-mock', 'google-drive-api-mock/*'],
+              message:
+                'google-drive-api-mock is a test-only e2e double and must not be imported from src/.',
+            },
+          ],
+        },
+      ],
+    },
   }
 )
