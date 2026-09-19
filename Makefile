@@ -62,10 +62,10 @@ install: ## pnpm install inside the app container
 	$(APP) sh -c 'export CI=true && pnpm install'
 
 add: ## Add runtime dependency (PKG=<name>)
-	$(APP) pnpm add $(PKG)
+	$(APP) pnpm add -w $(PKG)
 
 add-dev: ## Add dev dependency (PKG=<name>)
-	$(APP) pnpm add -D $(PKG)
+	$(APP) pnpm add -w -D $(PKG)
 
 # ============ QUALITY ============
 # Local quality gate: build, lint, unit tests, and e2e tests. Use before finishing any code change.
