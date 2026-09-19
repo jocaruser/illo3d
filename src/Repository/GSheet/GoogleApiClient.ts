@@ -10,9 +10,24 @@ import { authorizedFetch } from '@/Security/GoogleSession'
  * replace-style writes, so re-sending one after a server error is safe.
  */
 
-const DRIVE_BASE = 'https://www.googleapis.com/drive/v3'
-const SHEETS_BASE = 'https://sheets.googleapis.com/v4'
-const UPLOAD_BASE = 'https://www.googleapis.com/upload/drive/v3'
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_GOOGLE_DRIVE_API_BASE?: string
+    readonly VITE_GOOGLE_DRIVE_UPLOAD_API_BASE?: string
+    readonly VITE_GOOGLE_SHEETS_API_BASE?: string
+  }
+}
+
+// Overridable so the e2e suite can point this client at a live double
+// (`google-mock`) instead of the real Google hosts; unset in production, so a
+// shipped build behaves exactly as before this seam existed.
+const DRIVE_BASE =
+  import.meta.env.VITE_GOOGLE_DRIVE_API_BASE ?? 'https://www.googleapis.com/drive/v3'
+const SHEETS_BASE =
+  import.meta.env.VITE_GOOGLE_SHEETS_API_BASE ?? 'https://sheets.googleapis.com/v4'
+const UPLOAD_BASE =
+  import.meta.env.VITE_GOOGLE_DRIVE_UPLOAD_API_BASE ??
+  'https://www.googleapis.com/upload/drive/v3'
 
 const MULTIPART_BOUNDARY = 'illo3d-multipart'
 
