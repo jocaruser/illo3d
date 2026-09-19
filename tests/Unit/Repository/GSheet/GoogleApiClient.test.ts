@@ -162,6 +162,41 @@ describe('retry with backoff', () => {
   })
 })
 
+describe('API base overrides', () => {
+  const overrides = {
+    VITE_GOOGLE_DRIVE_API_BASE: 'http://127.0.0.1:8790/drive/v3',
+    VITE_GOOGLE_DRIVE_UPLOAD_API_BASE: 'http://127.0.0.1:8790/upload/drive/v3',
+    VITE_GOOGLE_SHEETS_API_BASE: 'http://127.0.0.1:8790/v4',
+  }
+
+  afterEach(async () => {
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
+  it('routes driveFetch, sheetsFetch and uploadMultipart through the overridden bases', async () => {
+    for (const [key, value] of Object.entries(overrides)) {
+      vi.stubEnv(key, value)
+    }
+    vi.resetModules()
+
+    const overridden = await import('@/Repository/GSheet/GoogleApiClient')
+
+    await overridden.driveFetch('/files/F1')
+    await overridden.sheetsFetch('/spreadsheets/S1')
+    await overridden.uploadMultipart({ name: 'file.json' }, '{}')
+
+    const urls = authorizedFetchMock.mock.calls.map(
+      (call) => (call as [string, RequestInit])[0]
+    )
+    expect(urls).toEqual([
+      'http://127.0.0.1:8790/drive/v3/files/F1',
+      'http://127.0.0.1:8790/v4/spreadsheets/S1',
+      'http://127.0.0.1:8790/upload/drive/v3/files?uploadType=multipart',
+    ])
+  })
+})
+
 describe('uploadMultipart', () => {
   it('POSTs a multipart create to the upload base by default', async () => {
     await uploadMultipart({ name: 'file.json', parents: ['F1'] }, '{"a":1}')
