@@ -269,7 +269,7 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       expect(screen.getByTestId('profile-menu-version')).toHaveTextContent(
-        'App 3.0.2 · Shop 3.0.0'
+        'App 3.1.0 · Shop 3.0.0'
       )
     })
 
@@ -279,7 +279,7 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       expect(screen.getByTestId('profile-menu-version')).toHaveTextContent(
-        'App 3.0.2 · Shop —'
+        'App 3.1.0 · Shop —'
       )
     })
 
