@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer, useState } from 'react'
+import { useMemo, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ClientActivityTimeline } from '@/Component/detail/ClientActivityTimeline'
@@ -10,21 +10,18 @@ import {
   type DetailField,
 } from '@/Component/detail/EntityDetailPage'
 import { NotesSection } from '@/Component/detail/NotesSection'
-import { ParentDetailLifecycleActions } from '@/Component/detail/ParentDetailLifecycleActions'
 import { TagsSection } from '@/Component/detail/TagsSection'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
 import { SectionHeading } from '@/Component/layout/SectionHeading'
 import { MentionLinkify } from '@/Component/MentionLinkify'
 import { NotFoundCard } from '@/Component/NotFoundCard'
-import { StatCard } from '@/Component/StatCard'
+import { ClientMetricsWidgetGrid } from '@/Component/detail/ClientMetricsWidgetGrid'
 import { toast } from '@/Component/Toast'
 import type { Job } from '@/Entity/Job'
 import { useEntityManager } from '@/Hook/useEntityManager'
 import { LifecycleService } from '@/Service/LifecycleService'
 import { computeClientMetrics } from '@/Service/Pricing/clientMetrics'
-import { jobPricingState } from '@/Service/Pricing/jobPricing'
-import { formatCurrency } from '@/Service/Pricing/money'
 import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
 import { jobSearchBlob } from '@/Service/Search/searchBlobs'
 
@@ -38,7 +35,6 @@ export function ClientDetailPage() {
   const [query, setQuery] = useState('')
   const [editOpen, setEditOpen] = useState(false)
   const [archiveOpen, setArchiveOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
   // One value covers the whole job-dialog session: null is closed, `editing:
   // null` is create mode, and a job is edit mode.
   const [jobDialog, setJobDialog] = useState<{ editing: Job | null } | null>(
@@ -75,11 +71,6 @@ export function ClientDetailPage() {
     )
   }, [jobs, query, client, t])
 
-  const pricingOf = useCallback(
-    (jobId: string) => jobPricingState(em.pieces.findCountingByJob(jobId)),
-    [em]
-  )
-
   if (client === null || client.isDeleted()) {
     return (
       <NotFoundCard
@@ -104,7 +95,12 @@ export function ClientDetailPage() {
   if (client.leadSource !== '') {
     fields.push({
       label: t('clients.leadSource'),
-      value: <MentionLinkify text={client.leadSource} em={em} />,
+      value: (
+        <MentionLinkify
+          text={client.leadSource}
+          resolvePieceJob={(pieceId) => em.pieces.find(pieceId)?.jobId ?? null}
+        />
+      ),
     })
   }
   if (client.address !== '') {
@@ -124,21 +120,6 @@ export function ClientDetailPage() {
     setArchiveOpen(false)
     void navigate('/clients')
   }
-
-  const unarchiveClient = () => {
-    new LifecycleService(em).restoreClient(client.id)
-    toast.success(t('toast.changeApplied'))
-    bump()
-  }
-
-  const confirmDeleteClient = () => {
-    new LifecycleService(em).softDeleteClient(client.id)
-    toast.success(t('toast.changeApplied'))
-    setDeleteOpen(false)
-    void navigate('/clients')
-  }
-
-  const readOnly = client.isArchived()
 
   const confirmArchiveJob = (job: Job) => {
     new LifecycleService(em).archiveJob(job.id)
@@ -169,53 +150,31 @@ export function ClientDetailPage() {
       title={client.name}
       fields={fields}
       actions={
-        <ParentDetailLifecycleActions
-          canEdit={!readOnly}
-          canArchive={!readOnly}
-          canUnarchive={readOnly}
-          canSoftDelete={readOnly}
-          onEdit={() => setEditOpen(true)}
-          onArchive={() => setArchiveOpen(true)}
-          onUnarchive={unarchiveClient}
-          onSoftDelete={() => setDeleteOpen(true)}
-        />
+        <>
+          <button
+            type="button"
+            className="btn-secondary"
+            data-testid="entity-detail-edit"
+            onClick={() => setEditOpen(true)}
+          >
+            {t('clients.edit')}
+          </button>
+          <button
+            type="button"
+            className="btn-secondary"
+            data-testid="entity-detail-archive"
+            onClick={() => setArchiveOpen(true)}
+          >
+            {t('lifecycle.archive')}
+          </button>
+        </>
       }
     >
-      <div
-        className="grid grid-cols-2 gap-3 lg:grid-cols-5"
-        data-testid="client-metrics"
-      >
-        <StatCard
-          label={t('clientDetail.metricPaidLedger')}
-          value={formatCurrency(metrics.paidLedger)}
-          tone="positive"
-        />
-        <StatCard
-          label={t('clientDetail.metricOutstanding')}
-          value={formatCurrency(metrics.outstandingJobs)}
-        />
-        <StatCard
-          label={t('clientDetail.metricJobCount')}
-          value={String(metrics.jobCount)}
-        />
-        <StatCard
-          label={t('clientDetail.metricAvgJobPrice')}
-          value={
-            metrics.averageJobPrice === null
-              ? '—'
-              : formatCurrency(metrics.averageJobPrice)
-          }
-        />
-        <StatCard
-          label={t('clientDetail.metricMaterials')}
-          value={formatCurrency(metrics.materialsEstimate)}
-          tone="negative"
-        />
-      </div>
+      <ClientMetricsWidgetGrid metrics={metrics} />
 
-      <TagsSection entityType="client" entityId={client.id} readOnly={readOnly} />
+      <TagsSection entityType="client" entityId={client.id} />
 
-      <NotesSection entityType="client" entityId={client.id} readOnly={readOnly} />
+      <NotesSection entityType="client" entityId={client.id} />
 
       <ClientActivityTimeline clientId={client.id} revision={revision} />
 
@@ -231,21 +190,18 @@ export function ClientDetailPage() {
               />
             </div>
           )}
-          {!readOnly && (
-            <button
-              type="button"
-              className="btn-primary sm:ml-auto"
-              data-testid="add-job-button"
-              onClick={openJobCreate}
-            >
-              {t('jobs.addJob')}
-            </button>
-          )}
+          <button
+            type="button"
+            className="btn-primary sm:ml-auto"
+            data-testid="add-job-button"
+            onClick={openJobCreate}
+          >
+            {t('jobs.addJob')}
+          </button>
         </div>
 
         <ClientJobsTable
           rows={jobRows}
-          pricingOf={pricingOf}
           emptyMessage={jobsEmptyMessage}
           onEdit={openJobEdit}
           onArchive={setArchivingJob}
@@ -253,14 +209,12 @@ export function ClientDetailPage() {
         />
       </section>
 
-      {!readOnly && (
-        <CreateClientDialog
-          open={editOpen}
-          client={client}
-          onClose={() => setEditOpen(false)}
-          onSaved={bump}
-        />
-      )}
+      <CreateClientDialog
+        open={editOpen}
+        client={client}
+        onClose={() => setEditOpen(false)}
+        onSaved={bump}
+      />
 
       <CreateJobDialog
         open={jobDialog !== null}
@@ -278,15 +232,6 @@ export function ClientDetailPage() {
         confirmLabel={t('lifecycle.archive')}
         onConfirm={confirmArchiveClient}
         onCancel={() => setArchiveOpen(false)}
-      />
-
-      <ConfirmDialog
-        open={deleteOpen}
-        title={t('clients.deleteConfirmTitle')}
-        message={t('clients.deleteConfirmMessage', { name: client.name })}
-        confirmLabel={t('lifecycle.softDelete')}
-        onConfirm={confirmDeleteClient}
-        onCancel={() => setDeleteOpen(false)}
       />
 
       {archivingJob !== null && (
