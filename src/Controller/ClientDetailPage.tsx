@@ -1,4 +1,4 @@
-import { useMemo, useReducer, useState } from 'react'
+import { useCallback, useMemo, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { ClientActivityTimeline } from '@/Component/detail/ClientActivityTimeline'
@@ -23,6 +23,7 @@ import type { Job } from '@/Entity/Job'
 import { useEntityManager } from '@/Hook/useEntityManager'
 import { LifecycleService } from '@/Service/LifecycleService'
 import { computeClientMetrics } from '@/Service/Pricing/clientMetrics'
+import { jobPricingState } from '@/Service/Pricing/jobPricing'
 import { formatCurrency } from '@/Service/Pricing/money'
 import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
 import { jobSearchBlob } from '@/Service/Search/searchBlobs'
@@ -73,6 +74,11 @@ export function ClientDetailPage() {
       jobSearchBlob(job, { clientName }, t)
     )
   }, [jobs, query, client, t])
+
+  const pricingOf = useCallback(
+    (jobId: string) => jobPricingState(em.pieces.findCountingByJob(jobId)),
+    [em]
+  )
 
   if (client === null || client.isDeleted()) {
     return (
@@ -244,6 +250,7 @@ export function ClientDetailPage() {
 
         <ClientJobsTable
           rows={jobRows}
+          pricingOf={pricingOf}
           emptyMessage={jobsEmptyMessage}
           onEdit={openJobEdit}
           onArchive={setArchivingJob}
