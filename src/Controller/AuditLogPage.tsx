@@ -10,7 +10,7 @@ import {
   type AuditEntry,
 } from '@/Entity/AuditEntry'
 import { useEntityManager } from '@/Hook/useEntityManager'
-import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
+import { useListTableDiscovery } from '@/Hook/useListTableDiscovery'
 import { joinSearchParts } from '@/Service/Search/searchBlobs'
 
 /** '' means "no filter" for both selects. */
@@ -34,20 +34,32 @@ function auditSearchBlob(entry: AuditEntry): string {
 export function AuditLogPage() {
   const { t } = useTranslation()
   const em = useEntityManager()
-  const [query, setQuery] = useState('')
   const [action, setAction] = useState<string>(ALL)
   const [entityName, setEntityName] = useState<string>(ALL)
 
   const entries = useMemo(() => em.auditLog.findAll(), [em])
 
-  const visible = useMemo(() => {
-    const filtered = entries.filter(
-      (entry) =>
-        (action === ALL || entry.action === action) &&
-        (entityName === ALL || entry.entityName === entityName)
-    )
-    return fuzzyFilter(filtered, query, auditSearchBlob)
-  }, [entries, action, entityName, query])
+  const sourceRows = useMemo(
+    () =>
+      entries.filter(
+        (entry) =>
+          (action === ALL || entry.action === action) &&
+          (entityName === ALL || entry.entityName === entityName)
+      ),
+    [entries, action, entityName]
+  )
+
+  const { query, setQuery, rows: visible } = useListTableDiscovery({
+    sourceRows,
+    getSearchBlob: auditSearchBlob,
+    messages: {
+      collectionEmpty: t('auditLog.empty'),
+      noMatches: t('listTable.noMatches'),
+    },
+  })
+
+  const emptyMessage =
+    entries.length === 0 ? t('auditLog.empty') : t('listTable.noMatches')
 
   const actionOptions: SelectOption[] = [
     { value: ALL, label: t('auditLog.filterAllActions') },
@@ -94,12 +106,7 @@ export function AuditLogPage() {
           </>
         }
       />
-      <AuditTable
-        entries={visible}
-        emptyMessage={
-          entries.length === 0 ? t('auditLog.empty') : t('listTable.noMatches')
-        }
-      />
+      <AuditTable entries={visible} emptyMessage={emptyMessage} />
     </div>
   )
 }

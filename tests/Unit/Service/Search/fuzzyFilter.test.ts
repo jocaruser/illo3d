@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
+import {
+  filterRowsBySearchQuery,
+  fuzzyFilter,
+} from '@/Service/Search/fuzzyFilter'
 
 interface Row {
   id: string
@@ -37,5 +40,12 @@ describe('fuzzyFilter', () => {
   it('uses literal substring matching for YYYY-MM-DD queries', () => {
     expect(fuzzyFilter(rows, '2026-01-15', getBlob).map((row) => row.id)).toEqual(['a'])
     expect(fuzzyFilter(rows, '2026-01-16', getBlob)).toEqual([])
+  })
+
+  it('exposes filterRowsBySearchQuery as an alias of fuzzyFilter', () => {
+    const query = 'acme'
+    expect(filterRowsBySearchQuery(rows, query, getBlob)).toEqual(
+      fuzzyFilter(rows, query, getBlob)
+    )
   })
 })

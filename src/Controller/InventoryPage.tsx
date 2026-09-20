@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   InventoryTable,
@@ -7,8 +7,8 @@ import {
 import { ListTablePageHeader } from '@/Component/layout/ListTablePageHeader'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
 import { useEntityManager } from '@/Hook/useEntityManager'
+import { useListTableDiscovery } from '@/Hook/useListTableDiscovery'
 import { computeAvgUnitCost } from '@/Service/Pricing/avgUnitCost'
-import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
 import { inventorySearchBlob } from '@/Service/Search/searchBlobs'
 
 /**
@@ -19,9 +19,8 @@ import { inventorySearchBlob } from '@/Service/Search/searchBlobs'
 export function InventoryPage() {
   const { t } = useTranslation()
   const em = useEntityManager()
-  const [query, setQuery] = useState('')
 
-  const rows = useMemo<InventoryTableRow[]>(
+  const sourceRows = useMemo<InventoryTableRow[]>(
     () =>
       em.inventory.findActive().map((item) => ({
         item,
@@ -30,10 +29,19 @@ export function InventoryPage() {
     [em]
   )
 
-  const visible = useMemo(
-    () => fuzzyFilter(rows, query, (row) => inventorySearchBlob(row.item, t)),
-    [rows, query, t]
+  const getSearchBlob = useCallback(
+    (row: InventoryTableRow) => inventorySearchBlob(row.item, t),
+    [t]
   )
+
+  const { query, setQuery, rows, emptyMessage } = useListTableDiscovery({
+    sourceRows,
+    getSearchBlob,
+    messages: {
+      collectionEmpty: t('inventory.empty'),
+      noMatches: t('listTable.noMatches'),
+    },
+  })
 
   return (
     <div className="space-y-4">
@@ -41,12 +49,7 @@ export function InventoryPage() {
         title={t('inventory.title')}
         search={<ListTableSearchField value={query} onChange={setQuery} />}
       />
-      <InventoryTable
-        rows={visible}
-        emptyMessage={
-          rows.length === 0 ? t('inventory.empty') : t('listTable.noMatches')
-        }
-      />
+      <InventoryTable rows={rows} emptyMessage={emptyMessage} />
     </div>
   )
 }

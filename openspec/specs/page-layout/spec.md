@@ -187,6 +187,7 @@ Primary action buttons (submit / create / confirm type) SHALL share a consistent
 
 ### Requirement: Table components accept query prop instead of managing search internally
 Table components (ClientsTable, JobsTable, TransactionsTable, InventoryTable, PiecesTable, ClientJobsDiscoveryTable) SHALL accept an optional `query` prop (string) and remove internal `ListTableSearchField` and search state.
+List filtering in controllers uses `fuzzyFilter` / `filterRowsBySearchQuery` (same implementation) via the shared `useListTableDiscovery` hook on top-level list pages.
 
 #### Scenario: ClientsTable with query prop
 - **WHEN** ClientsTable receives a `query` prop

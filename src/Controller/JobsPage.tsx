@@ -12,9 +12,9 @@ import { toast } from '@/Component/Toast'
 import type { Job } from '@/Entity/Job'
 import { useEntityManager } from '@/Hook/useEntityManager'
 import { useJobStatusFlow } from '@/Hook/useJobStatusFlow'
+import { useListTableDiscovery } from '@/Hook/useListTableDiscovery'
 import { LifecycleService } from '@/Service/LifecycleService'
 import { jobPricingState } from '@/Service/Pricing/jobPricing'
-import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
 import { jobSearchBlob } from '@/Service/Search/searchBlobs'
 
 export function JobsPage() {
@@ -22,7 +22,6 @@ export function JobsPage() {
   const em = useEntityManager()
   const navigate = useNavigate()
   const [revision, bump] = useReducer((count: number) => count + 1, 0)
-  const [query, setQuery] = useState('')
   // One value covers the whole dialog session: null is closed, `editing: null`
   // is create mode, and a job is edit mode.
   const [dialog, setDialog] = useState<{ editing: Job | null } | null>(null)
@@ -81,20 +80,27 @@ export function JobsPage() {
     [em]
   )
 
-  const rows = useMemo(
-    () =>
-      fuzzyFilter(jobs, query, (job) =>
-        jobSearchBlob(
-          job,
-          {
-            clientName: clientName(job.clientId),
-            tagNamesLine: tagNames(job.id).join(' '),
-          },
-          t
-        )
+  const getSearchBlob = useCallback(
+    (job: Job) =>
+      jobSearchBlob(
+        job,
+        {
+          clientName: clientName(job.clientId),
+          tagNamesLine: tagNames(job.id).join(' '),
+        },
+        t
       ),
-    [jobs, query, clientName, tagNames, t]
+    [clientName, tagNames, t]
   )
+
+  const { query, setQuery, rows, emptyMessage } = useListTableDiscovery({
+    sourceRows: jobs,
+    getSearchBlob,
+    messages: {
+      collectionEmpty: t('jobs.empty'),
+      noMatches: t('listTable.noMatches'),
+    },
+  })
 
   const openCreate = () => setDialog({ editing: null })
 
@@ -106,9 +112,6 @@ export function JobsPage() {
     setArchiving(null)
     bump()
   }
-
-  const emptyMessage =
-    jobs.length === 0 ? t('jobs.empty') : t('listTable.noMatches')
 
   return (
     <div className="space-y-6">

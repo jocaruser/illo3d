@@ -19,6 +19,15 @@ export function fuzzyFilter<T>(
   query: string,
   getBlob: (row: T) => string
 ): T[] {
+  return filterRowsBySearchQuery(rows, query, getBlob)
+}
+
+/** Documented alias for `fuzzyFilter` — one matcher for every list search. */
+export function filterRowsBySearchQuery<T>(
+  rows: T[],
+  query: string,
+  getBlob: (row: T) => string
+): T[] {
   const trimmed = query.trim()
   if (trimmed.length < 2) return rows
   if (strictDateOrMonthQuery.test(trimmed)) {
