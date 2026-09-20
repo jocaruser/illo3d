@@ -134,20 +134,45 @@ function ExpenseDetail({ transaction }: ExpenseDetailProps) {
 
   const handleSave = () => {
     const service = new InventoryService(em)
+    const amountToSave = parsedAmount ?? NaN
+
+    const stored = em.transactions.find(transaction.id)
+    if (stored === null || !stored.isExpense()) {
+      setSaveError(t('expenseTransactionDetail.notFound'))
+      return
+    }
+    if (!Number.isFinite(amountToSave) || amountToSave >= 0) {
+      setSaveError(t('expenseTransactionDetail.amountInvalid'))
+      return
+    }
+
+    const lotWrites: { lotId: string; quantity: number; amount: number }[] =
+      []
+    for (const lot of lots) {
+      const draft = drafts[lot.id]
+      const quantity = parseNumericCell(draft.quantity) ?? NaN
+      const lotAmount = parseNumericCell(draft.amount) ?? NaN
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        setSaveError(t('inventoryDetail.lotQuantityInvalid'))
+        return
+      }
+      if (!Number.isFinite(lotAmount) || lotAmount < 0) {
+        setSaveError(t('inventoryDetail.lotAmountInvalid'))
+        return
+      }
+      lotWrites.push({ lotId: lot.id, quantity, amount: lotAmount })
+    }
+
     const amountResult = service.updateTransactionAmount(
       transaction.id,
-      parsedAmount ?? NaN
+      amountToSave
     )
     if (!amountResult.ok) {
       setSaveError(t(amountResult.error))
       return
     }
-    for (const lot of lots) {
-      const draft = drafts[lot.id]
-      const lotResult = service.updateLot(lot.id, {
-        quantity: parseNumericCell(draft.quantity) ?? NaN,
-        amount: parseNumericCell(draft.amount) ?? NaN,
-      })
+    for (const { lotId, quantity, amount } of lotWrites) {
+      const lotResult = service.updateLot(lotId, { quantity, amount })
       if (!lotResult.ok) {
         setSaveError(t(lotResult.error))
         return
