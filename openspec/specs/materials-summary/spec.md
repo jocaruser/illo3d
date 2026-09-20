@@ -14,6 +14,13 @@ Each row in the summary table SHALL display: Inventory Name (resolved from inven
 - **WHEN** a job uses PLA White across two pieces
 - **THEN** the summary row shows "PLA White", total grams, estimated cost, redos count, and both piece names separated by commas
 
+### Requirement: Summary inventory names link to inventory detail
+Each summary row's inventory name SHALL be a navigable link to `/inventory/<inventory_id>` for that row.
+
+#### Scenario: Material name opens inventory detail
+- **WHEN** the materials summary lists inventory `INV1` named "PLA White"
+- **THEN** the inventory cell contains a link with target `/inventory/INV1` and accessible name "PLA White"
+
 ### Requirement: Summary table sorted by inventory type then name
 Rows SHALL be sorted by inventory type (filament first, then consumable, then equipment) and then alphabetically by inventory name within each type.
 
