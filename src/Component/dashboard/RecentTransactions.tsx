@@ -5,6 +5,7 @@ import { Card, CardBody, CardHeader, CardTitle } from '@/Component/Card'
 import { ColouredNumber } from '@/Component/ColouredNumber'
 import type { Transaction } from '@/Entity/Transaction'
 import { useEntityManager } from '@/Hook/useEntityManager'
+import { transactionNavigationTarget } from '@/Service/Linking/entityLinkTargets'
 import { formatCurrency } from '@/Service/Pricing/money'
 
 const RECENT_LIMIT = 5
@@ -23,10 +24,11 @@ export function RecentTransactions() {
   const transactions = em.transactions.findActive().sort(compareByDateDesc).slice(0, RECENT_LIMIT)
 
   const conceptOf = (transaction: Transaction): ReactNode => {
-    if (transaction.refType === 'job') {
+    const to = transactionNavigationTarget(em, transaction.id)
+    if (to?.startsWith('/jobs/')) {
       return (
         <Link
-          to={`/jobs/${transaction.refId}`}
+          to={to}
           className="text-primary hover:underline"
           data-testid={`transaction-concept-job-link-${transaction.id}`}
         >
@@ -34,10 +36,10 @@ export function RecentTransactions() {
         </Link>
       )
     }
-    if (transaction.isExpense() && em.lots.findActiveByTransaction(transaction.id).length > 0) {
+    if (to?.startsWith('/transactions/')) {
       return (
         <Link
-          to={`/transactions/${transaction.id}`}
+          to={to}
           className="text-primary hover:underline"
           data-testid={`transaction-concept-expense-link-${transaction.id}`}
         >

@@ -3,6 +3,7 @@ import type { Job } from '@/Entity/Job'
 import type { TagLink } from '@/Entity/TagLink'
 import type { EntityManager } from '@/Repository/EntityManager'
 import { formatTagNameTitleCase } from '@/Service/TagService'
+import { jobPathForPiece } from '@/Service/Linking/entityLinkTargets'
 import { fuzzyFilter } from './fuzzyFilter'
 import {
   clientSearchBlob,
@@ -135,7 +136,9 @@ function buildRows(em: EntityManager, t: Translate): SearchRow[] {
       hit: {
         kind: 'piece',
         id: piece.id,
-        navigateTo: `/jobs/${piece.jobId}`,
+        navigateTo:
+          jobPathForPiece(em, piece.id) ??
+          (piece.jobId === '' ? '/jobs' : `/jobs/${piece.jobId}`),
         primaryLine: piece.name,
         secondaryLine: jobLabel(jobs, piece.jobId),
       },

@@ -1,15 +1,23 @@
 import { screen } from '@testing-library/react'
 import { MentionLinkify } from '@/Component/MentionLinkify'
+import { createTestEm, FakeTabs } from '../helpers/workbookTestBed'
 import { renderWithProviders } from './helpers/renderWithProviders'
+
+function emWithPieceJob() {
+  const tabs = new FakeTabs()
+  tabs.seed('clients', { id: 'CL1', name: 'Acme' })
+  tabs.seed('jobs', { id: 'J2', client_id: 'CL1', description: 'Run' })
+  tabs.seed('pieces', { id: 'P3', job_id: 'J9', name: 'Part' })
+  tabs.seed('jobs', { id: 'J9', client_id: 'CL1', description: 'Other' })
+  return createTestEm(tabs)
+}
 
 describe('MentionLinkify', () => {
   it('links client, job, and resolvable piece mentions', () => {
+    const em = emWithPieceJob()
     renderWithProviders(
       <p>
-        <MentionLinkify
-          text="Ask @CL1 about @J2 and @P3 today"
-          resolvePieceJob={(pieceId) => (pieceId === 'P3' ? 'J9' : null)}
-        />
+        <MentionLinkify text="Ask @CL1 about @J2 and @P3 today" em={em} />
       </p>
     )
 
@@ -20,9 +28,11 @@ describe('MentionLinkify', () => {
   })
 
   it('renders unresolvable piece mentions as plain text', () => {
+    const tabs = new FakeTabs()
+    const em = createTestEm(tabs)
     renderWithProviders(
       <p>
-        <MentionLinkify text="Check @P7 status" resolvePieceJob={() => null} />
+        <MentionLinkify text="Check @P7 status" em={em} />
       </p>
     )
 
@@ -31,9 +41,13 @@ describe('MentionLinkify', () => {
   })
 
   it('handles text that starts and ends with mentions', () => {
+    const tabs = new FakeTabs()
+    tabs.seed('clients', { id: 'CL1', name: 'Acme' })
+    tabs.seed('jobs', { id: 'J2', client_id: 'CL1', description: 'Run' })
+    const em = createTestEm(tabs)
     renderWithProviders(
       <p data-testid="body">
-        <MentionLinkify text="@CL1 called @J2" resolvePieceJob={() => null} />
+        <MentionLinkify text="@CL1 called @J2" em={em} />
       </p>
     )
 
@@ -42,9 +56,10 @@ describe('MentionLinkify', () => {
   })
 
   it('leaves text without mentions untouched', () => {
+    const em = createTestEm(new FakeTabs())
     renderWithProviders(
       <p>
-        <MentionLinkify text="Nothing to see here" resolvePieceJob={() => null} />
+        <MentionLinkify text="Nothing to see here" em={em} />
       </p>
     )
 

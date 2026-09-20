@@ -97,10 +97,7 @@ export function ClientDetailPage() {
     fields.push({
       label: t('clients.leadSource'),
       value: (
-        <MentionLinkify
-          text={client.leadSource}
-          resolvePieceJob={(pieceId) => em.pieces.find(pieceId)?.jobId ?? null}
-        />
+        <MentionLinkify text={client.leadSource} em={em} />
       ),
     })
   }

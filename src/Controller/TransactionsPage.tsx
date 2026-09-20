@@ -14,6 +14,7 @@ import type { Transaction } from '@/Entity/Transaction'
 import { useEntityManager } from '@/Hook/useEntityManager'
 import type { EntityManager } from '@/Repository/EntityManager'
 import { calculateBalance, formatCurrency } from '@/Service/Pricing/money'
+import { transactionNavigationTarget } from '@/Service/Linking/entityLinkTargets'
 import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
 import { transactionSearchBlob } from '@/Service/Search/searchBlobs'
 
@@ -25,15 +26,10 @@ function conceptLinkFor(
   em: EntityManager,
   transaction: Transaction
 ): ConceptLink {
-  if (transaction.refType === 'job')
-    return { kind: 'job', to: `/jobs/${transaction.refId}` }
-  if (
-    transaction.isExpense() &&
-    em.lots.findActiveByTransaction(transaction.id).length > 0
-  ) {
-    return { kind: 'expense', to: `/transactions/${transaction.id}` }
-  }
-  return { kind: 'none' }
+  const to = transactionNavigationTarget(em, transaction.id)
+  if (to === null) return { kind: 'none' }
+  if (to.startsWith('/jobs/')) return { kind: 'job', to }
+  return { kind: 'expense', to }
 }
 
 export function TransactionsPage() {

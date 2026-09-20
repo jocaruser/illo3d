@@ -72,7 +72,7 @@ describe('globalSearch', () => {
     })
     expect(globalSearch(em, 'Bracket', t)[0]).toMatchObject({
       kind: 'piece',
-      navigateTo: '/jobs/J1',
+      navigateTo: '/jobs/J1#piece-P1',
       secondaryLine: 'J1 — Lamp shade',
     })
     expect(globalSearch(em, 'quarterly follow', t)[0]).toMatchObject({
