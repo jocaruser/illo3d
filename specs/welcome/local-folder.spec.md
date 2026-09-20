@@ -30,7 +30,8 @@ back to the welcome screen, silently.
   → "This shop's version could not be read."
 - The folder holds no shop —
   or nothing the app can recognise as one —
-  → the app offers to start fresh:
+  → the app offers to start fresh in a
+  [standard confirmation dialog](../shared/dialogs.spec.md#confirmation):
   **"Create a new illo3d shop in "‹folder name›"?
   Existing shop files will be overwritten."**
   - Confirming creates a brand-new, empty shop in that folder.

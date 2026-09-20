@@ -5,7 +5,8 @@ from a [local folder](../welcome/local-folder.spec.md)
 or from [Google Drive](../welcome/google-drive.spec.md) —
 does not open it.
 Instead the **Migration Wizard** appears:
-a dialog that upgrades the shop before it can be used.
+a [wizard overlay](../shared/dialogs.spec.md#wizard-overlays) that upgrades
+the shop before it can be used.
 
 ## When it triggers
 

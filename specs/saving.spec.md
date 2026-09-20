@@ -19,7 +19,8 @@ philosophy with its own submit.)
 ## Saving
 
 Pressing **Save** writes the whole shop, all at once.
-While it writes, a full-screen overlay blocks everything:
+While it writes, a full-screen overlay blocks everything
+([shared blocking-operation rules](shared/dialogs.spec.md#blocking-operations)):
 "Saving workbook", naming each part as it goes
 ("Saving ‹part›…", "‹current› of ‹total›").
 
