@@ -56,6 +56,7 @@ export function QtyEditor({ itemId, qtyCurrent, readOnly = false }: QtyEditorPro
             min="0"
             value={value}
             readOnly={readOnly}
+            disabled={readOnly}
             onChange={(event) => setValue(event.target.value)}
           />
         </FormGroup>

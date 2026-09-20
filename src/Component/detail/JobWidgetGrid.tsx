@@ -10,9 +10,9 @@ import { computeAvgUnitCost } from '@/Service/Pricing/avgUnitCost'
 import type { JobPricingState } from '@/Service/Pricing/jobPricing'
 import { formatCurrency } from '@/Service/Pricing/money'
 import { computeRedos, redoBand, type RedoBand } from '@/Service/Pricing/redos'
+import { EntityDetailLifecycleActions } from './EntityDetailLifecycleActions'
 import { DetailWidget, WidgetGrid } from './DetailWidget'
 import { DueDateBadge, JobTotal } from './JobsTable'
-import { ParentDetailLifecycleActions } from './ParentDetailLifecycleActions'
 
 interface JobWidgetGridProps {
   job: Job
@@ -101,13 +101,6 @@ export function JobWidgetGrid({
 
   const benefit = pricing.complete ? pricing.total - totals.cost : null
 
-  const archived = job.isArchived()
-  const canEdit = !archived
-  const canArchive = !archived
-  const canUnarchive = archived
-  const canSoftDelete = archived
-  const widgetsReadOnly = readOnly || archived
-
   return (
     <WidgetGrid>
       <DetailWidget
@@ -115,17 +108,14 @@ export function JobWidgetGrid({
         colSpan={2}
         testId="job-widget-id"
         actions={
-          <ParentDetailLifecycleActions
+          <EntityDetailLifecycleActions
             compact
-            editLabelKey="jobs.editJob"
-            canEdit={canEdit}
-            canArchive={canArchive}
-            canUnarchive={canUnarchive}
-            canSoftDelete={canSoftDelete}
-            onEdit={onEdit}
-            onArchive={onArchive}
-            onUnarchive={onUnarchive}
-            onSoftDelete={onSoftDelete}
+            mode={job.isArchived() ? 'archived' : 'active'}
+            editLabel={t('jobs.editJob')}
+            onEdit={job.isArchived() ? undefined : onEdit}
+            onArchive={job.isArchived() ? undefined : onArchive}
+            onUnarchive={job.isArchived() ? onUnarchive : undefined}
+            onSoftDelete={job.isArchived() ? onSoftDelete : undefined}
           />
         }
       >
@@ -136,7 +126,7 @@ export function JobWidgetGrid({
 
       <DetailWidget label={t('jobs.widgetStatus')} testId="job-widget-status">
         <div data-testid={`job-status-${job.id}`}>
-          {widgetsReadOnly ? (
+          {readOnly ? (
             <span>{t(`jobs.status.${job.status}`)}</span>
           ) : (
             <Combobox
@@ -164,7 +154,7 @@ export function JobWidgetGrid({
       </DetailWidget>
 
       <DetailWidget label={t('jobs.widgetDueDate')} testId="job-widget-due-date">
-        {widgetsReadOnly ? (
+        {readOnly ? (
           <DueDateBadge job={job} clock={em.clock} />
         ) : editingDueDate ? (
           <FormInput

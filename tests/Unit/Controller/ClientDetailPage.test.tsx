@@ -140,6 +140,32 @@ describe('ClientDetailPage', () => {
     expect(screen.getByText('Client not found.')).toBeInTheDocument()
   })
 
+  it('renders an archived client as read-only with un-archive and soft delete', async () => {
+    const user = userEvent.setup()
+    world.tabs.seed('clients', [
+      {
+        id: 'CL9',
+        name: 'Archived Co',
+        email: 'archived@test',
+        created_at: '2024-01-02',
+        archived: 'true',
+      },
+    ])
+    renderPage('/clients/CL9')
+
+    expect(screen.getByRole('heading', { name: 'Archived Co' })).toBeInTheDocument()
+    expect(screen.queryByTestId('entity-detail-edit')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('entity-detail-archive')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('add-job-button')).not.toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-unarchive')).toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-soft-delete')).toBeInTheDocument()
+    expect(screen.queryByTestId('client-note-add')).not.toBeInTheDocument()
+
+    await user.click(screen.getByTestId('entity-detail-unarchive'))
+    expect(world.em.clients.find('CL9')?.isArchived()).toBe(false)
+    expect(screen.getByTestId('entity-detail-edit')).toBeInTheDocument()
+  })
+
   it('renders a NotFoundCard when the route binds no id', () => {
     renderPage('/clients/CL1', '/clients/:other')
     expect(screen.getByText('Client not found.')).toBeInTheDocument()

@@ -33,7 +33,11 @@ interface DraftLine {
   quantity: string
 }
 
-export function PieceItemsTable({ piece, readOnly = false, onChanged }: PieceItemsTableProps) {
+export function PieceItemsTable({
+  piece,
+  readOnly = false,
+  onChanged,
+}: PieceItemsTableProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [revision, setRevision] = useState(0)
@@ -209,24 +213,27 @@ export function PieceItemsTable({ piece, readOnly = false, onChanged }: PieceIte
                       className="min-w-[10rem]"
                       data-testid={`piece-item-inventory-${line.id}`}
                     >
-                      <Combobox
-                        items={options}
-                        value={line.inventoryId}
-                        placeholder={t('pieces.inventoryFieldAria', {
-                          id: line.id,
-                        })}
-                        disabled={readOnly}
-                        onChange={(next) => {
-                          if (readOnly || next === line.inventoryId) return
-                          if (em.pieceItems.hasActiveLine(piece.id, next)) {
-                            fail('pieces.validation.duplicateInventory')
-                            return
-                          }
-                          line.inventoryId = next
-                          em.pieceItems.save(line)
-                          refresh()
-                        }}
-                      />
+                      {readOnly ? (
+                        <span>{item?.name ?? line.inventoryId}</span>
+                      ) : (
+                        <Combobox
+                          items={options}
+                          value={line.inventoryId}
+                          placeholder={t('pieces.inventoryFieldAria', {
+                            id: line.id,
+                          })}
+                          onChange={(next) => {
+                            if (next === line.inventoryId) return
+                            if (em.pieceItems.hasActiveLine(piece.id, next)) {
+                              fail('pieces.validation.duplicateInventory')
+                              return
+                            }
+                            line.inventoryId = next
+                            em.pieceItems.save(line)
+                            refresh()
+                          }}
+                        />
+                      )}
                     </div>
                   </td>
                   <td className="px-2 py-1">
@@ -239,9 +246,10 @@ export function PieceItemsTable({ piece, readOnly = false, onChanged }: PieceIte
                       aria-label={t('pieces.qtyFieldAria', { id: line.id })}
                       defaultValue={line.quantity ?? ''}
                       readOnly={readOnly}
+                      disabled={readOnly}
                       key={`${line.id}-${revision}`}
                       onBlur={(event) =>
-                        !readOnly && updateQuantity(line, event.target.value)
+                        updateQuantity(line, event.target.value)
                       }
                     />
                   </td>
@@ -273,7 +281,7 @@ export function PieceItemsTable({ piece, readOnly = false, onChanged }: PieceIte
             })
           )}
 
-          {draft !== null && (
+          {!readOnly && draft !== null && (
             <tr ref={draftRef} data-testid={`piece-item-draft-${piece.id}`}>
               <td className="px-2 py-1 text-text-muted">—</td>
               <td className="px-2 py-1">

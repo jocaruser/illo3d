@@ -88,17 +88,17 @@ export function JobDetailPage() {
 
   const confirmLifecycle = () => {
     const service = new LifecycleService(em)
-    if (lifecycle === 'delete') {
-      service.softDeleteJob(job.id)
-      toast.success(t('toast.changeApplied'))
-      setLifecycle(null)
-      void navigate('/jobs')
-      return
-    }
-    service.archiveJob(job.id)
+    if (lifecycle === 'delete') service.softDeleteJob(job.id)
+    else service.archiveJob(job.id)
     toast.success(t('toast.changeApplied'))
     setLifecycle(null)
     void navigate('/jobs')
+  }
+
+  const unarchiveJob = () => {
+    new LifecycleService(em).restoreJob(job.id)
+    toast.success(t('toast.changeApplied'))
+    bump()
   }
 
   const changeDueDate = (dueDate: string) => {
@@ -116,21 +116,6 @@ export function JobDetailPage() {
   }
 
   const piecesEmptyMessage = pieces.length === 0 ? t('pieces.empty') : t('listTable.noMatches')
-
-  const lifecycleTitle =
-    lifecycle === 'delete' ? t('jobs.confirmDeleteTitle') : t('jobs.archiveConfirmTitle')
-  const lifecycleMessage =
-    lifecycle === 'delete'
-      ? t('jobs.confirmDeleteMessage', { id: job.id })
-      : t('jobs.archiveConfirmMessage', { id: job.id })
-  const lifecycleConfirmLabel =
-    lifecycle === 'delete' ? t('lifecycle.softDelete') : t('lifecycle.archive')
-
-  const unarchiveJob = () => {
-    new LifecycleService(em).restoreJob(job.id)
-    toast.success(t('toast.changeApplied'))
-    bump()
-  }
 
   return (
     <div className="space-y-6">
@@ -161,11 +146,9 @@ export function JobDetailPage() {
       />
 
       {/* The flow blocks paid/cancelled until every counting piece is priced. */}
-      {!readOnly && statusFlow.error !== null && (
-        <AlertBox variant="warning">{t(statusFlow.error)}</AlertBox>
-      )}
+      {statusFlow.error !== null && <AlertBox variant="warning">{t(statusFlow.error)}</AlertBox>}
 
-      {!readOnly && <JobStatusFlowDialogs flow={statusFlow} />}
+      <JobStatusFlowDialogs flow={statusFlow} />
 
       <JobMaterialsSummary jobId={job.id} revision={revision} />
 
@@ -203,29 +186,29 @@ export function JobDetailPage() {
         />
       </section>
 
-      {!readOnly && (
-        <CreateJobDialog
-          open={editOpen}
-          job={job}
-          onClose={() => setEditOpen(false)}
-          onUpdated={bump}
-        />
-      )}
+      <CreateJobDialog
+        open={editOpen && !readOnly}
+        job={job}
+        onClose={() => setEditOpen(false)}
+        onUpdated={bump}
+      />
 
-      {!readOnly && (
-        <CreatePieceDialog
-          open={pieceDialogOpen}
-          jobId={job.id}
-          onClose={() => setPieceDialogOpen(false)}
-          onCreated={bump}
-        />
-      )}
+      <CreatePieceDialog
+        open={pieceDialogOpen}
+        jobId={job.id}
+        onClose={() => setPieceDialogOpen(false)}
+        onCreated={bump}
+      />
 
       <ConfirmDialog
         open={lifecycle !== null}
-        title={lifecycleTitle}
-        message={lifecycleMessage}
-        confirmLabel={lifecycleConfirmLabel}
+        title={lifecycle === 'delete' ? t('jobs.confirmDeleteTitle') : t('jobs.archiveConfirmTitle')}
+        message={
+          lifecycle === 'delete'
+            ? t('jobs.confirmDeleteMessage', { id: job.id })
+            : t('jobs.archiveConfirmMessage', { id: job.id })
+        }
+        confirmLabel={lifecycle === 'delete' ? t('lifecycle.softDelete') : t('lifecycle.archive')}
         onConfirm={confirmLifecycle}
         onCancel={() => setLifecycle(null)}
       />

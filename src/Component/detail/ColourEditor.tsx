@@ -76,6 +76,7 @@ export function ColourEditor({ itemId, colour, readOnly = false }: ColourEditorP
             placeholder="#RRGGBB"
             value={value}
             readOnly={readOnly}
+            disabled={readOnly}
             onChange={(event) => setValue(event.target.value)}
           />
         </FormGroup>

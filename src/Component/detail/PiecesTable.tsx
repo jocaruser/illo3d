@@ -67,6 +67,13 @@ interface StatusRequest {
 
 const COLUMN_COUNT = 9
 
+/** Line total (6th) and Benefit (7th) appear at md, Created (9th) at lg. */
+const responsiveColumns = cx(
+  '[&_tr>*:nth-child(6)]:hidden md:[&_tr>*:nth-child(6)]:table-cell',
+  '[&_tr>*:nth-child(7)]:hidden md:[&_tr>*:nth-child(7)]:table-cell',
+  '[&_tr>*:nth-child(9)]:hidden lg:[&_tr>*:nth-child(9)]:table-cell'
+)
+
 const bandClasses: Record<RedoBand, string> = {
   safe: 'text-success',
   tight: 'text-warning',
@@ -326,7 +333,7 @@ export function PiecesTable({
     <div className="space-y-3">
       {blocked !== '' && <AlertBox variant="warning">{blocked}</AlertBox>}
 
-      <DataTable>
+      <DataTable className={responsiveColumns}>
         <PiecesTableHead directionFor={directionFor} onToggle={toggle} />
         <TableBody>
           {sorted.length === 0 ? (
@@ -343,8 +350,8 @@ export function PiecesTable({
                 <PieceRowGroup
                   key={piece.id}
                   piece={piece}
-                  open={expanded.has(piece.id)}
                   readOnly={readOnly}
+                  open={expanded.has(piece.id)}
                   statusItems={statusItems}
                   benefit={benefit}
                   suggestion={suggestionFor(piece)}
@@ -422,9 +429,8 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
           label={t('pieces.colLineTotal')}
           direction={directionFor('lineTotal')}
           onToggle={(next) => onToggle('lineTotal', next)}
-          viewportTier="medium"
         />
-        <TableHeader viewportTier="medium">{t('pieces.colBenefit')}</TableHeader>
+        <TableHeader>{t('pieces.colBenefit')}</TableHeader>
         <SortableColumnHeader
           label={t('pieces.colStatus')}
           direction={directionFor('status')}
@@ -434,7 +440,6 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
           label={t('pieces.colCreated')}
           direction={directionFor('createdAt')}
           onToggle={(next) => onToggle('createdAt', next)}
-          viewportTier="wide"
         />
       </TableRow>
     </TableHead>
@@ -443,8 +448,8 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
 
 interface PieceRowGroupProps {
   piece: Piece
+  readOnly?: boolean
   open: boolean
-  readOnly: boolean
   statusItems: ComboboxItem[]
   /** Line total minus material cost for the run; undefined without a total. */
   benefit: number | undefined
@@ -463,8 +468,8 @@ interface PieceRowGroupProps {
 /** One piece: the editable summary row plus, when expanded, its material lines. */
 function PieceRowGroup({
   piece,
+  readOnly = false,
   open,
-  readOnly,
   statusItems,
   benefit,
   suggestion,
@@ -513,8 +518,9 @@ function PieceRowGroup({
             aria-label={t('pieces.nameFieldAria', { id: piece.id })}
             defaultValue={piece.name}
             readOnly={readOnly}
+            disabled={readOnly}
             key={`name-${piece.id}-${piece.name}`}
-            onBlur={(event) => !readOnly && onCommitName(piece, event.target.value)}
+            onBlur={(event) => onCommitName(piece, event.target.value)}
           />
         </TableCell>
         <TableCell>
@@ -533,8 +539,9 @@ function PieceRowGroup({
             }
             defaultValue={piece.units ?? ''}
             readOnly={readOnly}
+            disabled={readOnly}
             key={`units-${piece.id}-${piece.units ?? ''}`}
-            onBlur={(event) => !readOnly && onCommitUnits(piece, event.target.value)}
+            onBlur={(event) => onCommitUnits(piece, event.target.value)}
           />
         </TableCell>
         <TableCell>
@@ -548,40 +555,41 @@ function PieceRowGroup({
               aria-label={t('pieces.priceFieldAria', { id: piece.id })}
               defaultValue={piece.price ?? ''}
               readOnly={readOnly}
+              disabled={readOnly}
               key={`price-${piece.id}-${piece.price ?? ''}`}
-              onBlur={(event) => !readOnly && onCommitPrice(piece, event.target.value)}
+              onBlur={(event) => onCommitPrice(piece, event.target.value)}
             />
             {!readOnly && (
-              <button
-                type="button"
-                className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
-                data-testid={`piece-suggested-${piece.id}`}
-                disabled={suggestion.error}
-                title={
-                  suggestion.error
-                    ? `${t('jobs.suggestedPrice.errorIntro')} ${suggestion.missingInventoryIds.join(', ')}`
-                    : t('jobs.suggestedPrice.label')
-                }
-                onClick={() =>
-                  !suggestion.error &&
-                  onSaveField(piece, {
-                    price: roundMoney(suggestion.suggestedPrice),
-                  })
-                }
-              >
-                {suggestion.error
-                  ? t('pieces.suggestedUnavailable')
-                  : t('pieces.suggestedApplyPerUnit', {
-                      price: formatCurrency(suggestion.suggestedPrice),
-                    })}
-              </button>
+            <button
+              type="button"
+              className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
+              data-testid={`piece-suggested-${piece.id}`}
+              disabled={suggestion.error}
+              title={
+                suggestion.error
+                  ? `${t('jobs.suggestedPrice.errorIntro')} ${suggestion.missingInventoryIds.join(', ')}`
+                  : t('jobs.suggestedPrice.label')
+              }
+              onClick={() =>
+                !suggestion.error &&
+                onSaveField(piece, {
+                  price: roundMoney(suggestion.suggestedPrice),
+                })
+              }
+            >
+              {suggestion.error
+                ? t('pieces.suggestedUnavailable')
+                : t('pieces.suggestedApplyPerUnit', {
+                    price: formatCurrency(suggestion.suggestedPrice),
+                  })}
+            </button>
             )}
           </div>
         </TableCell>
-        <TableCell viewportTier="medium" className="tabular-nums">
+        <TableCell className="tabular-nums">
           {lineTotal === undefined ? '—' : formatCurrency(lineTotal)}
         </TableCell>
-        <TableCell viewportTier="medium" className="tabular-nums">
+        <TableCell className="tabular-nums">
           {benefit === undefined ? (
             '—'
           ) : (
@@ -607,7 +615,7 @@ function PieceRowGroup({
             )}
           </div>
         </TableCell>
-        <TableCell viewportTier="wide" className="text-text-muted">
+        <TableCell className="text-text-muted">
           {piece.createdAt !== '' && <RelativeTime value={piece.createdAt} />}
         </TableCell>
       </TableRow>
@@ -625,7 +633,11 @@ function PieceRowGroup({
                       : t('pieces.redo.risky')}
                 </p>
               )}
-              <PieceItemsTable piece={piece} readOnly={readOnly} onChanged={onChanged} />
+              <PieceItemsTable
+                piece={piece}
+                readOnly={readOnly}
+                onChanged={onChanged}
+              />
             </div>
           </TableCell>
         </TableRow>

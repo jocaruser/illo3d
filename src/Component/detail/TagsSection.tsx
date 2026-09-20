@@ -19,7 +19,11 @@ interface TagsSectionProps {
  * option links it, typing a new name creates the tag (`TagService` reuses names
  * case-insensitively, so "vip" links the existing "Vip").
  */
-export function TagsSection({ entityType, entityId, readOnly = false }: TagsSectionProps) {
+export function TagsSection({
+  entityType,
+  entityId,
+  readOnly = false,
+}: TagsSectionProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [revision, bump] = useReducer((count: number) => count + 1, 0)

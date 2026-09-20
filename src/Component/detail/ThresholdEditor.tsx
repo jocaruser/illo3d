@@ -69,6 +69,7 @@ export function ThresholdEditor({ item, readOnly = false }: ThresholdEditorProps
               min="0"
               value={values[tier]}
               readOnly={readOnly}
+              disabled={readOnly}
               onChange={(event) =>
                 setValues((current) => ({
                   ...current,
