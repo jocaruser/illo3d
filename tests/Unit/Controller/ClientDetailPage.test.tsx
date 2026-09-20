@@ -43,9 +43,11 @@ function seedWorld(): TestWorld {
       { id: 'J2', client_id: 'CL1', description: 'Bracket', status: 'draft', created_at: '2024-05-02T09:00:00.000Z', archived: 'true' },
       { id: 'J3', client_id: 'CL1', description: 'Old gear', status: 'draft', created_at: '2024-05-03T09:00:00.000Z', deleted: 'true' },
       { id: 'J4', client_id: 'CL2', description: 'Other client job', status: 'draft', created_at: '2024-05-04T09:00:00.000Z' },
+      { id: 'J5', client_id: 'CL1', description: 'Widget', status: 'draft', created_at: '2024-05-06T09:00:00.000Z' },
     ],
     pieces: [
       { id: 'P1', job_id: 'J1', name: 'Shell', status: 'done', price: '21', units: '2', created_at: '2024-05-01T10:00:00.000Z' },
+      { id: 'P5', job_id: 'J5', name: 'Widget part', status: 'pending', price: '5', units: '2', created_at: '2024-05-06T10:00:00.000Z' },
     ],
     piece_items: [{ id: 'PI1', piece_id: 'P1', inventory_id: 'INV1', quantity: '10' }],
     inventory: [{ id: 'INV1', type: 'filament', name: 'PLA White', qty_current: '900', created_at: '2024-01-01T00:00:00.000Z' }],
@@ -102,11 +104,11 @@ describe('ClientDetailPage', () => {
     const metrics = within(screen.getByTestId('client-metrics'))
 
     expect(metrics.getByText('Paid (ledger)').nextSibling).toHaveTextContent('€42.00')
-    // J1 is paid, so nothing is outstanding.
-    expect(metrics.getByText('Outstanding (jobs)').nextSibling).toHaveTextContent('€0.00')
-    // Only J1 is active: archived J2 and soft-deleted J3 are both excluded.
-    expect(metrics.getByText('Jobs').nextSibling).toHaveTextContent('1')
-    expect(metrics.getByText('Avg job price').nextSibling).toHaveTextContent('€42.00')
+    // J5 is draft with a complete price; J1 is paid.
+    expect(metrics.getByText('Outstanding (jobs)').nextSibling).toHaveTextContent('€10.00')
+    // J1 and J5 are active: archived J2 and soft-deleted J3 are both excluded.
+    expect(metrics.getByText('Jobs').nextSibling).toHaveTextContent('2')
+    expect(metrics.getByText('Avg job price').nextSibling).toHaveTextContent('€26.00')
     // 10g/unit × 2 units × €0.02/g.
     expect(metrics.getByText('Materials (estimate)').nextSibling).toHaveTextContent('€0.40')
   })
@@ -168,17 +170,48 @@ describe('ClientDetailPage', () => {
       .getAllByRole('row')
       .slice(1)
       .map((row) => within(row).getAllByRole('cell')[0].textContent)
-    expect(ids).toEqual(['J3', 'J2', 'J1'])
+    expect(ids).toEqual(['J5', 'J3', 'J2', 'J1'])
+  })
+
+  it('shows job totals and incomplete pricing without due dates in the jobs table', () => {
+    renderPage()
+
+    const j1Row = screen.getByTestId('client-job-link-J1').closest('tr')
+    const j5Row = screen.getByTestId('client-job-link-J5').closest('tr')
+    expect(j1Row).not.toBeNull()
+    expect(j5Row).not.toBeNull()
+    expect(within(j1Row as HTMLElement).getByText('€42.00')).toBeInTheDocument()
+    expect(within(j5Row as HTMLElement).getByText('€10.00')).toBeInTheDocument()
+    expect(screen.getAllByText('Incomplete pricing').length).toBeGreaterThanOrEqual(1)
+    expect(screen.queryByText('2024-05-30')).not.toBeInTheDocument()
+  })
+
+  it('sorts by total, sinking incomplete pricing to the bottom', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.click(screen.getByRole('button', { name: 'Sort by Total' }))
+    // J5 = €10, J1 = €42, J2 has no total.
+    const idsAsc = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => within(row).getAllByRole('cell')[0].textContent)
+    expect(idsAsc).toEqual(['J5', 'J1', 'J2', 'J3'])
+
+    await user.click(screen.getByRole('button', { name: 'Total, sorted ascending' }))
+    const idsDesc = screen
+      .getAllByRole('row')
+      .slice(1)
+      .map((row) => within(row).getAllByRole('cell')[0].textContent)
+    expect(idsDesc).toEqual(['J1', 'J5', 'J3', 'J2'])
   })
 
   it.each([
-    ['ID', ['J1', 'J2', 'J3']],
-    // Bracket, Old gear, Phone case.
-    ['Description', ['J2', 'J3', 'J1']],
-    // draft, draft, paid — the two drafts tie and fall back to the id.
-    ['Status', ['J2', 'J3', 'J1']],
-    // J2/J3 have no due date and inherit their creation instant, both in May.
-    ['Due date', ['J2', 'J3', 'J1']],
+    ['ID', ['J1', 'J2', 'J3', 'J5']],
+    // Bracket, Old gear, Phone case, Widget.
+    ['Description', ['J2', 'J3', 'J1', 'J5']],
+    // draft, draft, paid — drafts tie and fall back to the id.
+    ['Status', ['J2', 'J3', 'J5', 'J1']],
   ])('sorts the jobs table by %s', async (column, expected) => {
     const user = userEvent.setup()
     renderPage()
@@ -200,7 +233,7 @@ describe('ClientDetailPage', () => {
       .getAllByRole('row')
       .slice(1)
       .map((row) => within(row).getAllByRole('cell')[0].textContent)
-    expect(ids).toEqual(['J1', 'J2', 'J3'])
+    expect(ids).toEqual(['J1', 'J2', 'J3', 'J5'])
   })
 
   it('filters the jobs table and shows the no-matches message', async () => {

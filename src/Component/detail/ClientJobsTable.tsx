@@ -14,13 +14,16 @@ import {
 } from '@/Component/table/DataTable'
 import { SortableColumnHeader } from '@/Component/table/SortableColumnHeader'
 import type { Job } from '@/Entity/Job'
+import type { JobPricingState } from '@/Service/Pricing/jobPricing'
+import { JobTotal } from './JobsTable'
 import { sortRows, useTableSort, type SortValue } from './tableSort'
 
-export type ClientJobSortKey = 'id' | 'description' | 'status' | 'dueDate' | 'createdAt'
+export type ClientJobSortKey = 'id' | 'description' | 'status' | 'total' | 'createdAt'
 
 interface ClientJobsTableProps {
   /** All of the client's jobs — archived and soft-deleted rows included. */
   rows: Job[]
+  pricingOf: (jobId: string) => JobPricingState
   emptyMessage: string
   onEdit: (job: Job) => void
   onArchive: (job: Job) => void
@@ -29,19 +32,11 @@ interface ClientJobsTableProps {
 
 const COLUMN_COUNT = 6
 
-/** Due date (4th) appears at md, Created (5th) at lg. */
+/** Total (4th) appears at md, Created (5th) at lg. */
 const responsiveColumns = cx(
   '[&_tr>*:nth-child(4)]:hidden md:[&_tr>*:nth-child(4)]:table-cell',
   '[&_tr>*:nth-child(5)]:hidden lg:[&_tr>*:nth-child(5)]:table-cell'
 )
-
-function cellOf(job: Job, key: ClientJobSortKey): SortValue {
-  if (key === 'id') return job.id
-  if (key === 'description') return job.description
-  if (key === 'status') return job.status
-  if (key === 'dueDate') return job.effectiveDueDate()
-  return job.createdAt
-}
 
 /**
  * The client detail jobs table. Unlike the jobs list it keeps archived rows
@@ -50,6 +45,7 @@ function cellOf(job: Job, key: ClientJobSortKey): SortValue {
  */
 export function ClientJobsTable({
   rows,
+  pricingOf,
   emptyMessage,
   onEdit,
   onArchive,
@@ -60,7 +56,23 @@ export function ClientJobsTable({
     key: 'createdAt',
     dir: 'desc',
   })
-  const sorted = useMemo(() => sortRows(rows, sort, cellOf, (job) => job.id), [rows, sort])
+
+  const cellOf = useMemo(
+    () =>
+      (job: Job, key: ClientJobSortKey): SortValue => {
+        if (key === 'id') return job.id
+        if (key === 'description') return job.description
+        if (key === 'status') return job.status
+        if (key === 'total') {
+          const pricing = pricingOf(job.id)
+          return pricing.complete ? pricing.total : undefined
+        }
+        return job.createdAt
+      },
+    [pricingOf]
+  )
+
+  const sorted = useMemo(() => sortRows(rows, sort, cellOf, (job) => job.id), [rows, sort, cellOf])
 
   return (
     <DataTable className={responsiveColumns}>
@@ -82,9 +94,9 @@ export function ClientJobsTable({
             onToggle={(next) => toggle('status', next)}
           />
           <SortableColumnHeader
-            label={t('jobs.colDueDate')}
-            direction={directionFor('dueDate')}
-            onToggle={(next) => toggle('dueDate', next)}
+            label={t('jobs.colTotal')}
+            direction={directionFor('total')}
+            onToggle={(next) => toggle('total', next)}
           />
           <SortableColumnHeader
             label={t('jobs.colCreated')}
@@ -118,7 +130,7 @@ export function ClientJobsTable({
                   {t(`jobs.status.${job.status}`)}
                 </TableCell>
                 <TableCell className={cx('text-text-muted', inactive && 'line-through')}>
-                  {job.effectiveDueDate().slice(0, 10)}
+                  <JobTotal pricing={pricingOf(job.id)} />
                 </TableCell>
                 <TableCell className={cx('text-text-muted', inactive && 'line-through')}>
                   {job.createdAt !== '' && <RelativeTime value={job.createdAt} />}
