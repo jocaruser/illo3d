@@ -16,13 +16,12 @@ import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
 import { SectionHeading } from '@/Component/layout/SectionHeading'
 import { MentionLinkify } from '@/Component/MentionLinkify'
 import { NotFoundCard } from '@/Component/NotFoundCard'
-import { StatCard } from '@/Component/StatCard'
+import { ClientMetricsWidgetGrid } from '@/Component/detail/ClientMetricsWidgetGrid'
 import { toast } from '@/Component/Toast'
 import type { Job } from '@/Entity/Job'
 import { useEntityManager } from '@/Hook/useEntityManager'
 import { LifecycleService } from '@/Service/LifecycleService'
 import { computeClientMetrics } from '@/Service/Pricing/clientMetrics'
-import { formatCurrency } from '@/Service/Pricing/money'
 import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
 import { jobSearchBlob } from '@/Service/Search/searchBlobs'
 
@@ -171,37 +170,7 @@ export function ClientDetailPage() {
         </>
       }
     >
-      <div
-        className="grid grid-cols-2 gap-3 lg:grid-cols-5"
-        data-testid="client-metrics"
-      >
-        <StatCard
-          label={t('clientDetail.metricPaidLedger')}
-          value={formatCurrency(metrics.paidLedger)}
-          tone="positive"
-        />
-        <StatCard
-          label={t('clientDetail.metricOutstanding')}
-          value={formatCurrency(metrics.outstandingJobs)}
-        />
-        <StatCard
-          label={t('clientDetail.metricJobCount')}
-          value={String(metrics.jobCount)}
-        />
-        <StatCard
-          label={t('clientDetail.metricAvgJobPrice')}
-          value={
-            metrics.averageJobPrice === null
-              ? '—'
-              : formatCurrency(metrics.averageJobPrice)
-          }
-        />
-        <StatCard
-          label={t('clientDetail.metricMaterials')}
-          value={formatCurrency(metrics.materialsEstimate)}
-          tone="negative"
-        />
-      </div>
+      <ClientMetricsWidgetGrid metrics={metrics} />
 
       <TagsSection entityType="client" entityId={client.id} />
 

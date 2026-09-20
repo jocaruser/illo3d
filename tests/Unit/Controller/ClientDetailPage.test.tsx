@@ -97,24 +97,36 @@ describe('ClientDetailPage', () => {
     expect(screen.queryByText('Sheet note')).not.toBeInTheDocument()
   })
 
-  it('shows the five client metrics', () => {
+  it('shows the five client metrics through detail widgets, not StatCard typography', () => {
     renderPage()
-    const metrics = within(screen.getByTestId('client-metrics'))
+    const metricsRoot = screen.getByTestId('client-metrics')
+    const metrics = within(metricsRoot)
 
-    expect(metrics.getByText('Paid (ledger)').nextSibling).toHaveTextContent('€42.00')
-    // J1 is paid, so nothing is outstanding.
-    expect(metrics.getByText('Outstanding (jobs)').nextSibling).toHaveTextContent('€0.00')
-    // Only J1 is active: archived J2 and soft-deleted J3 are both excluded.
-    expect(metrics.getByText('Jobs').nextSibling).toHaveTextContent('1')
-    expect(metrics.getByText('Avg job price').nextSibling).toHaveTextContent('€42.00')
-    // 10g/unit × 2 units × €0.02/g.
-    expect(metrics.getByText('Materials (estimate)').nextSibling).toHaveTextContent('€0.40')
+    expect(metricsRoot.querySelector('.font-display.text-2xl')).not.toBeInTheDocument()
+
+    const paidLabel = metrics.getByText('Paid (ledger)')
+    const paidValue = paidLabel.parentElement?.nextElementSibling
+    expect(paidValue).toHaveTextContent('€42.00')
+    expect(paidValue).toHaveClass('text-sm')
+
+    const outstandingLabel = metrics.getByText('Outstanding (jobs)')
+    expect(outstandingLabel.parentElement?.nextElementSibling).toHaveTextContent('€0.00')
+
+    const jobsLabel = metrics.getByText('Jobs')
+    expect(jobsLabel.parentElement?.nextElementSibling).toHaveTextContent('1')
+
+    const avgLabel = metrics.getByText('Avg job price')
+    expect(avgLabel.parentElement?.nextElementSibling).toHaveTextContent('€42.00')
+
+    const materialsLabel = metrics.getByText('Materials (estimate)')
+    expect(materialsLabel.parentElement?.nextElementSibling).toHaveTextContent('€0.40')
   })
 
   it('shows a dash for the average price when no job is priced', () => {
     renderPage('/clients/CL2')
     const metrics = within(screen.getByTestId('client-metrics'))
-    expect(metrics.getByText('Avg job price').nextSibling).toHaveTextContent('—')
+    const avgLabel = metrics.getByText('Avg job price')
+    expect(avgLabel.parentElement?.nextElementSibling).toHaveTextContent('—')
   })
 
   it('renders a NotFoundCard for an unknown client', () => {
