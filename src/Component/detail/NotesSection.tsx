@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer, useState } from 'react'
+import { useMemo, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertStrip } from '@/Component/AlertStrip'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
@@ -57,11 +57,6 @@ export function NotesSection({ entityType, entityId, readOnly = false }: NotesSe
     [prefix, t]
   )
 
-  const resolvePieceJob = useCallback(
-    (pieceId: string) => em.pieces.find(pieceId)?.jobId ?? null,
-    [em]
-  )
-
   const add = () => {
     const result = service.createNote(entityType, entityId, body, severity)
     if (!result.ok) {
@@ -110,10 +105,7 @@ export function NotesSection({ entityType, entityId, readOnly = false }: NotesSe
         >
           {prominent.map((note) => (
             <AlertStrip key={note.id} variant={note.severity as AlertVariant}>
-              <MentionLinkify
-                text={note.body}
-                resolvePieceJob={resolvePieceJob}
-              />
+              <MentionLinkify text={note.body} em={em} />
             </AlertStrip>
           ))}
         </div>
@@ -195,10 +187,7 @@ export function NotesSection({ entityType, entityId, readOnly = false }: NotesSe
               <div className="flex flex-wrap items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="whitespace-pre-wrap break-words text-sm text-text">
-                    <MentionLinkify
-                      text={note.body}
-                      resolvePieceJob={resolvePieceJob}
-                    />
+                    <MentionLinkify text={note.body} em={em} />
                   </p>
                   <p className="mt-1 text-xs text-text-muted">
                     {t(`${prefix}.severity.${note.severity}`)}

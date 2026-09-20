@@ -1,6 +1,10 @@
 # Notes
 
-Notes are the diary of a client — and of a job.
+Notes are an entity's diary.
+Clients and jobs place the section today,
+and any entity may —
+the data model already allows every kind
+([schema.dbml](../../schema.dbml)).
 This shared file owns the mechanics;
 the pages only place the section.
 
@@ -12,6 +16,7 @@ Newest first.
 ## Severity
 
 One of: info, danger, warning, success, primary, secondary —
+picked with [a dropdown](dropdown.spec.md) —
 a colour, and a promise:
 any note graver than info or secondary
 also surfaces as an alert strip at the top of its section,
@@ -22,9 +27,8 @@ is seen before anything else about them.
 
 Writing `@` and an id — `@CL1`, `@J4`, `@P2` —
 links the note to that thing:
-rendered as a link wherever the note appears
-(a piece mention opens its job, scrolled to the piece).
-An id that matches nothing → plain text, harmlessly.
-The client's *lead source* field understands
-the same mentions —
-"Referred by @CL2" links to the referrer.
+rendered as a link wherever the note appears,
+resolved as [linking](linking.spec.md) says —
+including its rule for ids that match nothing.
+Pages may declare other fields that understand
+the same mentions.
