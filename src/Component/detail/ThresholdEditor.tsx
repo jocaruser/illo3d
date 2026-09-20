@@ -27,7 +27,10 @@ const labelKeys: Record<Tier, string> = {
 }
 
 /** Low-stock tiers. 0 disables a tier; precedence when they overlap is red > orange > yellow. */
-export function ThresholdEditor({ item, readOnly = false }: ThresholdEditorProps) {
+export function ThresholdEditor({
+  item,
+  readOnly = false,
+}: ThresholdEditorProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [values, setValues] = useState<Record<Tier, string>>({

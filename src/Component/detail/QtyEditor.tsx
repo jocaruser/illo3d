@@ -17,7 +17,11 @@ interface QtyEditorProps {
 }
 
 /** Corrects the on-hand count after a stocktake. */
-export function QtyEditor({ itemId, qtyCurrent, readOnly = false }: QtyEditorProps) {
+export function QtyEditor({
+  itemId,
+  qtyCurrent,
+  readOnly = false,
+}: QtyEditorProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [value, setValue] = useState(String(qtyCurrent))
