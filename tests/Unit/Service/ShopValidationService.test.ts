@@ -45,26 +45,51 @@ describe('validateShopFolder', () => {
     expect(await service.validateShopFolder('folder-1')).toEqual({ ok: false, error: 'not_shop' })
   })
 
-  it('returns version for a major mismatch', async () => {
+  it('returns version_behind for a shop major behind the app', async () => {
     const service = new ShopValidationService(
       makeFolderRepo({ ...metadata, version: '2.4.0' }),
       makeWorkbookRepo(),
     )
     expect(await service.validateShopFolder('folder-1')).toEqual({
       ok: false,
-      error: 'version',
+      error: 'version_behind',
       shopVersion: '2.4.0',
       appVersion: APP_VERSION,
     })
   })
 
-  it('returns version for an unparseable shop version', async () => {
+  it('returns version_ahead for a shop major ahead of the app', async () => {
+    const service = new ShopValidationService(
+      makeFolderRepo({ ...metadata, version: '4.0.0' }),
+      makeWorkbookRepo(),
+    )
+    expect(await service.validateShopFolder('folder-1')).toEqual({
+      ok: false,
+      error: 'version_ahead',
+      shopVersion: '4.0.0',
+      appVersion: APP_VERSION,
+    })
+  })
+
+  it('returns version_unreadable for an unparseable shop version', async () => {
     const service = new ShopValidationService(
       makeFolderRepo({ ...metadata, version: 'garbage' }),
       makeWorkbookRepo(),
     )
     const result = await service.validateShopFolder('folder-1')
-    expect(result).toMatchObject({ ok: false, error: 'version', shopVersion: 'garbage' })
+    expect(result).toMatchObject({
+      ok: false,
+      error: 'version_unreadable',
+      shopVersion: 'garbage',
+    })
+  })
+
+  it('opens when majors match even if minor and patch differ', async () => {
+    const service = new ShopValidationService(
+      makeFolderRepo({ ...metadata, version: `${APP_VERSION.split('.')[0]}.9.9` }),
+      makeWorkbookRepo(),
+    )
+    expect(await service.validateShopFolder('folder-1')).toMatchObject({ ok: true })
   })
 
   it('returns structure with the detail from validateStructure', async () => {

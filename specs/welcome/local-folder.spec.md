@@ -6,7 +6,7 @@ The folder's contents decide what happens next —
 there is no create-or-open question to answer.
 
 Local folders need a Chromium-based browser (for example Chrome or Edge);
-other browsers are told so and nothing else happens.
+other browsers are told exactly that, and nothing else happens.
 
 ## Picking the folder
 
@@ -22,6 +22,12 @@ back to the welcome screen, silently.
 - The folder holds a shop from an older version of the app
   → the [migration wizard](../migration/wizard.spec.md) appears
   before the shop can open.
+- The folder holds a shop from a **newer** version of the app
+  → it does not open, and no wizard is offered:
+  "This shop was made by a newer version of this app.
+  Update the app to open it."
+- The folder holds a shop whose recorded version cannot be read
+  → "This shop's version could not be read."
 - The folder holds no shop —
   or nothing the app can recognise as one —
   → the app offers to start fresh:

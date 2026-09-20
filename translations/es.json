@@ -635,6 +635,8 @@
     "oauthFailed": "El inicio de sesión no se completó. Inténtalo de nuevo.",
     "chromeRequired": "El almacenamiento en carpeta local necesita un navegador basado en Chromium (por ejemplo Chrome o Edge).",
     "errorNotShop": "Esta carpeta no es una tienda illo3d.",
+    "errorShopNewerApp": "Esta tienda se creó con una versión más reciente de la app. Actualiza la app para abrirla.",
+    "errorShopVersionUnreadable": "No se pudo leer la versión de esta tienda.",
     "errorVersion": "Esta tienda fue creada con otra versión de la app y no puede abrirse.",
     "errorShopStructure": "A la hoja de Google de esta tienda le falta una pestaña o columna que esta versión de illo3d necesita. Actualiza la hoja al último modelo o crea una tienda nueva.",
     "errorShopStructureWithDetail": "Los archivos de esta tienda no coinciden con el formato que espera la app: {{detail}}",

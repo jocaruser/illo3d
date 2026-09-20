@@ -531,7 +531,7 @@ describe('SetupWizard', () => {
     beforeEach(() => {
       validateShopFolder.mockResolvedValue({
         ok: false,
-        error: 'version',
+        error: 'version_behind',
         shopVersion: '2.0.0',
         appVersion: '3.0.0',
       })

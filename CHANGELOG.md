@@ -2,8 +2,6 @@
 
 All notable changes to this project are documented in this directory.
 
-- [v3.1.2](changelog/v3.1.2.md) — 2026-09-21
-- [v3.1.1](changelog/v3.1.1.md) — 2026-09-20
 - [v3.0.3](changelog/v3.0.3.md) — 2026-09-20
 - [v3.0.2](changelog/v3.0.2.md) — 2026-09-20
 - [v3.0.0](changelog/v3.0.0.md) — 2026-07-17
