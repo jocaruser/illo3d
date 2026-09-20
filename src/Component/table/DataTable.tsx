@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react'
 import { cx } from '@/Component/cx'
+import {
+  tableViewportTierClass,
+  type TableViewportTier,
+} from '@/Component/table/tableViewportTier'
 
 interface TableSectionProps {
   children?: ReactNode
@@ -35,12 +39,21 @@ export function TableRow({ children, className }: TableSectionProps) {
   return <tr className={className}>{children}</tr>
 }
 
-export function TableHeader({ children, className }: TableSectionProps) {
+interface TableHeaderProps extends TableSectionProps {
+  viewportTier?: TableViewportTier
+}
+
+export function TableHeader({
+  children,
+  className,
+  viewportTier = 'always',
+}: TableHeaderProps) {
   return (
     <th
       scope="col"
       className={cx(
         'px-4 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted',
+        tableViewportTierClass(viewportTier),
         className
       )}
     >
@@ -53,11 +66,20 @@ interface TableCellProps {
   children?: ReactNode
   className?: string
   colSpan?: number
+  viewportTier?: TableViewportTier
 }
 
-export function TableCell({ children, className, colSpan }: TableCellProps) {
+export function TableCell({
+  children,
+  className,
+  colSpan,
+  viewportTier = 'always',
+}: TableCellProps) {
   return (
-    <td colSpan={colSpan} className={cx('px-4 py-3', className)}>
+    <td
+      colSpan={colSpan}
+      className={cx('px-4 py-3', tableViewportTierClass(viewportTier), className)}
+    >
       {children}
     </td>
   )

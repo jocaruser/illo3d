@@ -1,5 +1,10 @@
 import { ChevronDownIcon, ChevronUpDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid'
 import { useTranslation } from 'react-i18next'
+import { cx } from '@/Component/cx'
+import {
+  tableViewportTierClass,
+  type TableViewportTier,
+} from '@/Component/table/tableViewportTier'
 
 export type SortDirection = 'asc' | 'desc' | null
 
@@ -7,9 +12,15 @@ interface SortableColumnHeaderProps {
   label: string
   direction: SortDirection
   onToggle: (next: 'asc' | 'desc') => void
+  viewportTier?: TableViewportTier
 }
 
-export function SortableColumnHeader({ label, direction, onToggle }: SortableColumnHeaderProps) {
+export function SortableColumnHeader({
+  label,
+  direction,
+  onToggle,
+  viewportTier = 'always',
+}: SortableColumnHeaderProps) {
   const { t } = useTranslation()
   const ariaSort =
     direction === 'asc' ? 'ascending' : direction === 'desc' ? 'descending' : undefined
@@ -25,7 +36,10 @@ export function SortableColumnHeader({ label, direction, onToggle }: SortableCol
     <th
       scope="col"
       aria-sort={ariaSort}
-      className="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted"
+      className={cx(
+        'px-4 py-3 text-xs font-semibold uppercase tracking-wider text-text-muted',
+        tableViewportTierClass(viewportTier)
+      )}
     >
       <button
         type="button"
