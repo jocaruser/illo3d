@@ -9,8 +9,13 @@ import { useBackendStore } from '@/Store/backendStore'
 import { useShopStore } from '@/Store/shopStore'
 import { useUserPreferencesStore } from '@/Store/userPreferencesStore'
 import { useWorkbookStore } from '@/Store/workbookStore'
+import { persistDirectoryHandle } from '@/Repository/LocalCsv/persistDirectoryHandle'
 import { installFakeLocalStorage } from '../../Store/memoryLocalStorage'
 import { i18n, renderLayout } from './renderLayout'
+
+vi.mock('@/Repository/LocalCsv/persistDirectoryHandle', () => ({
+  persistDirectoryHandle: vi.fn(async () => undefined),
+}))
 
 vi.mock('@/Hook/useShopMetadata', () => ({ useShopMetadata: vi.fn() }))
 
@@ -269,7 +274,7 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       expect(screen.getByTestId('profile-menu-version')).toHaveTextContent(
-        'App 3.0.2 · Shop 3.0.0'
+        'App 3.0.3 · Shop 3.0.0'
       )
     })
 
@@ -279,7 +284,7 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       expect(screen.getByTestId('profile-menu-version')).toHaveTextContent(
-        'App 3.0.2 · Shop —'
+        'App 3.0.3 · Shop —'
       )
     })
 
@@ -296,7 +301,23 @@ describe('ProfileMenu', () => {
   })
 
   describe('sign out', () => {
-    it('clears the session, the shop, the backend and the snapshot', async () => {
+    it('clears the session, the shop, the backend and the snapshot when clean', async () => {
+      signInWithGoogle()
+      openShop()
+      renderLayout(<ProfileMenu />)
+      await openMenu()
+
+      await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
+
+      expect(persistDirectoryHandle).toHaveBeenCalledWith(null)
+      expect(useAuthStore.getState().isAuthenticated).toBe(false)
+      expect(useShopStore.getState().activeShop).toBeNull()
+      expect(useBackendStore.getState().backend).toBeNull()
+      expect(useWorkbookStore.getState().dirty).toBe(false)
+      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    })
+
+    it('asks before sign-out when the workbook is dirty', async () => {
       signInWithGoogle()
       openShop()
       act(() => {
@@ -307,11 +328,46 @@ describe('ProfileMenu', () => {
 
       await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
 
+      expect(screen.getByRole('dialog')).toHaveTextContent(
+        'Discard unsaved changes?'
+      )
+      expect(useAuthStore.getState().isAuthenticated).toBe(true)
+    })
+
+    it('keeps the session when dirty sign-out is cancelled', async () => {
+      signInWithGoogle()
+      openShop()
+      act(() => {
+        useWorkbookStore.getState().mutateTab('clients', (matrix) => matrix)
+      })
+      renderLayout(<ProfileMenu />)
+      await openMenu()
+      await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
+
+      await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+      expect(useAuthStore.getState().isAuthenticated).toBe(true)
+      expect(useWorkbookStore.getState().dirty).toBe(true)
+      expect(persistDirectoryHandle).not.toHaveBeenCalled()
+    })
+
+    it('completes sign-out after confirming discard', async () => {
+      signInWithGoogle()
+      openShop()
+      act(() => {
+        useWorkbookStore.getState().mutateTab('clients', (matrix) => matrix)
+      })
+      renderLayout(<ProfileMenu />)
+      await openMenu()
+      await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
+
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Discard and refresh' })
+      )
+
+      expect(persistDirectoryHandle).toHaveBeenCalledWith(null)
       expect(useAuthStore.getState().isAuthenticated).toBe(false)
-      expect(useShopStore.getState().activeShop).toBeNull()
-      expect(useBackendStore.getState().backend).toBeNull()
       expect(useWorkbookStore.getState().dirty).toBe(false)
-      expect(screen.queryByRole('menu')).not.toBeInTheDocument()
     })
   })
 
