@@ -49,7 +49,11 @@ export function AuditLogPage() {
     [entries, action, entityName]
   )
 
-  const { query, setQuery, rows: visible } = useListTableDiscovery({
+  const {
+    query,
+    setQuery,
+    rows: visible,
+  } = useListTableDiscovery({
     sourceRows,
     getSearchBlob: auditSearchBlob,
     messages: {

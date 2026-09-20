@@ -47,8 +47,7 @@ export function ClientsPage() {
   )
 
   const getSearchBlob = useCallback(
-    (client: Client) =>
-      clientSearchBlob(client, tagNames(client.id).join(' ')),
+    (client: Client) => clientSearchBlob(client, tagNames(client.id).join(' ')),
     [tagNames]
   )
 
