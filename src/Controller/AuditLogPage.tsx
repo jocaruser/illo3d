@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Select, type SelectOption } from '@/Component/Select'
+import { Combobox, type ComboboxItem } from '@/Component/Combobox'
 import { AuditTable } from '@/Component/audit/AuditTable'
 import { ListTablePageHeader } from '@/Component/layout/ListTablePageHeader'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
@@ -65,17 +65,17 @@ export function AuditLogPage() {
   const emptyMessage =
     entries.length === 0 ? t('auditLog.empty') : t('listTable.noMatches')
 
-  const actionOptions: SelectOption[] = [
-    { value: ALL, label: t('auditLog.filterAllActions') },
+  const actionOptions: ComboboxItem[] = [
+    { key: ALL, label: t('auditLog.filterAllActions') },
     ...AUDIT_ACTIONS.map((value) => ({
-      value,
+      key: value,
       label: t(`auditLog.action.${value}`),
     })),
   ]
-  const entityOptions: SelectOption[] = [
-    { value: ALL, label: t('auditLog.filterAllEntities') },
+  const entityOptions: ComboboxItem[] = [
+    { key: ALL, label: t('auditLog.filterAllEntities') },
     ...AUDIT_ENTITY_NAMES.map((value) => ({
-      value,
+      key: value,
       label: t(`auditLog.entity.${value}`),
     })),
   ]
@@ -93,19 +93,17 @@ export function AuditLogPage() {
         }
         actions={
           <>
-            <Select
-              aria-label={t('auditLog.filterActionAria')}
-              options={actionOptions}
+            <Combobox
+              ariaLabel={t('auditLog.filterActionAria')}
+              items={actionOptions}
               value={action}
-              onChange={(event) => setAction(event.target.value)}
-              className="w-auto"
+              onChange={setAction}
             />
-            <Select
-              aria-label={t('auditLog.filterEntityAria')}
-              options={entityOptions}
+            <Combobox
+              ariaLabel={t('auditLog.filterEntityAria')}
+              items={entityOptions}
               value={entityName}
-              onChange={(event) => setEntityName(event.target.value)}
-              className="w-auto"
+              onChange={setEntityName}
             />
           </>
         }

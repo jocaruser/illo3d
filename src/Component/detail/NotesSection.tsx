@@ -1,4 +1,4 @@
-import { useMemo, useReducer, useState } from 'react'
+import { useCallback, useMemo, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertStrip } from '@/Component/AlertStrip'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
@@ -7,7 +7,7 @@ import { FormTextarea } from '@/Component/form/FormTextarea'
 import { SectionHeading } from '@/Component/layout/SectionHeading'
 import { MentionLinkify } from '@/Component/MentionLinkify'
 import { RelativeTime } from '@/Component/RelativeTime'
-import { Select } from '@/Component/Select'
+import { Combobox, type ComboboxItem } from '@/Component/Combobox'
 import { toast } from '@/Component/Toast'
 import type { AlertVariant } from '@/Component/alertVariants'
 import {
@@ -21,10 +21,9 @@ import { NoteService } from '@/Service/NoteService'
 interface NotesSectionProps {
   entityType: NoteEntityType
   entityId: string
-  readOnly?: boolean
 }
 
-export function NotesSection({ entityType, entityId, readOnly = false }: NotesSectionProps) {
+export function NotesSection({ entityType, entityId }: NotesSectionProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [revision, bump] = useReducer((count: number) => count + 1, 0)
@@ -48,13 +47,18 @@ export function NotesSection({ entityType, entityId, readOnly = false }: NotesSe
     [notes]
   )
 
-  const severityOptions = useMemo(
+  const severityOptions = useMemo<ComboboxItem[]>(
     () =>
       NOTE_SEVERITIES.map((value) => ({
-        value,
-        label: t(`${prefix}.severity.${value}`),
+        key: value,
+        label: t(`clientDetail.severity.${value}`),
       })),
-    [prefix, t]
+    [t]
+  )
+
+  const resolvePieceJob = useCallback(
+    (pieceId: string) => em.pieces.find(pieceId)?.jobId ?? null,
+    [em]
   )
 
   const add = () => {
@@ -66,7 +70,7 @@ export function NotesSection({ entityType, entityId, readOnly = false }: NotesSe
     setBody('')
     setSeverity('info')
     setError('')
-    toast.success(t(`${prefix}.noteSaved`))
+    toast.success(t('clientDetail.noteSaved'))
     bump()
   }
 
@@ -84,7 +88,7 @@ export function NotesSection({ entityType, entityId, readOnly = false }: NotesSe
       return
     }
     setEditingId(null)
-    toast.success(t(`${prefix}.noteSaved`))
+    toast.success(t('clientDetail.noteSaved'))
     bump()
   }
 
@@ -105,42 +109,43 @@ export function NotesSection({ entityType, entityId, readOnly = false }: NotesSe
         >
           {prominent.map((note) => (
             <AlertStrip key={note.id} variant={note.severity as AlertVariant}>
-              <MentionLinkify text={note.body} em={em} />
+              <MentionLinkify
+                text={note.body}
+                resolvePieceJob={resolvePieceJob}
+              />
             </AlertStrip>
           ))}
         </div>
       )}
 
-      {!readOnly && (
-        <div className="space-y-2 rounded-lg border border-border bg-surface-elevated p-3">
-          <FormTextarea
-            rows={2}
-            value={body}
-            aria-label={t(`${prefix}.addNote`)}
-            placeholder={t(`${prefix}.noteBodyPlaceholder`)}
-            onChange={(event) => setBody(event.target.value)}
-          />
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="w-40">
-              <Select
-                aria-label={t(`${prefix}.severityLabel`)}
-                options={severityOptions}
-                value={severity}
-                onChange={(event) => setSeverity(event.target.value)}
-              />
-            </div>
-            <button
-              type="button"
-              className="btn-primary"
-              data-testid={`${entityType}-note-add`}
-              onClick={add}
-            >
-              {t(`${prefix}.addNote`)}
-            </button>
+      <div className="space-y-2 rounded-lg border border-border bg-surface-elevated p-3">
+        <FormTextarea
+          rows={2}
+          value={body}
+          aria-label={t(`${prefix}.addNote`)}
+          placeholder={t(`${prefix}.noteBodyPlaceholder`)}
+          onChange={(event) => setBody(event.target.value)}
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="w-40">
+            <Combobox
+              ariaLabel={t(`${prefix}.severityLabel`)}
+              items={severityOptions}
+              value={severity}
+              onChange={setSeverity}
+            />
           </div>
-          <FormError message={error} />
+          <button
+            type="button"
+            className="btn-primary"
+            data-testid={`${entityType}-note-add`}
+            onClick={add}
+          >
+            {t(`${prefix}.addNote`)}
+          </button>
         </div>
-      )}
+        <FormError message={error} />
+      </div>
 
       <ul className="space-y-2">
         {notes.map((note) => (
@@ -159,11 +164,11 @@ export function NotesSection({ entityType, entityId, readOnly = false }: NotesSe
                 />
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="w-40">
-                    <Select
-                      aria-label={`${t(`${prefix}.severityLabel`)} ${note.id}`}
-                      options={severityOptions}
+                    <Combobox
+                      ariaLabel={`${t(`${prefix}.severityLabel`)} ${note.id}`}
+                      items={severityOptions}
                       value={editSeverity}
-                      onChange={(event) => setEditSeverity(event.target.value)}
+                      onChange={setEditSeverity}
                     />
                   </div>
                   <button
@@ -187,10 +192,13 @@ export function NotesSection({ entityType, entityId, readOnly = false }: NotesSe
               <div className="flex flex-wrap items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="whitespace-pre-wrap break-words text-sm text-text">
-                    <MentionLinkify text={note.body} em={em} />
+                    <MentionLinkify
+                      text={note.body}
+                      resolvePieceJob={resolvePieceJob}
+                    />
                   </p>
                   <p className="mt-1 text-xs text-text-muted">
-                    {t(`${prefix}.severity.${note.severity}`)}
+                    {t(`clientDetail.severity.${note.severity}`)}
                     {note.createdAt !== '' && (
                       <>
                         {' · '}
@@ -199,24 +207,22 @@ export function NotesSection({ entityType, entityId, readOnly = false }: NotesSe
                     )}
                   </p>
                 </div>
-                {!readOnly && (
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className="btn-secondary px-2 py-1 text-xs"
-                      onClick={() => startEdit(note)}
-                    >
-                      {t('common.edit')}
-                    </button>
-                    <button
-                      type="button"
-                      className="btn-secondary px-2 py-1 text-xs"
-                      onClick={() => setDeleting(note)}
-                    >
-                      {t('common.delete')}
-                    </button>
-                  </div>
-                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="btn-secondary px-2 py-1 text-xs"
+                    onClick={() => startEdit(note)}
+                  >
+                    {t('common.edit')}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary px-2 py-1 text-xs"
+                    onClick={() => setDeleting(note)}
+                  >
+                    {t('common.delete')}
+                  </button>
+                </div>
               </div>
             )}
           </li>

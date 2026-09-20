@@ -45,6 +45,19 @@ function rowIds(): string[] {
     .map((row) => within(row).getAllByRole('cell')[0].textContent ?? '')
 }
 
+async function pickFilter(
+  user: ReturnType<typeof userEvent.setup>,
+  ariaLabel: string,
+  optionName: string
+) {
+  const input = screen.getByLabelText(ariaLabel)
+  await user.click(input)
+  if ((input as HTMLInputElement).value !== '') {
+    await user.clear(input)
+  }
+  await user.click(screen.getByRole('option', { name: optionName }))
+}
+
 describe('AuditLogPage', () => {
   beforeEach(() => {
     mocks.em = createTestEm(seedWorkbook())
@@ -71,13 +84,10 @@ describe('AuditLogPage', () => {
     const user = userEvent.setup()
     renderRoute(<AuditLogPage />)
 
-    await user.selectOptions(
-      screen.getByLabelText('Filter by action'),
-      'update'
-    )
+    await pickFilter(user, 'Filter by action', 'Update')
     expect(rowIds()).toEqual(['AL002'])
 
-    await user.selectOptions(screen.getByLabelText('Filter by action'), '')
+    await pickFilter(user, 'Filter by action', 'All actions')
     expect(rowIds()).toEqual(['AL003', 'AL002', 'AL001'])
   })
 
@@ -85,10 +95,7 @@ describe('AuditLogPage', () => {
     const user = userEvent.setup()
     renderRoute(<AuditLogPage />)
 
-    await user.selectOptions(
-      screen.getByLabelText('Filter by entity type'),
-      'client'
-    )
+    await pickFilter(user, 'Filter by entity type', 'Client')
     expect(rowIds()).toEqual(['AL001'])
   })
 
@@ -96,14 +103,8 @@ describe('AuditLogPage', () => {
     const user = userEvent.setup()
     renderRoute(<AuditLogPage />)
 
-    await user.selectOptions(
-      screen.getByLabelText('Filter by action'),
-      'create'
-    )
-    await user.selectOptions(
-      screen.getByLabelText('Filter by entity type'),
-      'inventory'
-    )
+    await pickFilter(user, 'Filter by action', 'Create')
+    await pickFilter(user, 'Filter by entity type', 'Inventory')
 
     expect(screen.getByTestId('audit-log-empty-state')).toHaveTextContent(
       'No rows match your search.'

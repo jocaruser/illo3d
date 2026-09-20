@@ -120,7 +120,8 @@ describe('NotesSection', () => {
     renderWithProviders(<NotesSection entityType="client" entityId="CL1" />)
 
     await user.type(screen.getByPlaceholderText('Plain text note'), 'brand new note')
-    await user.selectOptions(screen.getByLabelText('Severity'), 'warning')
+    await user.click(screen.getByLabelText('Severity'))
+    await user.click(screen.getByRole('option', { name: 'Warning' }))
     await user.click(screen.getByTestId('client-note-add'))
 
     expect(screen.getByTestId('client-note-row-CN5')).toHaveTextContent('brand new note')
@@ -128,7 +129,7 @@ describe('NotesSection', () => {
     expect(toastMock.success).toHaveBeenCalledWith('Note saved')
     // The composer resets for the next note.
     expect(screen.getByPlaceholderText('Plain text note')).toHaveValue('')
-    expect(screen.getByLabelText('Severity')).toHaveValue('info')
+    expect(screen.getByLabelText('Severity')).toHaveValue('Info')
   })
 
   it('records mentions of a new note as referenced ids', async () => {
@@ -162,7 +163,8 @@ describe('NotesSection', () => {
     const body = screen.getByLabelText('Plain text note CN1')
     await user.clear(body)
     await user.type(body, 'edited body')
-    await user.selectOptions(screen.getByLabelText('Severity CN1'), 'success')
+    await user.click(screen.getByLabelText('Severity CN1'))
+    await user.click(screen.getByRole('option', { name: 'Success' }))
     await user.click(screen.getByRole('button', { name: 'Save note' }))
 
     expect(world.em.crmNotes.find('CN1')).toMatchObject({

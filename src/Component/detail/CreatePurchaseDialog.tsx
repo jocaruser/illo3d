@@ -1,7 +1,7 @@
 import { useMemo, useState, type ChangeEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Combobox, type ComboboxItem } from '@/Component/Combobox'
-import { Select, type SelectOption } from '@/Component/Select'
+import { Select } from '@/Component/Select'
 import { cx } from '@/Component/cx'
 import { DialogShell } from '@/Component/dialog/DialogShell'
 import { FormError } from '@/Component/form/FormError'
@@ -110,9 +110,9 @@ function PurchaseDialogBody({
     [em]
   )
 
-  const categoryOptions: SelectOption[] = (
+  const categoryOptions: ComboboxItem[] = (
     addToInventory ? INVENTORY_PURCHASE_CATEGORIES : EXPENSE_CATEGORIES
-  ).map((value) => ({ value, label: t(`purchase.category.${value}`) }))
+  ).map((value) => ({ key: value, label: t(`purchase.category.${value}`) }))
 
   // With line items the total is the sum of the lines, never typed by hand.
   const lineTotal = lines.reduce(
@@ -198,17 +198,15 @@ function PurchaseDialogBody({
         </FormGroup>
 
         <FormGroup>
-          <FormLabel htmlFor="purchase-category">
+          <FormLabel className="space-y-1">
             {t('purchase.category')}
+            <Combobox
+              ariaLabel={t('purchase.category')}
+              items={categoryOptions}
+              value={category}
+              onChange={(key) => setCategory(key as ExpenseCategory)}
+            />
           </FormLabel>
-          <Select
-            id="purchase-category"
-            options={categoryOptions}
-            value={category}
-            onChange={(event) =>
-              setCategory(event.target.value as ExpenseCategory)
-            }
-          />
         </FormGroup>
 
         <FormGroup>
