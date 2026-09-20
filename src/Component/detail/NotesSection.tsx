@@ -7,7 +7,7 @@ import { FormTextarea } from '@/Component/form/FormTextarea'
 import { SectionHeading } from '@/Component/layout/SectionHeading'
 import { MentionLinkify } from '@/Component/MentionLinkify'
 import { RelativeTime } from '@/Component/RelativeTime'
-import { Select } from '@/Component/Select'
+import { Combobox, type ComboboxItem } from '@/Component/Combobox'
 import { toast } from '@/Component/Toast'
 import type { AlertVariant } from '@/Component/alertVariants'
 import {
@@ -47,10 +47,10 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
     [notes]
   )
 
-  const severityOptions = useMemo(
+  const severityOptions = useMemo<ComboboxItem[]>(
     () =>
       NOTE_SEVERITIES.map((value) => ({
-        value,
+        key: value,
         label: t(`clientDetail.severity.${value}`),
       })),
     [t]
@@ -128,11 +128,11 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
         />
         <div className="flex flex-wrap items-center gap-2">
           <div className="w-40">
-            <Select
-              aria-label={t(`${prefix}.severityLabel`)}
-              options={severityOptions}
+            <Combobox
+              ariaLabel={t(`${prefix}.severityLabel`)}
+              items={severityOptions}
               value={severity}
-              onChange={(event) => setSeverity(event.target.value)}
+              onChange={setSeverity}
             />
           </div>
           <button
@@ -164,11 +164,11 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
                 />
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="w-40">
-                    <Select
-                      aria-label={`${t(`${prefix}.severityLabel`)} ${note.id}`}
-                      options={severityOptions}
+                    <Combobox
+                      ariaLabel={`${t(`${prefix}.severityLabel`)} ${note.id}`}
+                      items={severityOptions}
                       value={editSeverity}
-                      onChange={(event) => setEditSeverity(event.target.value)}
+                      onChange={setEditSeverity}
                     />
                   </div>
                   <button
