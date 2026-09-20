@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { ColouredNumber } from '@/Component/ColouredNumber'
@@ -12,10 +12,9 @@ import { ListTablePageHeader } from '@/Component/layout/ListTablePageHeader'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
 import type { Transaction } from '@/Entity/Transaction'
 import { useEntityManager } from '@/Hook/useEntityManager'
+import { useListTableDiscovery } from '@/Hook/useListTableDiscovery'
 import type { EntityManager } from '@/Repository/EntityManager'
 import { calculateBalance, formatCurrency } from '@/Service/Pricing/money'
-import { transactionNavigationTarget } from '@/Service/Linking/entityLinkTargets'
-import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
 import { transactionSearchBlob } from '@/Service/Search/searchBlobs'
 
 /**
@@ -26,17 +25,21 @@ function conceptLinkFor(
   em: EntityManager,
   transaction: Transaction
 ): ConceptLink {
-  const to = transactionNavigationTarget(em, transaction.id)
-  if (to === null) return { kind: 'none' }
-  if (to.startsWith('/jobs/')) return { kind: 'job', to }
-  return { kind: 'expense', to }
+  if (transaction.refType === 'job')
+    return { kind: 'job', to: `/jobs/${transaction.refId}` }
+  if (
+    transaction.isExpense() &&
+    em.lots.findActiveByTransaction(transaction.id).length > 0
+  ) {
+    return { kind: 'expense', to: `/transactions/${transaction.id}` }
+  }
+  return { kind: 'none' }
 }
 
 export function TransactionsPage() {
   const { t } = useTranslation()
   const em = useEntityManager()
   const navigate = useNavigate()
-  const [query, setQuery] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const transactions = useMemo(() => em.transactions.findActive(), [em])
@@ -55,17 +58,29 @@ export function TransactionsPage() {
     [em, transactions]
   )
 
-  const visible = useMemo(
-    () =>
-      fuzzyFilter(rows, query, (row) =>
-        transactionSearchBlob(
-          row.transaction,
-          { clientLabel: row.clientName },
-          t
-        )
+  const getSearchBlob = useCallback(
+    (row: TransactionTableRow) =>
+      transactionSearchBlob(
+        row.transaction,
+        { clientLabel: row.clientName },
+        t
       ),
-    [rows, query, t]
+    [t]
   )
+
+  const {
+    query,
+    setQuery,
+    rows: visible,
+    emptyMessage,
+  } = useListTableDiscovery({
+    sourceRows: rows,
+    getSearchBlob,
+    messages: {
+      collectionEmpty: t('transactions.empty'),
+      noMatches: t('listTable.noMatches'),
+    },
+  })
 
   return (
     <div className="space-y-4">
@@ -91,12 +106,7 @@ export function TransactionsPage() {
           </>
         }
       />
-      <TransactionsTable
-        rows={visible}
-        emptyMessage={
-          rows.length === 0 ? t('transactions.empty') : t('listTable.noMatches')
-        }
-      />
+      <TransactionsTable rows={visible} emptyMessage={emptyMessage} />
       <CreatePurchaseDialog
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}

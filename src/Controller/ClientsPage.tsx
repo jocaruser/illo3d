@@ -9,8 +9,8 @@ import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
 import { toast } from '@/Component/Toast'
 import type { Client } from '@/Entity/Client'
 import { useEntityManager } from '@/Hook/useEntityManager'
+import { useListTableDiscovery } from '@/Hook/useListTableDiscovery'
 import { LifecycleService } from '@/Service/LifecycleService'
-import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
 import { clientSearchBlob } from '@/Service/Search/searchBlobs'
 
 export function ClientsPage() {
@@ -18,7 +18,6 @@ export function ClientsPage() {
   const em = useEntityManager()
   const navigate = useNavigate()
   const [revision, bump] = useReducer((count: number) => count + 1, 0)
-  const [query, setQuery] = useState('')
   // One value covers the whole dialog session: null is closed, `editing: null`
   // is create mode, and a client is edit mode.
   const [dialog, setDialog] = useState<{ editing: Client | null } | null>(null)
@@ -47,13 +46,20 @@ export function ClientsPage() {
     [tagNamesByClient]
   )
 
-  const rows = useMemo(
-    () =>
-      fuzzyFilter(clients, query, (client) =>
-        clientSearchBlob(client, tagNames(client.id).join(' '))
-      ),
-    [clients, query, tagNames]
+  const getSearchBlob = useCallback(
+    (client: Client) =>
+      clientSearchBlob(client, tagNames(client.id).join(' ')),
+    [tagNames]
   )
+
+  const { query, setQuery, rows, emptyMessage } = useListTableDiscovery({
+    sourceRows: clients,
+    getSearchBlob,
+    messages: {
+      collectionEmpty: t('clients.empty'),
+      noMatches: t('listTable.noMatches'),
+    },
+  })
 
   const openCreate = () => setDialog({ editing: null })
 
@@ -73,9 +79,6 @@ export function ClientsPage() {
     setArchiving(null)
     bump()
   }
-
-  const emptyMessage =
-    clients.length === 0 ? t('clients.empty') : t('listTable.noMatches')
 
   return (
     <div className="space-y-6">
