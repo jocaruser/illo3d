@@ -1,6 +1,6 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { parseCsv, serializeCsv } from 'google-drive-api-mock'
+import { serializeCsv } from 'google-drive-api-mock'
 import { SHEET_HEADERS } from '../../src/Config/schema'
 import {
   test,
@@ -17,8 +17,8 @@ test.use({ storageState: { cookies: [], origins: [] } })
 /**
  * The stateful sequence Success Criteria requires: seed a row directly on
  * disk (bypassing the app entirely), open the shop and see it render, then
- * create a second row through the UI and assert the live double's own CSV
- * file — not a canned in-process value — now holds both rows.
+ * create a second row through the UI, save the workbook to the live double,
+ * and assert its CSV tab — not a canned in-process value — holds both rows.
  */
 test.describe('Google Drive: stateful client create/edit/save', () => {
   test('a seeded row renders, and a UI-created row persists to the live double', async ({
@@ -57,10 +57,15 @@ test.describe('Google Drive: stateful client create/edit/save', () => {
     ])
     await expect(page.getByRole('heading', { name: newName })).toBeVisible({ timeout: 20000 })
 
+    await page.getByTestId('workbook-save').click()
+    await expect(page.getByText(/workbook saved|libro guardado/i)).toBeVisible({
+      timeout: 20000,
+    })
+
     await expect
       .poll(
         () => {
-          const rows = parseCsv(fs.readFileSync(clientsCsvPath, 'utf8'))
+          const rows = fake.store.getValues(SEEDED_SPREADSHEET_ID, 'clients')
           return rows.map((row) => row[1])
         },
         { timeout: 15000 },
