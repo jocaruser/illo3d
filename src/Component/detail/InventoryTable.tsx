@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { ColourSwatch } from '@/Component/ColourSwatch'
 import { RelativeTime } from '@/Component/RelativeTime'
+import { cx } from '@/Component/cx'
 import {
   DataTable,
   TableBody,
@@ -12,7 +13,6 @@ import {
   TableRow,
 } from '@/Component/table/DataTable'
 import { SortableColumnHeader } from '@/Component/table/SortableColumnHeader'
-import { cx } from '@/Component/cx'
 import type { InventoryItem, StockAlertLevel } from '@/Entity/InventoryItem'
 import { formatCurrency } from '@/Service/Pricing/money'
 import { sortRows, useTableSort, type SortValue } from './tableSort'
@@ -31,14 +31,6 @@ interface InventoryTableProps {
 type SortKey = 'id' | 'name' | 'type' | 'qty' | 'avgUnitCost' | 'createdAt'
 
 const COLUMN_COUNT = 6
-
-/**
- * The Type column collapses below `sm`. Driven from the table element so both
- * the header and every cell hide together without forking the shared table
- * primitives.
- */
-const responsiveColumns =
-  '[&_tr>*:nth-child(3)]:hidden sm:[&_tr>*:nth-child(3)]:table-cell'
 
 /**
  * Threshold tints. Red is the danger token; the amber tiers use the palette
@@ -85,21 +77,22 @@ export function InventoryTable({ rows, emptyMessage }: InventoryTableProps) {
     [rows, sort, t]
   )
 
-  const header = (key: SortKey, label: string) => (
+  const header = (key: SortKey, label: string, viewportTier?: 'small') => (
     <SortableColumnHeader
       label={label}
       direction={directionFor(key)}
       onToggle={(dir) => toggle(key, dir)}
+      viewportTier={viewportTier ?? 'always'}
     />
   )
 
   return (
-    <DataTable className={responsiveColumns}>
+    <DataTable>
       <TableHead>
         <TableRow>
           {header('id', t('inventory.colId'))}
           {header('name', t('inventory.name'))}
-          {header('type', t('inventory.typeLabel'))}
+          {header('type', t('inventory.typeLabel'), 'small')}
           {header('qty', t('inventory.qtyCurrent'))}
           {header('avgUnitCost', t('inventory.avgUnitCost'))}
           {header('createdAt', t('inventory.createdAt'))}
@@ -128,7 +121,7 @@ export function InventoryTable({ rows, emptyMessage }: InventoryTableProps) {
                     {item.name}
                   </span>
                 </TableCell>
-                <TableCell>{t(`inventory.type.${item.type}`)}</TableCell>
+                <TableCell viewportTier="small">{t(`inventory.type.${item.type}`)}</TableCell>
                 <TableCell
                   className={cx(
                     'text-right',

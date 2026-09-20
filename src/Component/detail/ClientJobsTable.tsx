@@ -14,16 +14,13 @@ import {
 } from '@/Component/table/DataTable'
 import { SortableColumnHeader } from '@/Component/table/SortableColumnHeader'
 import type { Job } from '@/Entity/Job'
-import type { JobPricingState } from '@/Service/Pricing/jobPricing'
-import { JobTotal } from './JobsTable'
 import { sortRows, useTableSort, type SortValue } from './tableSort'
 
-export type ClientJobSortKey = 'id' | 'description' | 'status' | 'total' | 'createdAt'
+export type ClientJobSortKey = 'id' | 'description' | 'status' | 'dueDate' | 'createdAt'
 
 interface ClientJobsTableProps {
   /** All of the client's jobs — archived and soft-deleted rows included. */
   rows: Job[]
-  pricingOf: (jobId: string) => JobPricingState
   emptyMessage: string
   onEdit: (job: Job) => void
   onArchive: (job: Job) => void
@@ -32,11 +29,13 @@ interface ClientJobsTableProps {
 
 const COLUMN_COUNT = 6
 
-/** Total (4th) appears at md, Created (5th) at lg. */
-const responsiveColumns = cx(
-  '[&_tr>*:nth-child(4)]:hidden md:[&_tr>*:nth-child(4)]:table-cell',
-  '[&_tr>*:nth-child(5)]:hidden lg:[&_tr>*:nth-child(5)]:table-cell'
-)
+function cellOf(job: Job, key: ClientJobSortKey): SortValue {
+  if (key === 'id') return job.id
+  if (key === 'description') return job.description
+  if (key === 'status') return job.status
+  if (key === 'dueDate') return job.effectiveDueDate()
+  return job.createdAt
+}
 
 /**
  * The client detail jobs table. Unlike the jobs list it keeps archived rows
@@ -45,7 +44,6 @@ const responsiveColumns = cx(
  */
 export function ClientJobsTable({
   rows,
-  pricingOf,
   emptyMessage,
   onEdit,
   onArchive,
@@ -56,26 +54,10 @@ export function ClientJobsTable({
     key: 'createdAt',
     dir: 'desc',
   })
-
-  const cellOf = useMemo(
-    () =>
-      (job: Job, key: ClientJobSortKey): SortValue => {
-        if (key === 'id') return job.id
-        if (key === 'description') return job.description
-        if (key === 'status') return job.status
-        if (key === 'total') {
-          const pricing = pricingOf(job.id)
-          return pricing.complete ? pricing.total : undefined
-        }
-        return job.createdAt
-      },
-    [pricingOf]
-  )
-
-  const sorted = useMemo(() => sortRows(rows, sort, cellOf, (job) => job.id), [rows, sort, cellOf])
+  const sorted = useMemo(() => sortRows(rows, sort, cellOf, (job) => job.id), [rows, sort])
 
   return (
-    <DataTable className={responsiveColumns}>
+    <DataTable>
       <TableHead>
         <TableRow>
           <SortableColumnHeader
@@ -94,14 +76,16 @@ export function ClientJobsTable({
             onToggle={(next) => toggle('status', next)}
           />
           <SortableColumnHeader
-            label={t('jobs.colTotal')}
-            direction={directionFor('total')}
-            onToggle={(next) => toggle('total', next)}
+            label={t('jobs.colDueDate')}
+            direction={directionFor('dueDate')}
+            onToggle={(next) => toggle('dueDate', next)}
+            viewportTier="medium"
           />
           <SortableColumnHeader
             label={t('jobs.colCreated')}
             direction={directionFor('createdAt')}
             onToggle={(next) => toggle('createdAt', next)}
+            viewportTier="wide"
           />
           <TableHeader>{t('jobs.actions')}</TableHeader>
         </TableRow>
@@ -129,10 +113,10 @@ export function ClientJobsTable({
                 <TableCell className={cx('text-text-muted', inactive && 'line-through')}>
                   {t(`jobs.status.${job.status}`)}
                 </TableCell>
-                <TableCell className={cx('text-text-muted', inactive && 'line-through')}>
-                  <JobTotal pricing={pricingOf(job.id)} />
+                <TableCell viewportTier="medium" className={cx('text-text-muted', inactive && 'line-through')}>
+                  {job.effectiveDueDate().slice(0, 10)}
                 </TableCell>
-                <TableCell className={cx('text-text-muted', inactive && 'line-through')}>
+                <TableCell viewportTier="wide" className={cx('text-text-muted', inactive && 'line-through')}>
                   {job.createdAt !== '' && <RelativeTime value={job.createdAt} />}
                 </TableCell>
                 <TableCell>
