@@ -8,7 +8,7 @@ import { FixedClock } from './helpers'
 describe('createShop', () => {
   it('creates the workbook, writes metadata and returns the shop', async () => {
     const folderRepo: FolderRepositoryInterface = {
-      readMetadata: vi.fn(async () => null),
+      readMetadata: vi.fn(async () => ({ kind: 'absent' as const })),
       writeMetadata: vi.fn(async () => {}),
       getFolderName: vi.fn(async () => 'unused'),
     }

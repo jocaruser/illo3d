@@ -102,13 +102,13 @@ export function createLocalCsvMigrationTarget(
             )
           )
           const folderRepo = new LocalCsvFolderRepository(sourceHandle)
-          const metadata = await folderRepo.readMetadata(sourceHandle.name)
-          if (metadata === null) {
+          const outcome = await folderRepo.readMetadata(sourceHandle.name)
+          if (outcome.kind !== 'present') {
             throw new Error(`Source shop is missing ${METADATA_FILE_NAME}`)
           }
           // The atomic commit point: the version flip is the very last write.
           await folderRepo.writeMetadata(sourceHandle.name, {
-            ...metadata,
+            ...outcome.metadata,
             version: toVersion,
           })
           await sourceHandle.removeEntry(workingName, { recursive: true })

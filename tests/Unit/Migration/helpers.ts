@@ -228,10 +228,13 @@ export class FakeLocalCsvFolderRepository implements FolderRepositoryInterface {
     return this.directory as unknown as FakeDirectoryHandle
   }
 
-  async readMetadata(_folderId: string): Promise<ShopMetadata | null> {
+  async readMetadata(_folderId: string) {
     const text = this.dir.files.get(METADATA_FILE_NAME)
-    if (text === undefined) return null
-    return JSON.parse(text) as ShopMetadata
+    if (text === undefined) return { kind: 'absent' as const }
+    return {
+      kind: 'present' as const,
+      metadata: JSON.parse(text) as ShopMetadata,
+    }
   }
 
   async writeMetadata(

@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
+import { APP_VERSION } from '@/Config/version'
 import {
   BACKUP_SKIPPED_KEY,
   migrationStepIds,
@@ -117,7 +118,10 @@ describe('useMigration', () => {
     vi.clearAllMocks()
     resolvePlanChain.mockReturnValue(v1Chain)
     runPlans.mockResolvedValue({ ok: true })
-    readMetadata.mockResolvedValue({ spreadsheetId: 'SS-OLD' })
+    readMetadata.mockResolvedValue({
+      kind: 'present',
+      metadata: { spreadsheetId: 'SS-OLD' },
+    })
     validateShopFolder.mockResolvedValue({ ok: true, shop, metadata: {} })
     hydrate.mockResolvedValue(undefined)
     useMigrationStore.getState().reset()
@@ -150,7 +154,7 @@ describe('useMigration', () => {
     expect(createLocalCsvMigrationTarget).toHaveBeenCalledWith(
       handle,
       '2.0.0',
-      '3.0.2',
+      APP_VERSION,
       clock
     )
     expect(runPlans).toHaveBeenCalledWith(
@@ -182,7 +186,7 @@ describe('useMigration', () => {
       'F1',
       'SS-OLD',
       '2.0.0',
-      '3.0.2',
+      APP_VERSION,
       clock
     )
     expect(runPlans).toHaveBeenCalledWith(
@@ -266,7 +270,7 @@ describe('useMigration', () => {
       backend: 'google-drive',
       localDirectoryHandle: null,
     })
-    readMetadata.mockResolvedValue(null)
+    readMetadata.mockResolvedValue({ kind: 'absent' })
     const { result } = renderHook(() => useMigration(clock))
 
     await act(async () => {
