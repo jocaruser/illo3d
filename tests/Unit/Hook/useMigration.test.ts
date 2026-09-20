@@ -150,7 +150,7 @@ describe('useMigration', () => {
     expect(createLocalCsvMigrationTarget).toHaveBeenCalledWith(
       handle,
       '2.0.0',
-      '3.0.1',
+      '3.0.2',
       clock
     )
     expect(runPlans).toHaveBeenCalledWith(
@@ -182,7 +182,7 @@ describe('useMigration', () => {
       'F1',
       'SS-OLD',
       '2.0.0',
-      '3.0.1',
+      '3.0.2',
       clock
     )
     expect(runPlans).toHaveBeenCalledWith(

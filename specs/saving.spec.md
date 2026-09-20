@@ -5,8 +5,8 @@ The single most important contract in the app:
 Creating, editing, archiving —
 every change lives only in the app's memory,
 and the shop's files change only at the moment of saving.
-(The [migration wizard](migration/wizard.spec.md) follows the same
-philosophy with its own submit.)
+(The [migration wizard](migration/wizard.spec.md)
+follows the same philosophy with its own submit.)
 
 ## Knowing where you stand
 
@@ -33,7 +33,10 @@ Scenarios:
   "Could not save workbook." offers **Retry**,
   and your changes are still there, still unsaved.
 - On Google Drive, access has expired mid-save
-  → the app asks you to sign in again, then Retry works.
+  → "Your Google session expired.
+  Try signing in with Google again, then retry." —
+  this one carries no Retry:
+  sign in again, then press Save.
 
 ## Refreshing
 
@@ -42,7 +45,8 @@ replacing everything in memory.
 
 Scenarios:
 
-- No unsaved changes → the shop reloads quietly.
+- No unsaved changes → the shop reloads behind
+  the same kind of blocking progress card, "Loading workbook".
 - Unsaved changes → a confirmation first:
   **"Discard unsaved changes?"** —
   "Your local edits will be lost. Reload data from storage?"
