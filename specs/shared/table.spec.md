@@ -15,7 +15,7 @@ Whatever the data holds:
   Un-archive their one action
   ([lifecycle](lifecycle.spec.md)).
   Deleted entities have no rows anywhere
-  ([ADR-0014](../decisions/ADR-0014-archive-then-delete-lifecycle.md)).
+  ([entity lifecycle](../../openspec/specs/entity-lifecycle/spec.md)).
 
 Every use of this spec answers, specifically:
 
