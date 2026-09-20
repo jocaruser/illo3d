@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => ({
 
   server: {
     host: true,
-    allowedHosts: ['web'],
+    allowedHosts: true,
     // Google Identity Services popup OAuth: default COOP can block window.closed (see react-oauth README).
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
   },
   preview: {
     host: true,
-    allowedHosts: ['web'],
+    allowedHosts: true,
     headers: {
       'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
     },
