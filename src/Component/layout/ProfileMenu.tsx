@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
 import { cx } from '@/Component/cx'
 import { APP_VERSION } from '@/Config/version'
 import { useShopMetadata } from '@/Hook/useShopMetadata'
+import { useSignOut } from '@/Hook/useSignOut'
 import { applyTheme } from '@/Theme/initTheme'
 import { useAuthStore } from '@/Store/authStore'
 import { useBackendStore } from '@/Store/backendStore'
@@ -11,7 +13,6 @@ import {
   useUserPreferencesStore,
   type Language,
 } from '@/Store/userPreferencesStore'
-import { useWorkbookStore } from '@/Store/workbookStore'
 
 const LANGUAGES: { code: Language; label: string }[] = [
   { code: 'en', label: 'EN' },
@@ -34,12 +35,14 @@ export function ProfileMenu() {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const user = useAuthStore((state) => state.user)
-  const logout = useAuthStore((state) => state.logout)
   const activeShop = useShopStore((state) => state.activeShop)
-  const clearActiveShop = useShopStore((state) => state.clearActiveShop)
   const backend = useBackendStore((state) => state.backend)
-  const clearBackend = useBackendStore((state) => state.clearBackend)
-  const resetWorkbook = useWorkbookStore((state) => state.reset)
+  const {
+    requestSignOut,
+    confirmSignOut,
+    cancelSignOut,
+    needsConfirm,
+  } = useSignOut()
   const language = useUserPreferencesStore((state) => state.language)
   const setLanguage = useUserPreferencesStore((state) => state.setLanguage)
   const theme = useUserPreferencesStore((state) => state.theme)
@@ -82,10 +85,7 @@ export function ProfileMenu() {
 
   const handleSignOut = (): void => {
     setOpen(false)
-    logout()
-    clearActiveShop()
-    clearBackend()
-    resetWorkbook()
+    requestSignOut()
   }
 
   return (
@@ -227,6 +227,17 @@ export function ProfileMenu() {
           </button>
         </div>
       )}
+      <ConfirmDialog
+        open={needsConfirm}
+        title={t('workbook.discardTitle')}
+        message={t('workbook.discardMessage')}
+        confirmLabel={t('workbook.discardConfirm')}
+        cancelLabel={t('workbook.cancel')}
+        onConfirm={() => {
+          void confirmSignOut()
+        }}
+        onCancel={cancelSignOut}
+      />
     </div>
   )
 }
