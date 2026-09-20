@@ -10,6 +10,7 @@ import { computeAvgUnitCost } from '@/Service/Pricing/avgUnitCost'
 import type { JobPricingState } from '@/Service/Pricing/jobPricing'
 import { formatCurrency } from '@/Service/Pricing/money'
 import { computeRedos, redoBand, type RedoBand } from '@/Service/Pricing/redos'
+import { EntityDetailLifecycleActions } from './EntityDetailLifecycleActions'
 import { DetailWidget, WidgetGrid } from './DetailWidget'
 import { DueDateBadge, JobTotal } from './JobsTable'
 
@@ -19,9 +20,11 @@ interface JobWidgetGridProps {
   pricing: JobPricingState
   /** Bumped by the page so the material aggregates recompute. */
   revision?: number
+  readOnly?: boolean
   onStatusChange: (job: Job, next: JobStatus) => void
   onEdit: () => void
   onArchive: () => void
+  onUnarchive: () => void
   onSoftDelete: () => void
   onDueDateChange: (dueDate: string) => void
 }
@@ -45,9 +48,11 @@ export function JobWidgetGrid({
   clientName,
   pricing,
   revision = 0,
+  readOnly = false,
   onStatusChange,
   onEdit,
   onArchive,
+  onUnarchive,
   onSoftDelete,
   onDueDateChange,
 }: JobWidgetGridProps) {
@@ -103,32 +108,15 @@ export function JobWidgetGrid({
         colSpan={2}
         testId="job-widget-id"
         actions={
-          <>
-            <button
-              type="button"
-              className="btn-secondary px-2 py-1 text-xs"
-              data-testid="entity-detail-edit"
-              onClick={onEdit}
-            >
-              {t('jobs.editJob')}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary px-2 py-1 text-xs"
-              data-testid="entity-detail-archive"
-              onClick={onArchive}
-            >
-              {t('lifecycle.archive')}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary px-2 py-1 text-xs"
-              data-testid="entity-detail-delete"
-              onClick={onSoftDelete}
-            >
-              {t('lifecycle.softDelete')}
-            </button>
-          </>
+          <EntityDetailLifecycleActions
+            compact
+            mode={job.isArchived() ? 'archived' : 'active'}
+            editLabel={t('jobs.editJob')}
+            onEdit={job.isArchived() ? undefined : onEdit}
+            onArchive={job.isArchived() ? undefined : onArchive}
+            onUnarchive={job.isArchived() ? onUnarchive : undefined}
+            onSoftDelete={job.isArchived() ? onSoftDelete : undefined}
+          />
         }
       >
         <p className="font-display text-lg font-semibold text-text">
@@ -138,12 +126,16 @@ export function JobWidgetGrid({
 
       <DetailWidget label={t('jobs.widgetStatus')} testId="job-widget-status">
         <div data-testid={`job-status-${job.id}`}>
-          <Combobox
-            items={statusItems}
-            value={job.status}
-            placeholder={t('jobs.statusFieldAria', { id: job.id })}
-            onChange={(next) => onStatusChange(job, next as JobStatus)}
-          />
+          {readOnly ? (
+            <span>{t(`jobs.status.${job.status}`)}</span>
+          ) : (
+            <Combobox
+              items={statusItems}
+              value={job.status}
+              placeholder={t('jobs.statusFieldAria', { id: job.id })}
+              onChange={(next) => onStatusChange(job, next as JobStatus)}
+            />
+          )}
         </div>
       </DetailWidget>
 
@@ -162,7 +154,9 @@ export function JobWidgetGrid({
       </DetailWidget>
 
       <DetailWidget label={t('jobs.widgetDueDate')} testId="job-widget-due-date">
-        {editingDueDate ? (
+        {readOnly ? (
+          <DueDateBadge job={job} clock={em.clock} />
+        ) : editingDueDate ? (
           <FormInput
             type="date"
             autoFocus

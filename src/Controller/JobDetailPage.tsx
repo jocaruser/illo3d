@@ -84,6 +84,8 @@ export function JobDetailPage() {
     )
   }
 
+  const readOnly = job.isArchived()
+
   const confirmLifecycle = () => {
     const service = new LifecycleService(em)
     if (lifecycle === 'delete') service.softDeleteJob(job.id)
@@ -91,6 +93,12 @@ export function JobDetailPage() {
     toast.success(t('toast.changeApplied'))
     setLifecycle(null)
     void navigate('/jobs')
+  }
+
+  const unarchiveJob = () => {
+    new LifecycleService(em).restoreJob(job.id)
+    toast.success(t('toast.changeApplied'))
+    bump()
   }
 
   const changeDueDate = (dueDate: string) => {
@@ -125,12 +133,14 @@ export function JobDetailPage() {
         clientName={clientName}
         pricing={pricing}
         revision={revision}
+        readOnly={readOnly}
         onStatusChange={(target, next) => {
           statusFlow.requestStatusChange(target, next)
           bump()
         }}
         onEdit={() => setEditOpen(true)}
         onArchive={() => setLifecycle('archive')}
+        onUnarchive={unarchiveJob}
         onSoftDelete={() => setLifecycle('delete')}
         onDueDateChange={changeDueDate}
       />
@@ -142,9 +152,9 @@ export function JobDetailPage() {
 
       <JobMaterialsSummary jobId={job.id} revision={revision} />
 
-      <TagsSection entityType="job" entityId={job.id} />
+      <TagsSection entityType="job" entityId={job.id} readOnly={readOnly} />
 
-      <NotesSection entityType="job" entityId={job.id} />
+      <NotesSection entityType="job" entityId={job.id} readOnly={readOnly} />
 
       <section className="space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -156,21 +166,28 @@ export function JobDetailPage() {
               placeholder={t('pieces.searchPlaceholder')}
             />
           </div>
-          <button
-            type="button"
-            className="btn-primary sm:ml-auto"
-            data-testid="add-piece-button"
-            onClick={() => setPieceDialogOpen(true)}
-          >
-            {t('pieces.addPiece')}
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              className="btn-primary sm:ml-auto"
+              data-testid="add-piece-button"
+              onClick={() => setPieceDialogOpen(true)}
+            >
+              {t('pieces.addPiece')}
+            </button>
+          )}
         </div>
 
-        <PiecesTable rows={pieceRows} emptyMessage={piecesEmptyMessage} onChanged={bump} />
+        <PiecesTable
+          rows={pieceRows}
+          emptyMessage={piecesEmptyMessage}
+          readOnly={readOnly}
+          onChanged={bump}
+        />
       </section>
 
       <CreateJobDialog
-        open={editOpen}
+        open={editOpen && !readOnly}
         job={job}
         onClose={() => setEditOpen(false)}
         onUpdated={bump}

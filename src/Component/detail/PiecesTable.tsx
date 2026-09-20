@@ -52,6 +52,7 @@ export type PieceSortKey =
 interface PiecesTableProps {
   rows: Piece[]
   emptyMessage: string
+  readOnly?: boolean
   /** Bump the owning page so job widgets and the materials summary recompute. */
   onChanged: () => void
 }
@@ -97,6 +98,7 @@ function cellOf(piece: Piece, key: PieceSortKey): SortValue {
 export function PiecesTable({
   rows,
   emptyMessage,
+  readOnly = false,
   onChanged,
 }: PiecesTableProps) {
   const { t } = useTranslation()
@@ -348,6 +350,7 @@ export function PiecesTable({
                 <PieceRowGroup
                   key={piece.id}
                   piece={piece}
+                  readOnly={readOnly}
                   open={expanded.has(piece.id)}
                   statusItems={statusItems}
                   benefit={benefit}
@@ -445,6 +448,7 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
 
 interface PieceRowGroupProps {
   piece: Piece
+  readOnly?: boolean
   open: boolean
   statusItems: ComboboxItem[]
   /** Line total minus material cost for the run; undefined without a total. */
@@ -464,6 +468,7 @@ interface PieceRowGroupProps {
 /** One piece: the editable summary row plus, when expanded, its material lines. */
 function PieceRowGroup({
   piece,
+  readOnly = false,
   open,
   statusItems,
   benefit,
@@ -512,6 +517,8 @@ function PieceRowGroup({
             data-testid={`piece-name-${piece.id}`}
             aria-label={t('pieces.nameFieldAria', { id: piece.id })}
             defaultValue={piece.name}
+            readOnly={readOnly}
+            disabled={readOnly}
             key={`name-${piece.id}-${piece.name}`}
             onBlur={(event) => onCommitName(piece, event.target.value)}
           />
@@ -531,6 +538,8 @@ function PieceRowGroup({
               piece.hasValidUnits() ? undefined : t('pieces.unitsUnsetHint')
             }
             defaultValue={piece.units ?? ''}
+            readOnly={readOnly}
+            disabled={readOnly}
             key={`units-${piece.id}-${piece.units ?? ''}`}
             onBlur={(event) => onCommitUnits(piece, event.target.value)}
           />
@@ -545,9 +554,12 @@ function PieceRowGroup({
               data-testid={`piece-price-${piece.id}`}
               aria-label={t('pieces.priceFieldAria', { id: piece.id })}
               defaultValue={piece.price ?? ''}
+              readOnly={readOnly}
+              disabled={readOnly}
               key={`price-${piece.id}-${piece.price ?? ''}`}
               onBlur={(event) => onCommitPrice(piece, event.target.value)}
             />
+            {!readOnly && (
             <button
               type="button"
               className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
@@ -571,6 +583,7 @@ function PieceRowGroup({
                     price: formatCurrency(suggestion.suggestedPrice),
                   })}
             </button>
+            )}
           </div>
         </TableCell>
         <TableCell className="tabular-nums">
@@ -590,12 +603,16 @@ function PieceRowGroup({
             className="min-w-[8rem]"
             data-testid={`piece-status-${piece.id}`}
           >
-            <Combobox
-              items={statusItems}
-              value={piece.status}
-              placeholder={t('pieces.statusFieldAria', { id: piece.id })}
-              onChange={(next) => onRequestStatus(piece, next as PieceStatus)}
-            />
+            {readOnly ? (
+              <span>{t(`pieces.status.${piece.status}`)}</span>
+            ) : (
+              <Combobox
+                items={statusItems}
+                value={piece.status}
+                placeholder={t('pieces.statusFieldAria', { id: piece.id })}
+                onChange={(next) => onRequestStatus(piece, next as PieceStatus)}
+              />
+            )}
           </div>
         </TableCell>
         <TableCell className="text-text-muted">
@@ -616,7 +633,11 @@ function PieceRowGroup({
                       : t('pieces.redo.risky')}
                 </p>
               )}
-              <PieceItemsTable piece={piece} onChanged={onChanged} />
+              <PieceItemsTable
+                piece={piece}
+                readOnly={readOnly}
+                onChanged={onChanged}
+              />
             </div>
           </TableCell>
         </TableRow>

@@ -13,10 +13,11 @@ import { InventoryService } from '@/Service/InventoryService'
 interface QtyEditorProps {
   itemId: string
   qtyCurrent: number
+  readOnly?: boolean
 }
 
 /** Corrects the on-hand count after a stocktake. */
-export function QtyEditor({ itemId, qtyCurrent }: QtyEditorProps) {
+export function QtyEditor({ itemId, qtyCurrent, readOnly = false }: QtyEditorProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [value, setValue] = useState(String(qtyCurrent))
@@ -54,17 +55,21 @@ export function QtyEditor({ itemId, qtyCurrent }: QtyEditorProps) {
             step=".01"
             min="0"
             value={value}
+            readOnly={readOnly}
+            disabled={readOnly}
             onChange={(event) => setValue(event.target.value)}
           />
         </FormGroup>
-        <button
-          type="button"
-          data-testid="inventory-detail-save-qty"
-          className="btn-primary"
-          onClick={handleSave}
-        >
-          {t('inventoryDetail.saveQty')}
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            data-testid="inventory-detail-save-qty"
+            className="btn-primary"
+            onClick={handleSave}
+          >
+            {t('inventoryDetail.saveQty')}
+          </button>
+        )}
       </div>
       <FormError message={error} />
     </section>

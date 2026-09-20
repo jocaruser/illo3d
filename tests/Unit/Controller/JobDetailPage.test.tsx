@@ -240,17 +240,70 @@ describe('JobDetailPage', () => {
     expect(world.em.pieces.find('P1')?.isArchived()).toBe(true)
   })
 
-  it('soft-deletes the job from the widget and returns to the list', async () => {
-    const user = userEvent.setup()
+  it('does not offer soft delete while the job is active', () => {
     renderPage()
+    expect(screen.queryByTestId('entity-detail-soft-delete')).not.toBeInTheDocument()
+  })
 
-    await user.click(screen.getByTestId('entity-detail-delete'))
+  it('soft-deletes an archived job from the widget and returns to the list', async () => {
+    const user = userEvent.setup()
+    world.tabs.seed('jobs', [
+      {
+        id: 'J9',
+        client_id: 'CL1',
+        description: 'Archived case',
+        status: 'draft',
+        created_at: '2024-05-01T09:00:00.000Z',
+        archived: 'true',
+      },
+    ])
+    renderPage('/jobs/J9')
+
+    await user.click(screen.getByTestId('entity-detail-soft-delete'))
     const dialog = screen.getByRole('dialog')
     expect(within(dialog).getByRole('heading', { name: 'Delete job' })).toBeInTheDocument()
     await user.click(within(dialog).getByRole('button', { name: 'Soft delete' }))
 
     expect(screen.getByTestId('location')).toHaveTextContent('/jobs')
-    expect(world.em.jobs.find('J1')?.isDeleted()).toBe(true)
+    expect(world.em.jobs.find('J9')?.isDeleted()).toBe(true)
+  })
+
+  it('renders an archived job as read-only with un-archive and soft delete only', async () => {
+    const user = userEvent.setup()
+    world.tabs.seed('jobs', [
+      {
+        id: 'J9',
+        client_id: 'CL1',
+        description: 'Archived case',
+        status: 'in_progress',
+        created_at: '2024-05-01T09:00:00.000Z',
+        due_date: '2024-05-01',
+        archived: 'true',
+      },
+    ])
+    world.tabs.seed('pieces', [
+      {
+        id: 'P9',
+        job_id: 'J9',
+        name: 'Frozen',
+        status: 'pending',
+        price: '10',
+        units: '1',
+        created_at: '2024-05-01T10:00:00.000Z',
+      },
+    ])
+    renderPage('/jobs/J9')
+
+    expect(screen.queryByTestId('entity-detail-edit')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('entity-detail-archive')).not.toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-unarchive')).toBeInTheDocument()
+    expect(screen.queryByTestId('job-due-date-edit')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('add-piece-button')).not.toBeInTheDocument()
+    expect(screen.getByTestId('piece-units-P9')).toBeDisabled()
+
+    await user.click(screen.getByTestId('entity-detail-unarchive'))
+    expect(world.em.jobs.find('J9')?.isArchived()).toBe(false)
+    expect(screen.getByTestId('entity-detail-edit')).toBeInTheDocument()
   })
 
   it('keeps the job when the lifecycle dialog is cancelled', async () => {

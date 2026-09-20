@@ -139,7 +139,7 @@ All user-facing strings on the **inventory list** page and the **inventory detai
 
 ### Requirement: Inventory detail route and access control
 
-The system SHALL provide a protected route `/inventory/:inventoryId`. When the sheet connection is **connected** and no inventory row matches `inventoryId` (among non-deleted, non-archived items as defined for the list), the system SHALL show a not-found message with a link back to `/inventory`. Unauthenticated users SHALL be redirected to `/login`.
+The system SHALL provide a protected route `/inventory/:inventoryId`. When the sheet connection is **connected** and no inventory row matches `inventoryId`, the system SHALL show a not-found message with a link back to `/inventory`, except when the row exists and is **archived** but not soft-deleted — in that case the system SHALL render a read-only frozen detail page per entity-lifecycle rules. Soft-deleted inventory rows SHALL behave as absent URLs. Unauthenticated users SHALL be redirected to `/login`.
 
 #### Scenario: Detail renders for valid id
 
@@ -192,7 +192,13 @@ The inventory detail page SHALL display the item **name**, **type** (localized),
 - **WHEN** user invokes archive from inventory detail and confirms
 - **THEN** the inventory row is marked archived per workbook lifecycle rules
 - **AND** the item no longer appears as an active row on `/inventory`
-- **AND** navigating to `/inventory/:inventoryId` for that id treats the item as absent for active-detail purposes (same not-found behavior as other archived primary entities)
+- **AND** navigating to `/inventory/:inventoryId` for that id shows a read-only frozen detail page with un-archive and soft-delete actions only
+
+#### Scenario: Archived inventory direct URL
+
+- **WHEN** an authenticated user navigates to `/inventory/:inventoryId` for an archived, non-deleted inventory row
+- **THEN** the inventory detail page renders in read-only mode
+- **AND** inline editors for qty, thresholds, colour, and lots are not mutable
 
 ### Requirement: Inventory detail lots and consumption as dedicated components
 

@@ -16,6 +16,7 @@ import { PieceService } from '@/Service/PieceService'
 
 interface PieceItemsTableProps {
   piece: Piece
+  readOnly?: boolean
   /** Bump the owning page so totals and the materials summary recompute. */
   onChanged: () => void
 }
@@ -32,7 +33,11 @@ interface DraftLine {
   quantity: string
 }
 
-export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
+export function PieceItemsTable({
+  piece,
+  readOnly = false,
+  onChanged,
+}: PieceItemsTableProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [revision, setRevision] = useState(0)
@@ -208,23 +213,27 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                       className="min-w-[10rem]"
                       data-testid={`piece-item-inventory-${line.id}`}
                     >
-                      <Combobox
-                        items={options}
-                        value={line.inventoryId}
-                        placeholder={t('pieces.inventoryFieldAria', {
-                          id: line.id,
-                        })}
-                        onChange={(next) => {
-                          if (next === line.inventoryId) return
-                          if (em.pieceItems.hasActiveLine(piece.id, next)) {
-                            fail('pieces.validation.duplicateInventory')
-                            return
-                          }
-                          line.inventoryId = next
-                          em.pieceItems.save(line)
-                          refresh()
-                        }}
-                      />
+                      {readOnly ? (
+                        <span>{item?.name ?? line.inventoryId}</span>
+                      ) : (
+                        <Combobox
+                          items={options}
+                          value={line.inventoryId}
+                          placeholder={t('pieces.inventoryFieldAria', {
+                            id: line.id,
+                          })}
+                          onChange={(next) => {
+                            if (next === line.inventoryId) return
+                            if (em.pieceItems.hasActiveLine(piece.id, next)) {
+                              fail('pieces.validation.duplicateInventory')
+                              return
+                            }
+                            line.inventoryId = next
+                            em.pieceItems.save(line)
+                            refresh()
+                          }}
+                        />
+                      )}
                     </div>
                   </td>
                   <td className="px-2 py-1">
@@ -236,6 +245,8 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                       data-testid={`piece-item-qty-${line.id}`}
                       aria-label={t('pieces.qtyFieldAria', { id: line.id })}
                       defaultValue={line.quantity ?? ''}
+                      readOnly={readOnly}
+                      disabled={readOnly}
                       key={`${line.id}-${revision}`}
                       onBlur={(event) =>
                         updateQuantity(line, event.target.value)
@@ -253,22 +264,24 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                         : t('pieces.redo.risky')}
                   </td>
                   <td className="px-2 py-1">
-                    <button
-                      type="button"
-                      className="rounded p-1 text-text-muted hover:text-danger"
-                      data-testid={`piece-item-delete-${line.id}`}
-                      aria-label={t('pieces.removeLine', { id: line.id })}
-                      onClick={() => removeLine(line)}
-                    >
-                      <TrashIcon className="h-4 w-4" aria-hidden="true" />
-                    </button>
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        className="rounded p-1 text-text-muted hover:text-danger"
+                        data-testid={`piece-item-delete-${line.id}`}
+                        aria-label={t('pieces.removeLine', { id: line.id })}
+                        onClick={() => removeLine(line)}
+                      >
+                        <TrashIcon className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               )
             })
           )}
 
-          {draft !== null && (
+          {!readOnly && draft !== null && (
             <tr ref={draftRef} data-testid={`piece-item-draft-${piece.id}`}>
               <td className="px-2 py-1 text-text-muted">—</td>
               <td className="px-2 py-1">
@@ -319,14 +332,16 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
         </p>
       )}
 
-      <button
-        type="button"
-        className="btn-secondary px-2 py-1 text-xs"
-        data-testid={`add-line-${piece.id}`}
-        onClick={addDraft}
-      >
-        {t('pieces.addLine')}
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          className="btn-secondary px-2 py-1 text-xs"
+          data-testid={`add-line-${piece.id}`}
+          onClick={addDraft}
+        >
+          {t('pieces.addLine')}
+        </button>
+      )}
     </div>
   )
 }

@@ -28,11 +28,12 @@ export interface InventoryLotRow {
 
 interface InventoryLotsTableProps {
   rows: InventoryLotRow[]
+  readOnly?: boolean
 }
 
 const COLUMN_COUNT = 5
 
-export function InventoryLotsTable({ rows }: InventoryLotsTableProps) {
+export function InventoryLotsTable({ rows, readOnly = false }: InventoryLotsTableProps) {
   const { t } = useTranslation()
   return (
     <section className="space-y-3">
@@ -54,7 +55,9 @@ export function InventoryLotsTable({ rows }: InventoryLotsTableProps) {
               message={t('inventoryDetail.lotsEmpty')}
             />
           ) : (
-            rows.map((row) => <LotRow key={row.lot.id} {...row} />)
+            rows.map((row) => (
+              <LotRow key={row.lot.id} {...row} readOnly={readOnly} />
+            ))
           )}
         </TableBody>
       </DataTable>
@@ -63,7 +66,11 @@ export function InventoryLotsTable({ rows }: InventoryLotsTableProps) {
 }
 
 /** One editable lot. Each row owns its draft so a failed save never touches its neighbours. */
-function LotRow({ lot, transactionLabel }: InventoryLotRow) {
+function LotRow({
+  lot,
+  transactionLabel,
+  readOnly = false,
+}: InventoryLotRow & { readOnly?: boolean }) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [quantity, setQuantity] = useState(String(lot.quantity ?? ''))
@@ -98,6 +105,8 @@ function LotRow({ lot, transactionLabel }: InventoryLotRow) {
           min="0"
           className="w-28"
           value={quantity}
+          readOnly={readOnly}
+          disabled={readOnly}
           onChange={(event) => setQuantity(event.target.value)}
         />
       </TableCell>
@@ -110,6 +119,8 @@ function LotRow({ lot, transactionLabel }: InventoryLotRow) {
           min="0"
           className="w-28"
           value={amount}
+          readOnly={readOnly}
+          disabled={readOnly}
           onChange={(event) => setAmount(event.target.value)}
         />
       </TableCell>
@@ -123,14 +134,16 @@ function LotRow({ lot, transactionLabel }: InventoryLotRow) {
         </Link>
       </TableCell>
       <TableCell className="space-y-1">
-        <button
-          type="button"
-          data-testid={`inventory-detail-save-lot-${lot.id}`}
-          className="btn-secondary"
-          onClick={handleSave}
-        >
-          {t('inventoryDetail.saveLot')}
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            data-testid={`inventory-detail-save-lot-${lot.id}`}
+            className="btn-secondary"
+            onClick={handleSave}
+          >
+            {t('inventoryDetail.saveLot')}
+          </button>
+        )}
         <FormError message={error} />
       </TableCell>
     </TableRow>
