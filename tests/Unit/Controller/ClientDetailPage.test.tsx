@@ -37,6 +37,7 @@ function seedWorld(): TestWorld {
       { id: 'CL2', name: 'Bare Co', created_at: '2024-01-03' },
       { id: 'CL3', name: 'Gone Co', created_at: '2024-01-04', deleted: 'true' },
       { id: 'CL4', name: 'Empty Co', created_at: '2024-01-05' },
+      { id: 'CL5', name: 'Archived Co', created_at: '2024-01-06', archived: 'true' },
     ],
     jobs: [
       { id: 'J1', client_id: 'CL1', description: 'Phone case', status: 'paid', created_at: '2024-05-01T09:00:00.000Z', due_date: '2024-05-30' },
@@ -317,6 +318,24 @@ describe('ClientDetailPage', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(world.em.clients.find('CL1')?.isArchived()).toBe(false)
+  })
+
+  it('renders an archived client read-only with parent lifecycle actions', () => {
+    renderPage('/clients/CL5')
+    expect(screen.getByRole('heading', { name: 'Archived Co' })).toBeInTheDocument()
+    expect(screen.queryByTestId('entity-detail-edit')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('entity-detail-archive')).not.toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-unarchive')).toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-delete')).toBeInTheDocument()
+    expect(screen.queryByTestId('add-job-button')).not.toBeInTheDocument()
+  })
+
+  it('un-archives an archived client in place', async () => {
+    const user = userEvent.setup()
+    renderPage('/clients/CL5')
+    await user.click(screen.getByTestId('entity-detail-unarchive'))
+    expect(world.em.clients.find('CL5')?.isArchived()).toBe(false)
+    expect(screen.getByTestId('entity-detail-edit')).toBeInTheDocument()
   })
 
   it('mounts the tags, notes and activity sections for the client', () => {

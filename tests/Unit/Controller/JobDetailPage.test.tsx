@@ -34,6 +34,7 @@ function seedWorld(): TestWorld {
       { id: 'J1', client_id: 'CL1', description: 'Phone case', status: 'in_progress', created_at: '2024-05-01T09:00:00.000Z', due_date: '2024-05-01' },
       { id: 'J2', client_id: 'CL1', description: 'Deleted job', status: 'draft', created_at: '2024-05-02T09:00:00.000Z', deleted: 'true' },
       { id: 'J3', client_id: 'CL9', description: 'Orphan client', status: 'draft', created_at: '2024-05-03T09:00:00.000Z' },
+      { id: 'J5', client_id: 'CL1', description: 'Archived job', status: 'draft', created_at: '2024-05-04T09:00:00.000Z', archived: 'true' },
     ],
     pieces: [
       { id: 'P1', job_id: 'J1', name: 'Shell', status: 'pending', price: '21', units: '2', created_at: '2024-05-01T10:00:00.000Z' },
@@ -240,17 +241,45 @@ describe('JobDetailPage', () => {
     expect(world.em.pieces.find('P1')?.isArchived()).toBe(true)
   })
 
-  it('soft-deletes the job from the widget and returns to the list', async () => {
+  it('soft-deletes an archived job from the widget and returns to the list', async () => {
     const user = userEvent.setup()
-    renderPage()
+    renderPage('/jobs/J5')
 
+    expect(screen.queryByTestId('entity-detail-edit')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('entity-detail-archive')).not.toBeInTheDocument()
     await user.click(screen.getByTestId('entity-detail-delete'))
     const dialog = screen.getByRole('dialog')
     expect(within(dialog).getByRole('heading', { name: 'Delete job' })).toBeInTheDocument()
     await user.click(within(dialog).getByRole('button', { name: 'Soft delete' }))
 
     expect(screen.getByTestId('location')).toHaveTextContent('/jobs')
-    expect(world.em.jobs.find('J1')?.isDeleted()).toBe(true)
+    expect(world.em.jobs.find('J5')?.isDeleted()).toBe(true)
+  })
+
+  it('does not offer soft delete on an active job', () => {
+    renderPage()
+    expect(screen.getByTestId('entity-detail-edit')).toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-archive')).toBeInTheDocument()
+    expect(screen.queryByTestId('entity-detail-delete')).not.toBeInTheDocument()
+  })
+
+  it('renders an archived job read-only with un-archive and soft delete', () => {
+    renderPage('/jobs/J5')
+    expect(screen.queryByTestId('entity-detail-edit')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('entity-detail-archive')).not.toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-unarchive')).toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-delete')).toBeInTheDocument()
+    expect(screen.queryByTestId('add-piece-button')).not.toBeInTheDocument()
+    expect(within(widget('status')).queryByRole('combobox')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('job-due-date-edit')).not.toBeInTheDocument()
+  })
+
+  it('un-archives an archived job in place', async () => {
+    const user = userEvent.setup()
+    renderPage('/jobs/J5')
+    await user.click(screen.getByTestId('entity-detail-unarchive'))
+    expect(world.em.jobs.find('J5')?.isArchived()).toBe(false)
+    expect(screen.getByTestId('entity-detail-edit')).toBeInTheDocument()
   })
 
   it('keeps the job when the lifecycle dialog is cancelled', async () => {

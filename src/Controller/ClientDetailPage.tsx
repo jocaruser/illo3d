@@ -10,6 +10,7 @@ import {
   type DetailField,
 } from '@/Component/detail/EntityDetailPage'
 import { NotesSection } from '@/Component/detail/NotesSection'
+import { ParentDetailLifecycleActions } from '@/Component/detail/ParentDetailLifecycleActions'
 import { TagsSection } from '@/Component/detail/TagsSection'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
@@ -36,6 +37,7 @@ export function ClientDetailPage() {
   const [query, setQuery] = useState('')
   const [editOpen, setEditOpen] = useState(false)
   const [archiveOpen, setArchiveOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
   // One value covers the whole job-dialog session: null is closed, `editing:
   // null` is create mode, and a job is edit mode.
   const [jobDialog, setJobDialog] = useState<{ editing: Job | null } | null>(
@@ -122,6 +124,21 @@ export function ClientDetailPage() {
     void navigate('/clients')
   }
 
+  const unarchiveClient = () => {
+    new LifecycleService(em).restoreClient(client.id)
+    toast.success(t('toast.changeApplied'))
+    bump()
+  }
+
+  const confirmDeleteClient = () => {
+    new LifecycleService(em).softDeleteClient(client.id)
+    toast.success(t('toast.changeApplied'))
+    setDeleteOpen(false)
+    void navigate('/clients')
+  }
+
+  const readOnly = client.isArchived()
+
   const confirmArchiveJob = (job: Job) => {
     new LifecycleService(em).archiveJob(job.id)
     toast.success(t('toast.changeApplied'))
@@ -151,24 +168,16 @@ export function ClientDetailPage() {
       title={client.name}
       fields={fields}
       actions={
-        <>
-          <button
-            type="button"
-            className="btn-secondary"
-            data-testid="entity-detail-edit"
-            onClick={() => setEditOpen(true)}
-          >
-            {t('clients.edit')}
-          </button>
-          <button
-            type="button"
-            className="btn-secondary"
-            data-testid="entity-detail-archive"
-            onClick={() => setArchiveOpen(true)}
-          >
-            {t('lifecycle.archive')}
-          </button>
-        </>
+        <ParentDetailLifecycleActions
+          canEdit={!readOnly}
+          canArchive={!readOnly}
+          canUnarchive={readOnly}
+          canSoftDelete={readOnly}
+          onEdit={() => setEditOpen(true)}
+          onArchive={() => setArchiveOpen(true)}
+          onUnarchive={unarchiveClient}
+          onSoftDelete={() => setDeleteOpen(true)}
+        />
       }
     >
       <div
@@ -203,9 +212,9 @@ export function ClientDetailPage() {
         />
       </div>
 
-      <TagsSection entityType="client" entityId={client.id} />
+      <TagsSection entityType="client" entityId={client.id} readOnly={readOnly} />
 
-      <NotesSection entityType="client" entityId={client.id} />
+      <NotesSection entityType="client" entityId={client.id} readOnly={readOnly} />
 
       <ClientActivityTimeline clientId={client.id} revision={revision} />
 
@@ -221,14 +230,16 @@ export function ClientDetailPage() {
               />
             </div>
           )}
-          <button
-            type="button"
-            className="btn-primary sm:ml-auto"
-            data-testid="add-job-button"
-            onClick={openJobCreate}
-          >
-            {t('jobs.addJob')}
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              className="btn-primary sm:ml-auto"
+              data-testid="add-job-button"
+              onClick={openJobCreate}
+            >
+              {t('jobs.addJob')}
+            </button>
+          )}
         </div>
 
         <ClientJobsTable
@@ -240,12 +251,14 @@ export function ClientDetailPage() {
         />
       </section>
 
-      <CreateClientDialog
-        open={editOpen}
-        client={client}
-        onClose={() => setEditOpen(false)}
-        onSaved={bump}
-      />
+      {!readOnly && (
+        <CreateClientDialog
+          open={editOpen}
+          client={client}
+          onClose={() => setEditOpen(false)}
+          onSaved={bump}
+        />
+      )}
 
       <CreateJobDialog
         open={jobDialog !== null}
@@ -263,6 +276,15 @@ export function ClientDetailPage() {
         confirmLabel={t('lifecycle.archive')}
         onConfirm={confirmArchiveClient}
         onCancel={() => setArchiveOpen(false)}
+      />
+
+      <ConfirmDialog
+        open={deleteOpen}
+        title={t('clients.deleteConfirmTitle')}
+        message={t('clients.deleteConfirmMessage', { name: client.name })}
+        confirmLabel={t('lifecycle.softDelete')}
+        onConfirm={confirmDeleteClient}
+        onCancel={() => setDeleteOpen(false)}
       />
 
       {archivingJob !== null && (

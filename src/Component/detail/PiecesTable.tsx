@@ -52,6 +52,7 @@ export type PieceSortKey =
 interface PiecesTableProps {
   rows: Piece[]
   emptyMessage: string
+  readOnly?: boolean
   /** Bump the owning page so job widgets and the materials summary recompute. */
   onChanged: () => void
 }
@@ -97,6 +98,7 @@ function cellOf(piece: Piece, key: PieceSortKey): SortValue {
 export function PiecesTable({
   rows,
   emptyMessage,
+  readOnly = false,
   onChanged,
 }: PiecesTableProps) {
   const { t } = useTranslation()
@@ -349,6 +351,7 @@ export function PiecesTable({
                   key={piece.id}
                   piece={piece}
                   open={expanded.has(piece.id)}
+                  readOnly={readOnly}
                   statusItems={statusItems}
                   benefit={benefit}
                   suggestion={suggestionFor(piece)}
@@ -446,6 +449,7 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
 interface PieceRowGroupProps {
   piece: Piece
   open: boolean
+  readOnly: boolean
   statusItems: ComboboxItem[]
   /** Line total minus material cost for the run; undefined without a total. */
   benefit: number | undefined
@@ -465,6 +469,7 @@ interface PieceRowGroupProps {
 function PieceRowGroup({
   piece,
   open,
+  readOnly,
   statusItems,
   benefit,
   suggestion,
@@ -512,8 +517,9 @@ function PieceRowGroup({
             data-testid={`piece-name-${piece.id}`}
             aria-label={t('pieces.nameFieldAria', { id: piece.id })}
             defaultValue={piece.name}
+            readOnly={readOnly}
             key={`name-${piece.id}-${piece.name}`}
-            onBlur={(event) => onCommitName(piece, event.target.value)}
+            onBlur={(event) => !readOnly && onCommitName(piece, event.target.value)}
           />
         </TableCell>
         <TableCell>
@@ -531,8 +537,9 @@ function PieceRowGroup({
               piece.hasValidUnits() ? undefined : t('pieces.unitsUnsetHint')
             }
             defaultValue={piece.units ?? ''}
+            readOnly={readOnly}
             key={`units-${piece.id}-${piece.units ?? ''}`}
-            onBlur={(event) => onCommitUnits(piece, event.target.value)}
+            onBlur={(event) => !readOnly && onCommitUnits(piece, event.target.value)}
           />
         </TableCell>
         <TableCell>
@@ -545,32 +552,35 @@ function PieceRowGroup({
               data-testid={`piece-price-${piece.id}`}
               aria-label={t('pieces.priceFieldAria', { id: piece.id })}
               defaultValue={piece.price ?? ''}
+              readOnly={readOnly}
               key={`price-${piece.id}-${piece.price ?? ''}`}
-              onBlur={(event) => onCommitPrice(piece, event.target.value)}
+              onBlur={(event) => !readOnly && onCommitPrice(piece, event.target.value)}
             />
-            <button
-              type="button"
-              className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
-              data-testid={`piece-suggested-${piece.id}`}
-              disabled={suggestion.error}
-              title={
-                suggestion.error
-                  ? `${t('jobs.suggestedPrice.errorIntro')} ${suggestion.missingInventoryIds.join(', ')}`
-                  : t('jobs.suggestedPrice.label')
-              }
-              onClick={() =>
-                !suggestion.error &&
-                onSaveField(piece, {
-                  price: roundMoney(suggestion.suggestedPrice),
-                })
-              }
-            >
-              {suggestion.error
-                ? t('pieces.suggestedUnavailable')
-                : t('pieces.suggestedApplyPerUnit', {
-                    price: formatCurrency(suggestion.suggestedPrice),
-                  })}
-            </button>
+            {!readOnly && (
+              <button
+                type="button"
+                className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
+                data-testid={`piece-suggested-${piece.id}`}
+                disabled={suggestion.error}
+                title={
+                  suggestion.error
+                    ? `${t('jobs.suggestedPrice.errorIntro')} ${suggestion.missingInventoryIds.join(', ')}`
+                    : t('jobs.suggestedPrice.label')
+                }
+                onClick={() =>
+                  !suggestion.error &&
+                  onSaveField(piece, {
+                    price: roundMoney(suggestion.suggestedPrice),
+                  })
+                }
+              >
+                {suggestion.error
+                  ? t('pieces.suggestedUnavailable')
+                  : t('pieces.suggestedApplyPerUnit', {
+                      price: formatCurrency(suggestion.suggestedPrice),
+                    })}
+              </button>
+            )}
           </div>
         </TableCell>
         <TableCell className="tabular-nums">
@@ -590,12 +600,16 @@ function PieceRowGroup({
             className="min-w-[8rem]"
             data-testid={`piece-status-${piece.id}`}
           >
-            <Combobox
-              items={statusItems}
-              value={piece.status}
-              placeholder={t('pieces.statusFieldAria', { id: piece.id })}
-              onChange={(next) => onRequestStatus(piece, next as PieceStatus)}
-            />
+            {readOnly ? (
+              <span>{t(`pieces.status.${piece.status}`)}</span>
+            ) : (
+              <Combobox
+                items={statusItems}
+                value={piece.status}
+                placeholder={t('pieces.statusFieldAria', { id: piece.id })}
+                onChange={(next) => onRequestStatus(piece, next as PieceStatus)}
+              />
+            )}
           </div>
         </TableCell>
         <TableCell className="text-text-muted">
@@ -616,7 +630,7 @@ function PieceRowGroup({
                       : t('pieces.redo.risky')}
                 </p>
               )}
-              <PieceItemsTable piece={piece} onChanged={onChanged} />
+              <PieceItemsTable piece={piece} readOnly={readOnly} onChanged={onChanged} />
             </div>
           </TableCell>
         </TableRow>

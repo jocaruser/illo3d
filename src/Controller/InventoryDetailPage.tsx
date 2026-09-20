@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { NotFoundCard } from '@/Component/NotFoundCard'
@@ -13,6 +13,7 @@ import {
   InventoryLotsTable,
   type InventoryLotRow,
 } from '@/Component/detail/InventoryLotsTable'
+import { ParentDetailLifecycleActions } from '@/Component/detail/ParentDetailLifecycleActions'
 import { QtyEditor } from '@/Component/detail/QtyEditor'
 import { ThresholdEditor } from '@/Component/detail/ThresholdEditor'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
@@ -21,6 +22,7 @@ import { useEntityManager } from '@/Hook/useEntityManager'
 import { LifecycleService } from '@/Service/LifecycleService'
 import { computeAvgUnitCost } from '@/Service/Pricing/avgUnitCost'
 import { formatCurrency } from '@/Service/Pricing/money'
+import { toast } from '@/Component/Toast'
 
 const BACK_TO = '/inventory'
 
@@ -30,8 +32,7 @@ export function InventoryDetailPage() {
   const em = useEntityManager()
   const item = em.inventory.find(inventoryId)
 
-  // Archived and soft-deleted items are off the list, so they are off here too.
-  if (item === null || !item.isActive()) {
+  if (item === null || item.isDeleted()) {
     return (
       <NotFoundCard
         message={t('inventoryDetail.notFound')}
@@ -51,11 +52,20 @@ function InventoryDetail({ item }: InventoryDetailProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const navigate = useNavigate()
-  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [revision, bump] = useReducer((count: number) => count + 1, 0)
+  const [archiveOpen, setArchiveOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+
+  const liveItem = useMemo(() => {
+    void revision
+    return em.inventory.find(item.id) ?? item
+  }, [em, item, revision])
+
+  const readOnly = liveItem.isArchived()
 
   const lots = useMemo(
-    () => em.lots.findActiveByInventory(item.id),
-    [em, item.id]
+    () => em.lots.findActiveByInventory(liveItem.id),
+    [em, liveItem]
   )
 
   const lotRows = useMemo<InventoryLotRow[]>(
@@ -70,7 +80,7 @@ function InventoryDetail({ item }: InventoryDetailProps) {
 
   const consumptionRows = useMemo<InventoryConsumptionRow[]>(
     () =>
-      em.pieceItems.findActiveByInventory(item.id).map((line) => {
+      em.pieceItems.findActiveByInventory(liveItem.id).map((line) => {
         const piece = em.pieces.find(line.pieceId)
         const job = piece === null ? null : em.jobs.find(piece.jobId)
         return {
@@ -81,15 +91,28 @@ function InventoryDetail({ item }: InventoryDetailProps) {
           jobLabel: job?.description ?? '',
         }
       }),
-    [em, item.id]
+    [em, liveItem]
   )
 
   const avgUnitCost = computeAvgUnitCost(lots)
 
   const handleArchive = () => {
-    // Cascades to the item's active lots.
-    new LifecycleService(em).archiveInventory(item.id)
-    setConfirmOpen(false)
+    new LifecycleService(em).archiveInventory(liveItem.id)
+    toast.success(t('toast.changeApplied'))
+    setArchiveOpen(false)
+    void navigate(BACK_TO)
+  }
+
+  const unarchiveItem = () => {
+    new LifecycleService(em).restoreInventory(liveItem.id)
+    toast.success(t('toast.changeApplied'))
+    bump()
+  }
+
+  const handleSoftDelete = () => {
+    new LifecycleService(em).softDeleteInventory(liveItem.id)
+    toast.success(t('toast.changeApplied'))
+    setDeleteOpen(false)
     void navigate(BACK_TO)
   }
 
@@ -97,12 +120,12 @@ function InventoryDetail({ item }: InventoryDetailProps) {
     <EntityDetailPage
       backTo={BACK_TO}
       backLabel={t('inventoryDetail.backToList')}
-      title={item.name}
+      title={liveItem.name}
       fields={[
-        { label: t('inventory.colId'), value: item.id },
+        { label: t('inventory.colId'), value: liveItem.id },
         {
           label: t('inventory.typeLabel'),
-          value: t(`inventory.type.${item.type}`),
+          value: t(`inventory.type.${liveItem.type}`),
         },
         {
           label: t('inventory.avgUnitCost'),
@@ -110,36 +133,48 @@ function InventoryDetail({ item }: InventoryDetailProps) {
         },
         {
           label: t('inventory.createdAt'),
-          value: <RelativeTime value={item.createdAt} />,
+          value: <RelativeTime value={liveItem.createdAt} />,
         },
       ]}
       actions={
-        <button
-          type="button"
-          data-testid="entity-detail-delete"
-          className="btn-secondary"
-          onClick={() => setConfirmOpen(true)}
-        >
-          {t('lifecycle.archive')}
-        </button>
+        <ParentDetailLifecycleActions
+          canArchive={!readOnly}
+          canUnarchive={readOnly}
+          canSoftDelete={readOnly}
+          onArchive={() => setArchiveOpen(true)}
+          onUnarchive={unarchiveItem}
+          onSoftDelete={() => setDeleteOpen(true)}
+        />
       }
     >
       <div className="space-y-8">
-        <QtyEditor itemId={item.id} qtyCurrent={item.qtyCurrent} />
-        <ThresholdEditor item={item} />
-        <ColourEditor itemId={item.id} colour={item.colour} />
+        <QtyEditor
+          itemId={liveItem.id}
+          qtyCurrent={liveItem.qtyCurrent}
+          readOnly={readOnly}
+        />
+        <ThresholdEditor item={liveItem} readOnly={readOnly} />
+        <ColourEditor itemId={liveItem.id} colour={liveItem.colour} readOnly={readOnly} />
         <InventoryLotsTable rows={lotRows} />
         <InventoryConsumptionTable rows={consumptionRows} />
       </div>
       <ConfirmDialog
-        open={confirmOpen}
+        open={archiveOpen}
         title={t('inventoryDetail.archiveConfirmTitle')}
         message={t('inventoryDetail.archiveConfirmMessage', {
-          name: item.name,
+          name: liveItem.name,
         })}
         confirmLabel={t('lifecycle.archive')}
         onConfirm={handleArchive}
-        onCancel={() => setConfirmOpen(false)}
+        onCancel={() => setArchiveOpen(false)}
+      />
+      <ConfirmDialog
+        open={deleteOpen}
+        title={t('clients.deleteConfirmTitle')}
+        message={t('clients.deleteConfirmMessage', { name: liveItem.name })}
+        confirmLabel={t('lifecycle.softDelete')}
+        onConfirm={handleSoftDelete}
+        onCancel={() => setDeleteOpen(false)}
       />
     </EntityDetailPage>
   )
