@@ -6,8 +6,8 @@
 ## Context
 
 The app searches in several places —
-the [search box](../shared/search-box.spec.md) on list pages,
-the global search, the tag box.
+list-page search fields,
+the global search, the tag box, and combobox option filtering.
 Left alone, each grows its own matching,
 and the same query behaves differently per page.
 
@@ -23,8 +23,8 @@ Every search in the app uses one matching rule, implemented once:
 
 ## Consequences
 
-- Search boxes are interchangeable —
-  [one spec](../shared/search-box.spec.md) covers them all,
-  and new surfaces inherit the behaviour for free.
+- Search boxes and combobox filters are interchangeable in behaviour —
+  see `openspec/specs/global-search/spec.md` for global search,
+  and new surfaces inherit the matcher for free.
 - The matcher's tolerance is product behaviour:
   tuning it changes every search at once, deliberately.
