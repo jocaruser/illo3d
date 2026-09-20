@@ -50,6 +50,28 @@ The Makefile SHALL provide shortcuts for all common development operations. Comm
 - **WHEN** user runs `make dev`
 - **THEN** Vite dev server starts and is accessible at http://localhost:5173
 
+### Requirement: Dev and preview Vite servers accept runner capture hostnames
+
+The Vite `server` and `preview` blocks in `vite.config.ts` SHALL set
+`allowedHosts: true` so automated screen capture through the isolated Docker
+daemon hostname (the host `overboards-capture-screens` substitutes for loopback
+URLs) receives the application instead of Vite's host-check block page.
+The `web` Compose alias and existing local developer URLs SHALL keep working.
+
+#### Scenario: Daemon hostname reaches the dev server
+
+- **WHEN** the dev server is running inside the project's Compose stack
+- **AND** a request uses the isolated daemon's hostname on the published dev port
+- **THEN** the response is HTTP 2xx with application markup, not Vite's
+  "Blocked request" page
+
+#### Scenario: Runner capture tooling fails on HTTP error responses
+
+- **WHEN** the Overboards `overboards-capture-screens` probe receives HTTP
+  status 400–599 from the target URL
+- **THEN** the helper treats the page as not ready and exits non-zero without
+  presenting the run as a successful capture
+
 #### Scenario: Install dependencies
 
 - **WHEN** user runs `make install`
