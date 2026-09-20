@@ -25,7 +25,11 @@ const HEX = /^#[0-9a-fA-F]{6}$/
  * v3 inventory swatch. The picker covers the common case; the hex field lets a
  * user paste a filament vendor's exact colour, and Clear removes the swatch.
  */
-export function ColourEditor({ itemId, colour, readOnly = false }: ColourEditorProps) {
+export function ColourEditor({
+  itemId,
+  colour,
+  readOnly = false,
+}: ColourEditorProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [value, setValue] = useState(colour)

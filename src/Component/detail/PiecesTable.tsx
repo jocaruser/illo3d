@@ -560,29 +560,29 @@ function PieceRowGroup({
               onBlur={(event) => onCommitPrice(piece, event.target.value)}
             />
             {!readOnly && (
-            <button
-              type="button"
-              className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
-              data-testid={`piece-suggested-${piece.id}`}
-              disabled={suggestion.error}
-              title={
-                suggestion.error
-                  ? `${t('jobs.suggestedPrice.errorIntro')} ${suggestion.missingInventoryIds.join(', ')}`
-                  : t('jobs.suggestedPrice.label')
-              }
-              onClick={() =>
-                !suggestion.error &&
-                onSaveField(piece, {
-                  price: roundMoney(suggestion.suggestedPrice),
-                })
-              }
-            >
-              {suggestion.error
-                ? t('pieces.suggestedUnavailable')
-                : t('pieces.suggestedApplyPerUnit', {
-                    price: formatCurrency(suggestion.suggestedPrice),
-                  })}
-            </button>
+              <button
+                type="button"
+                className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
+                data-testid={`piece-suggested-${piece.id}`}
+                disabled={suggestion.error}
+                title={
+                  suggestion.error
+                    ? `${t('jobs.suggestedPrice.errorIntro')} ${suggestion.missingInventoryIds.join(', ')}`
+                    : t('jobs.suggestedPrice.label')
+                }
+                onClick={() =>
+                  !suggestion.error &&
+                  onSaveField(piece, {
+                    price: roundMoney(suggestion.suggestedPrice),
+                  })
+                }
+              >
+                {suggestion.error
+                  ? t('pieces.suggestedUnavailable')
+                  : t('pieces.suggestedApplyPerUnit', {
+                      price: formatCurrency(suggestion.suggestedPrice),
+                    })}
+              </button>
             )}
           </div>
         </TableCell>

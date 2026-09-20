@@ -33,7 +33,10 @@ interface InventoryLotsTableProps {
 
 const COLUMN_COUNT = 5
 
-export function InventoryLotsTable({ rows, readOnly = false }: InventoryLotsTableProps) {
+export function InventoryLotsTable({
+  rows,
+  readOnly = false,
+}: InventoryLotsTableProps) {
   const { t } = useTranslation()
   return (
     <section className="space-y-3">
