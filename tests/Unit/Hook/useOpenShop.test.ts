@@ -67,10 +67,10 @@ describe('useOpenShop', () => {
     expect(useShopStore.getState().activeShop).toEqual(shop)
   })
 
-  it('surfaces a version mismatch as a migration candidate rather than an error', async () => {
+  it('surfaces a shop major behind the app as a migration candidate', async () => {
     validateShopFolder.mockResolvedValue({
       ok: false,
-      error: 'version',
+      error: 'version_behind',
       shopVersion: '2.0.0',
       appVersion: '3.0.0',
     })
@@ -85,6 +85,51 @@ describe('useOpenShop', () => {
       ok: false,
       kind: 'migration',
       candidate: { folderId: 'F1', shopVersion: '2.0.0', appVersion: '3.0.0' },
+    })
+    expect(useShopStore.getState().activeShop).toBeNull()
+  })
+
+  it('surfaces a newer shop major as a welcome error without migration', async () => {
+    validateShopFolder.mockResolvedValue({
+      ok: false,
+      error: 'version_ahead',
+      shopVersion: '4.0.0',
+      appVersion: '3.0.0',
+    })
+    const { result } = renderHook(() => useOpenShop(), { wrapper })
+
+    let outcome: Awaited<ReturnType<typeof result.current.openShop>> | undefined
+    await act(async () => {
+      outcome = await result.current.openShop('F1')
+    })
+
+    expect(outcome).toEqual({
+      ok: false,
+      kind: 'error',
+      message:
+        'This shop was made by a newer version of this app. Update the app to open it.',
+    })
+    expect(useShopStore.getState().activeShop).toBeNull()
+  })
+
+  it('surfaces an unreadable shop version as a welcome error', async () => {
+    validateShopFolder.mockResolvedValue({
+      ok: false,
+      error: 'version_unreadable',
+      shopVersion: 'garbage',
+      appVersion: '3.0.0',
+    })
+    const { result } = renderHook(() => useOpenShop(), { wrapper })
+
+    let outcome: Awaited<ReturnType<typeof result.current.openShop>> | undefined
+    await act(async () => {
+      outcome = await result.current.openShop('F1')
+    })
+
+    expect(outcome).toEqual({
+      ok: false,
+      kind: 'error',
+      message: "This shop's version could not be read.",
     })
     expect(useShopStore.getState().activeShop).toBeNull()
   })

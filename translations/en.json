@@ -628,6 +628,8 @@
     "oauthFailed": "Sign-in did not complete. Please try again.",
     "chromeRequired": "Local folder storage needs a Chromium-based browser (for example Chrome or Edge).",
     "errorNotShop": "This folder is not an illo3d shop.",
+    "errorShopNewerApp": "This shop was made by a newer version of this app. Update the app to open it.",
+    "errorShopVersionUnreadable": "This shop's version could not be read.",
     "errorVersion": "This shop was created with a different app version and cannot be opened.",
     "errorShopStructure": "This shop's Google Sheet is missing a tab or column this version of illo3d needs. Update the sheet to match the latest template, or create a new shop.",
     "errorShopStructureWithDetail": "This shop's files do not match the layout this app expects: {{detail}}",

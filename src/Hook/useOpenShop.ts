@@ -62,7 +62,7 @@ export function useOpenShop() {
         const validation =
           await validationService().validateShopFolder(folderId)
         if (!validation.ok) {
-          if (validation.error === 'version') {
+          if (validation.error === 'version_behind') {
             return {
               ok: false,
               kind: 'migration',
@@ -71,6 +71,20 @@ export function useOpenShop() {
                 shopVersion: validation.shopVersion,
                 appVersion: validation.appVersion,
               },
+            }
+          }
+          if (validation.error === 'version_ahead') {
+            return {
+              ok: false,
+              kind: 'error',
+              message: t('wizard.errorShopNewerApp'),
+            }
+          }
+          if (validation.error === 'version_unreadable') {
+            return {
+              ok: false,
+              kind: 'error',
+              message: t('wizard.errorShopVersionUnreadable'),
             }
           }
           if (validation.error === 'not_shop') {
