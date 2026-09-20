@@ -89,7 +89,29 @@ describe('JobMaterialsSummary', () => {
   it('reports the overall risk from the tightest filament margin', () => {
     renderWithProviders(<JobMaterialsSummary jobId="J1" />)
     expect(screen.getByTestId('job-materials-overall-risk')).toHaveTextContent(
-      'Overall risk: Safe (24 redos)'
+      'Overall risk: 24 redos (PLA White)'
+    )
+  })
+
+  it('links each inventory name to its detail page', () => {
+    renderWithProviders(<JobMaterialsSummary jobId="J1" />)
+    const link = screen.getByRole('link', { name: 'PLA White' })
+    expect(link).toHaveAttribute('href', '/inventory/INV1')
+  })
+
+  it('labels zero-margin filament overall risk like the risk widget', () => {
+    const inv = world.em.inventory.find('INV1')
+    if (inv !== null) {
+      inv.qtyCurrent = 35
+      world.em.inventory.save(inv)
+    }
+    renderWithProviders(<JobMaterialsSummary jobId="J1" />)
+
+    const overall = screen.getByTestId('job-materials-overall-risk')
+    expect(overall).toHaveTextContent('Overall risk: 0 redos (PLA White)')
+    expect(overall).not.toHaveTextContent('Safe (0 redos)')
+    expect(within(overall).getByText('0 redos (PLA White)')).toHaveClass(
+      'text-danger'
     )
   })
 

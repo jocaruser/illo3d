@@ -130,6 +130,14 @@ describe('JobDetailPage', () => {
     expect(widget('risk-factor')).toHaveTextContent('44 redos (PLA White)')
   })
 
+  it('matches materials summary overall risk to the risk factor widget', () => {
+    renderPage()
+    const riskCopy = within(widget('risk-factor')).getByText(/redos \(/)
+    expect(screen.getByTestId('job-materials-overall-risk')).toHaveTextContent(
+      riskCopy.textContent ?? ''
+    )
+  })
+
   it('says so when the job uses no filament', () => {
     world.em.pieceItems.remove('PI1')
     renderPage()
