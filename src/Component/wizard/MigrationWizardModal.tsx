@@ -11,6 +11,7 @@ import { useMigrationStore } from '@/Store/migrationStore'
 import { BackupQuestion } from './BackupQuestion'
 import { CooldownContinueButton } from './CooldownContinueButton'
 import { MigrationStepsGrid } from './MigrationStepsGrid'
+import { benefitHopsForShop } from './migrationBenefitHops'
 import { doneCount, migrationStepStates } from './migrationSteps'
 
 interface MigrationWizardModalProps {
@@ -46,6 +47,7 @@ export function MigrationWizardModal({
   )
   const done = doneCount(rows, phase)
   const allDone = rows.length > 0 && done === rows.length
+  const benefitHops = benefitHopsForShop(candidate.shopVersion)
   const awaitingSubmit = phase === 'awaiting-submit'
   const runStarted =
     phase !== 'idle' && phase !== 'failed' && phase !== 'awaiting-submit'
@@ -94,26 +96,33 @@ export function MigrationWizardModal({
           appVersion={candidate.appVersion}
         />
 
-        <div className="mt-4 space-y-2 text-sm text-text-muted">
-          <p>{t('wizard.migrationDescriptionChanges')}</p>
-          <ul className="list-disc space-y-1 pl-5">
-            <li>
-              <span className="font-medium text-text">
-                {t('wizard.migrationDescriptionLabel1')}
-              </span>
-              {' — '}
-              {t('wizard.migrationDescriptionItem1')}
-            </li>
-            <li>
-              <span className="font-medium text-text">
-                {t('wizard.migrationDescriptionLabel2')}
-              </span>
-              {' — '}
-              {t('wizard.migrationDescriptionItem2')}
-            </li>
-          </ul>
-          <p>{t('wizard.migrationDescriptionActions')}</p>
-        </div>
+        {benefitHops.length > 0 && (
+          <div className="mt-4 space-y-4 text-sm text-text-muted">
+            {benefitHops.map(({ hopKey }) => (
+              <section key={hopKey} data-testid={`migration-hop-${hopKey}`}>
+                <p>{t(`wizard.migrationHop.${hopKey}.intro`)}</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  <li>
+                    <span className="font-medium text-text">
+                      {t(`wizard.migrationHop.${hopKey}.benefit1.label`)}
+                    </span>
+                    {' — '}
+                    {t(`wizard.migrationHop.${hopKey}.benefit1.item`)}
+                  </li>
+                  <li>
+                    <span className="font-medium text-text">
+                      {t(`wizard.migrationHop.${hopKey}.benefit2.label`)}
+                    </span>
+                    {' — '}
+                    {t(`wizard.migrationHop.${hopKey}.benefit2.item`)}
+                  </li>
+                </ul>
+                <p>{t(`wizard.migrationHop.${hopKey}.actions`)}</p>
+              </section>
+            ))}
+            <p>{t('wizard.migrationHop.dataAssurance')}</p>
+          </div>
+        )}
 
         <div className="mt-4">
           <BackupQuestion

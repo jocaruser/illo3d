@@ -45,8 +45,9 @@ What each upgrade changes for the user is described per hop:
   [welcome screen](../welcome/welcome.spec.md) —
   a migrating user has not reached the app's own controls yet.
 - An explanation of what this particular upgrade unlocks
-  (each hop describes its own — see the hop files),
-  always ending with the same promise:
+  (each remaining major hop describes its own benefits — see the hop files),
+  in migration order when more than one hop applies,
+  always ending once with the same promise:
   **"No data is removed or altered."**
 - The backup question (below).
 - A grid of cards, one per upgrade step plus one for the backup,

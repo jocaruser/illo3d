@@ -650,12 +650,33 @@
     "migrationAppLabel": "Versión destino",
     "migrationContinue": "Continuar",
     "migrationLogOut": "Cerrar sesión",
-    "migrationDescriptionChanges": "La versión 2 incluye dos grandes mejoras. Tu tienda necesita una actualización rápida para desbloquearlas:",
-    "migrationDescriptionLabel1": "Registro de auditoría",
-    "migrationDescriptionItem1": "un registro permanente de cada cambio, para que puedas ver quién hizo qué y cuándo",
-    "migrationDescriptionLabel2": "Seguimiento de archivado/eliminado",
-    "migrationDescriptionItem2": "mantén tu espacio de trabajo limpio sin perder el historial",
-    "migrationDescriptionActions": "Añadiremos la hoja de registro de auditoría, registraremos un punto de partida e insertaremos las nuevas columnas. No se eliminarán ni modificarán datos.",
+    "migrationHop": {
+      "dataAssurance": "No se eliminarán ni modificarán datos.",
+      "v1ToV2": {
+        "intro": "La versión 2 incluye dos grandes mejoras. Tu tienda necesita una actualización rápida para desbloquearlas:",
+        "benefit1": {
+          "label": "Registro de auditoría",
+          "item": "un registro permanente de cada cambio, para que puedas ver quién hizo qué y cuándo"
+        },
+        "benefit2": {
+          "label": "Seguimiento de archivado/eliminado",
+          "item": "mantén tu espacio de trabajo limpio sin perder el historial"
+        },
+        "actions": "Añadiremos la hoja de registro de auditoría, registraremos un punto de partida e insertaremos las nuevas columnas."
+      },
+      "v2ToV3": {
+        "intro": "La versión 3 añade fechas de entrega opcionales en los trabajos y colores opcionales en los materiales. Tu tienda necesita una actualización rápida para desbloquearlas:",
+        "benefit1": {
+          "label": "Fechas de entrega en trabajos",
+          "item": "las fechas opcionales alimentan el calendario y los indicadores de retraso; hasta que se fije una, la antigüedad del trabajo se mide desde su creación como antes"
+        },
+        "benefit2": {
+          "label": "Colores en materiales",
+          "item": "los colores opcionales aparecen como una muestra junto a cada material en el inventario — útil para bobinas de filamento"
+        },
+        "actions": "Añadiremos la columna de fecha de entrega a los trabajos y la columna de color al inventario."
+      }
+    },
     "migrationSummary": "{{done}} de {{total}} completados",
     "migrationAllDone": "Todo completado",
     "migrationAwaitingSubmit": "Revisa los pasos anteriores y confirma para guardar tu tienda actualizada.",

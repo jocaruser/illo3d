@@ -132,24 +132,75 @@ describe('MigrationWizardModal', () => {
     expect(screen.getByText('3.0.0')).toBeInTheDocument()
   })
 
-  it('explains the changes as a bullet list and promises no data loss', () => {
+  it('explains v2→v3 benefits only and promises no data loss', () => {
     renderModal()
 
+    expect(screen.getByTestId('migration-hop-v2ToV3')).toBeInTheDocument()
+    expect(screen.queryByTestId('migration-hop-v1ToV2')).not.toBeInTheDocument()
     expect(
-      screen.getByText(/Version 2 ships with two major upgrades/)
+      screen.getByText(/Version 3 adds optional due dates on jobs/)
     ).toBeInTheDocument()
-    expect(screen.getByText('Audit logging')).toBeInTheDocument()
-    expect(
-      screen.getByText(/a permanent record of every change/)
-    ).toBeInTheDocument()
-    expect(screen.getByText('Archive & delete tracking')).toBeInTheDocument()
-    expect(
-      screen.getByText(/keep your workspace clean without losing history/)
-    ).toBeInTheDocument()
+    expect(screen.getByText('Due dates on jobs')).toBeInTheDocument()
+    expect(screen.getByText('Colours on materials')).toBeInTheDocument()
+    expect(screen.queryByText('Audit logging')).not.toBeInTheDocument()
     expect(
       screen.getByText(/No data is removed or altered/)
     ).toBeInTheDocument()
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
+  })
+
+  it('explains v1→v2 benefits only for a shop on major 1', () => {
+    resolvePlanChain.mockReturnValue([
+      {
+        fromMajor: 1,
+        toMajor: 2,
+        toVersion: '2.0.0',
+        steps: [{ id: 'clients' }],
+      },
+    ])
+    renderWithProviders(
+      <MigrationWizardModal
+        candidate={{ folderId: 'F1', shopVersion: '1.0.0', appVersion: '2.0.0' }}
+        onLogOut={vi.fn()}
+      />
+    )
+
+    expect(screen.getByTestId('migration-hop-v1ToV2')).toBeInTheDocument()
+    expect(screen.queryByTestId('migration-hop-v2ToV3')).not.toBeInTheDocument()
+    expect(screen.getByText('Audit logging')).toBeInTheDocument()
+    expect(screen.queryByText('Due dates on jobs')).not.toBeInTheDocument()
+  })
+
+  it('explains every hop in order for a multi-hop shop', () => {
+    resolvePlanChain.mockReturnValue([
+      {
+        fromMajor: 1,
+        toMajor: 2,
+        toVersion: '2.0.0',
+        steps: [{ id: 'clients' }],
+      },
+      {
+        fromMajor: 2,
+        toMajor: 3,
+        toVersion: '3.0.0',
+        steps: [{ id: 'jobs' }],
+      },
+    ])
+    renderWithProviders(
+      <MigrationWizardModal
+        candidate={{ folderId: 'F1', shopVersion: '1.0.0', appVersion: '3.0.0' }}
+        onLogOut={vi.fn()}
+      />
+    )
+
+    const sections = screen.getAllByTestId(/^migration-hop-/)
+    expect(sections.map((el) => el.getAttribute('data-testid'))).toEqual([
+      'migration-hop-v1ToV2',
+      'migration-hop-v2ToV3',
+    ])
+    expect(screen.getByText('Audit logging')).toBeInTheDocument()
+    expect(screen.getByText('Due dates on jobs')).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(4)
   })
 
   it('summarises progress against the idle grid', () => {

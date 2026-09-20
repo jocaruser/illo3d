@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react'
-import { APP_VERSION, parseMajorVersion } from '@/Config/version'
+import { APP_VERSION } from '@/Config/version'
 import type { MigrationPlan } from '@/Migration/MigrationPlan'
+import { planChain } from '@/Migration/planChain'
 import type {
   MigrationSession,
   MigrationTarget,
@@ -8,7 +9,6 @@ import type {
 import { createGSheetMigrationTarget } from '@/Migration/Target/GSheetMigrationTarget'
 import { createLocalCsvMigrationTarget } from '@/Migration/Target/LocalCsvMigrationTarget'
 import { runPlans } from '@/Migration/orchestrator'
-import { resolvePlanChain } from '@/Migration/registry'
 import { getFolderRepository } from '@/Repository/RepositoryFactory'
 import { SystemClock, type Clock } from '@/Service/Clock'
 import { useBackendStore } from '@/Store/backendStore'
@@ -37,18 +37,6 @@ export interface ConfirmSubmitArgs {
 }
 
 export type MigrationResult = { ok: true } | { ok: false; failedAt: string }
-
-/** Resolve the chain of plans lifting `shopVersion` up to the app's major. */
-function planChain(shopVersion: string): MigrationPlan[] {
-  const from = parseMajorVersion(shopVersion)
-  const to = parseMajorVersion(APP_VERSION)
-  if (from === null || to === null) {
-    throw new Error(
-      `Cannot migrate a shop versioned '${shopVersion}' to '${APP_VERSION}'`
-    )
-  }
-  return resolvePlanChain(from, to)
-}
 
 /**
  * The wizard grid's rows for a shop at `shopVersion`: the synthetic backup step
