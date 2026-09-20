@@ -79,13 +79,13 @@ async function buildTarget(
   if (backend === 'google-drive') {
     // The spreadsheet id is not in the wizard's hands — it lives in the shop
     // metadata that validation already read, so read it back from the folder.
-    const metadata = await getFolderRepository().readMetadata(folderId)
-    if (metadata === null) {
+    const outcome = await getFolderRepository().readMetadata(folderId)
+    if (outcome.kind !== 'present') {
       throw new Error(`Folder '${folderId}' is not an illo3d shop`)
     }
     return createGSheetMigrationTarget(
       folderId,
-      metadata.spreadsheetId,
+      outcome.metadata.spreadsheetId,
       shopVersion,
       APP_VERSION,
       clock

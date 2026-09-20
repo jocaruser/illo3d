@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { SHEET_HEADERS, SHEET_NAMES, type SheetName } from '@/Config/schema'
 import { APP_VERSION } from '@/Config/version'
 import type { ShopMetadata } from '@/Entity/ShopMetadata'
+import type { MetadataReadOutcome } from '@/Repository/MetadataReadOutcome'
 import type { FolderRepositoryInterface } from '@/Repository/FolderRepositoryInterface'
 import type { WorkbookRepositoryInterface } from '@/Repository/WorkbookRepositoryInterface'
 import { ShopValidationService } from '@/Service/ShopValidationService'
@@ -14,9 +15,9 @@ const metadata: ShopMetadata = {
   createdBy: 'user@example.com',
 }
 
-function makeFolderRepo(meta: ShopMetadata | null): FolderRepositoryInterface {
+function makeFolderRepo(outcome: MetadataReadOutcome): FolderRepositoryInterface {
   return {
-    readMetadata: vi.fn(async () => meta),
+    readMetadata: vi.fn(async () => outcome),
     writeMetadata: vi.fn(async () => {}),
     getFolderName: vi.fn(async () => 'My Shop'),
   }
@@ -41,13 +42,16 @@ function makeWorkbookRepo(overrides?: {
 
 describe('validateShopFolder', () => {
   it('returns not_shop when metadata is missing', async () => {
-    const service = new ShopValidationService(makeFolderRepo(null), makeWorkbookRepo())
+    const service = new ShopValidationService(
+      makeFolderRepo({ kind: 'absent' }),
+      makeWorkbookRepo()
+    )
     expect(await service.validateShopFolder('folder-1')).toEqual({ ok: false, error: 'not_shop' })
   })
 
   it('returns version_behind for a shop major behind the app', async () => {
     const service = new ShopValidationService(
-      makeFolderRepo({ ...metadata, version: '2.4.0' }),
+      makeFolderRepo({ kind: 'present', metadata: { ...metadata, version: '2.4.0' } }),
       makeWorkbookRepo(),
     )
     expect(await service.validateShopFolder('folder-1')).toEqual({
@@ -73,7 +77,7 @@ describe('validateShopFolder', () => {
 
   it('returns version_unreadable for an unparseable shop version', async () => {
     const service = new ShopValidationService(
-      makeFolderRepo({ ...metadata, version: 'garbage' }),
+      makeFolderRepo({ kind: 'present', metadata: { ...metadata, version: 'garbage' } }),
       makeWorkbookRepo(),
     )
     const result = await service.validateShopFolder('folder-1')
@@ -94,7 +98,7 @@ describe('validateShopFolder', () => {
 
   it('returns structure with the detail from validateStructure', async () => {
     const service = new ShopValidationService(
-      makeFolderRepo(metadata),
+      makeFolderRepo({ kind: 'present', metadata }),
       makeWorkbookRepo({ sheetNames: [...SHEET_NAMES].filter((name) => name !== 'lots') }),
     )
     expect(await service.validateShopFolder('folder-1')).toEqual({
@@ -105,7 +109,10 @@ describe('validateShopFolder', () => {
   })
 
   it('returns the shop and metadata when everything checks out', async () => {
-    const service = new ShopValidationService(makeFolderRepo(metadata), makeWorkbookRepo())
+    const service = new ShopValidationService(
+      makeFolderRepo({ kind: 'present', metadata }),
+      makeWorkbookRepo()
+    )
     expect(await service.validateShopFolder('folder-1')).toEqual({
       ok: true,
       shop: {
@@ -117,17 +124,35 @@ describe('validateShopFolder', () => {
       metadata,
     })
   })
+
+  it('returns structure when metadata is damaged', async () => {
+    const service = new ShopValidationService(
+      makeFolderRepo({
+        kind: 'damaged',
+        detail: 'metadata file is not valid JSON',
+      }),
+      makeWorkbookRepo()
+    )
+    expect(await service.validateShopFolder('folder-1')).toEqual({
+      ok: false,
+      error: 'structure',
+      detail: 'metadata file is not valid JSON',
+    })
+  })
 })
 
 describe('validateStructure', () => {
   it('accepts the canonical workbook', async () => {
-    const service = new ShopValidationService(makeFolderRepo(metadata), makeWorkbookRepo())
+    const service = new ShopValidationService(
+      makeFolderRepo({ kind: 'present', metadata }),
+      makeWorkbookRepo()
+    )
     expect(await service.validateStructure('wb-1')).toEqual({ ok: true })
   })
 
   it('names the first missing sheet', async () => {
     const service = new ShopValidationService(
-      makeFolderRepo(metadata),
+      makeFolderRepo({ kind: 'present', metadata }),
       makeWorkbookRepo({ sheetNames: ['clients'] }),
     )
     expect(await service.validateStructure('wb-1')).toEqual({
@@ -138,7 +163,7 @@ describe('validateStructure', () => {
 
   it('names the first offending column on a header mismatch', async () => {
     const service = new ShopValidationService(
-      makeFolderRepo(metadata),
+      makeFolderRepo({ kind: 'present', metadata }),
       makeWorkbookRepo({
         headers: { jobs: SHEET_HEADERS.jobs.map((c) => (c === 'status' ? 'state' : c)) },
       }),
@@ -151,7 +176,7 @@ describe('validateStructure', () => {
 
   it('rejects headers missing a trailing column (v2 shop without due_date)', async () => {
     const service = new ShopValidationService(
-      makeFolderRepo(metadata),
+      makeFolderRepo({ kind: 'present', metadata }),
       makeWorkbookRepo({ headers: { jobs: [...SHEET_HEADERS.jobs].slice(0, -1) } }),
     )
     expect(await service.validateStructure('wb-1')).toEqual({
@@ -162,7 +187,7 @@ describe('validateStructure', () => {
 
   it('rejects headers with extra trailing columns', async () => {
     const service = new ShopValidationService(
-      makeFolderRepo(metadata),
+      makeFolderRepo({ kind: 'present', metadata }),
       makeWorkbookRepo({ headers: { tags: [...SHEET_HEADERS.tags, 'extra'] } }),
     )
     expect(await service.validateStructure('wb-1')).toEqual({

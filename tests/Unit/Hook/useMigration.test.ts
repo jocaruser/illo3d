@@ -118,7 +118,10 @@ describe('useMigration', () => {
     vi.clearAllMocks()
     resolvePlanChain.mockReturnValue(v1Chain)
     runPlans.mockResolvedValue({ ok: true })
-    readMetadata.mockResolvedValue({ spreadsheetId: 'SS-OLD' })
+    readMetadata.mockResolvedValue({
+      kind: 'present',
+      metadata: { spreadsheetId: 'SS-OLD' },
+    })
     validateShopFolder.mockResolvedValue({ ok: true, shop, metadata: {} })
     hydrate.mockResolvedValue(undefined)
     useMigrationStore.getState().reset()
@@ -267,7 +270,7 @@ describe('useMigration', () => {
       backend: 'google-drive',
       localDirectoryHandle: null,
     })
-    readMetadata.mockResolvedValue(null)
+    readMetadata.mockResolvedValue({ kind: 'absent' })
     const { result } = renderHook(() => useMigration(clock))
 
     await act(async () => {

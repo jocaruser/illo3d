@@ -43,13 +43,13 @@ export function createGSheetMigrationTarget(
         ctx,
         async commit({ keepOriginalAsBackup }): Promise<void> {
           const folderRepo = new GDriveFolderRepository()
-          const metadata = await folderRepo.readMetadata(folderId)
-          if (metadata === null) {
+          const outcome = await folderRepo.readMetadata(folderId)
+          if (outcome.kind !== 'present') {
             throw new Error(`Source shop is missing ${METADATA_FILE_NAME}`)
           }
           // The atomic commit point: metadata now points at the migrated copy.
           await folderRepo.writeMetadata(folderId, {
-            ...metadata,
+            ...outcome.metadata,
             version: toVersion,
             spreadsheetId: workingId,
           })

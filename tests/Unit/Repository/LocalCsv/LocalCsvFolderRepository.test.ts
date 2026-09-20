@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import type { ShopMetadata } from '@/Entity/ShopMetadata'
+import {
+  INVALID_JSON_METADATA_DETAIL,
+  INVALID_SHOP_METADATA_DETAIL,
+} from '@/Repository/MetadataReadOutcome'
 import { LocalCsvFolderRepository } from '@/Repository/LocalCsv/LocalCsvFolderRepository'
 import { createFakeDirectory } from './fakeDirectoryHandle'
 
@@ -14,27 +18,33 @@ const metadata: ShopMetadata = {
 }
 
 describe('LocalCsvFolderRepository', () => {
-  it('returns null when the metadata file is missing', async () => {
+  it('returns absent when the metadata file is missing', async () => {
     const repository = new LocalCsvFolderRepository(
       createFakeDirectory().handle
     )
-    expect(await repository.readMetadata(FOLDER_ID)).toBeNull()
+    expect(await repository.readMetadata(FOLDER_ID)).toEqual({ kind: 'absent' })
   })
 
-  it('returns null when the metadata file is not valid JSON', async () => {
+  it('returns damaged when the metadata file is not valid JSON', async () => {
     const { handle } = createFakeDirectory('shop', {
       'illo3d.metadata.json': 'not json {',
     })
     const repository = new LocalCsvFolderRepository(handle)
-    expect(await repository.readMetadata(FOLDER_ID)).toBeNull()
+    expect(await repository.readMetadata(FOLDER_ID)).toEqual({
+      kind: 'damaged',
+      detail: INVALID_JSON_METADATA_DETAIL,
+    })
   })
 
-  it('returns null when the JSON is not shop metadata', async () => {
+  it('returns damaged when the JSON is not shop metadata', async () => {
     const { handle } = createFakeDirectory('shop', {
       'illo3d.metadata.json': '{"app":"other","version":3}',
     })
     const repository = new LocalCsvFolderRepository(handle)
-    expect(await repository.readMetadata(FOLDER_ID)).toBeNull()
+    expect(await repository.readMetadata(FOLDER_ID)).toEqual({
+      kind: 'damaged',
+      detail: INVALID_SHOP_METADATA_DETAIL,
+    })
   })
 
   it('reads valid metadata', async () => {
@@ -42,7 +52,10 @@ describe('LocalCsvFolderRepository', () => {
       'illo3d.metadata.json': JSON.stringify(metadata),
     })
     const repository = new LocalCsvFolderRepository(handle)
-    expect(await repository.readMetadata(FOLDER_ID)).toEqual(metadata)
+    expect(await repository.readMetadata(FOLDER_ID)).toEqual({
+      kind: 'present',
+      metadata,
+    })
   })
 
   it('writes pretty-printed metadata that reads back identically', async () => {
@@ -52,7 +65,10 @@ describe('LocalCsvFolderRepository', () => {
     expect(files.get('illo3d.metadata.json')).toBe(
       JSON.stringify(metadata, null, 2)
     )
-    expect(await repository.readMetadata(FOLDER_ID)).toEqual(metadata)
+    expect(await repository.readMetadata(FOLDER_ID)).toEqual({
+      kind: 'present',
+      metadata,
+    })
   })
 
   it('returns the directory name as the folder name', async () => {

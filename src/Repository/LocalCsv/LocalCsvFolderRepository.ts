@@ -1,6 +1,11 @@
 import { METADATA_FILE_NAME } from '@/Config/schema'
 import { isShopMetadata, type ShopMetadata } from '@/Entity/ShopMetadata'
 import type { FolderRepositoryInterface } from '@/Repository/FolderRepositoryInterface'
+import {
+  INVALID_JSON_METADATA_DETAIL,
+  INVALID_SHOP_METADATA_DETAIL,
+  type MetadataReadOutcome,
+} from '@/Repository/MetadataReadOutcome'
 
 /**
  * Folder backend over a local directory handle. `folderId` parameters are
@@ -9,22 +14,24 @@ import type { FolderRepositoryInterface } from '@/Repository/FolderRepositoryInt
 export class LocalCsvFolderRepository implements FolderRepositoryInterface {
   constructor(private readonly directory: FileSystemDirectoryHandle) {}
 
-  async readMetadata(_folderId: string): Promise<ShopMetadata | null> {
+  async readMetadata(_folderId: string): Promise<MetadataReadOutcome> {
     let text: string
     try {
       const fileHandle = await this.directory.getFileHandle(METADATA_FILE_NAME)
       const file = await fileHandle.getFile()
       text = await file.text()
     } catch {
-      return null
+      return { kind: 'absent' }
     }
     let parsed: unknown
     try {
       parsed = JSON.parse(text)
     } catch {
-      return null
+      return { kind: 'damaged', detail: INVALID_JSON_METADATA_DETAIL }
     }
-    return isShopMetadata(parsed) ? parsed : null
+    return isShopMetadata(parsed)
+      ? { kind: 'present', metadata: parsed }
+      : { kind: 'damaged', detail: INVALID_SHOP_METADATA_DETAIL }
   }
 
   async writeMetadata(

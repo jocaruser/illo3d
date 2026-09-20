@@ -17,7 +17,7 @@ const h = vi.hoisted(() => {
     deleteFile: vi.fn(async (fileId: string) => {
       calls.push(`deleteFile:${fileId}`)
     }),
-    readMetadata: vi.fn<() => Promise<ShopMetadata | null>>(),
+    readMetadata: vi.fn(),
     writeMetadata: vi.fn(async () => {
       calls.push('writeMetadata')
     }),
@@ -58,7 +58,10 @@ describe('createGSheetMigrationTarget', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     h.calls.length = 0
-    h.readMetadata.mockResolvedValue(shopMetadata('2.0.0'))
+    h.readMetadata.mockResolvedValue({
+      kind: 'present',
+      metadata: shopMetadata('2.0.0'),
+    })
   })
 
   it('copies the source spreadsheet into a named working copy in the shop folder', async () => {
@@ -115,7 +118,7 @@ describe('createGSheetMigrationTarget', () => {
 
   it('rejects the commit before writing anything when the folder has no metadata', async () => {
     const working = await makeTarget().createWorkingCopy()
-    h.readMetadata.mockResolvedValue(null)
+    h.readMetadata.mockResolvedValue({ kind: 'absent' })
     await expect(
       working.commit({ keepOriginalAsBackup: true })
     ).rejects.toThrow(/illo3d\.metadata\.json/)

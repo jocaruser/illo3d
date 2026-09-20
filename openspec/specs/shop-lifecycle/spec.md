@@ -300,6 +300,20 @@ After the user selects a folder via Picker, directory picker, or enters a folder
 - **WHEN** any validation error occurs on the Google Drive screen
 - **THEN** the user can retry or return to the welcome screen
 
+#### Scenario: Local folder with invalid metadata JSON
+
+- **WHEN** the user selects a local folder via the directory picker
+- **AND** the folder contains `illo3d.metadata.json` that is not valid JSON
+- **THEN** the wizard shows a structure error naming the metadata problem
+- **AND** the create-new-shop confirmation is NOT shown
+
+#### Scenario: Local folder with invalid metadata shape
+
+- **WHEN** the user selects a local folder via the directory picker
+- **AND** the folder contains `illo3d.metadata.json` that fails shop-metadata validation
+- **THEN** the wizard shows a structure error naming the metadata problem
+- **AND** the create-new-shop confirmation is NOT shown
+
 ### Requirement: Wizard UI strings support i18n
 
 All user-facing text in the wizard (buttons, titles, messages, errors) SHALL use i18next translation keys.

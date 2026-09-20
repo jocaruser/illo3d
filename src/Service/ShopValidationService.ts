@@ -25,8 +25,12 @@ export class ShopValidationService {
   ) {}
 
   async validateShopFolder(folderId: string): Promise<ShopValidationResult> {
-    const metadata = await this.folderRepo.readMetadata(folderId)
-    if (metadata === null) return { ok: false, error: 'not_shop' }
+    const outcome = await this.folderRepo.readMetadata(folderId)
+    if (outcome.kind === 'absent') return { ok: false, error: 'not_shop' }
+    if (outcome.kind === 'damaged') {
+      return { ok: false, error: 'structure', detail: outcome.detail }
+    }
+    const metadata = outcome.metadata
 
     const shopMajor = parseMajorVersion(metadata.version)
     const appMajor = parseMajorVersion(APP_VERSION)
