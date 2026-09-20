@@ -38,14 +38,6 @@ interface JobsTableProps {
 
 const COLUMN_COUNT = 8
 
-/** Client (3rd) appears at md; Total, Due date and Created (5–7) at lg. */
-const responsiveColumns = cx(
-  '[&_tr>*:nth-child(3)]:hidden md:[&_tr>*:nth-child(3)]:table-cell',
-  '[&_tr>*:nth-child(5)]:hidden lg:[&_tr>*:nth-child(5)]:table-cell',
-  '[&_tr>*:nth-child(6)]:hidden lg:[&_tr>*:nth-child(6)]:table-cell',
-  '[&_tr>*:nth-child(7)]:hidden lg:[&_tr>*:nth-child(7)]:table-cell'
-)
-
 const bandClasses: Record<DueDateBand, string> = {
   red: 'bg-gradient-to-r from-danger/30 to-danger/10 text-danger',
   orange: 'bg-gradient-to-r from-warning/30 to-warning/10 text-warning',
@@ -134,7 +126,7 @@ export function JobsTable({
   )
 
   return (
-    <DataTable className={responsiveColumns}>
+    <DataTable>
       <TableHead>
         <TableRow>
           <SortableColumnHeader
@@ -151,6 +143,7 @@ export function JobsTable({
             label={t('jobs.colClient')}
             direction={directionFor('client')}
             onToggle={(next) => toggle('client', next)}
+            viewportTier="medium"
           />
           <SortableColumnHeader
             label={t('jobs.colStatus')}
@@ -161,16 +154,19 @@ export function JobsTable({
             label={t('jobs.colTotal')}
             direction={directionFor('total')}
             onToggle={(next) => toggle('total', next)}
+            viewportTier="wide"
           />
           <SortableColumnHeader
             label={t('jobs.colDueDate')}
             direction={directionFor('dueDate')}
             onToggle={(next) => toggle('dueDate', next)}
+            viewportTier="wide"
           />
           <SortableColumnHeader
             label={t('jobs.colCreated')}
             direction={directionFor('createdAt')}
             onToggle={(next) => toggle('createdAt', next)}
+            viewportTier="wide"
           />
           <TableHeader>{t('jobs.actions')}</TableHeader>
         </TableRow>
@@ -199,7 +195,7 @@ export function JobsTable({
                   {job.description}
                 </TagTooltip>
               </TableCell>
-              <TableCell>
+              <TableCell viewportTier="medium">
                 <Link
                   to={`/clients/${job.clientId}`}
                   data-testid={`job-client-link-${job.id}`}
@@ -218,13 +214,13 @@ export function JobsTable({
                   />
                 </div>
               </TableCell>
-              <TableCell>
+              <TableCell viewportTier="wide">
                 <JobTotal pricing={pricingOf(job.id)} />
               </TableCell>
-              <TableCell>
+              <TableCell viewportTier="wide">
                 <DueDateBadge job={job} clock={clock} />
               </TableCell>
-              <TableCell className="text-text-muted">
+              <TableCell viewportTier="wide" className="text-text-muted">
                 {job.createdAt !== '' && <RelativeTime value={job.createdAt} />}
               </TableCell>
               <TableCell>

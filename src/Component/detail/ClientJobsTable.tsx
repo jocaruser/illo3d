@@ -29,12 +29,6 @@ interface ClientJobsTableProps {
 
 const COLUMN_COUNT = 6
 
-/** Due date (4th) appears at md, Created (5th) at lg. */
-const responsiveColumns = cx(
-  '[&_tr>*:nth-child(4)]:hidden md:[&_tr>*:nth-child(4)]:table-cell',
-  '[&_tr>*:nth-child(5)]:hidden lg:[&_tr>*:nth-child(5)]:table-cell'
-)
-
 function cellOf(job: Job, key: ClientJobSortKey): SortValue {
   if (key === 'id') return job.id
   if (key === 'description') return job.description
@@ -63,7 +57,7 @@ export function ClientJobsTable({
   const sorted = useMemo(() => sortRows(rows, sort, cellOf, (job) => job.id), [rows, sort])
 
   return (
-    <DataTable className={responsiveColumns}>
+    <DataTable>
       <TableHead>
         <TableRow>
           <SortableColumnHeader
@@ -85,11 +79,13 @@ export function ClientJobsTable({
             label={t('jobs.colDueDate')}
             direction={directionFor('dueDate')}
             onToggle={(next) => toggle('dueDate', next)}
+            viewportTier="medium"
           />
           <SortableColumnHeader
             label={t('jobs.colCreated')}
             direction={directionFor('createdAt')}
             onToggle={(next) => toggle('createdAt', next)}
+            viewportTier="wide"
           />
           <TableHeader>{t('jobs.actions')}</TableHeader>
         </TableRow>
@@ -117,10 +113,10 @@ export function ClientJobsTable({
                 <TableCell className={cx('text-text-muted', inactive && 'line-through')}>
                   {t(`jobs.status.${job.status}`)}
                 </TableCell>
-                <TableCell className={cx('text-text-muted', inactive && 'line-through')}>
+                <TableCell viewportTier="medium" className={cx('text-text-muted', inactive && 'line-through')}>
                   {job.effectiveDueDate().slice(0, 10)}
                 </TableCell>
-                <TableCell className={cx('text-text-muted', inactive && 'line-through')}>
+                <TableCell viewportTier="wide" className={cx('text-text-muted', inactive && 'line-through')}>
                   {job.createdAt !== '' && <RelativeTime value={job.createdAt} />}
                 </TableCell>
                 <TableCell>
