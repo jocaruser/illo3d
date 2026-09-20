@@ -51,9 +51,9 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
     () =>
       NOTE_SEVERITIES.map((value) => ({
         value,
-        label: t(`clientDetail.severity.${value}`),
+        label: t(`${prefix}.severity.${value}`),
       })),
-    [t]
+    [prefix, t]
   )
 
   const resolvePieceJob = useCallback(
@@ -70,7 +70,7 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
     setBody('')
     setSeverity('info')
     setError('')
-    toast.success(t('clientDetail.noteSaved'))
+    toast.success(t(`${prefix}.noteSaved`))
     bump()
   }
 
@@ -88,7 +88,7 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
       return
     }
     setEditingId(null)
-    toast.success(t('clientDetail.noteSaved'))
+    toast.success(t(`${prefix}.noteSaved`))
     bump()
   }
 
@@ -198,7 +198,7 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
                     />
                   </p>
                   <p className="mt-1 text-xs text-text-muted">
-                    {t(`clientDetail.severity.${note.severity}`)}
+                    {t(`${prefix}.severity.${note.severity}`)}
                     {note.createdAt !== '' && (
                       <>
                         {' · '}

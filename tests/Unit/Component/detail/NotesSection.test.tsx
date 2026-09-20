@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { NotesSection } from '@/Component/detail/NotesSection'
 import type { EntityManager } from '@/Repository/EntityManager'
-import { createWorld, renderWithProviders, type TestWorld } from './helpers/renderDetail'
+import { createWorld, i18n, renderWithProviders, type TestWorld } from './helpers/renderDetail'
 
 const { toastMock } = vi.hoisted(() => ({
   toastMock: { success: vi.fn(), error: vi.fn(), dismiss: vi.fn() },
@@ -231,11 +231,32 @@ describe('NotesSection', () => {
 
     expect(screen.getByTestId('job-notes-severity-strip')).toBeInTheDocument()
     expect(screen.getByTestId('job-note-row-JN1')).toHaveTextContent('job scoped note')
+    expect(screen.getByTestId('job-note-row-JN1')).toHaveTextContent('Warning')
 
     await user.type(screen.getByPlaceholderText('Plain text note'), 'second job note')
     await user.click(screen.getByTestId('job-note-add'))
 
     expect(screen.getByTestId('job-note-row-JN2')).toBeInTheDocument()
+    expect(toastMock.success).toHaveBeenCalledWith('Note saved')
+  })
+
+  it('does not resolve job notes through clientDetail severity or toast keys', async () => {
+    const tSpy = vi.spyOn(i18n, 't')
+    const user = userEvent.setup()
+    renderWithProviders(<NotesSection entityType="job" entityId="J1" />)
+
+    await user.type(screen.getByPlaceholderText('Plain text note'), 'tracked job note')
+    await user.click(screen.getByTestId('job-note-add'))
+
+    const keys = tSpy.mock.calls.map((call) => call[0])
+    expect(keys).toContain('jobDetail.severity.warning')
+    expect(keys).toContain('jobDetail.noteSaved')
+    for (const key of keys) {
+      if (typeof key !== 'string') continue
+      expect(key).not.toMatch(/^clientDetail\.severity\./)
+      expect(key).not.toBe('clientDetail.noteSaved')
+    }
+    tSpy.mockRestore()
   })
 
   it('omits the timestamp for a note without a created date', () => {
