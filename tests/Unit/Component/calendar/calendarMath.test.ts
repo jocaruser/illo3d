@@ -1,6 +1,7 @@
 import {
   addMonths,
   buildMonthGrid,
+  countActiveJobsInMonth,
   dayNumber,
   isInMonth,
   monthOf,
@@ -47,6 +48,21 @@ describe('calendarMath', () => {
 
   it('reads the day number', () => {
     expect(dayNumber('2026-07-09')).toBe(9)
+  })
+
+  describe('countActiveJobsInMonth', () => {
+    const jobs = [
+      { effectiveDueDate: () => '2026-07-16T00:00:00.000Z' },
+      { effectiveDueDate: () => '2026-08-04T00:00:00.000Z' },
+      { effectiveDueDate: () => '2026-06-04T00:00:00.000Z' },
+    ]
+
+    it('counts jobs whose effective due day falls in the month', () => {
+      expect(countActiveJobsInMonth(jobs, { year: 2026, month: 6 })).toBe(1)
+      expect(countActiveJobsInMonth(jobs, { year: 2026, month: 7 })).toBe(1)
+      expect(countActiveJobsInMonth(jobs, { year: 2026, month: 5 })).toBe(1)
+      expect(countActiveJobsInMonth(jobs, { year: 2026, month: 0 })).toBe(0)
+    })
   })
 
   describe('buildMonthGrid', () => {

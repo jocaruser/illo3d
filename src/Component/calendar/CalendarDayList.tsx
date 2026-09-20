@@ -5,15 +5,24 @@ import { CalendarJobChip, type CalendarEntry } from './CalendarJobChip'
 interface CalendarDayListProps {
   todayIso: string
   entriesByDay: Map<string, CalendarEntry[]>
+  /** When the month has no due jobs, still show today on narrow viewports. */
+  emptyMonthHighlightToday?: boolean
 }
 
 /**
  * Mobile view: a month grid is unreadable under 640px, so the same month
  * becomes a chronological list of the days that actually have work due.
  */
-export function CalendarDayList({ todayIso, entriesByDay }: CalendarDayListProps) {
+export function CalendarDayList({
+  todayIso,
+  entriesByDay,
+  emptyMonthHighlightToday = false,
+}: CalendarDayListProps) {
   const { t } = useTranslation()
-  const days = [...entriesByDay.entries()].sort(([a], [b]) => a.localeCompare(b))
+  const days =
+    entriesByDay.size === 0 && emptyMonthHighlightToday
+      ? [[todayIso, [] as CalendarEntry[]]]
+      : [...entriesByDay.entries()].sort(([a], [b]) => a.localeCompare(b))
 
   return (
     <ul className="space-y-3">

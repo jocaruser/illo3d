@@ -11,6 +11,7 @@ export interface CalendarEntry {
   day: string
   clientName: string
   band: DueDateBand
+  countingPieceCount: number
 }
 
 interface CalendarJobChipProps {
@@ -26,7 +27,9 @@ export function CalendarJobChip({ entry }: CalendarJobChipProps) {
         dueBandClasses[entry.band]
       )}
     >
-      <span className="font-medium">{entry.job.description}</span>
+      <span className="font-medium">
+        {entry.job.description} ({entry.countingPieceCount})
+      </span>
       {entry.clientName !== '' && <span className="opacity-80"> · {entry.clientName}</span>}
     </Link>
   )

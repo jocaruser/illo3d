@@ -721,6 +721,8 @@
     "viewLabel": "Calendar",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
+    "previousMonthWithCount": "Previous month ({{count}} jobs)",
+    "nextMonthWithCount": "Next month ({{count}} jobs)",
     "today": "Today",
     "empty": "No jobs due this month.",
     "month": {

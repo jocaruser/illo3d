@@ -1,7 +1,7 @@
 import { act, fireEvent, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CalendarView } from '@/Component/calendar/CalendarView'
-import { seedClient, seedJob, setupShop } from '../dashboard/harness'
+import { seedClient, seedJob, seedPiece, setupShop } from '../dashboard/harness'
 import { renderWithProviders } from '../helpers/renderWithProviders'
 import type { TestContext } from '../../Service/helpers'
 
@@ -143,7 +143,8 @@ describe('CalendarView', () => {
 
       renderWithProviders(<CalendarView today={TODAY} />)
 
-      expect(screen.getByText('No jobs due this month.')).toBeInTheDocument()
+      expect(screen.queryByRole('link')).not.toBeInTheDocument()
+      expect(day('2026-07-16')).toHaveClass('ring-primary')
     })
 
     it('keeps neighbouring-month days empty', () => {
@@ -164,7 +165,7 @@ describe('CalendarView', () => {
       renderWithProviders(<CalendarView today={TODAY} />)
 
       expect(within(day('2026-06-29')).queryByRole('link')).not.toBeInTheDocument()
-      expect(screen.getByText('July job')).toBeInTheDocument()
+      expect(within(day('2026-07-20')).getByRole('link')).toHaveTextContent('July job (0)')
     })
   })
 
@@ -187,7 +188,7 @@ describe('CalendarView', () => {
     it('steps forward a month', async () => {
       renderWithProviders(<CalendarView today={TODAY} />)
 
-      await userEvent.click(screen.getByRole('button', { name: 'Next month' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Next month (1 jobs)' }))
 
       expect(screen.getByRole('heading', { name: 'August 2026' })).toBeInTheDocument()
       expect(within(day('2026-08-04')).getByRole('link')).toHaveTextContent('August job')
@@ -196,18 +197,65 @@ describe('CalendarView', () => {
     it('steps back a month', async () => {
       renderWithProviders(<CalendarView today={TODAY} />)
 
-      await userEvent.click(screen.getByRole('button', { name: 'Previous month' }))
+      await userEvent.click(screen.getByRole('button', { name: 'Previous month (1 jobs)' }))
 
       expect(screen.getByRole('heading', { name: 'June 2026' })).toBeInTheDocument()
       expect(within(day('2026-06-04')).getByRole('link')).toHaveTextContent('June job')
     })
   })
 
-  it('shows an empty state for a month with nothing due', () => {
+  it('renders the month grid with today highlighted when nothing is due', () => {
     renderWithProviders(<CalendarView today={TODAY} />)
 
-    expect(screen.getByText('No jobs due this month.')).toBeInTheDocument()
-    expect(screen.queryByTestId('calendar-day')).not.toBeInTheDocument()
+    expect(screen.getByText('Mon')).toBeInTheDocument()
+    expect(screen.queryByText('No jobs due this month.')).not.toBeInTheDocument()
+    expect(day('2026-07-16')).toHaveClass('ring-primary')
+  })
+
+  it('returns to the current month when Today is activated from another month', async () => {
+    renderWithProviders(<CalendarView today={TODAY} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Next month (0 jobs)' }))
+    expect(screen.getByRole('heading', { name: 'August 2026' })).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Today' }))
+    expect(screen.getByRole('heading', { name: 'July 2026' })).toBeInTheDocument()
+    expect(day('2026-07-16')).toHaveClass('ring-primary')
+  })
+
+  it('shows neighbouring-month job counts on navigation controls', () => {
+    seedJob(context.tabs, {
+      id: 'J1',
+      client_id: 'CL1',
+      description: 'August job',
+      due_date: '2026-08-04',
+    })
+    seedJob(context.tabs, {
+      id: 'J2',
+      client_id: 'CL1',
+      description: 'June job',
+      due_date: '2026-06-04',
+    })
+
+    renderWithProviders(<CalendarView today={TODAY} />)
+
+    expect(screen.getByRole('button', { name: 'Previous month (1 jobs)' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Next month (1 jobs)' })).toBeInTheDocument()
+  })
+
+  it('includes counting piece count on job chips', () => {
+    seedJob(context.tabs, {
+      id: 'J1',
+      client_id: 'CL1',
+      description: 'Vase',
+      due_date: '2026-07-20',
+    })
+    seedPiece(context.tabs, { id: 'P1', job_id: 'J1', name: 'Base' })
+    seedPiece(context.tabs, { id: 'P2', job_id: 'J1', name: 'Lid' })
+
+    renderWithProviders(<CalendarView today={TODAY} />)
+
+    expect(within(day('2026-07-20')).getByRole('link')).toHaveTextContent('Vase (2)')
   })
 
   it('defaults to the entity manager clock when no today is given', () => {
@@ -246,6 +294,17 @@ describe('CalendarView', () => {
       expect(within(days[0]).getByText('Today')).toBeInTheDocument()
       expect(within(days[1]).queryByText('Today')).not.toBeInTheDocument()
       expect(screen.queryByText('Mon')).not.toBeInTheDocument()
+    })
+
+    it('highlights today on a narrow viewport when the month has no due jobs', () => {
+      window.innerWidth = 500
+
+      renderWithProviders(<CalendarView today={TODAY} />)
+
+      expect(screen.queryByText('No jobs due this month.')).not.toBeInTheDocument()
+      const todayRow = screen.getByTestId('calendar-day')
+      expect(todayRow.dataset.day).toBe('2026-07-16')
+      expect(within(todayRow).getByText('Today')).toBeInTheDocument()
     })
 
     it('switches between the grid and the list as the viewport changes', () => {

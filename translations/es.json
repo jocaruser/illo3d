@@ -721,6 +721,8 @@
     "viewLabel": "Calendario",
     "previousMonth": "Mes anterior",
     "nextMonth": "Mes siguiente",
+    "previousMonthWithCount": "Mes anterior ({{count}} trabajos)",
+    "nextMonthWithCount": "Mes siguiente ({{count}} trabajos)",
     "today": "Hoy",
     "empty": "No hay trabajos con vencimiento este mes.",
     "month": {
