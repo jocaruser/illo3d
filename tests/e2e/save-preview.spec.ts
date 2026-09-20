@@ -35,7 +35,7 @@ test.describe('Save preview', () => {
     await expect(page).toHaveURL(/\/dashboard/)
     await archiveGamma(page)
 
-    await page.getByTestId('workbook-save').click()
+    await page.getByTestId('workbook-review').click()
     await expect(page).toHaveURL(/\/save/)
     await expect(page.getByTestId('save-preview-page')).toBeVisible({ timeout: 10000 })
 
@@ -75,7 +75,7 @@ test.describe('Save preview', () => {
     await expect(page).toHaveURL(/\/dashboard/)
     await archiveGamma(page)
 
-    await page.getByTestId('workbook-save').click()
+    await page.getByTestId('workbook-review').click()
     await expect(page.getByTestId('save-preview-page')).toBeVisible({ timeout: 10000 })
 
     // Revert the lifecycle flag the archive flipped.
@@ -115,7 +115,7 @@ test.describe('Save preview', () => {
     await expect(page).toHaveURL(/\/dashboard/)
     await archiveGamma(page)
 
-    await page.getByTestId('workbook-save').click()
+    await page.getByTestId('workbook-review').click()
     const card = page.getByTestId('row-diff-clients-CL2')
     await expect(card).toBeVisible({ timeout: 10000 })
     await expect(card.getByText('name', { exact: true })).not.toBeVisible()

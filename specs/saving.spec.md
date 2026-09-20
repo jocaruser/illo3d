@@ -10,15 +10,17 @@ philosophy with its own submit.)
 
 ## Knowing where you stand
 
-- With no unsaved changes, **Save** is disabled — there is nothing to save.
-- The first change enables it, and it stays enabled until a successful save.
+- **Review** in the workbook toolbar stays available while the workbook is
+  loaded so you can open the save review at any time.
+- When there are pending uploads, the button shows how many in parentheses,
+  e.g. **Review (3)**.
 - Leaving the app with unsaved changes —
   closing the tab, refreshing, navigating away —
   makes the browser ask whether you mean it.
 
 ## Reviewing before saving
 
-Pressing **Save** writes nothing yet.
+Pressing **Review** writes nothing yet.
 It opens **"Save changes"** — a review of what saving will do —
 with "Review changes before submitting."
 and a count of how many sheets hold unsaved changes.
@@ -42,8 +44,9 @@ and for the audit log, the entries about to be appended.
 
 ## The diff
 
-Each changed row is shown like a diff:
-field by field, the old value in red, the new value in green.
+Each changed row is shown like a split diff:
+field by field, the old value and new value side by side,
+the old in red and the new in green.
 The row's own audit entries carry the diff —
 what the review shows is exactly what the
 [audit log](decisions/ADR-0005-audit-logging-at-repository-layer.md)
@@ -94,8 +97,9 @@ Scenarios:
 
 ## Refreshing
 
-**Refresh** re-reads the shop from storage,
-replacing everything in memory.
+**Discard all** on the save review re-reads the shop from storage,
+replacing everything in memory (the same behaviour the old workbook
+**Refresh** button had).
 
 Scenarios:
 

@@ -720,6 +720,8 @@
     "retry": "Retry",
     "refresh": "Refresh",
     "save": "Save",
+    "reviewChanges": "Review",
+    "reviewChangesWithCount": "Review ({{count}})",
     "discardTitle": "Discard unsaved changes?",
     "discardMessage": "Your local edits will be lost. Reload data from storage?",
     "discardConfirm": "Discard and refresh",

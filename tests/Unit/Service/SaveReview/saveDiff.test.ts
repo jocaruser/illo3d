@@ -3,6 +3,7 @@ import type { SheetRecord } from '@/Entity/SheetEntity'
 import { appendRecord } from '@/Repository/Matrix'
 import {
   computeSaveDiff,
+  countPendingSaveChanges,
   unsavedAuditEntries,
 } from '@/Service/SaveReview/saveDiff'
 import { emptyTabs } from '@/Store/workbookStore'
@@ -225,5 +226,26 @@ describe('computeSaveDiff', () => {
 
     expect(diff.rowsBySheet.tags?.[0].action).toBe('modified')
     expect(diff.rowsBySheet.tags?.[0].fields.find((f) => f.column === 'name')?.before).toBe('')
+  })
+})
+
+describe('countPendingSaveChanges', () => {
+  it('sums row diffs per sheet and audit-log appends', () => {
+    const diff = computeSaveDiff([
+      entry({
+        entity_name: 'tag',
+        entity_id: 'TG1',
+        before_json: '',
+        after_json: JSON.stringify({ id: 'TG1', name: 'Vip' }),
+      }),
+      entry({
+        entity_name: 'client',
+        entity_id: 'CL1',
+        before_json: JSON.stringify({ id: 'CL1', name: 'A' }),
+        after_json: JSON.stringify({ id: 'CL1', name: 'B' }),
+      }),
+    ])
+
+    expect(countPendingSaveChanges(diff)).toBe(4)
   })
 })

@@ -75,11 +75,14 @@ export function RowDiffCard({ row, showUnchanged, onRevertField }: RowDiffCardPr
                 </button>
               )}
             </div>
-            <div className="mt-1 space-y-0.5 text-sm">
+            <div className="mt-1 text-sm">
               {field.changed ? (
-                <>
+                <div
+                  className="grid gap-2 sm:grid-cols-2"
+                  data-testid={`field-diff-${row.sheet}-${row.entityId}-${field.column}`}
+                >
                   {row.action !== 'created' && (
-                    <div className="flex gap-2 rounded bg-danger/10 px-2 py-0.5 text-danger">
+                    <div className="flex min-w-0 gap-2 rounded bg-danger/10 px-2 py-0.5 text-danger">
                       <span aria-hidden="true" className="select-none font-mono">
                         −
                       </span>
@@ -91,7 +94,11 @@ export function RowDiffCard({ row, showUnchanged, onRevertField }: RowDiffCardPr
                     </div>
                   )}
                   {row.action !== 'deleted' && (
-                    <div className="flex gap-2 rounded bg-success/10 px-2 py-0.5 text-success">
+                    <div
+                      className={`flex min-w-0 gap-2 rounded bg-success/10 px-2 py-0.5 text-success ${
+                        row.action === 'created' ? 'sm:col-span-2' : ''
+                      }`}
+                    >
                       <span aria-hidden="true" className="select-none font-mono">
                         +
                       </span>
@@ -102,12 +109,9 @@ export function RowDiffCard({ row, showUnchanged, onRevertField }: RowDiffCardPr
                       />
                     </div>
                   )}
-                </>
+                </div>
               ) : (
-                <div className="flex gap-2 px-2 py-0.5 text-text-muted">
-                  <span aria-hidden="true" className="select-none font-mono">
-                    &nbsp;
-                  </span>
+                <div className="px-2 py-0.5 text-text-muted">
                   <FieldValue
                     column={field.column}
                     value={field.after}

@@ -35,27 +35,27 @@ describe('WorkbookActions', () => {
     mockService()
   })
 
-  it('offers Refresh and Save', () => {
+  it('offers Review without a navbar refresh control', () => {
     renderLayout(<WorkbookActions />)
 
-    expect(screen.getByRole('button', { name: 'Refresh' })).toBeEnabled()
-    expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Review' })).toBeEnabled()
+    expect(screen.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument()
   })
 
-  it('disables Save while there is nothing to save', () => {
+  it('stays enabled when the workbook is clean', () => {
     mockService({ dirty: false })
 
     renderLayout(<WorkbookActions />)
 
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Review' })).toBeEnabled()
   })
 
-  it('disables Save while the workbook is not ready', () => {
+  it('disables Review while the workbook is not ready', () => {
     mockService({ dirty: true, ready: false })
 
     renderLayout(<WorkbookActions />)
 
-    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Review' })).toBeDisabled()
   })
 
   it('opens the save preview instead of writing anything', async () => {
@@ -67,48 +67,9 @@ describe('WorkbookActions', () => {
       </>
     )
 
-    await userEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Review' }))
 
     expect(screen.getByTestId('location')).toHaveTextContent('/save')
     expect(api.save).not.toHaveBeenCalled()
-  })
-
-  it('refreshes on demand', async () => {
-    renderLayout(<WorkbookActions />)
-
-    await userEvent.click(screen.getByRole('button', { name: 'Refresh' }))
-
-    expect(api.refresh).toHaveBeenCalledTimes(1)
-  })
-
-  it('hides the discard prompt until the hook asks for it', () => {
-    renderLayout(<WorkbookActions />)
-
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-  })
-
-  it('asks before discarding local edits', async () => {
-    mockService({ needsConfirm: true, dirty: true })
-    renderLayout(<WorkbookActions />)
-
-    expect(screen.getByRole('dialog')).toHaveTextContent(
-      'Discard unsaved changes?'
-    )
-
-    await userEvent.click(
-      screen.getByRole('button', { name: 'Discard and refresh' })
-    )
-
-    expect(api.confirmRefresh).toHaveBeenCalledTimes(1)
-  })
-
-  it('keeps local edits on cancel', async () => {
-    mockService({ needsConfirm: true, dirty: true })
-    renderLayout(<WorkbookActions />)
-
-    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-
-    expect(api.cancelRefresh).toHaveBeenCalledTimes(1)
-    expect(api.confirmRefresh).not.toHaveBeenCalled()
   })
 })

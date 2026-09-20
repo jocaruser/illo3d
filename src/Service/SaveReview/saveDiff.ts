@@ -1,4 +1,4 @@
-import { SHEET_HEADERS, type SheetName } from '@/Config/schema'
+import { SHEET_HEADERS, SHEET_NAMES, type SheetName } from '@/Config/schema'
 import { AuditEntry, type AuditEntityName } from '@/Entity/AuditEntry'
 import type { SheetRecord } from '@/Entity/SheetEntity'
 import { matrixToRecords } from '@/Repository/Matrix'
@@ -67,6 +67,14 @@ export function unsavedAuditEntries(tabs: WorkbookTabs, savedAuditRows: number):
  * hard-deleted before saving nets to nothing and is dropped, as is a row
  * whose edits were all reverted (its net diff changes no field).
  */
+/** Matches the per-sheet counts shown on the save review nav cards. */
+export function countPendingSaveChanges(diff: SaveDiff): number {
+  return SHEET_NAMES.reduce((sum, sheet) => {
+    if (sheet === 'audit_log') return sum + diff.newAuditEntries.length
+    return sum + (diff.rowsBySheet[sheet]?.length ?? 0)
+  }, 0)
+}
+
 export function computeSaveDiff(entries: AuditEntry[]): SaveDiff {
   const byRow = new Map<string, { first: AuditEntry; last: AuditEntry }>()
   for (const entry of entries) {

@@ -720,6 +720,8 @@
     "retry": "Reintentar",
     "refresh": "Actualizar",
     "save": "Guardar",
+    "reviewChanges": "Revisar",
+    "reviewChangesWithCount": "Revisar ({{count}})",
     "discardTitle": "¿Descartar cambios sin guardar?",
     "discardMessage": "Se perderán las ediciones locales. ¿Volver a cargar los datos?",
     "discardConfirm": "Descartar y actualizar",

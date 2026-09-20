@@ -79,7 +79,7 @@ test.describe('Dashboard', () => {
     })
 
     // Save opens the preview; Save all writes and toasts
-    await page.getByTestId('workbook-save').click()
+    await page.getByTestId('workbook-review').click()
     await expect(page).toHaveURL(/\/save/)
     await expect(page.getByTestId('save-preview-page')).toBeVisible({ timeout: 10000 })
     await page.getByTestId('save-preview-save-all').click()
@@ -121,7 +121,7 @@ test.describe('Dashboard', () => {
     })
 
     // Save opens the preview; Save all runs the write on the preview's own cards
-    await page.getByTestId('workbook-save').click()
+    await page.getByTestId('workbook-review').click()
     await expect(page.getByTestId('save-preview-page')).toBeVisible({ timeout: 10000 })
     await page.getByTestId('save-preview-save-all').click()
 

@@ -44,6 +44,15 @@ describe('RowDiffCard', () => {
     expect(within(card).getByText('Update')).toBeInTheDocument()
   })
 
+  it('lays changed values out side by side', () => {
+    renderWithProviders(<RowDiffCard row={modifiedRow()} showUnchanged={false} />)
+
+    const split = screen.getByTestId('field-diff-clients-CL1-name')
+    expect(split).toHaveClass('sm:grid-cols-2')
+    expect(within(split).getByText('Acme')).toBeInTheDocument()
+    expect(within(split).getByText('Acme Ltd')).toBeInTheDocument()
+  })
+
   it('reveals unchanged fields on demand', () => {
     renderWithProviders(<RowDiffCard row={modifiedRow()} showUnchanged={true} />)
 
