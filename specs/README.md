@@ -48,7 +48,7 @@ Committed with the merge to main, content still open to amendment:
 Loose surfaces, not yet planned:
 
 - [ ] `search.spec.md` — global search
-- [ ] `profile.spec.md` — identity, sign out, version row
+- [x] `profile.spec.md` — identity, sign out, version row
   (whether theme/language stay inside it: TBD)
 - [ ] `entities/metadata.spec.md` — the shop metadata file
   (forward-referenced from `migration/wizard.spec.md`)
