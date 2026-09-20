@@ -12,6 +12,7 @@ import { formatCurrency } from '@/Service/Pricing/money'
 import { computeRedos, redoBand, type RedoBand } from '@/Service/Pricing/redos'
 import { DetailWidget, WidgetGrid } from './DetailWidget'
 import { DueDateBadge, JobTotal } from './JobsTable'
+import { ParentDetailLifecycleActions } from './ParentDetailLifecycleActions'
 
 interface JobWidgetGridProps {
   job: Job
@@ -19,9 +20,11 @@ interface JobWidgetGridProps {
   pricing: JobPricingState
   /** Bumped by the page so the material aggregates recompute. */
   revision?: number
+  readOnly?: boolean
   onStatusChange: (job: Job, next: JobStatus) => void
   onEdit: () => void
   onArchive: () => void
+  onUnarchive: () => void
   onSoftDelete: () => void
   onDueDateChange: (dueDate: string) => void
 }
@@ -45,9 +48,11 @@ export function JobWidgetGrid({
   clientName,
   pricing,
   revision = 0,
+  readOnly = false,
   onStatusChange,
   onEdit,
   onArchive,
+  onUnarchive,
   onSoftDelete,
   onDueDateChange,
 }: JobWidgetGridProps) {
@@ -96,6 +101,13 @@ export function JobWidgetGrid({
 
   const benefit = pricing.complete ? pricing.total - totals.cost : null
 
+  const archived = job.isArchived()
+  const canEdit = !archived
+  const canArchive = !archived
+  const canUnarchive = archived
+  const canSoftDelete = archived
+  const widgetsReadOnly = readOnly || archived
+
   return (
     <WidgetGrid>
       <DetailWidget
@@ -103,32 +115,18 @@ export function JobWidgetGrid({
         colSpan={2}
         testId="job-widget-id"
         actions={
-          <>
-            <button
-              type="button"
-              className="btn-secondary px-2 py-1 text-xs"
-              data-testid="entity-detail-edit"
-              onClick={onEdit}
-            >
-              {t('jobs.editJob')}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary px-2 py-1 text-xs"
-              data-testid="entity-detail-archive"
-              onClick={onArchive}
-            >
-              {t('lifecycle.archive')}
-            </button>
-            <button
-              type="button"
-              className="btn-secondary px-2 py-1 text-xs"
-              data-testid="entity-detail-delete"
-              onClick={onSoftDelete}
-            >
-              {t('lifecycle.softDelete')}
-            </button>
-          </>
+          <ParentDetailLifecycleActions
+            compact
+            editLabelKey="jobs.editJob"
+            canEdit={canEdit}
+            canArchive={canArchive}
+            canUnarchive={canUnarchive}
+            canSoftDelete={canSoftDelete}
+            onEdit={onEdit}
+            onArchive={onArchive}
+            onUnarchive={onUnarchive}
+            onSoftDelete={onSoftDelete}
+          />
         }
       >
         <p className="font-display text-lg font-semibold text-text">
@@ -138,12 +136,16 @@ export function JobWidgetGrid({
 
       <DetailWidget label={t('jobs.widgetStatus')} testId="job-widget-status">
         <div data-testid={`job-status-${job.id}`}>
-          <Combobox
-            items={statusItems}
-            value={job.status}
-            placeholder={t('jobs.statusFieldAria', { id: job.id })}
-            onChange={(next) => onStatusChange(job, next as JobStatus)}
-          />
+          {widgetsReadOnly ? (
+            <span>{t(`jobs.status.${job.status}`)}</span>
+          ) : (
+            <Combobox
+              items={statusItems}
+              value={job.status}
+              placeholder={t('jobs.statusFieldAria', { id: job.id })}
+              onChange={(next) => onStatusChange(job, next as JobStatus)}
+            />
+          )}
         </div>
       </DetailWidget>
 
@@ -162,7 +164,9 @@ export function JobWidgetGrid({
       </DetailWidget>
 
       <DetailWidget label={t('jobs.widgetDueDate')} testId="job-widget-due-date">
-        {editingDueDate ? (
+        {widgetsReadOnly ? (
+          <DueDateBadge job={job} clock={em.clock} />
+        ) : editingDueDate ? (
           <FormInput
             type="date"
             autoFocus

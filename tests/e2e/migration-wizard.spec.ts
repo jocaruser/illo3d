@@ -44,7 +44,7 @@ test.describe('Migration wizard: v2 shop', () => {
 
     // The modal names both versions.
     await expect(page.getByText('2.0.0')).toBeVisible()
-    await expect(page.getByText('3.0.1')).toBeVisible()
+    await expect(page.getByText('3.0.2')).toBeVisible()
 
     // Declining the backup warns; deselecting withdraws the warning.
     await page.getByTestId('wizard-backup-no').click()
@@ -83,7 +83,7 @@ test.describe('Migration wizard: v1 shop', () => {
     await openShopExpectingMigration(page, 'pre-v2-upgrade')
 
     await expect(page.getByText('1.5.0')).toBeVisible()
-    await expect(page.getByText('3.0.1')).toBeVisible()
+    await expect(page.getByText('3.0.2')).toBeVisible()
 
     await answerBackupAndContinue(page, 'wizard-backup-yes')
 

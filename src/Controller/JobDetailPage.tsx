@@ -84,10 +84,18 @@ export function JobDetailPage() {
     )
   }
 
+  const readOnly = job.isArchived()
+
   const confirmLifecycle = () => {
     const service = new LifecycleService(em)
-    if (lifecycle === 'delete') service.softDeleteJob(job.id)
-    else service.archiveJob(job.id)
+    if (lifecycle === 'delete') {
+      service.softDeleteJob(job.id)
+      toast.success(t('toast.changeApplied'))
+      setLifecycle(null)
+      void navigate('/jobs')
+      return
+    }
+    service.archiveJob(job.id)
     toast.success(t('toast.changeApplied'))
     setLifecycle(null)
     void navigate('/jobs')
@@ -109,6 +117,21 @@ export function JobDetailPage() {
 
   const piecesEmptyMessage = pieces.length === 0 ? t('pieces.empty') : t('listTable.noMatches')
 
+  const lifecycleTitle =
+    lifecycle === 'delete' ? t('jobs.confirmDeleteTitle') : t('jobs.archiveConfirmTitle')
+  const lifecycleMessage =
+    lifecycle === 'delete'
+      ? t('jobs.confirmDeleteMessage', { id: job.id })
+      : t('jobs.archiveConfirmMessage', { id: job.id })
+  const lifecycleConfirmLabel =
+    lifecycle === 'delete' ? t('lifecycle.softDelete') : t('lifecycle.archive')
+
+  const unarchiveJob = () => {
+    new LifecycleService(em).restoreJob(job.id)
+    toast.success(t('toast.changeApplied'))
+    bump()
+  }
+
   return (
     <div className="space-y-6">
       <Link
@@ -125,26 +148,30 @@ export function JobDetailPage() {
         clientName={clientName}
         pricing={pricing}
         revision={revision}
+        readOnly={readOnly}
         onStatusChange={(target, next) => {
           statusFlow.requestStatusChange(target, next)
           bump()
         }}
         onEdit={() => setEditOpen(true)}
         onArchive={() => setLifecycle('archive')}
+        onUnarchive={unarchiveJob}
         onSoftDelete={() => setLifecycle('delete')}
         onDueDateChange={changeDueDate}
       />
 
       {/* The flow blocks paid/cancelled until every counting piece is priced. */}
-      {statusFlow.error !== null && <AlertBox variant="warning">{t(statusFlow.error)}</AlertBox>}
+      {!readOnly && statusFlow.error !== null && (
+        <AlertBox variant="warning">{t(statusFlow.error)}</AlertBox>
+      )}
 
-      <JobStatusFlowDialogs flow={statusFlow} />
+      {!readOnly && <JobStatusFlowDialogs flow={statusFlow} />}
 
       <JobMaterialsSummary jobId={job.id} revision={revision} />
 
-      <TagsSection entityType="job" entityId={job.id} />
+      <TagsSection entityType="job" entityId={job.id} readOnly={readOnly} />
 
-      <NotesSection entityType="job" entityId={job.id} />
+      <NotesSection entityType="job" entityId={job.id} readOnly={readOnly} />
 
       <section className="space-y-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -156,42 +183,49 @@ export function JobDetailPage() {
               placeholder={t('pieces.searchPlaceholder')}
             />
           </div>
-          <button
-            type="button"
-            className="btn-primary sm:ml-auto"
-            data-testid="add-piece-button"
-            onClick={() => setPieceDialogOpen(true)}
-          >
-            {t('pieces.addPiece')}
-          </button>
+          {!readOnly && (
+            <button
+              type="button"
+              className="btn-primary sm:ml-auto"
+              data-testid="add-piece-button"
+              onClick={() => setPieceDialogOpen(true)}
+            >
+              {t('pieces.addPiece')}
+            </button>
+          )}
         </div>
 
-        <PiecesTable rows={pieceRows} emptyMessage={piecesEmptyMessage} onChanged={bump} />
+        <PiecesTable
+          rows={pieceRows}
+          emptyMessage={piecesEmptyMessage}
+          readOnly={readOnly}
+          onChanged={bump}
+        />
       </section>
 
-      <CreateJobDialog
-        open={editOpen}
-        job={job}
-        onClose={() => setEditOpen(false)}
-        onUpdated={bump}
-      />
+      {!readOnly && (
+        <CreateJobDialog
+          open={editOpen}
+          job={job}
+          onClose={() => setEditOpen(false)}
+          onUpdated={bump}
+        />
+      )}
 
-      <CreatePieceDialog
-        open={pieceDialogOpen}
-        jobId={job.id}
-        onClose={() => setPieceDialogOpen(false)}
-        onCreated={bump}
-      />
+      {!readOnly && (
+        <CreatePieceDialog
+          open={pieceDialogOpen}
+          jobId={job.id}
+          onClose={() => setPieceDialogOpen(false)}
+          onCreated={bump}
+        />
+      )}
 
       <ConfirmDialog
         open={lifecycle !== null}
-        title={lifecycle === 'delete' ? t('jobs.confirmDeleteTitle') : t('jobs.archiveConfirmTitle')}
-        message={
-          lifecycle === 'delete'
-            ? t('jobs.confirmDeleteMessage', { id: job.id })
-            : t('jobs.archiveConfirmMessage', { id: job.id })
-        }
-        confirmLabel={lifecycle === 'delete' ? t('lifecycle.softDelete') : t('lifecycle.archive')}
+        title={lifecycleTitle}
+        message={lifecycleMessage}
+        confirmLabel={lifecycleConfirmLabel}
         onConfirm={confirmLifecycle}
         onCancel={() => setLifecycle(null)}
       />

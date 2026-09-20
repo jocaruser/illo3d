@@ -106,16 +106,32 @@ describe('InventoryDetailPage', () => {
       ).toHaveAttribute('href', '/inventory')
     })
 
-    it.each([
-      ['archived', { archived: 'true' }],
-      ['soft-deleted', { deleted: 'true' }],
-    ])('treats an %s item as not found', (_label, lifecycle) => {
+    it('renders an archived item read-only with un-archive and soft delete', () => {
+      tabs = new FakeTabs()
+      tabs.seed('inventory', {
+        id: 'INV9',
+        type: 'consumable',
+        name: 'Stored spare',
+        qty_current: '5',
+        archived: 'true',
+      })
+      mocks.em = createTestEm(tabs)
+      renderDetail('INV9')
+
+      expect(screen.getByRole('heading', { name: 'Stored spare' })).toBeInTheDocument()
+      expect(screen.getByTestId('entity-detail-unarchive')).toBeInTheDocument()
+      expect(screen.getByTestId('entity-detail-delete')).toBeInTheDocument()
+      expect(screen.queryByTestId('entity-detail-archive')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('inventory-detail-save-qty')).not.toBeInTheDocument()
+    })
+
+    it('treats a soft-deleted item as not found', () => {
       tabs = new FakeTabs()
       tabs.seed('inventory', {
         id: 'INV9',
         type: 'consumable',
         name: 'Gone',
-        ...lifecycle,
+        deleted: 'true',
       })
       mocks.em = createTestEm(tabs)
       renderDetail('INV9')
@@ -500,7 +516,7 @@ describe('InventoryDetailPage', () => {
       const user = userEvent.setup()
       renderDetail()
 
-      await user.click(screen.getByTestId('entity-detail-delete'))
+      await user.click(screen.getByTestId('entity-detail-archive'))
       await user.click(
         within(screen.getByRole('dialog')).getByRole('button', {
           name: 'Archive',
@@ -517,7 +533,7 @@ describe('InventoryDetailPage', () => {
       const user = userEvent.setup()
       renderDetail()
 
-      await user.click(screen.getByTestId('entity-detail-delete'))
+      await user.click(screen.getByTestId('entity-detail-archive'))
       await user.click(
         within(screen.getByRole('dialog')).getByRole('button', {
           name: 'Cancel',

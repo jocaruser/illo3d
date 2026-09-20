@@ -16,6 +16,7 @@ import { PieceService } from '@/Service/PieceService'
 
 interface PieceItemsTableProps {
   piece: Piece
+  readOnly?: boolean
   /** Bump the owning page so totals and the materials summary recompute. */
   onChanged: () => void
 }
@@ -32,7 +33,7 @@ interface DraftLine {
   quantity: string
 }
 
-export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
+export function PieceItemsTable({ piece, readOnly = false, onChanged }: PieceItemsTableProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [revision, setRevision] = useState(0)
@@ -214,8 +215,9 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                         placeholder={t('pieces.inventoryFieldAria', {
                           id: line.id,
                         })}
+                        disabled={readOnly}
                         onChange={(next) => {
-                          if (next === line.inventoryId) return
+                          if (readOnly || next === line.inventoryId) return
                           if (em.pieceItems.hasActiveLine(piece.id, next)) {
                             fail('pieces.validation.duplicateInventory')
                             return
@@ -236,9 +238,10 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                       data-testid={`piece-item-qty-${line.id}`}
                       aria-label={t('pieces.qtyFieldAria', { id: line.id })}
                       defaultValue={line.quantity ?? ''}
+                      readOnly={readOnly}
                       key={`${line.id}-${revision}`}
                       onBlur={(event) =>
-                        updateQuantity(line, event.target.value)
+                        !readOnly && updateQuantity(line, event.target.value)
                       }
                     />
                   </td>
@@ -253,15 +256,17 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
                         : t('pieces.redo.risky')}
                   </td>
                   <td className="px-2 py-1">
-                    <button
-                      type="button"
-                      className="rounded p-1 text-text-muted hover:text-danger"
-                      data-testid={`piece-item-delete-${line.id}`}
-                      aria-label={t('pieces.removeLine', { id: line.id })}
-                      onClick={() => removeLine(line)}
-                    >
-                      <TrashIcon className="h-4 w-4" aria-hidden="true" />
-                    </button>
+                    {!readOnly && (
+                      <button
+                        type="button"
+                        className="rounded p-1 text-text-muted hover:text-danger"
+                        data-testid={`piece-item-delete-${line.id}`}
+                        aria-label={t('pieces.removeLine', { id: line.id })}
+                        onClick={() => removeLine(line)}
+                      >
+                        <TrashIcon className="h-4 w-4" aria-hidden="true" />
+                      </button>
+                    )}
                   </td>
                 </tr>
               )
@@ -319,14 +324,16 @@ export function PieceItemsTable({ piece, onChanged }: PieceItemsTableProps) {
         </p>
       )}
 
-      <button
-        type="button"
-        className="btn-secondary px-2 py-1 text-xs"
-        data-testid={`add-line-${piece.id}`}
-        onClick={addDraft}
-      >
-        {t('pieces.addLine')}
-      </button>
+      {!readOnly && (
+        <button
+          type="button"
+          className="btn-secondary px-2 py-1 text-xs"
+          data-testid={`add-line-${piece.id}`}
+          onClick={addDraft}
+        >
+          {t('pieces.addLine')}
+        </button>
+      )}
     </div>
   )
 }
