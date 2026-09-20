@@ -45,6 +45,12 @@ Committed with the merge to main, content still open to amendment:
 - [x] `not-found.spec.md`
   (own loose file per round 7; details specs link here for soft-deleted pages)
 
+Shared imports (cross-page behaviour):
+
+- [ ] `shared/pricing.spec.md` — average cost, job completeness, margin,
+  suggested price, expected benefit, client materials estimate
+  (**drafted (awaiting confirmation)**)
+
 Loose surfaces, not yet planned:
 
 - [ ] `search.spec.md` — global search
