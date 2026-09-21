@@ -23,7 +23,11 @@ export function MentionLinkify({ text, em }: MentionLinkifyProps) {
       nodes.push(token)
     } else {
       nodes.push(
-        <Link key={`${match.index}-${id}`} to={target} className="text-primary hover:underline">
+        <Link
+          key={`${match.index}-${id}`}
+          to={target}
+          className="text-primary hover:underline"
+        >
           {token}
         </Link>
       )

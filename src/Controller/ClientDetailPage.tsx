@@ -104,9 +104,7 @@ export function ClientDetailPage() {
   if (client.leadSource !== '') {
     fields.push({
       label: t('clients.leadSource'),
-      value: (
-        <MentionLinkify text={client.leadSource} em={em} />
-      ),
+      value: <MentionLinkify text={client.leadSource} em={em} />,
     })
   }
   if (client.address !== '') {

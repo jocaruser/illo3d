@@ -94,5 +94,8 @@ export function resolveAuditEntity(
   const resolved =
     liveLabel(em, entityName, entityId) ?? jsonLabel(beforeJson, afterJson)
   if (resolved === null) return { label: entityId, to: null }
-  return { label: resolved, to: auditEntityNavigationTarget(em, entityName, entityId) }
+  return {
+    label: resolved,
+    to: auditEntityNavigationTarget(em, entityName, entityId),
+  }
 }
