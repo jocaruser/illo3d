@@ -22,6 +22,15 @@ const { toastMock, metadataMock } = vi.hoisted(() => ({
 
 let world: TestWorld
 
+function metricValue(metricsRoot: HTMLElement, label: string): HTMLElement {
+  const labelEl = within(metricsRoot).getByText(label)
+  const valueContainer = labelEl.parentElement?.nextElementSibling
+  if (valueContainer === null || valueContainer === undefined) {
+    throw new Error(`No value container for metric label "${label}"`)
+  }
+  return valueContainer as HTMLElement
+}
+
 vi.mock('@/Hook/useEntityManager', () => ({
   useEntityManager: (): EntityManager => world.em,
 }))
@@ -184,32 +193,22 @@ describe('ClientDetailPage', () => {
 
   it('shows the five client metrics', () => {
     renderPage()
-    const metrics = within(screen.getByTestId('client-metrics'))
+    const metrics = screen.getByTestId('client-metrics')
 
-    expect(metrics.getByText('Paid (ledger)').nextSibling).toHaveTextContent(
-      '€42.00'
-    )
+    expect(metricValue(metrics, 'Paid (ledger)')).toHaveTextContent('€42.00')
     // J1 is paid, so nothing is outstanding.
-    expect(
-      metrics.getByText('Outstanding (jobs)').nextSibling
-    ).toHaveTextContent('€0.00')
+    expect(metricValue(metrics, 'Outstanding (jobs)')).toHaveTextContent('€0.00')
     // Only J1 is active: archived J2 and soft-deleted J3 are both excluded.
-    expect(metrics.getByText('Jobs').nextSibling).toHaveTextContent('1')
-    expect(metrics.getByText('Avg job price').nextSibling).toHaveTextContent(
-      '€42.00'
-    )
+    expect(metricValue(metrics, 'Jobs')).toHaveTextContent('1')
+    expect(metricValue(metrics, 'Avg job price')).toHaveTextContent('€42.00')
     // 10g/unit × 2 units × €0.02/g.
-    expect(
-      metrics.getByText('Materials (estimate)').nextSibling
-    ).toHaveTextContent('€0.40')
+    expect(metricValue(metrics, 'Materials (estimate)')).toHaveTextContent('€0.40')
   })
 
   it('shows a dash for the average price when no job is priced', () => {
     renderPage('/clients/CL2')
-    const metrics = within(screen.getByTestId('client-metrics'))
-    expect(metrics.getByText('Avg job price').nextSibling).toHaveTextContent(
-      '—'
-    )
+    const metrics = screen.getByTestId('client-metrics')
+    expect(metricValue(metrics, 'Avg job price')).toHaveTextContent('—')
   })
 
   it('renders a NotFoundCard for an unknown client', () => {

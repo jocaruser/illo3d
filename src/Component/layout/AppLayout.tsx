@@ -24,10 +24,11 @@ export function AppLayout() {
   const theme = useUserPreferencesStore((state) => state.theme)
   const localFolderGate = useLocalFolderReopenGate()
   const [reallowBusy, setReallowBusy] = useState(false)
+  const localFolderAccessBlocked = localFolderGate.phase === 'needs-reallow'
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <AppHeader />
+      <AppHeader hideWorkbookChrome={localFolderAccessBlocked} />
       <GoogleSessionBanner />
       <BreadcrumbBar />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">

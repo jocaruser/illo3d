@@ -40,8 +40,19 @@ export function Kernel() {
     // can hold it — so a reload resumes the shop without re-picking a folder.
     restoreDirectoryHandle()
       .then((handle) => {
-        if (handle !== null)
+        if (handle !== null) {
           useBackendStore.getState().setLocalDirectoryHandle(handle)
+          return
+        }
+        if (import.meta.env.VITE_E2E !== 'true') return
+        const mock = (
+          window as unknown as {
+            __e2eMockDirectoryHandle?: FileSystemDirectoryHandle
+          }
+        ).__e2eMockDirectoryHandle
+        if (mock !== undefined) {
+          useBackendStore.getState().setLocalDirectoryHandle(mock)
+        }
       })
       .catch(() => {
         // A missing or unreadable handle just means the wizard asks again.

@@ -94,8 +94,30 @@ export function resolveAuditEntity(
   const resolved =
     liveLabel(em, entityName, entityId) ?? jsonLabel(beforeJson, afterJson)
   if (resolved === null) return { label: entityId, to: null }
-  return {
-    label: resolved,
-    to: auditEntityNavigationTarget(em, entityName, entityId),
+  const live = liveLabel(em, entityName, entityId)
+  const fromSnapshot = jsonLabel(beforeJson, afterJson)
+  let to = auditEntityNavigationTarget(em, entityName, entityId)
+  if (to === null && live === null && fromSnapshot !== null) {
+    to = auditPathWhenRowIsGone(entityName, entityId)
+  }
+  return { label: resolved, to }
+}
+
+/** Detail routes for entities named only from audit snapshots. */
+function auditPathWhenRowIsGone(
+  entityName: AuditEntityName | '',
+  entityId: string
+): string | null {
+  switch (entityName) {
+    case 'client':
+      return `/clients/${entityId}`
+    case 'job':
+      return `/jobs/${entityId}`
+    case 'inventory':
+      return `/inventory/${entityId}`
+    case 'transaction':
+      return `/transactions/${entityId}`
+    default:
+      return null
   }
 }

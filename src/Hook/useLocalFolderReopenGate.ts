@@ -47,7 +47,14 @@ export function useLocalFolderReopenGate(): LocalFolderReopenGate {
     }
     if (localDirectoryHandle === null) {
       setPhase('checking')
-      return
+      const waitForRestore = window.setTimeout(() => {
+        if (useBackendStore.getState().localDirectoryHandle === null) {
+          setPhase('needs-reallow')
+        }
+      }, 2000)
+      return () => {
+        clearTimeout(waitForRestore)
+      }
     }
 
     let cancelled = false
@@ -67,14 +74,17 @@ export function useLocalFolderReopenGate(): LocalFolderReopenGate {
   }, [applies, localDirectoryHandle])
 
   const grantAccess = useCallback(async () => {
-    if (localDirectoryHandle === null) return
-    const permission = await requestDirectoryPermission(
-      localDirectoryHandle,
-      PERMISSION_MODE
-    )
+    let handle = useBackendStore.getState().localDirectoryHandle
+    if (handle === null && typeof window.showDirectoryPicker === 'function') {
+      handle = await window.showDirectoryPicker()
+      useBackendStore.getState().setLocalDirectoryHandle(handle)
+      await persistDirectoryHandle(handle).catch(() => {})
+    }
+    if (handle === null) return
+    const permission = await requestDirectoryPermission(handle, PERMISSION_MODE)
     if (permission === 'granted') setPhase('ready')
     else setPhase('needs-reallow')
-  }, [localDirectoryHandle])
+  }, [])
 
   const decline = useCallback(async () => {
     useAuthStore.getState().logout()

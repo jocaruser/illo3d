@@ -7,7 +7,7 @@ import { FormTextarea } from '@/Component/form/FormTextarea'
 import { SectionHeading } from '@/Component/layout/SectionHeading'
 import { MentionLinkify } from '@/Component/MentionLinkify'
 import { RelativeTime } from '@/Component/RelativeTime'
-import { Select } from '@/Component/Select'
+import { formControlClasses } from '@/Component/form/controlClasses'
 import { toast } from '@/Component/Toast'
 import type { AlertVariant } from '@/Component/alertVariants'
 import {
@@ -56,9 +56,9 @@ export function NotesSection({
     () =>
       NOTE_SEVERITIES.map((value) => ({
         value,
-        label: t(`clientDetail.severity.${value}`),
+        label: t(`${prefix}.severity.${value}`),
       })),
-    [t]
+    [prefix, t]
   )
 
 
@@ -71,7 +71,7 @@ export function NotesSection({
     setBody('')
     setSeverity('info')
     setError('')
-    toast.success(t('clientDetail.noteSaved'))
+    toast.success(t(`${prefix}.noteSaved`))
     bump()
   }
 
@@ -89,7 +89,7 @@ export function NotesSection({
       return
     }
     setEditingId(null)
-    toast.success(t('clientDetail.noteSaved'))
+    toast.success(t(`${prefix}.noteSaved`))
     bump()
   }
 
@@ -127,12 +127,18 @@ export function NotesSection({
           />
           <div className="flex flex-wrap items-center gap-2">
             <div className="w-40">
-              <Select
+              <select
                 aria-label={t(`${prefix}.severityLabel`)}
-                options={severityOptions}
+                className={formControlClasses}
                 value={severity}
                 onChange={(event) => setSeverity(event.target.value)}
-              />
+              >
+                {severityOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
             <button
               type="button"
@@ -164,12 +170,18 @@ export function NotesSection({
                 />
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="w-40">
-                    <Select
+                    <select
                       aria-label={`${t(`${prefix}.severityLabel`)} ${note.id}`}
-                      options={severityOptions}
+                      className={formControlClasses}
                       value={editSeverity}
                       onChange={(event) => setEditSeverity(event.target.value)}
-                    />
+                    >
+                      {severityOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <button
                     type="button"
@@ -195,7 +207,7 @@ export function NotesSection({
                     <MentionLinkify text={note.body} em={em} />
                   </p>
                   <p className="mt-1 text-xs text-text-muted">
-                    {t(`clientDetail.severity.${note.severity}`)}
+                    {t(`${prefix}.severity.${note.severity}`)}
                     {note.createdAt !== '' && (
                       <>
                         {' · '}

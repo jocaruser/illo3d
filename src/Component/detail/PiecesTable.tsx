@@ -67,13 +67,6 @@ interface StatusRequest {
 
 const COLUMN_COUNT = 9
 
-/** Line total (6th) and Benefit (7th) appear at md, Created (9th) at lg. */
-const responsiveColumns = cx(
-  '[&_tr>*:nth-child(6)]:hidden md:[&_tr>*:nth-child(6)]:table-cell',
-  '[&_tr>*:nth-child(7)]:hidden md:[&_tr>*:nth-child(7)]:table-cell',
-  '[&_tr>*:nth-child(9)]:hidden lg:[&_tr>*:nth-child(9)]:table-cell'
-)
-
 const bandClasses: Record<RedoBand, string> = {
   safe: 'text-success',
   tight: 'text-warning',
@@ -333,7 +326,7 @@ export function PiecesTable({
     <div className="space-y-3">
       {blocked !== '' && <AlertBox variant="warning">{blocked}</AlertBox>}
 
-      <DataTable className={responsiveColumns}>
+      <DataTable>
         <PiecesTableHead directionFor={directionFor} onToggle={toggle} />
         <TableBody>
           {sorted.length === 0 ? (
@@ -429,8 +422,9 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
           label={t('pieces.colLineTotal')}
           direction={directionFor('lineTotal')}
           onToggle={(next) => onToggle('lineTotal', next)}
+          viewportTier="medium"
         />
-        <TableHeader>{t('pieces.colBenefit')}</TableHeader>
+        <TableHeader viewportTier="medium">{t('pieces.colBenefit')}</TableHeader>
         <SortableColumnHeader
           label={t('pieces.colStatus')}
           direction={directionFor('status')}
@@ -440,6 +434,7 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
           label={t('pieces.colCreated')}
           direction={directionFor('createdAt')}
           onToggle={(next) => onToggle('createdAt', next)}
+          viewportTier="wide"
         />
       </TableRow>
     </TableHead>
@@ -586,10 +581,10 @@ function PieceRowGroup({
             )}
           </div>
         </TableCell>
-        <TableCell className="tabular-nums">
+        <TableCell viewportTier="medium" className="tabular-nums">
           {lineTotal === undefined ? '—' : formatCurrency(lineTotal)}
         </TableCell>
-        <TableCell className="tabular-nums">
+        <TableCell viewportTier="medium" className="tabular-nums">
           {benefit === undefined ? (
             '—'
           ) : (
@@ -615,7 +610,7 @@ function PieceRowGroup({
             )}
           </div>
         </TableCell>
-        <TableCell className="text-text-muted">
+        <TableCell viewportTier="wide" className="text-text-muted">
           {piece.createdAt !== '' && <RelativeTime value={piece.createdAt} />}
         </TableCell>
       </TableRow>

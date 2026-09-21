@@ -16,7 +16,12 @@ import { useShopStore } from '@/Store/shopStore'
 const LOGO_TINT_CLASS =
   '[filter:brightness(0)_saturate(100%)_invert(31%)_sepia(93%)_saturate(1352%)_hue-rotate(210deg)_brightness(96%)_contrast(94%)]'
 
-export function AppHeader() {
+interface AppHeaderProps {
+  /** Hide workbook chrome while local folder access is being re-established. */
+  hideWorkbookChrome?: boolean
+}
+
+export function AppHeader({ hideWorkbookChrome = false }: AppHeaderProps) {
   const { t } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [logoFailed, setLogoFailed] = useState(false)
@@ -75,7 +80,7 @@ export function AppHeader() {
           >
             <WorkbookActions />
           </div>
-          {activeShop !== null && <GlobalSearchBox />}
+          {activeShop !== null && !hideWorkbookChrome && <GlobalSearchBox />}
           <ProfileMenu />
         </div>
       </div>

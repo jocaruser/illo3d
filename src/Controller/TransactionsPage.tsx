@@ -12,27 +12,16 @@ import { ListTablePageHeader } from '@/Component/layout/ListTablePageHeader'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
 import type { Transaction } from '@/Entity/Transaction'
 import { useEntityManager } from '@/Hook/useEntityManager'
-import { useListTableDiscovery } from '@/Hook/useListTableDiscovery'
 import type { EntityManager } from '@/Repository/EntityManager'
+import { useListTableDiscovery } from '@/Hook/useListTableDiscovery'
+import { transactionNavigationTarget } from '@/Service/Linking/entityLinkTargets'
 import { calculateBalance, formatCurrency } from '@/Service/Pricing/money'
 import { transactionSearchBlob } from '@/Service/Search/searchBlobs'
 
-/**
- * A concept links to whatever explains the money: the job that produced the
- * income, or the expense detail when the purchase actually bought stock.
- */
-function conceptLinkFor(
-  em: EntityManager,
-  transaction: Transaction
-): ConceptLink {
-  if (transaction.refType === 'job')
-    return { kind: 'job', to: `/jobs/${transaction.refId}` }
-  if (
-    transaction.isExpense() &&
-    em.lots.findActiveByTransaction(transaction.id).length > 0
-  ) {
-    return { kind: 'expense', to: `/transactions/${transaction.id}` }
-  }
+function conceptLinkFor(em: EntityManager, transaction: Transaction): ConceptLink {
+  const to = transactionNavigationTarget(em, transaction.id)
+  if (to?.startsWith('/jobs/')) return { kind: 'job', to }
+  if (to?.startsWith('/transactions/')) return { kind: 'expense', to }
   return { kind: 'none' }
 }
 

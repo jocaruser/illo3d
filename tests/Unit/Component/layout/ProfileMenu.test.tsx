@@ -307,6 +307,9 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Discard and refresh' })
+      )
 
       expect(useAuthStore.getState().isAuthenticated).toBe(false)
       expect(useShopStore.getState().activeShop).toBeNull()

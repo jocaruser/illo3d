@@ -139,7 +139,7 @@ describe('resolveAuditEntity', () => {
           '{"name":"Before Co"}',
           '{"name":"After Co"}'
         )
-      ).toEqual({ label: 'After Co', to: null })
+      ).toEqual({ label: 'After Co', to: '/clients/CL404' })
     })
 
     it('falls back to before_json when the row was hard deleted', () => {
@@ -149,7 +149,7 @@ describe('resolveAuditEntity', () => {
         resolveAuditEntity(em, 'client', 'CL404', '{"name":"Before Co"}', '')
       ).toEqual({
         label: 'Before Co',
-        to: null,
+        to: '/clients/CL404',
       })
     })
 
@@ -160,7 +160,7 @@ describe('resolveAuditEntity', () => {
         resolveAuditEntity(em, 'job', 'J404', '', '{"description":"Gone job"}')
       ).toEqual({
         label: 'Gone job',
-        to: null,
+        to: '/jobs/J404',
       })
       expect(
         resolveAuditEntity(
@@ -170,7 +170,7 @@ describe('resolveAuditEntity', () => {
           '',
           '{"concept":"Gone expense"}'
         )
-      ).toEqual({ label: 'Gone expense', to: null })
+      ).toEqual({ label: 'Gone expense', to: '/transactions/T404' })
     })
 
     it('names a vanished piece but cannot link it without a job to open', () => {

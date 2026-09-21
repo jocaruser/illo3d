@@ -177,7 +177,7 @@ test.describe('Job edit and delete', () => {
       .click()
     await expect(page).toHaveURL(/\/jobs$/)
 
-    await page.getByTestId('job-detail-link-J3').click()
+    await page.goto('/#/jobs/J3', { waitUntil: 'load' })
     await expect(page).toHaveURL(/\/jobs\/J3/)
 
     await page.getByTestId('entity-detail-soft-delete').click()
