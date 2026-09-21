@@ -19,7 +19,10 @@ interface ClientActivityTimelineProps {
 }
 
 /** Merged, newest-first activity feed for a client detail page. */
-export function ClientActivityTimeline({ clientId, revision = 0 }: ClientActivityTimelineProps) {
+export function ClientActivityTimeline({
+  clientId,
+  revision = 0,
+}: ClientActivityTimelineProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
 
@@ -32,7 +35,9 @@ export function ClientActivityTimeline({ clientId, revision = 0 }: ClientActivit
     <section className="space-y-3" data-testid="client-activity-timeline">
       <SectionHeading>{t('clientDetail.activity.title')}</SectionHeading>
       {entries.length === 0 ? (
-        <p className="text-sm text-text-muted">{t('clientDetail.activity.empty')}</p>
+        <p className="text-sm text-text-muted">
+          {t('clientDetail.activity.empty')}
+        </p>
       ) : (
         <ol className="space-y-2">
           {entries.map((entry) => (
@@ -72,7 +77,10 @@ function ActivityBody({ entry, em }: ActivityBodyProps) {
 
   if (entry.kind === 'income') {
     const to = transactionNavigationTarget(em, entry.transactionId)
-    const label = entry.concept !== '' ? entry.concept : t('clientDetail.activity.incomeConceptFallback')
+    const label =
+      entry.concept !== ''
+        ? entry.concept
+        : t('clientDetail.activity.incomeConceptFallback')
     return (
       <span className="flex flex-wrap items-baseline gap-2">
         <span className="text-success">{formatCurrency(entry.amount)}</span>
@@ -105,8 +113,13 @@ function ActivityBody({ entry, em }: ActivityBodyProps) {
         <span className="block">
           <MentionLinkify text={entry.body} em={em} />
         </span>
-        <Link to={`/jobs/${entry.jobId}`} className="block text-xs text-primary hover:underline">
-          {t('clientDetail.activity.jobLink', { description: entry.jobDescription })}
+        <Link
+          to={`/jobs/${entry.jobId}`}
+          className="block text-xs text-primary hover:underline"
+        >
+          {t('clientDetail.activity.jobLink', {
+            description: entry.jobDescription,
+          })}
         </Link>
       </span>
     )
@@ -114,11 +127,18 @@ function ActivityBody({ entry, em }: ActivityBodyProps) {
 
   return (
     <span className="space-y-1">
-      <Link to={`/jobs/${entry.jobId}`} className="block text-primary hover:underline">
-        {t('clientDetail.activity.jobLink', { description: entry.jobDescription })}
+      <Link
+        to={`/jobs/${entry.jobId}`}
+        className="block text-primary hover:underline"
+      >
+        {t('clientDetail.activity.jobLink', {
+          description: entry.jobDescription,
+        })}
       </Link>
       <span className="block text-xs text-text-muted">
-        {t('clientDetail.activity.statusLine', { status: t(`jobs.status.${entry.status}`) })}
+        {t('clientDetail.activity.statusLine', {
+          status: t(`jobs.status.${entry.status}`),
+        })}
       </span>
     </span>
   )

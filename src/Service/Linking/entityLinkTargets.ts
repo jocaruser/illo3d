@@ -2,11 +2,7 @@ import type { AuditEntityName } from '@/Entity/AuditEntry'
 import type { EntityManager } from '@/Repository/EntityManager'
 
 export type WorkbookEntityKind =
-  | 'client'
-  | 'job'
-  | 'piece'
-  | 'inventory'
-  | 'transaction'
+  'client' | 'job' | 'piece' | 'inventory' | 'transaction'
 
 export interface EntityNavigationRequest {
   kind: WorkbookEntityKind
@@ -32,7 +28,10 @@ function linkableInventory(em: EntityManager, id: string): string | null {
 }
 
 /** Piece deep link when the piece and its job still exist and are not deleted. */
-export function jobPathForPiece(em: EntityManager, pieceId: string): string | null {
+export function jobPathForPiece(
+  em: EntityManager,
+  pieceId: string
+): string | null {
   const piece = em.pieces.find(pieceId)
   if (piece === null || piece.isDeleted()) return null
   const jobId = piece.jobId
