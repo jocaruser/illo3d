@@ -596,8 +596,28 @@ describe('JobDetailPage', () => {
     expect(screen.getByText('No pieces yet.')).toBeInTheDocument()
   })
 
-  it('hides soft-deleted pieces', () => {
+  it('shows soft-deleted pieces with a deleted-entity label', () => {
     renderPage()
+    expect(screen.getByTestId('piece-name-P3')).toHaveTextContent('Gone')
+    expect(screen.getByTestId('piece-deleted-P3')).toBeInTheDocument()
+  })
+
+  it('keeps inactive pieces after search is cleared', async () => {
+    const archived = world.em.pieces.find('P2')
+    if (archived !== null) {
+      archived.archived = 'true'
+      world.em.pieces.save(archived)
+    }
+
+    const user = userEvent.setup()
+    renderPage()
+
+    const search = screen.getByPlaceholderText('Search pieces…')
+    await user.type(search, 'Shell')
     expect(screen.queryByTestId('piece-name-P3')).not.toBeInTheDocument()
+
+    await user.clear(search)
+    expect(screen.getByTestId('piece-name-P3')).toBeInTheDocument()
+    expect(screen.getByTestId('piece-name-P2')).toBeInTheDocument()
   })
 })

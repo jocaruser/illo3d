@@ -181,6 +181,9 @@ describe('restores', () => {
     service.restoreJob('J1')
     expect(em.jobs.find('J1')?.isActive()).toBe(true)
     expect(em.pieces.find('P1')?.isDeleted()).toBe(true)
+
+    service.restorePiece('P1')
+    expect(em.pieces.find('P1')?.isActive()).toBe(true)
   })
 
   it('restoreInventory clears both flags', () => {
@@ -195,6 +198,7 @@ describe('restores', () => {
     const { tabs, service } = seededTree()
     service.restoreClient('CL9')
     service.restoreJob('J9')
+    service.restorePiece('P9')
     service.restoreInventory('INV9')
     expect(auditTrail(tabs)).toEqual([])
   })

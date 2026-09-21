@@ -574,4 +574,49 @@ describe('PiecesTable', () => {
       expect(onChanged).not.toHaveBeenCalled()
     })
   })
+
+  it('labels a soft-deleted row and keeps fields read-only', () => {
+    const deleted = world.em.pieces.find('P1') as Piece
+    deleted.deleted = 'true'
+    world.em.pieces.save(deleted)
+
+    renderTable()
+
+    expect(screen.getByTestId('piece-deleted-P1')).toBeInTheDocument()
+    expect(screen.getByTestId('piece-name-P1').tagName).toBe('SPAN')
+    expect(screen.queryByTestId('piece-suggested-P1')).not.toBeInTheDocument()
+  })
+
+  it('offers un-archive for an archived row', async () => {
+    const onUnarchive = vi.fn()
+    const archived = world.em.pieces.find('P1') as Piece
+    archived.archived = 'true'
+    world.em.pieces.save(archived)
+
+    renderWithProviders(
+      <PiecesTable
+        rows={pieces()}
+        emptyMessage="No pieces yet."
+        onChanged={vi.fn()}
+        onUnarchivePiece={onUnarchive}
+      />
+    )
+
+    const user = userEvent.setup()
+    await user.click(screen.getByTestId('piece-unarchive-P1'))
+    expect(onUnarchive).toHaveBeenCalledWith(archived)
+  })
+
+  it('still allows expanding a soft-deleted row', async () => {
+    const deleted = world.em.pieces.find('P1') as Piece
+    deleted.deleted = 'true'
+    world.em.pieces.save(deleted)
+
+    const user = userEvent.setup()
+    renderTable()
+
+    await user.click(screen.getByTestId('expand-piece-P1'))
+    expect(screen.getByTestId('piece-item-row-PI1')).toBeInTheDocument()
+    expect(screen.queryByTestId('add-line-P1')).not.toBeInTheDocument()
+  })
 })

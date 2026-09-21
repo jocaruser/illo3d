@@ -55,6 +55,7 @@ interface PiecesTableProps {
   readOnly?: boolean
   /** Bump the owning page so job widgets and the materials summary recompute. */
   onChanged: () => void
+  onUnarchivePiece?: (piece: Piece) => void
 }
 
 interface StatusRequest {
@@ -65,7 +66,14 @@ interface StatusRequest {
   insufficient: InsufficientStockLine[]
 }
 
-const COLUMN_COUNT = 9
+const COLUMN_COUNT = 10
+
+/** Line total (6th) and Benefit (7th) appear at md, Created (9th) at lg. */
+const responsiveColumns = cx(
+  '[&_tr>*:nth-child(6)]:hidden md:[&_tr>*:nth-child(6)]:table-cell',
+  '[&_tr>*:nth-child(7)]:hidden md:[&_tr>*:nth-child(7)]:table-cell',
+  '[&_tr>*:nth-child(9)]:hidden lg:[&_tr>*:nth-child(9)]:table-cell'
+)
 
 const bandClasses: Record<RedoBand, string> = {
   safe: 'text-success',
@@ -93,6 +101,7 @@ export function PiecesTable({
   emptyMessage,
   readOnly = false,
   onChanged,
+  onUnarchivePiece,
 }: PiecesTableProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
@@ -326,7 +335,7 @@ export function PiecesTable({
     <div className="space-y-3">
       {blocked !== '' && <AlertBox variant="warning">{blocked}</AlertBox>}
 
-      <DataTable>
+      <DataTable className={responsiveColumns}>
         <PiecesTableHead directionFor={directionFor} onToggle={toggle} />
         <TableBody>
           {sorted.length === 0 ? (
@@ -343,8 +352,8 @@ export function PiecesTable({
                 <PieceRowGroup
                   key={piece.id}
                   piece={piece}
-                  readOnly={readOnly}
                   open={expanded.has(piece.id)}
+                  readOnly={readOnly}
                   statusItems={statusItems}
                   benefit={benefit}
                   suggestion={suggestionFor(piece)}
@@ -356,6 +365,7 @@ export function PiecesTable({
                   onSaveField={saveField}
                   onRequestStatus={requestStatus}
                   onChanged={onChanged}
+                  onUnarchivePiece={onUnarchivePiece}
                 />
               )
             })
@@ -422,9 +432,8 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
           label={t('pieces.colLineTotal')}
           direction={directionFor('lineTotal')}
           onToggle={(next) => onToggle('lineTotal', next)}
-          viewportTier="medium"
         />
-        <TableHeader viewportTier="medium">{t('pieces.colBenefit')}</TableHeader>
+        <TableHeader>{t('pieces.colBenefit')}</TableHeader>
         <SortableColumnHeader
           label={t('pieces.colStatus')}
           direction={directionFor('status')}
@@ -434,8 +443,8 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
           label={t('pieces.colCreated')}
           direction={directionFor('createdAt')}
           onToggle={(next) => onToggle('createdAt', next)}
-          viewportTier="wide"
         />
+        <TableHeader>{t('jobs.actions')}</TableHeader>
       </TableRow>
     </TableHead>
   )
@@ -443,8 +452,8 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
 
 interface PieceRowGroupProps {
   piece: Piece
-  readOnly?: boolean
   open: boolean
+  readOnly: boolean
   statusItems: ComboboxItem[]
   /** Line total minus material cost for the run; undefined without a total. */
   benefit: number | undefined
@@ -458,13 +467,14 @@ interface PieceRowGroupProps {
   onSaveField: (piece: Piece, patch: { price: number }) => void
   onRequestStatus: (piece: Piece, next: PieceStatus) => void
   onChanged: () => void
+  onUnarchivePiece?: (piece: Piece) => void
 }
 
 /** One piece: the editable summary row plus, when expanded, its material lines. */
 function PieceRowGroup({
   piece,
-  readOnly = false,
   open,
+  readOnly,
   statusItems,
   benefit,
   suggestion,
@@ -476,9 +486,13 @@ function PieceRowGroup({
   onSaveField,
   onRequestStatus,
   onChanged,
+  onUnarchivePiece,
 }: PieceRowGroupProps) {
   const { t } = useTranslation()
   const lineTotal = piece.lineTotal()
+  const inactive = !piece.isActive()
+  const fieldsLocked = readOnly || inactive
+  const struck = inactive ? 'text-text-muted line-through' : ''
 
   return (
     <Fragment>
@@ -505,56 +519,64 @@ function PieceRowGroup({
             )}
           </button>
         </TableCell>
-        <TableCell className="text-text-muted">{piece.id}</TableCell>
-        <TableCell>
-          <FormInput
-            className="min-w-[8rem] px-2 py-1"
-            data-testid={`piece-name-${piece.id}`}
-            aria-label={t('pieces.nameFieldAria', { id: piece.id })}
-            defaultValue={piece.name}
-            readOnly={readOnly}
-            disabled={readOnly}
-            key={`name-${piece.id}-${piece.name}`}
-            onBlur={(event) => onCommitName(piece, event.target.value)}
-          />
+        <TableCell className={cx('text-text-muted', struck)}>{piece.id}</TableCell>
+        <TableCell className={struck}>
+          {fieldsLocked ? (
+            <span data-testid={`piece-name-${piece.id}`}>{piece.name}</span>
+          ) : (
+            <FormInput
+              className="min-w-[8rem] px-2 py-1"
+              data-testid={`piece-name-${piece.id}`}
+              aria-label={t('pieces.nameFieldAria', { id: piece.id })}
+              defaultValue={piece.name}
+              key={`name-${piece.id}-${piece.name}`}
+              onBlur={(event) => onCommitName(piece, event.target.value)}
+            />
+          )}
         </TableCell>
-        <TableCell>
-          <FormInput
-            type="number"
-            step="1"
-            min="1"
-            className={cx(
-              'w-20 px-2 py-1',
-              !piece.hasValidUnits() && 'border-warning bg-warning/10'
-            )}
-            data-testid={`piece-units-${piece.id}`}
-            aria-label={t('pieces.unitsFieldAria', { id: piece.id })}
-            title={
-              piece.hasValidUnits() ? undefined : t('pieces.unitsUnsetHint')
-            }
-            defaultValue={piece.units ?? ''}
-            readOnly={readOnly}
-            disabled={readOnly}
-            key={`units-${piece.id}-${piece.units ?? ''}`}
-            onBlur={(event) => onCommitUnits(piece, event.target.value)}
-          />
-        </TableCell>
-        <TableCell>
-          <div className="flex items-center gap-1">
+        <TableCell className={struck}>
+          {fieldsLocked ? (
+            <span data-testid={`piece-units-${piece.id}`}>
+              {piece.units ?? '—'}
+            </span>
+          ) : (
             <FormInput
               type="number"
-              step="any"
-              min="0"
-              className="w-24 px-2 py-1"
-              data-testid={`piece-price-${piece.id}`}
-              aria-label={t('pieces.priceFieldAria', { id: piece.id })}
-              defaultValue={piece.price ?? ''}
-              readOnly={readOnly}
-              disabled={readOnly}
-              key={`price-${piece.id}-${piece.price ?? ''}`}
-              onBlur={(event) => onCommitPrice(piece, event.target.value)}
+              step="1"
+              min="1"
+              className={cx(
+                'w-20 px-2 py-1',
+                !piece.hasValidUnits() && 'border-warning bg-warning/10'
+              )}
+              data-testid={`piece-units-${piece.id}`}
+              aria-label={t('pieces.unitsFieldAria', { id: piece.id })}
+              title={
+                piece.hasValidUnits() ? undefined : t('pieces.unitsUnsetHint')
+              }
+              defaultValue={piece.units ?? ''}
+              key={`units-${piece.id}-${piece.units ?? ''}`}
+              onBlur={(event) => onCommitUnits(piece, event.target.value)}
             />
-            {!readOnly && (
+          )}
+        </TableCell>
+        <TableCell className={struck}>
+          {fieldsLocked ? (
+            <span data-testid={`piece-price-${piece.id}`}>
+              {piece.price === undefined ? '—' : formatCurrency(piece.price)}
+            </span>
+          ) : (
+            <div className="flex items-center gap-1">
+              <FormInput
+                type="number"
+                step="any"
+                min="0"
+                className="w-24 px-2 py-1"
+                data-testid={`piece-price-${piece.id}`}
+                aria-label={t('pieces.priceFieldAria', { id: piece.id })}
+                defaultValue={piece.price ?? ''}
+                key={`price-${piece.id}-${piece.price ?? ''}`}
+                onBlur={(event) => onCommitPrice(piece, event.target.value)}
+              />
               <button
                 type="button"
                 className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
@@ -578,13 +600,13 @@ function PieceRowGroup({
                       price: formatCurrency(suggestion.suggestedPrice),
                     })}
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </TableCell>
-        <TableCell viewportTier="medium" className="tabular-nums">
+        <TableCell className={cx('tabular-nums', struck)}>
           {lineTotal === undefined ? '—' : formatCurrency(lineTotal)}
         </TableCell>
-        <TableCell viewportTier="medium" className="tabular-nums">
+        <TableCell className={cx('tabular-nums', struck)}>
           {benefit === undefined ? (
             '—'
           ) : (
@@ -593,12 +615,12 @@ function PieceRowGroup({
             </span>
           )}
         </TableCell>
-        <TableCell>
+        <TableCell className={struck}>
           <div
             className="min-w-[8rem]"
             data-testid={`piece-status-${piece.id}`}
           >
-            {readOnly ? (
+            {fieldsLocked ? (
               <span>{t(`pieces.status.${piece.status}`)}</span>
             ) : (
               <Combobox
@@ -610,15 +632,21 @@ function PieceRowGroup({
             )}
           </div>
         </TableCell>
-        <TableCell viewportTier="wide" className="text-text-muted">
+        <TableCell className={cx('text-text-muted', struck)}>
           {piece.createdAt !== '' && <RelativeTime value={piece.createdAt} />}
+        </TableCell>
+        <TableCell>
+          <PieceActions
+            piece={piece}
+            onUnarchivePiece={onUnarchivePiece}
+          />
         </TableCell>
       </TableRow>
       {open && (
         <TableRow>
           <TableCell colSpan={COLUMN_COUNT}>
             <div id={`piece-items-${piece.id}`}>
-              {margin !== null && (
+              {margin !== null && !inactive && (
                 <p className={cx('mb-2 text-xs', bandClasses[margin.band])}>
                   {t('pieces.colRunMargin')}:{' '}
                   {margin.band === 'safe'
@@ -630,8 +658,8 @@ function PieceRowGroup({
               )}
               <PieceItemsTable
                 piece={piece}
-                readOnly={readOnly}
                 onChanged={onChanged}
+                readOnly={fieldsLocked}
               />
             </div>
           </TableCell>
@@ -639,6 +667,41 @@ function PieceRowGroup({
       )}
     </Fragment>
   )
+}
+
+interface PieceActionsProps {
+  piece: Piece
+  onUnarchivePiece?: (piece: Piece) => void
+}
+
+function PieceActions({ piece, onUnarchivePiece }: PieceActionsProps) {
+  const { t } = useTranslation()
+
+  if (piece.isDeleted()) {
+    return (
+      <span
+        data-testid={`piece-deleted-${piece.id}`}
+        className="text-xs font-medium uppercase tracking-wider text-text-muted"
+      >
+        {t('lifecycle.deletedEntity')}
+      </span>
+    )
+  }
+
+  if (piece.isArchived() && onUnarchivePiece !== undefined) {
+    return (
+      <button
+        type="button"
+        className="btn-secondary px-2 py-1 text-xs"
+        data-testid={`piece-unarchive-${piece.id}`}
+        onClick={() => onUnarchivePiece(piece)}
+      >
+        {t('lifecycle.unarchive')}
+      </button>
+    )
+  }
+
+  return null
 }
 
 interface PieceStatusConfirmDialogProps {
