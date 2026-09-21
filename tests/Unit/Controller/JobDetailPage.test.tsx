@@ -3,12 +3,20 @@ import userEvent from '@testing-library/user-event'
 import { JobDetailPage } from '@/Controller/JobDetailPage'
 import type { ShopMetadata } from '@/Entity/ShopMetadata'
 import type { EntityManager } from '@/Repository/EntityManager'
-import { createWorld, renderRoute, type TestWorld } from '../Component/detail/helpers/renderDetail'
+import {
+  createWorld,
+  renderRoute,
+  type TestWorld,
+} from '../Component/detail/helpers/renderDetail'
 
 const { toastMock, metadataMock } = vi.hoisted(() => ({
   toastMock: { success: vi.fn(), error: vi.fn(), dismiss: vi.fn() },
   metadataMock: {
-    value: { metadata: null as ShopMetadata | null, loading: false, error: null as string | null },
+    value: {
+      metadata: null as ShopMetadata | null,
+      loading: false,
+      error: null as string | null,
+    },
   },
 }))
 
@@ -17,7 +25,9 @@ let world: TestWorld
 vi.mock('@/Hook/useEntityManager', () => ({
   useEntityManager: (): EntityManager => world.em,
 }))
-vi.mock('@/Hook/useShopMetadata', () => ({ useShopMetadata: () => metadataMock.value }))
+vi.mock('@/Hook/useShopMetadata', () => ({
+  useShopMetadata: () => metadataMock.value,
+}))
 vi.mock('@/Component/Toast', () => ({ toast: toastMock }))
 
 /**
@@ -31,27 +41,100 @@ function seedWorld(): TestWorld {
   return createWorld({
     clients: [{ id: 'CL1', name: 'Acme Corp', created_at: '2024-01-01' }],
     jobs: [
-      { id: 'J1', client_id: 'CL1', description: 'Phone case', status: 'in_progress', created_at: '2024-05-01T09:00:00.000Z', due_date: '2024-05-01' },
-      { id: 'J2', client_id: 'CL1', description: 'Deleted job', status: 'draft', created_at: '2024-05-02T09:00:00.000Z', deleted: 'true' },
-      { id: 'J3', client_id: 'CL9', description: 'Orphan client', status: 'draft', created_at: '2024-05-03T09:00:00.000Z' },
+      {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Phone case',
+        status: 'in_progress',
+        created_at: '2024-05-01T09:00:00.000Z',
+        due_date: '2024-05-01',
+      },
+      {
+        id: 'J2',
+        client_id: 'CL1',
+        description: 'Deleted job',
+        status: 'draft',
+        created_at: '2024-05-02T09:00:00.000Z',
+        deleted: 'true',
+      },
+      {
+        id: 'J3',
+        client_id: 'CL9',
+        description: 'Orphan client',
+        status: 'draft',
+        created_at: '2024-05-03T09:00:00.000Z',
+      },
     ],
     pieces: [
-      { id: 'P1', job_id: 'J1', name: 'Shell', status: 'pending', price: '21', units: '2', created_at: '2024-05-01T10:00:00.000Z' },
-      { id: 'P2', job_id: 'J1', name: 'Arm', status: 'pending', created_at: '2024-05-01T11:00:00.000Z' },
-      { id: 'P3', job_id: 'J1', name: 'Gone', status: 'pending', created_at: '2024-05-01T12:00:00.000Z', deleted: 'true' },
+      {
+        id: 'P1',
+        job_id: 'J1',
+        name: 'Shell',
+        status: 'pending',
+        price: '21',
+        units: '2',
+        created_at: '2024-05-01T10:00:00.000Z',
+      },
+      {
+        id: 'P2',
+        job_id: 'J1',
+        name: 'Arm',
+        status: 'pending',
+        created_at: '2024-05-01T11:00:00.000Z',
+      },
+      {
+        id: 'P3',
+        job_id: 'J1',
+        name: 'Gone',
+        status: 'pending',
+        created_at: '2024-05-01T12:00:00.000Z',
+        deleted: 'true',
+      },
     ],
     piece_items: [
       { id: 'PI1', piece_id: 'P1', inventory_id: 'INV1', quantity: '10' },
       { id: 'PI2', piece_id: 'P1', inventory_id: 'INV2', quantity: '1' },
     ],
     inventory: [
-      { id: 'INV1', type: 'filament', name: 'PLA White', qty_current: '900', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 'INV2', type: 'consumable', name: 'Nozzle', qty_current: '3', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 'INV3', type: 'equipment', name: 'Ender 3', qty_current: '1', created_at: '2024-01-01T00:00:00.000Z' },
+      {
+        id: 'INV1',
+        type: 'filament',
+        name: 'PLA White',
+        qty_current: '900',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'INV2',
+        type: 'consumable',
+        name: 'Nozzle',
+        qty_current: '3',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'INV3',
+        type: 'equipment',
+        name: 'Ender 3',
+        qty_current: '1',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
     ],
     lots: [
-      { id: 'L1', inventory_id: 'INV1', transaction_id: 'T9', quantity: '1000', amount: '20', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 'L2', inventory_id: 'INV2', transaction_id: 'T9', quantity: '2', amount: '10', created_at: '2024-01-01T00:00:00.000Z' },
+      {
+        id: 'L1',
+        inventory_id: 'INV1',
+        transaction_id: 'T9',
+        quantity: '1000',
+        amount: '20',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'L2',
+        inventory_id: 'INV2',
+        transaction_id: 'T9',
+        quantity: '2',
+        amount: '10',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
     ],
   })
 }
@@ -75,7 +158,10 @@ describe('JobDetailPage', () => {
   it('renders a NotFoundCard for an unknown job', () => {
     renderPage('/jobs/J404')
     expect(screen.getByText('Job not found.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Back to jobs' })).toHaveAttribute('href', '/jobs')
+    expect(screen.getByRole('link', { name: 'Back to jobs' })).toHaveAttribute(
+      'href',
+      '/jobs'
+    )
   })
 
   it('renders a NotFoundCard for a soft-deleted job', () => {
@@ -90,13 +176,19 @@ describe('JobDetailPage', () => {
 
   it('shows the back link and the id widget', () => {
     renderPage()
-    expect(screen.getByTestId('entity-detail-back')).toHaveAttribute('href', '/jobs')
+    expect(screen.getByTestId('entity-detail-back')).toHaveAttribute(
+      'href',
+      '/jobs'
+    )
     expect(widget('id')).toHaveTextContent('J1 — Phone case')
   })
 
   it('shows the client widget linking to the client', () => {
     renderPage()
-    expect(within(widget('client')).getByRole('link')).toHaveAttribute('href', '/clients/CL1')
+    expect(within(widget('client')).getByRole('link')).toHaveAttribute(
+      'href',
+      '/clients/CL1'
+    )
     expect(widget('client')).toHaveTextContent('Acme Corp')
   })
 
@@ -120,7 +212,9 @@ describe('JobDetailPage', () => {
     expect(widget('consumibles')).toHaveTextContent('2 units')
     // 20g × €0.02 + 2 × €5.
     expect(widget('material-cost')).toHaveTextContent('€10.40')
-    expect(within(widget('material-cost')).getByText('€10.40')).toHaveClass('text-danger')
+    expect(within(widget('material-cost')).getByText('€10.40')).toHaveClass(
+      'text-danger'
+    )
   })
 
   it('shows the risk factor from the tightest filament margin', () => {
@@ -147,9 +241,21 @@ describe('JobDetailPage', () => {
   it('aggregates degenerate lines without letting them skew the widgets', () => {
     world.tabs.seed('inventory', [
       // Runs out after this job: 30g left against a 20g need.
-      { id: 'INV5', type: 'filament', name: 'PLA Blue', qty_current: '30', created_at: '2024-01-01T00:00:00.000Z' },
+      {
+        id: 'INV5',
+        type: 'filament',
+        name: 'PLA Blue',
+        qty_current: '30',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
       // Plenty of stock, but examined after PLA Blue already set the risk.
-      { id: 'INV6', type: 'filament', name: 'PLA Green', qty_current: '900', created_at: '2024-01-01T00:00:00.000Z' },
+      {
+        id: 'INV6',
+        type: 'filament',
+        name: 'PLA Green',
+        qty_current: '900',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
     ])
     world.tabs.seed('piece_items', [
       // Unknown inventory: skipped entirely.
@@ -203,14 +309,19 @@ describe('JobDetailPage', () => {
     await user.tab()
 
     // €2 of pieces against €10.40 of materials.
-    expect(within(widget('beneficio')).getByText('-€8.40')).toHaveClass('text-danger')
+    expect(within(widget('beneficio')).getByText('-€8.40')).toHaveClass(
+      'text-danger'
+    )
   })
 
   it('bands the due date and edits it inline', async () => {
     const user = userEvent.setup()
     renderPage()
 
-    expect(within(widget('due-date')).getByText('2024-05-01')).toHaveAttribute('data-band', 'red')
+    expect(within(widget('due-date')).getByText('2024-05-01')).toHaveAttribute(
+      'data-band',
+      'red'
+    )
 
     await user.click(screen.getByTestId('job-due-date-edit'))
     const input = screen.getByLabelText('Due date for job J1')
@@ -219,8 +330,12 @@ describe('JobDetailPage', () => {
     await user.tab()
 
     expect(world.em.jobs.find('J1')?.dueDate).toBe('2024-06-30')
-    expect(within(widget('due-date')).getByText('2024-06-30')).toBeInTheDocument()
-    expect(toastMock.success).toHaveBeenCalledWith('Change applied — save to persist it')
+    expect(
+      within(widget('due-date')).getByText('2024-06-30')
+    ).toBeInTheDocument()
+    expect(toastMock.success).toHaveBeenCalledWith(
+      'Change applied — save to persist it'
+    )
   })
 
   it('leaves the due date alone when the inline edit changes nothing', async () => {
@@ -231,7 +346,9 @@ describe('JobDetailPage', () => {
     await user.tab()
 
     expect(toastMock.success).not.toHaveBeenCalled()
-    expect(within(widget('due-date')).getByText('2024-05-01')).toBeInTheDocument()
+    expect(
+      within(widget('due-date')).getByText('2024-05-01')
+    ).toBeInTheDocument()
   })
 
   it('archives the job from the widget and returns to the list', async () => {
@@ -240,7 +357,9 @@ describe('JobDetailPage', () => {
 
     await user.click(screen.getByTestId('entity-detail-archive'))
     const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByRole('heading', { name: 'Archive job' })).toBeInTheDocument()
+    expect(
+      within(dialog).getByRole('heading', { name: 'Archive job' })
+    ).toBeInTheDocument()
     await user.click(within(dialog).getByRole('button', { name: 'Archive' }))
 
     expect(screen.getByTestId('location')).toHaveTextContent('/jobs')
@@ -254,8 +373,12 @@ describe('JobDetailPage', () => {
 
     await user.click(screen.getByTestId('entity-detail-delete'))
     const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByRole('heading', { name: 'Delete job' })).toBeInTheDocument()
-    await user.click(within(dialog).getByRole('button', { name: 'Soft delete' }))
+    expect(
+      within(dialog).getByRole('heading', { name: 'Delete job' })
+    ).toBeInTheDocument()
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Soft delete' })
+    )
 
     expect(screen.getByTestId('location')).toHaveTextContent('/jobs')
     expect(world.em.jobs.find('J1')?.isDeleted()).toBe(true)
@@ -319,7 +442,9 @@ describe('JobDetailPage', () => {
     expect(world.em.jobs.find('J1')?.status).toBe('paid')
     // €21 × 2 + €8 × 1, booked as income by the confirmed dialog.
     expect(
-      world.em.transactions.findAll().some((transaction) => transaction.amount === 50)
+      world.em.transactions
+        .findAll()
+        .some((transaction) => transaction.amount === 50)
     ).toBe(true)
   })
 
@@ -327,7 +452,14 @@ describe('JobDetailPage', () => {
     const user = userEvent.setup()
     // A legacy row can miss its client; the update then fails validation.
     world.tabs.seed('jobs', [
-      { id: 'J4', client_id: '', description: 'Orphan row', status: 'draft', created_at: '2024-05-04T09:00:00.000Z', due_date: '2024-05-10' },
+      {
+        id: 'J4',
+        client_id: '',
+        description: 'Orphan row',
+        status: 'draft',
+        created_at: '2024-05-04T09:00:00.000Z',
+        due_date: '2024-05-10',
+      },
     ])
     renderPage('/jobs/J4')
 
@@ -367,12 +499,18 @@ describe('JobDetailPage', () => {
 
     await user.click(screen.getByTestId('add-piece-button'))
     const dialog = within(screen.getByRole('dialog'))
-    expect(dialog.queryByPlaceholderText('Search jobs…')).not.toBeInTheDocument()
+    expect(
+      dialog.queryByPlaceholderText('Search jobs…')
+    ).not.toBeInTheDocument()
 
     await user.type(dialog.getByLabelText(/Name/), 'Lid')
     await user.click(dialog.getByRole('button', { name: 'Create piece' }))
 
-    expect(world.em.pieces.find('P4')).toMatchObject({ jobId: 'J1', name: 'Lid', status: 'pending' })
+    expect(world.em.pieces.find('P4')).toMatchObject({
+      jobId: 'J1',
+      name: 'Lid',
+      status: 'pending',
+    })
     expect(screen.getByTestId('piece-name-P4')).toHaveValue('Lid')
   })
 

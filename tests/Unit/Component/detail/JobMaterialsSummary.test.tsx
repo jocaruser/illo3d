@@ -1,7 +1,11 @@
 import { screen, within } from '@testing-library/react'
 import { JobMaterialsSummary } from '@/Component/detail/JobMaterialsSummary'
 import type { EntityManager } from '@/Repository/EntityManager'
-import { createWorld, renderWithProviders, type TestWorld } from './helpers/renderDetail'
+import {
+  createWorld,
+  renderWithProviders,
+  type TestWorld,
+} from './helpers/renderDetail'
 
 let world: TestWorld
 
@@ -15,12 +19,49 @@ vi.mock('@/Hook/useEntityManager', () => ({
  */
 function seedWorld(): TestWorld {
   return createWorld({
-    jobs: [{ id: 'J1', client_id: 'CL1', description: 'Phone case', status: 'draft', created_at: '2024-05-01T09:00:00.000Z' }],
+    jobs: [
+      {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Phone case',
+        status: 'draft',
+        created_at: '2024-05-01T09:00:00.000Z',
+      },
+    ],
     pieces: [
-      { id: 'P1', job_id: 'J1', name: 'Shell', status: 'pending', units: '2', created_at: '2024-05-01T10:00:00.000Z' },
-      { id: 'P2', job_id: 'J1', name: 'Arm', status: 'pending', units: '3', created_at: '2024-05-01T11:00:00.000Z' },
-      { id: 'P3', job_id: 'J1', name: 'Gone', status: 'pending', units: '9', created_at: '2024-05-01T12:00:00.000Z', deleted: 'true' },
-      { id: 'P4', job_id: 'J2', name: 'Other job', status: 'pending', units: '1', created_at: '2024-05-01T13:00:00.000Z' },
+      {
+        id: 'P1',
+        job_id: 'J1',
+        name: 'Shell',
+        status: 'pending',
+        units: '2',
+        created_at: '2024-05-01T10:00:00.000Z',
+      },
+      {
+        id: 'P2',
+        job_id: 'J1',
+        name: 'Arm',
+        status: 'pending',
+        units: '3',
+        created_at: '2024-05-01T11:00:00.000Z',
+      },
+      {
+        id: 'P3',
+        job_id: 'J1',
+        name: 'Gone',
+        status: 'pending',
+        units: '9',
+        created_at: '2024-05-01T12:00:00.000Z',
+        deleted: 'true',
+      },
+      {
+        id: 'P4',
+        job_id: 'J2',
+        name: 'Other job',
+        status: 'pending',
+        units: '1',
+        created_at: '2024-05-01T13:00:00.000Z',
+      },
     ],
     piece_items: [
       { id: 'PI1', piece_id: 'P1', inventory_id: 'INV1', quantity: '10' },
@@ -32,13 +73,45 @@ function seedWorld(): TestWorld {
       { id: 'PI7', piece_id: 'P1', inventory_id: 'INV404', quantity: '1' },
     ],
     inventory: [
-      { id: 'INV1', type: 'filament', name: 'PLA White', qty_current: '900', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 'INV2', type: 'consumable', name: 'Nozzle', qty_current: '3', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 'INV3', type: 'equipment', name: 'Ender 3', qty_current: '1', created_at: '2024-01-01T00:00:00.000Z' },
+      {
+        id: 'INV1',
+        type: 'filament',
+        name: 'PLA White',
+        qty_current: '900',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'INV2',
+        type: 'consumable',
+        name: 'Nozzle',
+        qty_current: '3',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'INV3',
+        type: 'equipment',
+        name: 'Ender 3',
+        qty_current: '1',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
     ],
     lots: [
-      { id: 'L1', inventory_id: 'INV1', transaction_id: 'T9', quantity: '1000', amount: '20', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 'L2', inventory_id: 'INV2', transaction_id: 'T9', quantity: '2', amount: '10', created_at: '2024-01-01T00:00:00.000Z' },
+      {
+        id: 'L1',
+        inventory_id: 'INV1',
+        transaction_id: 'T9',
+        quantity: '1000',
+        amount: '20',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'L2',
+        inventory_id: 'INV2',
+        transaction_id: 'T9',
+        quantity: '2',
+        amount: '10',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
     ],
   })
 }
@@ -47,7 +120,11 @@ function summaryRows(): string[][] {
   return screen
     .getAllByRole('row')
     .slice(1)
-    .map((row) => within(row).getAllByRole('cell').map((cell) => cell.textContent ?? ''))
+    .map((row) =>
+      within(row)
+        .getAllByRole('cell')
+        .map((cell) => cell.textContent ?? '')
+    )
 }
 
 beforeEach(() => {
@@ -59,8 +136,12 @@ describe('JobMaterialsSummary', () => {
     world = createWorld({})
     renderWithProviders(<JobMaterialsSummary jobId="J1" />)
 
-    expect(screen.getByRole('heading', { name: 'Materials summary' })).toBeInTheDocument()
-    expect(screen.getByText('No materials used for this job.')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Materials summary' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('No materials used for this job.')
+    ).toBeInTheDocument()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
@@ -138,7 +219,9 @@ describe('JobMaterialsSummary', () => {
   })
 
   it('recomputes when the revision changes', () => {
-    const { rerender } = renderWithProviders(<JobMaterialsSummary jobId="J1" revision={0} />)
+    const { rerender } = renderWithProviders(
+      <JobMaterialsSummary jobId="J1" revision={0} />
+    )
     expect(summaryRows()[0][1]).toBe('35')
 
     const line = world.em.pieceItems.find('PI1')
@@ -154,10 +237,23 @@ describe('JobMaterialsSummary', () => {
     // A second filament forces the same-type name comparison, and a second
     // piece called "Shell" must not repeat in the usedIn column.
     world.tabs.seed('inventory', [
-      { id: 'INV5', type: 'filament', name: 'ABS Red', qty_current: '100', created_at: '2024-01-01T00:00:00.000Z' },
+      {
+        id: 'INV5',
+        type: 'filament',
+        name: 'ABS Red',
+        qty_current: '100',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
     ])
     world.tabs.seed('pieces', [
-      { id: 'P5', job_id: 'J1', name: 'Shell', status: 'pending', units: '1', created_at: '2024-05-01T14:00:00.000Z' },
+      {
+        id: 'P5',
+        job_id: 'J1',
+        name: 'Shell',
+        status: 'pending',
+        units: '1',
+        created_at: '2024-05-01T14:00:00.000Z',
+      },
     ])
     world.tabs.seed('piece_items', [
       { id: 'PI8', piece_id: 'P1', inventory_id: 'INV5', quantity: '4' },
