@@ -19,9 +19,9 @@ export function CalendarDayList({
   emptyMonthHighlightToday = false,
 }: CalendarDayListProps) {
   const { t } = useTranslation()
-  const days =
+  const days: [string, CalendarEntry[]][] =
     entriesByDay.size === 0 && emptyMonthHighlightToday
-      ? [[todayIso, [] as CalendarEntry[]]]
+      ? [[todayIso, []]]
       : [...entriesByDay.entries()].sort(([a], [b]) => a.localeCompare(b))
 
   return (
