@@ -1,7 +1,10 @@
 import { useCallback, useRef } from 'react'
 import { APP_VERSION, parseMajorVersion } from '@/Config/version'
 import type { MigrationPlan } from '@/Migration/MigrationPlan'
-import type { MigrationSession, MigrationTarget } from '@/Migration/MigrationTarget'
+import type {
+  MigrationSession,
+  MigrationTarget,
+} from '@/Migration/MigrationTarget'
 import { createGSheetMigrationTarget } from '@/Migration/Target/GSheetMigrationTarget'
 import { createLocalCsvMigrationTarget } from '@/Migration/Target/LocalCsvMigrationTarget'
 import { runPlans } from '@/Migration/orchestrator'
@@ -163,7 +166,10 @@ export function useMigration(clock: Clock = new SystemClock()) {
         return { ok: false, failedAt: 'commit' }
       }
 
-      const failSubmit = (error: unknown, failedAt: string): MigrationResult => {
+      const failSubmit = (
+        error: unknown,
+        failedAt: string
+      ): MigrationResult => {
         store.setFailureMessage(toErrorMessage(error))
         store.setPhase('failed')
         return { ok: false, failedAt }

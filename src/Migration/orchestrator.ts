@@ -4,12 +4,10 @@ import { toErrorMessage, type ProgressReporter } from './MigrationStep'
 import type { MigrationSession, MigrationTarget } from './MigrationTarget'
 
 export type RunResult =
-  | { ok: true; session: MigrationSession }
-  | { ok: false; failedAt: string }
+  { ok: true; session: MigrationSession } | { ok: false; failedAt: string }
 
 type SessionResult =
-  | { ok: true; session: MigrationSession }
-  | { ok: false; error: string }
+  { ok: true; session: MigrationSession } | { ok: false; error: string }
 
 async function openSessionSafely(
   target: MigrationTarget

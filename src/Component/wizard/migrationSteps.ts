@@ -79,7 +79,11 @@ export function doneCount(
   rows: MigrationStepState[],
   phase: MigrationPhase
 ): number {
-  if (phase === 'awaiting-submit' || phase === 'committing' || phase === 'done') {
+  if (
+    phase === 'awaiting-submit' ||
+    phase === 'committing' ||
+    phase === 'done'
+  ) {
     return rows.length
   }
   return rows.filter((row) => row.status === 'done').length

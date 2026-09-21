@@ -1,7 +1,4 @@
-import {
-  SHEET_HEADERS,
-  type SheetName,
-} from '@/Config/schema'
+import { SHEET_HEADERS, type SheetName } from '@/Config/schema'
 import type {
   SheetMatrix,
   WorkbookRepositoryInterface,
