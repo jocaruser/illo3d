@@ -220,6 +220,7 @@ export function ClientDetailPage() {
         <ClientJobsTable
           rows={jobRows}
           emptyMessage={jobsEmptyMessage}
+          readOnly={readOnly}
           onEdit={openJobEdit}
           onArchive={setArchivingJob}
           onUnarchive={unarchiveJob}
