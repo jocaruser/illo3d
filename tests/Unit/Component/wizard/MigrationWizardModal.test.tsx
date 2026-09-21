@@ -160,7 +160,11 @@ describe('MigrationWizardModal', () => {
     ])
     renderWithProviders(
       <MigrationWizardModal
-        candidate={{ folderId: 'F1', shopVersion: '1.0.0', appVersion: '2.0.0' }}
+        candidate={{
+          folderId: 'F1',
+          shopVersion: '1.0.0',
+          appVersion: '2.0.0',
+        }}
         onLogOut={vi.fn()}
       />
     )
@@ -188,7 +192,11 @@ describe('MigrationWizardModal', () => {
     ])
     renderWithProviders(
       <MigrationWizardModal
-        candidate={{ folderId: 'F1', shopVersion: '1.0.0', appVersion: '3.0.0' }}
+        candidate={{
+          folderId: 'F1',
+          shopVersion: '1.0.0',
+          appVersion: '3.0.0',
+        }}
         onLogOut={vi.fn()}
       />
     )
