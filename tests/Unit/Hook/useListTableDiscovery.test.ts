@@ -22,7 +22,7 @@ describe('useListTableDiscovery', () => {
     const { result } = renderHook(() =>
       useListTableDiscovery({
         sourceRows,
-        getSearchBlob: (row) => row.blob,
+        getSearchBlob: (row: Row) => row.blob,
         messages,
       })
     )
@@ -38,7 +38,7 @@ describe('useListTableDiscovery', () => {
     const { result } = renderHook(() =>
       useListTableDiscovery({
         sourceRows,
-        getSearchBlob: (row) => row.blob,
+        getSearchBlob: (row: Row) => row.blob,
         messages,
       })
     )
@@ -55,7 +55,7 @@ describe('useListTableDiscovery', () => {
     const { result } = renderHook(() =>
       useListTableDiscovery({
         sourceRows: [],
-        getSearchBlob: (row) => row.blob,
+        getSearchBlob: (row: Row) => row.blob,
         messages,
       })
     )
@@ -67,7 +67,7 @@ describe('useListTableDiscovery', () => {
     const { result } = renderHook(() =>
       useListTableDiscovery({
         sourceRows,
-        getSearchBlob: (row) => row.blob,
+        getSearchBlob: (row: Row) => row.blob,
         messages,
       })
     )

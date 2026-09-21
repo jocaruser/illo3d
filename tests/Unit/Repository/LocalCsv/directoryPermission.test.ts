@@ -40,7 +40,7 @@ describe('directoryPermission', () => {
       async getFileHandle() {
         throw new Error('unused')
       },
-    } as FileSystemDirectoryHandle
+    } as unknown as FileSystemDirectoryHandle
     await expect(queryDirectoryPermission(bare, 'readwrite')).resolves.toBe(
       'granted'
     )

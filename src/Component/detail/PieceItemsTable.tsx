@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { TrashIcon } from '@heroicons/react/20/solid'
 import { useTranslation } from 'react-i18next'
 import { Combobox, type ComboboxItem } from '@/Component/Combobox'
-import { cx } from '@/Component/cx'
 import { FormInput } from '@/Component/form/FormInput'
 import { toast } from '@/Component/Toast'
 import type { InventoryItem } from '@/Entity/InventoryItem'
@@ -10,21 +9,14 @@ import type { Piece } from '@/Entity/Piece'
 import type { PieceItem } from '@/Entity/PieceItem'
 import { useEntityManager } from '@/Hook/useEntityManager'
 import { computeAvgUnitCost } from '@/Service/Pricing/avgUnitCost'
-import { formatCurrency } from '@/Service/Pricing/money'
-import { computeRedos, type RedoBand } from '@/Service/Pricing/redos'
 import { PieceService } from '@/Service/PieceService'
+import { PieceItemTableRow } from '@/Component/detail/PieceItemTableRow'
 
 interface PieceItemsTableProps {
   piece: Piece
   readOnly?: boolean
   /** Bump the owning page so totals and the materials summary recompute. */
   onChanged: () => void
-}
-
-const bandClasses: Record<RedoBand, string> = {
-  safe: 'text-success',
-  tight: 'text-warning',
-  risky: 'text-danger',
 }
 
 /** A pending "Add material" row that has no persisted line yet. */
@@ -148,6 +140,17 @@ export function PieceItemsTable({
     refresh()
   }
 
+  const changeInventory = (line: PieceItem, next: string) => {
+    if (next === line.inventoryId) return
+    if (em.pieceItems.hasActiveLine(piece.id, next)) {
+      fail('pieces.validation.duplicateInventory')
+      return
+    }
+    line.inventoryId = next
+    em.pieceItems.save(line)
+    refresh()
+  }
+
   const units = piece.hasValidUnits() ? (piece.units as number) : 1
 
   return (
@@ -198,87 +201,22 @@ export function PieceItemsTable({
               </td>
             </tr>
           ) : (
-            lines.map((line) => {
-              const item = inventoryById.get(line.inventoryId)
-              const unitCost = unitCostOf(line.inventoryId)
-              const quantity = line.quantity ?? 0
-              const cost =
-                unitCost === null ? null : unitCost * quantity * units
-              const redo = computeRedos(item?.qtyCurrent ?? 0, quantity * units)
-              return (
-                <tr key={line.id} data-testid={`piece-item-row-${line.id}`}>
-                  <td className="px-2 py-1 text-text-muted">{line.id}</td>
-                  <td className="px-2 py-1">
-                    <div
-                      className="min-w-[10rem]"
-                      data-testid={`piece-item-inventory-${line.id}`}
-                    >
-                      {readOnly ? (
-                        <span>{item?.name ?? line.inventoryId}</span>
-                      ) : (
-                        <Combobox
-                          items={options}
-                          value={line.inventoryId}
-                          placeholder={t('pieces.inventoryFieldAria', {
-                            id: line.id,
-                          })}
-                          onChange={(next) => {
-                            if (next === line.inventoryId) return
-                            if (em.pieceItems.hasActiveLine(piece.id, next)) {
-                              fail('pieces.validation.duplicateInventory')
-                              return
-                            }
-                            line.inventoryId = next
-                            em.pieceItems.save(line)
-                            refresh()
-                          }}
-                        />
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-2 py-1">
-                    <FormInput
-                      type="number"
-                      step="any"
-                      min="0"
-                      className="w-20 px-2 py-1"
-                      data-testid={`piece-item-qty-${line.id}`}
-                      aria-label={t('pieces.qtyFieldAria', { id: line.id })}
-                      defaultValue={line.quantity ?? ''}
-                      readOnly={readOnly}
-                      disabled={readOnly}
-                      key={`${line.id}-${revision}`}
-                      onBlur={(event) =>
-                        updateQuantity(line, event.target.value)
-                      }
-                    />
-                  </td>
-                  <td className="px-2 py-1 tabular-nums">
-                    {cost === null ? '—' : formatCurrency(cost)}
-                  </td>
-                  <td className={cx('px-2 py-1', bandClasses[redo.band])}>
-                    {redo.band === 'safe'
-                      ? t('pieces.redo.safe', { count: redo.redos })
-                      : redo.band === 'tight'
-                        ? t('pieces.redo.tight')
-                        : t('pieces.redo.risky')}
-                  </td>
-                  <td className="px-2 py-1">
-                    {!readOnly && (
-                      <button
-                        type="button"
-                        className="rounded p-1 text-text-muted hover:text-danger"
-                        data-testid={`piece-item-delete-${line.id}`}
-                        aria-label={t('pieces.removeLine', { id: line.id })}
-                        onClick={() => removeLine(line)}
-                      >
-                        <TrashIcon className="h-4 w-4" aria-hidden="true" />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              )
-            })
+            lines.map((line) => (
+              <PieceItemTableRow
+                key={line.id}
+                line={line}
+                piece={piece}
+                readOnly={readOnly}
+                revision={revision}
+                units={units}
+                item={inventoryById.get(line.inventoryId)}
+                unitCost={unitCostOf(line.inventoryId)}
+                options={options}
+                onInventoryChange={changeInventory}
+                onQuantityBlur={updateQuantity}
+                onRemove={removeLine}
+              />
+            ))
           )}
 
           {!readOnly && draft !== null && (

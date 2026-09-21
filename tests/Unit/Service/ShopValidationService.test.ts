@@ -64,7 +64,7 @@ describe('validateShopFolder', () => {
 
   it('returns version_ahead for a shop major ahead of the app', async () => {
     const service = new ShopValidationService(
-      makeFolderRepo({ ...metadata, version: '4.0.0' }),
+      makeFolderRepo({ kind: 'present', metadata: { ...metadata, version: '4.0.0' } }),
       makeWorkbookRepo(),
     )
     expect(await service.validateShopFolder('folder-1')).toEqual({
@@ -90,7 +90,10 @@ describe('validateShopFolder', () => {
 
   it('opens when majors match even if minor and patch differ', async () => {
     const service = new ShopValidationService(
-      makeFolderRepo({ ...metadata, version: `${APP_VERSION.split('.')[0]}.9.9` }),
+      makeFolderRepo({
+        kind: 'present',
+        metadata: { ...metadata, version: `${APP_VERSION.split('.')[0]}.9.9` },
+      }),
       makeWorkbookRepo(),
     )
     expect(await service.validateShopFolder('folder-1')).toMatchObject({ ok: true })

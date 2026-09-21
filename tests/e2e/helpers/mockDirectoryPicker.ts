@@ -187,7 +187,7 @@ function installMock(args: { seed: FileStore; force: boolean }): void {
   function attachPermissionApi(
     directory: ReturnType<typeof dirHandle>
   ): FileSystemDirectoryHandle {
-    const withPermission = directory as FileSystemDirectoryHandle & {
+    const withPermission = directory as unknown as FileSystemDirectoryHandle & {
       queryPermission: (options: { mode: string }) => Promise<PermissionState>
       requestPermission: (options: { mode: string }) => Promise<PermissionState>
     }

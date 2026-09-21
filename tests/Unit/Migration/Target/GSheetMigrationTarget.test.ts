@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ShopMetadata } from '@/Entity/ShopMetadata'
 import { createGSheetMigrationTarget } from '@/Migration/Target/GSheetMigrationTarget'
 import { FixedClock, shopMetadata } from '../helpers'
 
