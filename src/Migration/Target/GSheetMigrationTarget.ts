@@ -1,21 +1,41 @@
-import { METADATA_FILE_NAME, SPREADSHEET_NAME } from '@/Config/schema'
-import type { MigrationContext } from '@/Migration/MigrationContext'
-import type { MigrationTarget, WorkingCopy } from '@/Migration/MigrationTarget'
 import {
-  copyFile,
-  deleteFile,
-  renameFile,
-} from '@/Repository/GSheet/DriveFiles'
+  METADATA_FILE_NAME,
+  SHEET_NAMES,
+  SPREADSHEET_NAME,
+} from '@/Config/schema'
+import type { MigrationContext } from '@/Migration/MigrationContext'
+import type {
+  MigrationSession,
+  MigrationTarget,
+} from '@/Migration/MigrationTarget'
+import { copyFile } from '@/Repository/GSheet/DriveFiles'
 import { GDriveFolderRepository } from '@/Repository/GSheet/GDriveFolderRepository'
 import { GSheetWorkbookRepository } from '@/Repository/GSheet/GSheetWorkbookRepository'
+import { InMemoryWorkbookRepository } from '@/Repository/InMemoryWorkbookRepository'
 import type { Clock } from '@/Service/Clock'
 
+async function loadSpreadsheetIntoMemory(
+  spreadsheetId: string,
+  workbookId: string,
+  reader: GSheetWorkbookRepository,
+  repo: InMemoryWorkbookRepository
+): Promise<void> {
+  await Promise.all(
+    SHEET_NAMES.map(async (sheet) => {
+      try {
+        const matrix = await reader.readSheetMatrix(spreadsheetId, sheet)
+        await repo.replaceSheetMatrix(workbookId, sheet, matrix)
+      } catch {
+        // A v1 shop may omit sheets the migration will create later.
+      }
+    })
+  )
+}
+
 /**
- * Google Drive migration target. The working copy is a Drive copy of the
- * source spreadsheet (`illo3d-data.v<from>.v<to>.migration`) in the same shop
- * folder. Commit rewrites `illo3d.metadata.json` to point at the migrated
- * spreadsheet with the flipped version — that single metadata write is the
- * atomic commit point; the renames after it are cosmetic.
+ * Google Drive migration target. Steps mutate an in-memory snapshot; backup
+ * copies the live spreadsheet; submit writes sheets back to the source id and
+ * flips folder metadata — the metadata write remains the atomic commit point.
  */
 export function createGSheetMigrationTarget(
   folderId: string,
@@ -25,43 +45,59 @@ export function createGSheetMigrationTarget(
   _clock: Clock
 ): MigrationTarget {
   return {
-    async createWorkingCopy(): Promise<WorkingCopy> {
-      const workingId = await copyFile(
+    async writePreUpgradeBackup(): Promise<void> {
+      await copyFile(
         sourceSpreadsheetId,
-        `${SPREADSHEET_NAME}.v${fromVersion}.v${toVersion}.migration`,
+        `${SPREADSHEET_NAME}.v${fromVersion}.backup`,
         folderId
       )
-      const repo = new GSheetWorkbookRepository()
+    },
+
+    async openSession(): Promise<MigrationSession> {
+      const reader = new GSheetWorkbookRepository()
+      const repo = new InMemoryWorkbookRepository()
+      const workingWorkbookId = sourceSpreadsheetId
+      await loadSpreadsheetIntoMemory(
+        sourceSpreadsheetId,
+        workingWorkbookId,
+        reader,
+        repo
+      )
       const ctx: MigrationContext = {
         backend: 'google-drive',
-        workingWorkbookId: workingId,
+        workingWorkbookId,
         repo,
-        ensureSheet: (sheet) => repo.ensureSheet(workingId, sheet),
+        ensureSheet: (sheet) => repo.ensureSheet(workingWorkbookId, sheet),
       }
 
       return {
         ctx,
-        async commit({ keepOriginalAsBackup }): Promise<void> {
+        async submit(_options): Promise<void> {
+          const writer = new GSheetWorkbookRepository()
+          await Promise.all(
+            SHEET_NAMES.map(async (sheet) => {
+              if (!repo.sheets.has(sheet)) return
+              const matrix = await repo.readSheetMatrix(
+                workingWorkbookId,
+                sheet
+              )
+              await writer.replaceSheetMatrix(
+                sourceSpreadsheetId,
+                sheet,
+                matrix
+              )
+            })
+          )
           const folderRepo = new GDriveFolderRepository()
-          const metadata = await folderRepo.readMetadata(folderId)
-          if (metadata === null) {
+          const outcome = await folderRepo.readMetadata(folderId)
+          if (outcome.kind !== 'present') {
             throw new Error(`Source shop is missing ${METADATA_FILE_NAME}`)
           }
-          // The atomic commit point: metadata now points at the migrated copy.
           await folderRepo.writeMetadata(folderId, {
-            ...metadata,
+            ...outcome.metadata,
             version: toVersion,
-            spreadsheetId: workingId,
+            spreadsheetId: sourceSpreadsheetId,
           })
-          await renameFile(workingId, SPREADSHEET_NAME)
-          if (keepOriginalAsBackup) {
-            await renameFile(
-              sourceSpreadsheetId,
-              `${SPREADSHEET_NAME}.v${fromVersion}.backup`
-            )
-          } else {
-            await deleteFile(sourceSpreadsheetId)
-          }
         },
       }
     },

@@ -106,16 +106,13 @@ describe('InventoryDetailPage', () => {
       ).toHaveAttribute('href', '/inventory')
     })
 
-    it.each([
-      ['archived', { archived: 'true' }],
-      ['soft-deleted', { deleted: 'true' }],
-    ])('treats an %s item as not found', (_label, lifecycle) => {
+    it('treats a soft-deleted item as not found', () => {
       tabs = new FakeTabs()
       tabs.seed('inventory', {
         id: 'INV9',
         type: 'consumable',
         name: 'Gone',
-        ...lifecycle,
+        deleted: 'true',
       })
       mocks.em = createTestEm(tabs)
       renderDetail('INV9')
@@ -123,6 +120,29 @@ describe('InventoryDetailPage', () => {
       expect(
         screen.getByText('No inventory item with this id.')
       ).toBeInTheDocument()
+    })
+
+    it('renders archived inventory as a read-only frozen detail page', () => {
+      tabs = new FakeTabs()
+      tabs.seed('inventory', {
+        id: 'INV9',
+        type: 'consumable',
+        name: 'Archived glue',
+        archived: 'true',
+      })
+      mocks.em = createTestEm(tabs)
+      renderDetail('INV9')
+
+      expect(
+        screen.getByRole('heading', { name: 'Archived glue' })
+      ).toBeInTheDocument()
+      expect(screen.getByTestId('entity-detail-unarchive')).toBeInTheDocument()
+      expect(screen.getByTestId('entity-detail-soft-delete')).toBeInTheDocument()
+      expect(screen.queryByTestId('entity-detail-archive')).not.toBeInTheDocument()
+      expect(screen.getByTestId('inventory-detail-qty-current')).toBeDisabled()
+      expect(
+        screen.queryByTestId('inventory-detail-save-qty')
+      ).not.toBeInTheDocument()
     })
   })
 
@@ -500,7 +520,7 @@ describe('InventoryDetailPage', () => {
       const user = userEvent.setup()
       renderDetail()
 
-      await user.click(screen.getByTestId('entity-detail-delete'))
+      await user.click(screen.getByTestId('entity-detail-archive'))
       await user.click(
         within(screen.getByRole('dialog')).getByRole('button', {
           name: 'Archive',
@@ -517,7 +537,7 @@ describe('InventoryDetailPage', () => {
       const user = userEvent.setup()
       renderDetail()
 
-      await user.click(screen.getByTestId('entity-detail-delete'))
+      await user.click(screen.getByTestId('entity-detail-archive'))
       await user.click(
         within(screen.getByRole('dialog')).getByRole('button', {
           name: 'Cancel',

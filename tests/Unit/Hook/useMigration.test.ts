@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react'
+import { APP_VERSION } from '@/Config/version'
 import {
   BACKUP_SKIPPED_KEY,
   migrationStepIds,
@@ -116,8 +117,11 @@ describe('useMigration', () => {
     installFakeLocalStorage()
     vi.clearAllMocks()
     resolvePlanChain.mockReturnValue(v1Chain)
-    runPlans.mockResolvedValue({ ok: true })
-    readMetadata.mockResolvedValue({ spreadsheetId: 'SS-OLD' })
+    runPlans.mockResolvedValue({ ok: true, session: { submit: vi.fn() } })
+    readMetadata.mockResolvedValue({
+      kind: 'present',
+      metadata: { spreadsheetId: 'SS-OLD' },
+    })
     validateShopFolder.mockResolvedValue({ ok: true, shop, metadata: {} })
     hydrate.mockResolvedValue(undefined)
     useMigrationStore.getState().reset()
@@ -139,7 +143,7 @@ describe('useMigration', () => {
     expect(result.current.failureMessage).toBeNull()
   })
 
-  it('builds a local target from the directory handle and enters the migrated shop', async () => {
+  it('builds a local target from the directory handle and stops at awaiting submit', async () => {
     const { result } = renderHook(() => useMigration(clock))
 
     let outcome: Awaited<ReturnType<typeof result.current.start>> | undefined
@@ -150,7 +154,7 @@ describe('useMigration', () => {
     expect(createLocalCsvMigrationTarget).toHaveBeenCalledWith(
       handle,
       '2.0.0',
-      '3.0.1',
+      APP_VERSION,
       clock
     )
     expect(runPlans).toHaveBeenCalledWith(
@@ -160,6 +164,32 @@ describe('useMigration', () => {
         keepOriginalAsBackup: true,
       }
     )
+    expect(validateShopFolder).not.toHaveBeenCalled()
+    expect(hydrate).not.toHaveBeenCalled()
+    expect(useShopStore.getState().activeShop).toBeNull()
+    expect(outcome).toEqual({ ok: true })
+  })
+
+  it('confirmSubmit persists the session and enters the migrated shop', async () => {
+    const submit = vi.fn().mockResolvedValue(undefined)
+    runPlans.mockResolvedValue({ ok: true, session: { submit } })
+    const { result } = renderHook(() => useMigration(clock))
+
+    await act(async () => {
+      await result.current.start(args)
+    })
+
+    let outcome: Awaited<
+      ReturnType<typeof result.current.confirmSubmit>
+    > | undefined
+    await act(async () => {
+      outcome = await result.current.confirmSubmit({
+        folderId: 'F1',
+        keepOriginalAsBackup: true,
+      })
+    })
+
+    expect(submit).toHaveBeenCalledWith({ keepOriginalAsBackup: true })
     expect(validateShopFolder).toHaveBeenCalledWith('F1')
     expect(hydrate).toHaveBeenCalledTimes(1)
     expect(useShopStore.getState().activeShop).toEqual(shop)
@@ -182,7 +212,7 @@ describe('useMigration', () => {
       'F1',
       'SS-OLD',
       '2.0.0',
-      '3.0.1',
+      APP_VERSION,
       clock
     )
     expect(runPlans).toHaveBeenCalledWith(
@@ -199,7 +229,7 @@ describe('useMigration', () => {
     let seeded: unknown
     runPlans.mockImplementation(async () => {
       seeded = useMigrationStore.getState().steps
-      return { ok: true }
+      return { ok: true, session: { submit: vi.fn() } }
     })
     const { result } = renderHook(() => useMigration(clock))
 
@@ -219,7 +249,7 @@ describe('useMigration', () => {
     let seeded: unknown
     runPlans.mockImplementation(async () => {
       seeded = useMigrationStore.getState().steps
-      return { ok: true }
+      return { ok: true, session: { submit: vi.fn() } }
     })
     const { result } = renderHook(() => useMigration(clock))
 
@@ -266,7 +296,7 @@ describe('useMigration', () => {
       backend: 'google-drive',
       localDirectoryHandle: null,
     })
-    readMetadata.mockResolvedValue(null)
+    readMetadata.mockResolvedValue({ kind: 'absent' })
     const { result } = renderHook(() => useMigration(clock))
 
     await act(async () => {
@@ -318,7 +348,8 @@ describe('useMigration', () => {
     expect(useShopStore.getState().activeShop).toBeNull()
   })
 
-  it('fails when the migrated shop does not re-validate', async () => {
+  it('fails when the migrated shop does not re-validate on confirm', async () => {
+    runPlans.mockResolvedValue({ ok: true, session: { submit: vi.fn() } })
     validateShopFolder.mockResolvedValue({
       ok: false,
       error: 'structure',
@@ -326,9 +357,18 @@ describe('useMigration', () => {
     })
     const { result } = renderHook(() => useMigration(clock))
 
-    let outcome: Awaited<ReturnType<typeof result.current.start>> | undefined
     await act(async () => {
-      outcome = await result.current.start(args)
+      await result.current.start(args)
+    })
+
+    let outcome: Awaited<
+      ReturnType<typeof result.current.confirmSubmit>
+    > | undefined
+    await act(async () => {
+      outcome = await result.current.confirmSubmit({
+        folderId: 'F1',
+        keepOriginalAsBackup: true,
+      })
     })
 
     expect(outcome).toEqual({ ok: false, failedAt: 'commit' })
@@ -339,13 +379,23 @@ describe('useMigration', () => {
     expect(useShopStore.getState().activeShop).toBeNull()
   })
 
-  it('fails when hydrating the migrated shop throws', async () => {
+  it('fails when hydrating the migrated shop throws on confirm', async () => {
+    runPlans.mockResolvedValue({ ok: true, session: { submit: vi.fn() } })
     hydrate.mockRejectedValue(new Error('sheet unreachable'))
     const { result } = renderHook(() => useMigration(clock))
 
-    let outcome: Awaited<ReturnType<typeof result.current.start>> | undefined
     await act(async () => {
-      outcome = await result.current.start(args)
+      await result.current.start(args)
+    })
+
+    let outcome: Awaited<
+      ReturnType<typeof result.current.confirmSubmit>
+    > | undefined
+    await act(async () => {
+      outcome = await result.current.confirmSubmit({
+        folderId: 'F1',
+        keepOriginalAsBackup: true,
+      })
     })
 
     expect(outcome).toEqual({ ok: false, failedAt: 'commit' })

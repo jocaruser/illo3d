@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import { AppHeader } from '@/Component/layout/AppHeader'
@@ -7,6 +8,8 @@ import { FaviconUpdater } from '@/Component/layout/FaviconUpdater'
 import { GoogleSessionBanner } from '@/Component/layout/GoogleSessionBanner'
 import { OperationToast } from '@/Component/layout/OperationToast'
 import { WorkbookBootstrap } from '@/Component/layout/WorkbookBootstrap'
+import { useLocalFolderReopenGate } from '@/Hook/useLocalFolderReopenGate'
+import { LocalFolderReallowOverlay } from '@/Component/wizard/LocalFolderReallowOverlay'
 import { SetupWizard } from '@/Component/wizard/SetupWizard'
 import { useShopStore } from '@/Store/shopStore'
 import { useUserPreferencesStore } from '@/Store/userPreferencesStore'
@@ -19,10 +22,13 @@ import { useUserPreferencesStore } from '@/Store/userPreferencesStore'
 export function AppLayout() {
   const activeShop = useShopStore((state) => state.activeShop)
   const theme = useUserPreferencesStore((state) => state.theme)
+  const localFolderGate = useLocalFolderReopenGate()
+  const [reallowBusy, setReallowBusy] = useState(false)
+  const localFolderAccessBlocked = localFolderGate.phase === 'needs-reallow'
 
   return (
     <div className="flex min-h-screen flex-col bg-surface">
-      <AppHeader />
+      <AppHeader hideWorkbookChrome={localFolderAccessBlocked} />
       <GoogleSessionBanner />
       <BreadcrumbBar />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
@@ -33,7 +39,21 @@ export function AppLayout() {
       <BlockingOverlay />
       <OperationToast />
       <FaviconUpdater />
-      <WorkbookBootstrap />
+      <WorkbookBootstrap
+        localFolderReopenPhase={localFolderGate.phase}
+      />
+      <LocalFolderReallowOverlay
+        open={localFolderGate.phase === 'needs-reallow'}
+        busy={reallowBusy}
+        onGrant={() => {
+          setReallowBusy(true)
+          void localFolderGate.grantAccess().finally(() => setReallowBusy(false))
+        }}
+        onDecline={() => {
+          setReallowBusy(true)
+          void localFolderGate.decline().finally(() => setReallowBusy(false))
+        }}
+      />
 
       {activeShop === null && (
         <div

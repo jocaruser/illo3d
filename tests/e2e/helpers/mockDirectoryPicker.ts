@@ -175,8 +175,40 @@ function installMock(args: { seed: FileStore; force: boolean }): void {
     }
   }
 
+  const permissionKey = '__e2eDirectoryPermission'
+  const requestResultKey = '__e2eDirectoryPermissionRequestResult'
+  const win = window as unknown as Record<string, unknown>
+  const storedPermission = localStorage.getItem(permissionKey)
+  if (storedPermission !== null) win[permissionKey] = storedPermission
+  else if (win[permissionKey] === undefined) win[permissionKey] = 'granted'
+  const storedRequest = localStorage.getItem(requestResultKey)
+  if (storedRequest !== null) win[requestResultKey] = storedRequest
+
+  function attachPermissionApi(
+    directory: ReturnType<typeof dirHandle>
+  ): FileSystemDirectoryHandle {
+    const withPermission = directory as unknown as FileSystemDirectoryHandle & {
+      queryPermission: (options: { mode: string }) => Promise<PermissionState>
+      requestPermission: (options: { mode: string }) => Promise<PermissionState>
+    }
+    withPermission.queryPermission = async () => {
+      const state = String(win[permissionKey] ?? 'granted')
+      if (state === 'granted') return 'granted'
+      if (state === 'denied') return 'denied'
+      return 'prompt'
+    }
+    withPermission.requestPermission = async () => {
+      const current = String(win[permissionKey] ?? 'granted')
+      if (current !== 'prompt') return current as PermissionState
+      const next = String(win[requestResultKey] ?? 'granted')
+      win[permissionKey] = next
+      return next as PermissionState
+    }
+    return withPermission
+  }
+
   const rootName = 'e2e-shop'
-  const handle = dirHandle(rootName, '') as unknown as FileSystemDirectoryHandle
+  const handle = attachPermissionApi(dirHandle(rootName, ''))
 
   const target = window as unknown as {
     showDirectoryPicker: () => Promise<FileSystemDirectoryHandle>
@@ -224,3 +256,21 @@ export async function mockDirectoryPicker(
 }
 
 export { STORE_KEY }
+
+/** Simulate lapsed or denied folder permission in Playwright (before reload). */
+export async function setMockDirectoryPermission(
+  page: Page,
+  state: 'granted' | 'prompt' | 'denied',
+  requestResult: 'granted' | 'denied' = 'granted'
+): Promise<void> {
+  await page.evaluate(
+    ({ permission, request }) => {
+      localStorage.setItem('__e2eDirectoryPermission', permission)
+      localStorage.setItem('__e2eDirectoryPermissionRequestResult', request)
+      const win = window as unknown as Record<string, string>
+      win.__e2eDirectoryPermission = permission
+      win.__e2eDirectoryPermissionRequestResult = request
+    },
+    { permission: state, request: requestResult }
+  )
+}

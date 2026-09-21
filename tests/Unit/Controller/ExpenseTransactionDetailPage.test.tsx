@@ -524,6 +524,33 @@ describe('ExpenseTransactionDetailPage', () => {
         /Enter a positive quantity for this lot/
       )
       expect(createTestEm(tabs).lots.find('L1')?.quantity).toBe(1000)
+      expect(mocks.em.transactions.find('T11')?.amount).toBe(-29.99)
+      expect(mocks.toast.success).not.toHaveBeenCalled()
+    })
+
+    it('leaves the expense total unchanged when a lot is rejected in the same save', async () => {
+      const user = userEvent.setup()
+      renderDetail()
+
+      await fill(user, amountInput(), '-40')
+      await fill(
+        user,
+        screen.getByTestId('expense-detail-lot-amount-input-L1'),
+        '40'
+      )
+      await fill(
+        user,
+        screen.getByTestId('expense-detail-lot-quantity-input-L1'),
+        '0'
+      )
+      await user.click(saveButton())
+
+      expect(screen.getAllByRole('alert').at(-1)).toHaveTextContent(
+        /Enter a positive quantity for this lot/
+      )
+      expect(mocks.em.transactions.find('T11')?.amount).toBe(-29.99)
+      expect(mocks.em.lots.find('L1')?.quantity).toBe(1000)
+      expect(mocks.em.lots.find('L1')?.amount).toBe(29.99)
       expect(mocks.toast.success).not.toHaveBeenCalled()
     })
 
@@ -580,7 +607,8 @@ describe('ExpenseTransactionDetailPage', () => {
       expect(screen.getAllByRole('alert').at(-1)).toHaveTextContent(
         /Enter a non-negative amount for this lot/
       )
-      expect(createTestEm(tabs).lots.find('L1')?.amount).toBe(29.99)
+      expect(mocks.em.transactions.find('T11')?.amount).toBe(-29.99)
+      expect(mocks.em.lots.find('L1')?.amount).toBe(29.99)
     })
   })
 })

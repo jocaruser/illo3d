@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { cx } from '@/Component/cx'
 import { SectionHeading } from '@/Component/layout/SectionHeading'
@@ -115,13 +116,14 @@ export function JobMaterialsSummary({
 
   /** Overall risk = the tightest redo margin across the job's filament. */
   const overall = useMemo(() => {
-    const filament = rows.filter((row) => row.redos !== null)
-    if (filament.length === 0) return null
-    const worst = filament.reduce(
-      (min, row) => Math.min(min, row.redos as number),
-      Infinity
-    )
-    return { redos: worst, band: redoBand(worst) }
+    let risk: { redos: number; band: RedoBand; name: string } | null = null
+    for (const row of rows) {
+      if (row.redos === null) continue
+      if (risk === null || row.redos < risk.redos) {
+        risk = { redos: row.redos, band: redoBand(row.redos), name: row.name }
+      }
+    }
+    return risk
   }, [rows])
 
   return (
@@ -151,7 +153,14 @@ export function JobMaterialsSummary({
                   key={row.inventoryId}
                   data-testid={`job-material-row-${row.inventoryId}`}
                 >
-                  <TableCell>{row.name}</TableCell>
+                  <TableCell>
+                    <Link
+                      to={`/inventory/${row.inventoryId}`}
+                      className="text-primary hover:underline"
+                    >
+                      {row.name}
+                    </Link>
+                  </TableCell>
                   <TableCell className="tabular-nums">{row.quantity}</TableCell>
                   <TableCell className="tabular-nums">
                     {row.cost === null ? '—' : formatCurrency(row.cost)}
@@ -183,7 +192,10 @@ export function JobMaterialsSummary({
               </span>
             ) : (
               <span className={bandClasses[overall.band]}>
-                {t('pieces.redo.safe', { count: overall.redos })}
+                {t('jobs.riskFactorValue', {
+                  redos: overall.redos,
+                  name: overall.name,
+                })}
               </span>
             )}
           </p>

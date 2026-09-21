@@ -1,10 +1,11 @@
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { SectionHeading } from '@/Component/layout/SectionHeading'
 import { MentionLinkify } from '@/Component/MentionLinkify'
 import { RelativeTime } from '@/Component/RelativeTime'
 import { useEntityManager } from '@/Hook/useEntityManager'
+import { transactionNavigationTarget } from '@/Service/Linking/entityLinkTargets'
 import { formatCurrency } from '@/Service/Pricing/money'
 import {
   buildClientActivityTimeline,
@@ -18,7 +19,10 @@ interface ClientActivityTimelineProps {
 }
 
 /** Merged, newest-first activity feed for a client detail page. */
-export function ClientActivityTimeline({ clientId, revision = 0 }: ClientActivityTimelineProps) {
+export function ClientActivityTimeline({
+  clientId,
+  revision = 0,
+}: ClientActivityTimelineProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
 
@@ -27,28 +31,13 @@ export function ClientActivityTimeline({ clientId, revision = 0 }: ClientActivit
     return buildClientActivityTimeline(em, clientId)
   }, [em, clientId, revision])
 
-  const resolvePieceJob = useCallback(
-    (pieceId: string) => em.pieces.find(pieceId)?.jobId ?? null,
-    [em]
-  )
-
-  /** Income rows link through to the job that generated them, when there is one. */
-  const jobRefOf = useCallback(
-    (transactionId: string) => {
-      const transaction = em.transactions.find(transactionId)
-      if (transaction === null || transaction.refType !== 'job' || transaction.refId === '') {
-        return null
-      }
-      return transaction.refId
-    },
-    [em]
-  )
-
   return (
     <section className="space-y-3" data-testid="client-activity-timeline">
       <SectionHeading>{t('clientDetail.activity.title')}</SectionHeading>
       {entries.length === 0 ? (
-        <p className="text-sm text-text-muted">{t('clientDetail.activity.empty')}</p>
+        <p className="text-sm text-text-muted">
+          {t('clientDetail.activity.empty')}
+        </p>
       ) : (
         <ol className="space-y-2">
           {entries.map((entry) => (
@@ -68,7 +57,7 @@ export function ClientActivityTimeline({ clientId, revision = 0 }: ClientActivit
                 )}
               </div>
               <div className="mt-1 text-sm text-text">
-                <ActivityBody entry={entry} resolvePieceJob={resolvePieceJob} jobRefOf={jobRefOf} />
+                <ActivityBody entry={entry} em={em} />
               </div>
             </li>
           ))}
@@ -80,29 +69,31 @@ export function ClientActivityTimeline({ clientId, revision = 0 }: ClientActivit
 
 interface ActivityBodyProps {
   entry: ClientActivityEntry
-  resolvePieceJob: (pieceId: string) => string | null
-  jobRefOf: (transactionId: string) => string | null
+  em: ReturnType<typeof useEntityManager>
 }
 
-function ActivityBody({ entry, resolvePieceJob, jobRefOf }: ActivityBodyProps) {
+function ActivityBody({ entry, em }: ActivityBodyProps) {
   const { t } = useTranslation()
 
   if (entry.kind === 'income') {
-    const jobId = jobRefOf(entry.transactionId)
-    const label = entry.concept !== '' ? entry.concept : t('clientDetail.activity.incomeConceptFallback')
+    const to = transactionNavigationTarget(em, entry.transactionId)
+    const label =
+      entry.concept !== ''
+        ? entry.concept
+        : t('clientDetail.activity.incomeConceptFallback')
     return (
       <span className="flex flex-wrap items-baseline gap-2">
         <span className="text-success">{formatCurrency(entry.amount)}</span>
-        {jobId === null ? (
-          <span>{label}</span>
-        ) : (
+        {to?.startsWith('/jobs/') ? (
           <Link
-            to={`/jobs/${jobId}`}
+            to={to}
             data-testid={`transaction-concept-job-link-${entry.transactionId}`}
             className="text-primary hover:underline"
           >
             {label}
           </Link>
+        ) : (
+          <span>{label}</span>
         )}
       </span>
     )
@@ -113,17 +104,22 @@ function ActivityBody({ entry, resolvePieceJob, jobRefOf }: ActivityBodyProps) {
   }
 
   if (entry.kind === 'client_note') {
-    return <MentionLinkify text={entry.body} resolvePieceJob={resolvePieceJob} />
+    return <MentionLinkify text={entry.body} em={em} />
   }
 
   if (entry.kind === 'job_note') {
     return (
       <span className="space-y-1">
         <span className="block">
-          <MentionLinkify text={entry.body} resolvePieceJob={resolvePieceJob} />
+          <MentionLinkify text={entry.body} em={em} />
         </span>
-        <Link to={`/jobs/${entry.jobId}`} className="block text-xs text-primary hover:underline">
-          {t('clientDetail.activity.jobLink', { description: entry.jobDescription })}
+        <Link
+          to={`/jobs/${entry.jobId}`}
+          className="block text-xs text-primary hover:underline"
+        >
+          {t('clientDetail.activity.jobLink', {
+            description: entry.jobDescription,
+          })}
         </Link>
       </span>
     )
@@ -131,11 +127,18 @@ function ActivityBody({ entry, resolvePieceJob, jobRefOf }: ActivityBodyProps) {
 
   return (
     <span className="space-y-1">
-      <Link to={`/jobs/${entry.jobId}`} className="block text-primary hover:underline">
-        {t('clientDetail.activity.jobLink', { description: entry.jobDescription })}
+      <Link
+        to={`/jobs/${entry.jobId}`}
+        className="block text-primary hover:underline"
+      >
+        {t('clientDetail.activity.jobLink', {
+          description: entry.jobDescription,
+        })}
       </Link>
       <span className="block text-xs text-text-muted">
-        {t('clientDetail.activity.statusLine', { status: t(`jobs.status.${entry.status}`) })}
+        {t('clientDetail.activity.statusLine', {
+          status: t(`jobs.status.${entry.status}`),
+        })}
       </span>
     </span>
   )

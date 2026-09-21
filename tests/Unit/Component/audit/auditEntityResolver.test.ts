@@ -23,6 +23,8 @@ function seeded(): { tabs: FakeTabs; em: EntityManager } {
     type: 'income',
     concept: 'Job J1 paid',
     amount: '120',
+    ref_type: 'job',
+    ref_id: 'J1',
   })
   tabs.seed('tags', { id: 'TG2', name: 'VIP' })
   tabs.seed('crm_notes', { id: 'N1', body: 'Called about the deadline' })
@@ -58,7 +60,23 @@ describe('resolveAuditEntity', () => {
       })
     })
 
-    it('links an expense transaction but never an income one', () => {
+    it('leaves income without a job reference unlinked', () => {
+      const tabs = new FakeTabs()
+      tabs.seed('transactions', {
+        id: 'T2',
+        type: 'income',
+        concept: 'Misc',
+        amount: '5',
+      })
+      const em = createTestEm(tabs)
+
+      expect(resolveAuditEntity(em, 'transaction', 'T2')).toEqual({
+        label: 'Misc',
+        to: null,
+      })
+    })
+
+    it('links expense purchases and income rows that reference a job', () => {
       const { em } = seeded()
 
       expect(resolveAuditEntity(em, 'transaction', 'T11')).toEqual({
@@ -67,7 +85,7 @@ describe('resolveAuditEntity', () => {
       })
       expect(resolveAuditEntity(em, 'transaction', 'T1')).toEqual({
         label: 'Job J1 paid',
-        to: null,
+        to: '/jobs/J1',
       })
     })
 
@@ -152,7 +170,7 @@ describe('resolveAuditEntity', () => {
           '',
           '{"concept":"Gone expense"}'
         )
-      ).toEqual({ label: 'Gone expense', to: null })
+      ).toEqual({ label: 'Gone expense', to: '/transactions/T404' })
     })
 
     it('names a vanished piece but cannot link it without a job to open', () => {

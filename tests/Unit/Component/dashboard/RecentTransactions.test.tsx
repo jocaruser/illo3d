@@ -1,7 +1,7 @@
 import { screen, within } from '@testing-library/react'
 import { RecentTransactions } from '@/Component/dashboard/RecentTransactions'
 import { renderWithProviders } from '../helpers/renderWithProviders'
-import { seedLot, seedTransaction, setupShop } from './harness'
+import { seedJob, seedLot, seedTransaction, setupShop } from './harness'
 import type { TestContext } from '../../Service/helpers'
 
 vi.mock('@/Hook/useEntityManager', async () => {
@@ -129,6 +129,7 @@ describe('RecentTransactions', () => {
 
   describe('concept links', () => {
     it('sends a job-backed row to the job', () => {
+      seedJob(context.tabs, { id: 'J1', client_id: 'CL1', description: 'Vase job' })
       seedTransaction(context.tabs, {
         id: 'T1',
         date: '2026-07-01',

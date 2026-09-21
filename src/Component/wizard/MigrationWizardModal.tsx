@@ -11,6 +11,7 @@ import { useMigrationStore } from '@/Store/migrationStore'
 import { BackupQuestion } from './BackupQuestion'
 import { CooldownContinueButton } from './CooldownContinueButton'
 import { MigrationStepsGrid } from './MigrationStepsGrid'
+import { benefitHopsForShop } from './migrationBenefitHops'
 import { doneCount, migrationStepStates } from './migrationSteps'
 
 interface MigrationWizardModalProps {
@@ -21,7 +22,7 @@ interface MigrationWizardModalProps {
 /**
  * Shown when a shop's major version trails the app's, on both backends. The
  * user picks whether to keep a backup, waits out a short cooldown, then runs
- * the migration — which enters the shop on success, unmounting this modal.
+ * the migration in memory — **Confirm and close** persists and opens the shop.
  */
 export function MigrationWizardModal({
   candidate,
@@ -33,7 +34,7 @@ export function MigrationWizardModal({
     boolean | null
   >(null)
   const [busy, setBusy] = useState(false)
-  const { start } = useMigration()
+  const { start, confirmSubmit } = useMigration()
   const phase = useMigrationStore((state) => state.phase)
   const liveSteps = useMigrationStore((state) => state.steps)
   const failureMessage = useMigrationStore((state) => state.failureMessage)
@@ -44,8 +45,12 @@ export function MigrationWizardModal({
     candidate.shopVersion,
     keepOriginalAsBackup
   )
-  const done = doneCount(rows)
+  const done = doneCount(rows, phase)
   const allDone = rows.length > 0 && done === rows.length
+  const benefitHops = benefitHopsForShop(candidate.shopVersion)
+  const awaitingSubmit = phase === 'awaiting-submit'
+  const runStarted =
+    phase !== 'idle' && phase !== 'failed' && phase !== 'awaiting-submit'
 
   // Null until the backup question is answered — which is exactly what makes
   // Continue eligible, so the button needs no separate "ready" flag.
@@ -91,32 +96,39 @@ export function MigrationWizardModal({
           appVersion={candidate.appVersion}
         />
 
-        <div className="mt-4 space-y-2 text-sm text-text-muted">
-          <p>{t('wizard.migrationDescriptionChanges')}</p>
-          <ul className="list-disc space-y-1 pl-5">
-            <li>
-              <span className="font-medium text-text">
-                {t('wizard.migrationDescriptionLabel1')}
-              </span>
-              {' — '}
-              {t('wizard.migrationDescriptionItem1')}
-            </li>
-            <li>
-              <span className="font-medium text-text">
-                {t('wizard.migrationDescriptionLabel2')}
-              </span>
-              {' — '}
-              {t('wizard.migrationDescriptionItem2')}
-            </li>
-          </ul>
-          <p>{t('wizard.migrationDescriptionActions')}</p>
-        </div>
+        {benefitHops.length > 0 && (
+          <div className="mt-4 space-y-4 text-sm text-text-muted">
+            {benefitHops.map(({ hopKey }) => (
+              <section key={hopKey} data-testid={`migration-hop-${hopKey}`}>
+                <p>{t(`wizard.migrationHop.${hopKey}.intro`)}</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  <li>
+                    <span className="font-medium text-text">
+                      {t(`wizard.migrationHop.${hopKey}.benefit1.label`)}
+                    </span>
+                    {' — '}
+                    {t(`wizard.migrationHop.${hopKey}.benefit1.item`)}
+                  </li>
+                  <li>
+                    <span className="font-medium text-text">
+                      {t(`wizard.migrationHop.${hopKey}.benefit2.label`)}
+                    </span>
+                    {' — '}
+                    {t(`wizard.migrationHop.${hopKey}.benefit2.item`)}
+                  </li>
+                </ul>
+                <p>{t(`wizard.migrationHop.${hopKey}.actions`)}</p>
+              </section>
+            ))}
+            <p>{t('wizard.migrationHop.dataAssurance')}</p>
+          </div>
+        )}
 
         <div className="mt-4">
           <BackupQuestion
             value={keepOriginalAsBackup}
             onChange={setKeepOriginalAsBackup}
-            disabled={busy}
+            disabled={busy || runStarted || awaitingSubmit}
           />
         </div>
 
@@ -124,9 +136,11 @@ export function MigrationWizardModal({
           data-testid="wizard-migration-summary"
           className="mt-4 text-sm font-medium text-text-muted"
         >
-          {allDone
-            ? t('wizard.migrationAllDone')
-            : t('wizard.migrationSummary', { done, total: rows.length })}
+          {awaitingSubmit
+            ? t('wizard.migrationAwaitingSubmit')
+            : allDone
+              ? t('wizard.migrationAllDone')
+              : t('wizard.migrationSummary', { done, total: rows.length })}
         </p>
 
         <div className="mt-2">
@@ -152,17 +166,36 @@ export function MigrationWizardModal({
             type="button"
             data-testid="wizard-migration-logout"
             className="btn-secondary"
-            disabled={busy}
+            disabled={busy && phase !== 'awaiting-submit'}
             onClick={onLogOut}
           >
             {t('wizard.migrationLogOut')}
           </button>
-          <CooldownContinueButton
-            label={t('wizard.migrationContinue')}
-            resetKey={String(keepOriginalAsBackup)}
-            busy={busy}
-            onClick={runMigration === null ? null : () => void runMigration()}
-          />
+          {awaitingSubmit ? (
+            <button
+              type="button"
+              data-testid="wizard-migration-confirm"
+              className="btn-primary"
+              disabled={busy || keepOriginalAsBackup === null}
+              onClick={() => {
+                if (keepOriginalAsBackup === null) return
+                setBusy(true)
+                void confirmSubmit({
+                  folderId: candidate.folderId,
+                  keepOriginalAsBackup,
+                }).finally(() => setBusy(false))
+              }}
+            >
+              {t('wizard.migrationConfirmClose')}
+            </button>
+          ) : (
+            <CooldownContinueButton
+              label={t('wizard.migrationContinue')}
+              resetKey={String(keepOriginalAsBackup)}
+              busy={busy || runStarted}
+              onClick={runMigration === null ? null : () => void runMigration()}
+            />
+          )}
         </div>
       </div>
     </div>

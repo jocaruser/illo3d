@@ -1,5 +1,6 @@
 import type { AuditEntityName } from '@/Entity/AuditEntry'
 import type { EntityManager } from '@/Repository/EntityManager'
+import { auditEntityNavigationTarget } from '@/Service/Linking/entityLinkTargets'
 
 export interface ResolvedAuditEntity {
   /** Human label: a live name, a name from the JSON snapshots, or the raw id. */
@@ -67,35 +68,6 @@ function snapshotLabel(json: string): string | null {
   return null
 }
 
-/** Where a resolved entity of this type is read in the app, or null. */
-function linkTarget(
-  em: EntityManager,
-  entityName: AuditEntityName | '',
-  entityId: string
-): string | null {
-  switch (entityName) {
-    case 'client':
-      return `/clients/${entityId}`
-    case 'job':
-      return `/jobs/${entityId}`
-    case 'piece': {
-      // Pieces are read inside their job, so the job must still exist.
-      const jobId = em.pieces.find(entityId)?.jobId ?? ''
-      return jobId === '' ? null : `/jobs/${jobId}#piece-${entityId}`
-    }
-    case 'inventory':
-      return `/inventory/${entityId}`
-    case 'transaction':
-      // Only expenses have a detail page; income rows are read-only list rows.
-      return em.transactions.find(entityId)?.isExpense() === true
-        ? `/transactions/${entityId}`
-        : null
-    default:
-      // tag, tag_link, crm_note, lot and piece_item have no detail route.
-      return null
-  }
-}
-
 function blankToNull(value: string | undefined): string | null {
   return value === undefined || value.trim() === '' ? null : value
 }
@@ -122,5 +94,30 @@ export function resolveAuditEntity(
   const resolved =
     liveLabel(em, entityName, entityId) ?? jsonLabel(beforeJson, afterJson)
   if (resolved === null) return { label: entityId, to: null }
-  return { label: resolved, to: linkTarget(em, entityName, entityId) }
+  const live = liveLabel(em, entityName, entityId)
+  const fromSnapshot = jsonLabel(beforeJson, afterJson)
+  let to = auditEntityNavigationTarget(em, entityName, entityId)
+  if (to === null && live === null && fromSnapshot !== null) {
+    to = auditPathWhenRowIsGone(entityName, entityId)
+  }
+  return { label: resolved, to }
+}
+
+/** Detail routes for entities named only from audit snapshots. */
+function auditPathWhenRowIsGone(
+  entityName: AuditEntityName | '',
+  entityId: string
+): string | null {
+  switch (entityName) {
+    case 'client':
+      return `/clients/${entityId}`
+    case 'job':
+      return `/jobs/${entityId}`
+    case 'inventory':
+      return `/inventory/${entityId}`
+    case 'transaction':
+      return `/transactions/${entityId}`
+    default:
+      return null
+  }
 }

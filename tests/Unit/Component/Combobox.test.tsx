@@ -41,6 +41,24 @@ describe('Combobox', () => {
     expect(screen.getByRole('option', { name: 'Acme' })).toHaveAttribute('aria-selected', 'false')
   })
 
+  it('filters with the shared fuzzy matcher when a typo would miss substring matching', async () => {
+    const fuzzyItems: ComboboxItem[] = [
+      { key: 'r1', label: 'Photopolymer resin' },
+      { key: 'r2', label: 'PLA White' },
+    ]
+    const user = userEvent.setup()
+    renderWithProviders(<Combobox items={fuzzyItems} value={null} onChange={vi.fn()} />)
+
+    const input = screen.getByRole('combobox')
+    await user.click(input)
+    await user.type(input, 'Phtopolymer')
+
+    expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+      'Photopolymer resin',
+    ])
+    expect('photopolymer resin'.includes('phtopolymer')).toBe(false)
+  })
+
   it('filters case-insensitively on substrings while showing the query', async () => {
     const user = userEvent.setup()
     renderWithProviders(<Combobox items={items} value="CL2" onChange={vi.fn()} />)

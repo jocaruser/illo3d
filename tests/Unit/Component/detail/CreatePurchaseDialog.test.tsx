@@ -52,6 +52,14 @@ async function fill(
   await user.type(element, value)
 }
 
+async function pickCategory(
+  user: ReturnType<typeof userEvent.setup>,
+  label: string
+) {
+  await user.click(screen.getByLabelText('Category'))
+  await user.click(screen.getByRole('option', { name: label }))
+}
+
 describe('CreatePurchaseDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -80,7 +88,7 @@ describe('CreatePurchaseDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await user.selectOptions(screen.getByLabelText('Category'), 'electric')
+      await pickCategory(user, 'Electric')
       await fill(user, amountField(), '12')
       await fill(user, screen.getByLabelText('Notes'), 'January power')
       await user.click(submit())
@@ -120,20 +128,18 @@ describe('CreatePurchaseDialog', () => {
       )
     })
 
-    it('offers every expense category', () => {
+    it('offers every expense category', async () => {
+      const user = userEvent.setup()
       renderDialog()
 
-      expect(
-        Array.from(
-          screen.getByLabelText('Category').querySelectorAll('option')
-        ).map((option) => option.value)
-      ).toEqual([
-        'filament',
-        'consumable',
-        'equipment',
-        'electric',
-        'maintenance',
-        'other',
+      await user.click(screen.getByLabelText('Category'))
+      expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+        'Filament',
+        'Consumable',
+        'Equipment',
+        'Electric',
+        'Maintenance',
+        'Other',
       ])
     })
 
@@ -171,16 +177,17 @@ describe('CreatePurchaseDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await user.selectOptions(screen.getByLabelText('Category'), 'electric')
+      await pickCategory(user, 'Electric')
       await user.click(addToInventory())
 
-      expect(
-        Array.from(
-          screen.getByLabelText('Category').querySelectorAll('option')
-        ).map((option) => option.value)
-      ).toEqual(['filament', 'consumable', 'equipment'])
+      await user.click(screen.getByLabelText('Category'))
+      expect(screen.getAllByRole('option').map((option) => option.textContent)).toEqual([
+        'Filament',
+        'Consumable',
+        'Equipment',
+      ])
       // 'electric' cannot buy stock, so the dialog moves to a category that can.
-      expect(screen.getByLabelText('Category')).toHaveValue('filament')
+      expect(screen.getByLabelText('Category')).toHaveValue('Filament')
       expect(screen.getByTestId('purchase-line-0-qty')).toBeInTheDocument()
     })
 
@@ -208,10 +215,10 @@ describe('CreatePurchaseDialog', () => {
       const user = userEvent.setup()
       renderDialog()
 
-      await user.selectOptions(screen.getByLabelText('Category'), 'consumable')
+      await pickCategory(user, 'Consumable')
       await user.click(addToInventory())
 
-      expect(screen.getByLabelText('Category')).toHaveValue('consumable')
+      expect(screen.getByLabelText('Category')).toHaveValue('Consumable')
     })
 
     it('drives the total from the lines and locks the amount field', async () => {

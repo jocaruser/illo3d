@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ShopMetadata } from '@/Entity/ShopMetadata'
+import {
+  INVALID_JSON_METADATA_DETAIL,
+  INVALID_SHOP_METADATA_DETAIL,
+} from '@/Repository/MetadataReadOutcome'
 import { GDriveFolderRepository } from '@/Repository/GSheet/GDriveFolderRepository'
 
 const { driveFetchMock, uploadMultipartMock } = vi.hoisted(() => ({
@@ -50,39 +54,48 @@ describe('readMetadata', () => {
     driveFetchMock
       .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'M1' }] }))
       .mockResolvedValueOnce(textResponse(JSON.stringify(metadata)))
-    expect(await repository.readMetadata('F1')).toEqual(metadata)
+    expect(await repository.readMetadata('F1')).toEqual({
+      kind: 'present',
+      metadata,
+    })
     expect(driveFetchMock).toHaveBeenNthCalledWith(1, searchPath)
     expect(driveFetchMock).toHaveBeenNthCalledWith(2, '/files/M1?alt=media')
   })
 
-  it('returns null when the search finds nothing', async () => {
+  it('returns absent when the search finds nothing', async () => {
     driveFetchMock.mockResolvedValueOnce(jsonResponse({ files: [] }))
-    expect(await repository.readMetadata('F1')).toBeNull()
+    expect(await repository.readMetadata('F1')).toEqual({ kind: 'absent' })
     expect(driveFetchMock).toHaveBeenCalledTimes(1)
   })
 
-  it('returns null when the response has no files field', async () => {
+  it('returns absent when the response has no files field', async () => {
     driveFetchMock.mockResolvedValueOnce(jsonResponse({}))
-    expect(await repository.readMetadata('F1')).toBeNull()
+    expect(await repository.readMetadata('F1')).toEqual({ kind: 'absent' })
   })
 
-  it('returns null when the found file has no id', async () => {
+  it('returns absent when the found file has no id', async () => {
     driveFetchMock.mockResolvedValueOnce(jsonResponse({ files: [{}] }))
-    expect(await repository.readMetadata('F1')).toBeNull()
+    expect(await repository.readMetadata('F1')).toEqual({ kind: 'absent' })
   })
 
-  it('returns null when the content is not valid JSON', async () => {
+  it('returns damaged when the content is not valid JSON', async () => {
     driveFetchMock
       .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'M1' }] }))
       .mockResolvedValueOnce(textResponse('not json {'))
-    expect(await repository.readMetadata('F1')).toBeNull()
+    expect(await repository.readMetadata('F1')).toEqual({
+      kind: 'damaged',
+      detail: INVALID_JSON_METADATA_DETAIL,
+    })
   })
 
-  it('returns null when the JSON is not shop metadata', async () => {
+  it('returns damaged when the JSON is not shop metadata', async () => {
     driveFetchMock
       .mockResolvedValueOnce(jsonResponse({ files: [{ id: 'M1' }] }))
       .mockResolvedValueOnce(textResponse('{"app":"other"}'))
-    expect(await repository.readMetadata('F1')).toBeNull()
+    expect(await repository.readMetadata('F1')).toEqual({
+      kind: 'damaged',
+      detail: INVALID_SHOP_METADATA_DETAIL,
+    })
   })
 })
 

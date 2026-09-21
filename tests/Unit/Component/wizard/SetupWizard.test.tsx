@@ -1,6 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import SetupWizardDefault, { SetupWizard } from '@/Component/wizard/SetupWizard'
+import { INVALID_JSON_METADATA_DETAIL } from '@/Repository/MetadataReadOutcome'
 import { useAuthStore } from '@/Store/authStore'
 import { useBackendStore } from '@/Store/backendStore'
 import { useMigrationStore } from '@/Store/migrationStore'
@@ -151,7 +152,7 @@ describe('SetupWizard', () => {
         )
       useBackendStore.getState().setBackend('google-drive')
     })
-    readMetadata.mockResolvedValue(metadata)
+    readMetadata.mockResolvedValue({ kind: 'present', metadata })
     createShopMock.mockResolvedValue(shop)
     validateShopFolder.mockResolvedValue({ ok: true, shop, metadata })
     hydrate.mockResolvedValue(undefined)
@@ -218,7 +219,7 @@ describe('SetupWizard', () => {
     })
 
     it('offers to create a shop when the folder holds no metadata', async () => {
-      readMetadata.mockResolvedValue(null)
+      readMetadata.mockResolvedValue({ kind: 'absent' })
       const user = userEvent.setup()
       renderWithProviders(<SetupWizard />)
 
@@ -235,8 +236,47 @@ describe('SetupWizard', () => {
       expect(validateShopFolder).not.toHaveBeenCalled()
     })
 
+    it('shows a structure error when metadata JSON is invalid', async () => {
+      readMetadata.mockResolvedValue({
+        kind: 'damaged',
+        detail: INVALID_JSON_METADATA_DETAIL,
+      })
+      const user = userEvent.setup()
+      renderWithProviders(<SetupWizard />)
+
+      await user.click(screen.getByTestId('wizard-local-folder'))
+
+      const error = await screen.findByTestId('wizard-error')
+      expect(error).toHaveTextContent(
+        `This shop's files do not match the layout this app expects: ${INVALID_JSON_METADATA_DETAIL}`
+      )
+      expect(
+        screen.queryByTestId('wizard-create-confirm-action')
+      ).not.toBeInTheDocument()
+      expect(validateShopFolder).not.toHaveBeenCalled()
+    })
+
+    it('shows a structure error when metadata shape is invalid', async () => {
+      readMetadata.mockResolvedValue({
+        kind: 'damaged',
+        detail: 'metadata file is not valid shop metadata',
+      })
+      const user = userEvent.setup()
+      renderWithProviders(<SetupWizard />)
+
+      await user.click(screen.getByTestId('wizard-local-folder'))
+
+      const error = await screen.findByTestId('wizard-error')
+      expect(error).toHaveTextContent(
+        "This shop's files do not match the layout this app expects: metadata file is not valid shop metadata"
+      )
+      expect(
+        screen.queryByTestId('wizard-create-confirm-action')
+      ).not.toBeInTheDocument()
+    })
+
     it('creates the shop once the overwrite is confirmed', async () => {
-      readMetadata.mockResolvedValue(null)
+      readMetadata.mockResolvedValue({ kind: 'absent' })
       const user = userEvent.setup()
       renderWithProviders(<SetupWizard />)
 
@@ -252,7 +292,7 @@ describe('SetupWizard', () => {
     })
 
     it('returns to welcome when the create confirmation is cancelled', async () => {
-      readMetadata.mockResolvedValue(null)
+      readMetadata.mockResolvedValue({ kind: 'absent' })
       const user = userEvent.setup()
       renderWithProviders(<SetupWizard />)
 
@@ -270,7 +310,7 @@ describe('SetupWizard', () => {
     })
 
     it('surfaces a creation failure with a retry', async () => {
-      readMetadata.mockResolvedValue(null)
+      readMetadata.mockResolvedValue({ kind: 'absent' })
       createShopMock.mockRejectedValue(new Error('Permission denied'))
       const user = userEvent.setup()
       renderWithProviders(<SetupWizard />)
@@ -531,7 +571,7 @@ describe('SetupWizard', () => {
     beforeEach(() => {
       validateShopFolder.mockResolvedValue({
         ok: false,
-        error: 'version',
+        error: 'version_behind',
         shopVersion: '2.0.0',
         appVersion: '3.0.0',
       })

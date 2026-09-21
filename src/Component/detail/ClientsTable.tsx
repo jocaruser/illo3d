@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { cx } from '@/Component/cx'
 import { RelativeTime } from '@/Component/RelativeTime'
 import {
   DataTable,
@@ -31,16 +30,6 @@ interface ClientsTableProps {
 
 const COLUMN_COUNT = 7
 
-/**
- * Progressive column hiding. `SortableColumnHeader` owns its `<th>`, so the
- * breakpoint rules target whole columns by position from the table element
- * instead of per-cell classes: Phone (4th) appears at md, Created (6th) at lg.
- */
-const responsiveColumns = cx(
-  '[&_tr>*:nth-child(4)]:hidden md:[&_tr>*:nth-child(4)]:table-cell',
-  '[&_tr>*:nth-child(6)]:hidden lg:[&_tr>*:nth-child(6)]:table-cell'
-)
-
 function cellOf(client: Client, key: ClientSortKey): SortValue {
   if (key === 'id') return client.id
   if (key === 'name') return client.name
@@ -56,7 +45,7 @@ export function ClientsTable({ rows, tagNames, emptyMessage, onEdit, onArchive }
   const sorted = useMemo(() => sortRows(rows, sort, cellOf, (client) => client.id), [rows, sort])
 
   return (
-    <DataTable className={responsiveColumns}>
+    <DataTable>
       <TableHead>
         <TableRow>
           <SortableColumnHeader
@@ -78,6 +67,7 @@ export function ClientsTable({ rows, tagNames, emptyMessage, onEdit, onArchive }
             label={t('clients.phone')}
             direction={directionFor('phone')}
             onToggle={(next) => toggle('phone', next)}
+            viewportTier="medium"
           />
           <SortableColumnHeader
             label={t('clients.notes')}
@@ -88,6 +78,7 @@ export function ClientsTable({ rows, tagNames, emptyMessage, onEdit, onArchive }
             label={t('clients.createdAt')}
             direction={directionFor('createdAt')}
             onToggle={(next) => toggle('createdAt', next)}
+            viewportTier="wide"
           />
           <TableHeader>{t('clients.actions')}</TableHeader>
         </TableRow>
@@ -113,9 +104,11 @@ export function ClientsTable({ rows, tagNames, emptyMessage, onEdit, onArchive }
                 </TagTooltip>
               </TableCell>
               <TableCell className="text-text-muted">{client.email}</TableCell>
-              <TableCell className="text-text-muted">{client.phone}</TableCell>
+              <TableCell viewportTier="medium" className="text-text-muted">
+                {client.phone}
+              </TableCell>
               <TableCell className="max-w-xs truncate text-text-muted">{client.notes}</TableCell>
-              <TableCell className="text-text-muted">
+              <TableCell viewportTier="wide" className="text-text-muted">
                 {client.createdAt !== '' && <RelativeTime value={client.createdAt} />}
               </TableCell>
               <TableCell>

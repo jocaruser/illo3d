@@ -5,6 +5,7 @@ import { Card, CardBody, CardHeader, CardTitle } from '@/Component/Card'
 import { ColouredNumber } from '@/Component/ColouredNumber'
 import type { Transaction } from '@/Entity/Transaction'
 import { useEntityManager } from '@/Hook/useEntityManager'
+import { transactionNavigationTarget } from '@/Service/Linking/entityLinkTargets'
 import { formatCurrency } from '@/Service/Pricing/money'
 
 const RECENT_LIMIT = 5
@@ -20,13 +21,17 @@ export function RecentTransactions() {
   const { t } = useTranslation()
   const em = useEntityManager()
 
-  const transactions = em.transactions.findActive().sort(compareByDateDesc).slice(0, RECENT_LIMIT)
+  const transactions = em.transactions
+    .findActive()
+    .sort(compareByDateDesc)
+    .slice(0, RECENT_LIMIT)
 
   const conceptOf = (transaction: Transaction): ReactNode => {
-    if (transaction.refType === 'job') {
+    const to = transactionNavigationTarget(em, transaction.id)
+    if (to?.startsWith('/jobs/')) {
       return (
         <Link
-          to={`/jobs/${transaction.refId}`}
+          to={to}
           className="text-primary hover:underline"
           data-testid={`transaction-concept-job-link-${transaction.id}`}
         >
@@ -34,10 +39,10 @@ export function RecentTransactions() {
         </Link>
       )
     }
-    if (transaction.isExpense() && em.lots.findActiveByTransaction(transaction.id).length > 0) {
+    if (to?.startsWith('/transactions/')) {
       return (
         <Link
-          to={`/transactions/${transaction.id}`}
+          to={to}
           className="text-primary hover:underline"
           data-testid={`transaction-concept-expense-link-${transaction.id}`}
         >
@@ -46,7 +51,10 @@ export function RecentTransactions() {
       )
     }
     return (
-      <span className="text-text" data-testid={`transaction-concept-plain-${transaction.id}`}>
+      <span
+        className="text-text"
+        data-testid={`transaction-concept-plain-${transaction.id}`}
+      >
         {transaction.concept}
       </span>
     )
@@ -56,18 +64,28 @@ export function RecentTransactions() {
     <Card>
       <CardHeader className="flex items-center justify-between">
         <CardTitle>{t('dashboard.recentTransactions')}</CardTitle>
-        <Link to="/transactions" className="text-sm text-primary hover:underline">
+        <Link
+          to="/transactions"
+          className="text-sm text-primary hover:underline"
+        >
           {t('dashboard.viewAll')}
         </Link>
       </CardHeader>
       <CardBody>
         {transactions.length === 0 ? (
-          <p className="text-sm text-text-muted">{t('dashboard.recentEmpty')}</p>
+          <p className="text-sm text-text-muted">
+            {t('dashboard.recentEmpty')}
+          </p>
         ) : (
           <ul className="divide-y divide-border">
             {transactions.map((transaction) => (
-              <li key={transaction.id} className="flex items-center justify-between gap-2 py-2">
-                <span className="min-w-0 truncate text-sm">{conceptOf(transaction)}</span>
+              <li
+                key={transaction.id}
+                className="flex items-center justify-between gap-2 py-2"
+              >
+                <span className="min-w-0 truncate text-sm">
+                  {conceptOf(transaction)}
+                </span>
                 <span className="flex shrink-0 items-center gap-3 text-sm">
                   <span className="text-text-muted">{transaction.date}</span>
                   <ColouredNumber value={transaction.amount ?? 0}>

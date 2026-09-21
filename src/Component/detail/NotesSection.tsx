@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer, useState } from 'react'
+import { useMemo, useReducer, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AlertStrip } from '@/Component/AlertStrip'
 import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
@@ -7,7 +7,7 @@ import { FormTextarea } from '@/Component/form/FormTextarea'
 import { SectionHeading } from '@/Component/layout/SectionHeading'
 import { MentionLinkify } from '@/Component/MentionLinkify'
 import { RelativeTime } from '@/Component/RelativeTime'
-import { Select } from '@/Component/Select'
+import { formControlClasses } from '@/Component/form/controlClasses'
 import { toast } from '@/Component/Toast'
 import type { AlertVariant } from '@/Component/alertVariants'
 import {
@@ -21,9 +21,14 @@ import { NoteService } from '@/Service/NoteService'
 interface NotesSectionProps {
   entityType: NoteEntityType
   entityId: string
+  readOnly?: boolean
 }
 
-export function NotesSection({ entityType, entityId }: NotesSectionProps) {
+export function NotesSection({
+  entityType,
+  entityId,
+  readOnly = false,
+}: NotesSectionProps) {
   const { t } = useTranslation()
   const em = useEntityManager()
   const [revision, bump] = useReducer((count: number) => count + 1, 0)
@@ -51,15 +56,11 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
     () =>
       NOTE_SEVERITIES.map((value) => ({
         value,
-        label: t(`clientDetail.severity.${value}`),
+        label: t(`${prefix}.severity.${value}`),
       })),
-    [t]
+    [prefix, t]
   )
 
-  const resolvePieceJob = useCallback(
-    (pieceId: string) => em.pieces.find(pieceId)?.jobId ?? null,
-    [em]
-  )
 
   const add = () => {
     const result = service.createNote(entityType, entityId, body, severity)
@@ -70,7 +71,7 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
     setBody('')
     setSeverity('info')
     setError('')
-    toast.success(t('clientDetail.noteSaved'))
+    toast.success(t(`${prefix}.noteSaved`))
     bump()
   }
 
@@ -88,7 +89,7 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
       return
     }
     setEditingId(null)
-    toast.success(t('clientDetail.noteSaved'))
+    toast.success(t(`${prefix}.noteSaved`))
     bump()
   }
 
@@ -109,43 +110,48 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
         >
           {prominent.map((note) => (
             <AlertStrip key={note.id} variant={note.severity as AlertVariant}>
-              <MentionLinkify
-                text={note.body}
-                resolvePieceJob={resolvePieceJob}
-              />
+              <MentionLinkify text={note.body} em={em} />
             </AlertStrip>
           ))}
         </div>
       )}
 
-      <div className="space-y-2 rounded-lg border border-border bg-surface-elevated p-3">
-        <FormTextarea
-          rows={2}
-          value={body}
-          aria-label={t(`${prefix}.addNote`)}
-          placeholder={t(`${prefix}.noteBodyPlaceholder`)}
-          onChange={(event) => setBody(event.target.value)}
-        />
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="w-40">
-            <Select
-              aria-label={t(`${prefix}.severityLabel`)}
-              options={severityOptions}
-              value={severity}
-              onChange={(event) => setSeverity(event.target.value)}
-            />
+      {!readOnly && (
+        <div className="space-y-2 rounded-lg border border-border bg-surface-elevated p-3">
+          <FormTextarea
+            rows={2}
+            value={body}
+            aria-label={t(`${prefix}.addNote`)}
+            placeholder={t(`${prefix}.noteBodyPlaceholder`)}
+            onChange={(event) => setBody(event.target.value)}
+          />
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="w-40">
+              <select
+                aria-label={t(`${prefix}.severityLabel`)}
+                className={formControlClasses}
+                value={severity}
+                onChange={(event) => setSeverity(event.target.value)}
+              >
+                {severityOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="button"
+              className="btn-primary"
+              data-testid={`${entityType}-note-add`}
+              onClick={add}
+            >
+              {t(`${prefix}.addNote`)}
+            </button>
           </div>
-          <button
-            type="button"
-            className="btn-primary"
-            data-testid={`${entityType}-note-add`}
-            onClick={add}
-          >
-            {t(`${prefix}.addNote`)}
-          </button>
+          <FormError message={error} />
         </div>
-        <FormError message={error} />
-      </div>
+      )}
 
       <ul className="space-y-2">
         {notes.map((note) => (
@@ -164,12 +170,18 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
                 />
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="w-40">
-                    <Select
+                    <select
                       aria-label={`${t(`${prefix}.severityLabel`)} ${note.id}`}
-                      options={severityOptions}
+                      className={formControlClasses}
                       value={editSeverity}
                       onChange={(event) => setEditSeverity(event.target.value)}
-                    />
+                    >
+                      {severityOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <button
                     type="button"
@@ -192,13 +204,10 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
               <div className="flex flex-wrap items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="whitespace-pre-wrap break-words text-sm text-text">
-                    <MentionLinkify
-                      text={note.body}
-                      resolvePieceJob={resolvePieceJob}
-                    />
+                    <MentionLinkify text={note.body} em={em} />
                   </p>
                   <p className="mt-1 text-xs text-text-muted">
-                    {t(`clientDetail.severity.${note.severity}`)}
+                    {t(`${prefix}.severity.${note.severity}`)}
                     {note.createdAt !== '' && (
                       <>
                         {' · '}
@@ -207,22 +216,24 @@ export function NotesSection({ entityType, entityId }: NotesSectionProps) {
                     )}
                   </p>
                 </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className="btn-secondary px-2 py-1 text-xs"
-                    onClick={() => startEdit(note)}
-                  >
-                    {t('common.edit')}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-secondary px-2 py-1 text-xs"
-                    onClick={() => setDeleting(note)}
-                  >
-                    {t('common.delete')}
-                  </button>
-                </div>
+                {!readOnly && (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      className="btn-secondary px-2 py-1 text-xs"
+                      onClick={() => startEdit(note)}
+                    >
+                      {t('common.edit')}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-secondary px-2 py-1 text-xs"
+                      onClick={() => setDeleting(note)}
+                    >
+                      {t('common.delete')}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </li>

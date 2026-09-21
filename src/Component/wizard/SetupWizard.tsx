@@ -106,12 +106,20 @@ export function SetupWizard() {
 
     try {
       // The folder's own contents decide create-vs-open: metadata means shop.
-      const metadata = await new LocalCsvFolderRepository(handle).readMetadata(
-        handle.name
-      )
+      const metadataOutcome = await new LocalCsvFolderRepository(
+        handle
+      ).readMetadata(handle.name)
       setPicking(false)
-      if (metadata === null) {
+      if (metadataOutcome.kind === 'absent') {
         setPendingFolderName(handle.name)
+        return
+      }
+      if (metadataOutcome.kind === 'damaged') {
+        setError(
+          t('wizard.errorShopStructureWithDetail', {
+            detail: metadataOutcome.detail,
+          })
+        )
         return
       }
       handleOpenResult(await openShop(handle.name))

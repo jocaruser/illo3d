@@ -7,7 +7,9 @@ import type { WorkbookRepositoryInterface } from '@/Repository/WorkbookRepositor
 export type ShopValidationResult =
   | { ok: true; shop: Shop; metadata: ShopMetadata }
   | { ok: false; error: 'not_shop' }
-  | { ok: false; error: 'version'; shopVersion: string; appVersion: string }
+  | { ok: false; error: 'version_behind'; shopVersion: string; appVersion: string }
+  | { ok: false; error: 'version_ahead'; shopVersion: string; appVersion: string }
+  | { ok: false; error: 'version_unreadable'; shopVersion: string; appVersion: string }
   | { ok: false; error: 'structure'; detail: string }
 
 export type StructureValidationResult = { ok: true } | { ok: false; detail: string }
@@ -23,14 +25,35 @@ export class ShopValidationService {
   ) {}
 
   async validateShopFolder(folderId: string): Promise<ShopValidationResult> {
-    const metadata = await this.folderRepo.readMetadata(folderId)
-    if (metadata === null) return { ok: false, error: 'not_shop' }
+    const outcome = await this.folderRepo.readMetadata(folderId)
+    if (outcome.kind === 'absent') return { ok: false, error: 'not_shop' }
+    if (outcome.kind === 'damaged') {
+      return { ok: false, error: 'structure', detail: outcome.detail }
+    }
+    const metadata = outcome.metadata
 
     const shopMajor = parseMajorVersion(metadata.version)
-    if (shopMajor === null || shopMajor !== parseMajorVersion(APP_VERSION)) {
+    const appMajor = parseMajorVersion(APP_VERSION)
+    if (shopMajor === null) {
       return {
         ok: false,
-        error: 'version',
+        error: 'version_unreadable',
+        shopVersion: metadata.version,
+        appVersion: APP_VERSION,
+      }
+    }
+    if (appMajor === null || shopMajor < appMajor) {
+      return {
+        ok: false,
+        error: 'version_behind',
+        shopVersion: metadata.version,
+        appVersion: APP_VERSION,
+      }
+    }
+    if (shopMajor > appMajor) {
+      return {
+        ok: false,
+        error: 'version_ahead',
         shopVersion: metadata.version,
         appVersion: APP_VERSION,
       }

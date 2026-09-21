@@ -170,7 +170,17 @@ test.describe('Job edit and delete', () => {
     await page.getByTestId('job-detail-link-J3').click()
     await expect(page).toHaveURL(/\/jobs\/J3/)
 
-    await page.getByTestId('entity-detail-delete').click()
+    await page.getByTestId('entity-detail-archive').click()
+    await page
+      .getByRole('dialog', { name: /archive job|archivar trabajo/i })
+      .getByRole('button', { name: /^archive$|archivar/i })
+      .click()
+    await expect(page).toHaveURL(/\/jobs$/)
+
+    await page.goto('/#/jobs/J3', { waitUntil: 'load' })
+    await expect(page).toHaveURL(/\/jobs\/J3/)
+
+    await page.getByTestId('entity-detail-soft-delete').click()
     await page
       .getByRole('dialog', {
         name: /archive job|archivar trabajo|delete job|eliminar trabajo/i,

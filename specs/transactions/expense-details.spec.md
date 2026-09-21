@@ -1,0 +1,47 @@
+# A purchase's page
+
+Only purchases have a page of their own —
+income rows explain themselves through their job.
+Any other id here is [not found](../not-found.spec.md).
+
+The header states the facts:
+id, date, type, category,
+the description (linked as
+[the ledger links it](list.spec.md)),
+and the client if there is one.
+
+## Amending
+
+Two things can be corrected here,
+saved together by one "Save changes":
+
+- **the expense total** — always negative, it is spending;
+- **each purchase lot** — the material (linked),
+  its quantity and its cost.
+
+One rule binds them: **the lots must account for the total**.
+
+Scenarios:
+
+- The lot amounts and the total disagree
+  → the page says exactly how —
+  "Lot line amounts sum to €‹lots› but this expense total is €‹total›.
+  Adjust the fields so they match before saving." —
+  and Save stays blocked until they agree,
+  within one cent — the honesty limit of money arithmetic.
+- Any figure unreadable as a number
+  → the mismatch check suspends itself;
+  saving then refuses the bad field on its own terms.
+- The purchase has no lots
+  → the section says
+  "No linked purchase lots for this expense.",
+  only the total applies, and nothing blocks.
+- Save changes is refused on any field
+  → every stored expense total and lot quantity and amount
+  stays exactly as before the attempt —
+  a partial correction never remains in the workbook.
+
+Amending here fixes the record —
+it does not re-run the purchase:
+stock levels stay as they are,
+exactly as [lot corrections](../inventory/details/lots.spec.md) do.

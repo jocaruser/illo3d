@@ -2,6 +2,7 @@ import { useId, useState, type ChangeEvent, type KeyboardEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cx } from '@/Component/cx'
 import { formControlClasses } from '@/Component/form/controlClasses'
+import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
 
 export interface ComboboxItem {
   key: string
@@ -16,6 +17,7 @@ interface ComboboxProps {
   creatable?: boolean
   onCreateItem?: (label: string) => void
   placeholder?: string
+  ariaLabel?: string
 }
 
 const CREATE_KEY = '__combobox-create__'
@@ -28,6 +30,7 @@ export function Combobox({
   creatable = false,
   onCreateItem,
   placeholder,
+  ariaLabel,
 }: ComboboxProps) {
   const { t } = useTranslation()
   const id = useId()
@@ -42,7 +45,7 @@ export function Combobox({
   const filtered =
     trimmedQuery === ''
       ? items
-      : items.filter((item) => item.label.toLowerCase().includes(trimmedQuery.toLowerCase()))
+      : fuzzyFilter(items, trimmedQuery, (item) => item.label)
   const options =
     creatable && trimmedQuery !== ''
       ? [...filtered, { key: CREATE_KEY, label: t('combobox.createOption', { query: trimmedQuery }) }]
@@ -98,6 +101,7 @@ export function Combobox({
         aria-expanded={open}
         aria-controls={listboxId}
         aria-autocomplete="list"
+        aria-label={ariaLabel}
         aria-activedescendant={
           open && options.length > 0 ? `${id}-option-${highlighted}` : undefined
         }

@@ -4,20 +4,32 @@
  * getFile().text(), createWritable().write/close, keys().
  */
 
+export type FakePermissionState = 'granted' | 'prompt' | 'denied'
+
 export interface FakeDirectory {
   handle: FileSystemDirectoryHandle
   /** Backing store: file name → current content. */
   files: Map<string, string>
+  setPermissionState(state: FakePermissionState): void
 }
 
 export function createFakeDirectory(
   name = 'shop',
-  initialFiles: Record<string, string> = {}
+  initialFiles: Record<string, string> = {},
+  initialPermission: FakePermissionState = 'granted'
 ): FakeDirectory {
   const files = new Map(Object.entries(initialFiles))
+  let permissionState = initialPermission
   const handle = {
     kind: 'directory' as const,
     name,
+    async queryPermission() {
+      return permissionState
+    },
+    async requestPermission() {
+      if (permissionState === 'prompt') permissionState = 'granted'
+      return permissionState
+    },
     async getFileHandle(fileName: string, options?: { create?: boolean }) {
       if (!files.has(fileName)) {
         if (!options?.create) throw new Error(`NotFoundError: ${fileName}`)
@@ -46,5 +58,11 @@ export function createFakeDirectory(
       yield* files.keys()
     },
   }
-  return { handle: handle as unknown as FileSystemDirectoryHandle, files }
+  return {
+    handle: handle as unknown as FileSystemDirectoryHandle,
+    files,
+    setPermissionState(state: FakePermissionState) {
+      permissionState = state
+    },
+  }
 }

@@ -7,7 +7,7 @@ import tseslint from 'typescript-eslint'
 export default tseslint.config(
   // `.claude/worktrees/` holds whole checkouts of other branches, so linting it
   // reports thousands of errors locally that CI, which never has it, cannot see.
-  { ignores: ['dist', 'dist-e2e', 'node_modules', 'coverage', '.claude', '**/*.timestamp*'] },
+  { ignores: ['dist', 'dist-e2e', 'node_modules', '.pnpm-store', 'coverage', '.claude', '**/*.timestamp*'] },
   {
     files: ['scripts/**/*.mjs'],
     languageOptions: { globals: globals.node },
@@ -38,6 +38,25 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': [
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
+    // The e2e-only live-Drive/Sheets double must never reach a production
+    // bundle: `src/` importing it would ship a test-only dependency.
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['google-drive-api-mock', 'google-drive-api-mock/*'],
+              message:
+                'google-drive-api-mock is a test-only e2e double and must not be imported from src/.',
+            },
+          ],
+        },
       ],
     },
   }

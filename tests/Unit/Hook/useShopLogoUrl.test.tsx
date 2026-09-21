@@ -30,7 +30,13 @@ function baseMetadata(logo?: string): ShopMetadata {
 
 function mockMetadata(metadata: ShopMetadata | null) {
   vi.mocked(getFolderRepository).mockReturnValue({
-    readMetadata: vi.fn(() => Promise.resolve(metadata)),
+    readMetadata: vi.fn(() =>
+      Promise.resolve(
+        metadata === null
+          ? ({ kind: 'absent' as const })
+          : ({ kind: 'present' as const, metadata })
+      )
+    ),
     writeMetadata: vi.fn(),
     getFolderName: vi.fn(),
   })

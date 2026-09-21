@@ -96,7 +96,10 @@ describe('MigrationWizardModal', () => {
     // the cooldown clock stays under the test's control.
     vi.useFakeTimers({ shouldAdvanceTime: true })
     resolvePlanChain.mockReturnValue(chain)
-    runPlans.mockResolvedValue({ ok: true })
+    runPlans.mockResolvedValue({
+      ok: true,
+      session: { submit: vi.fn().mockResolvedValue(undefined) },
+    })
     validateShopFolder.mockResolvedValue({ ok: true, shop, metadata: {} })
     hydrate.mockResolvedValue(undefined)
     useMigrationStore.getState().reset()
@@ -129,24 +132,83 @@ describe('MigrationWizardModal', () => {
     expect(screen.getByText('3.0.0')).toBeInTheDocument()
   })
 
-  it('explains the changes as a bullet list and promises no data loss', () => {
+  it('explains v2→v3 benefits only and promises no data loss', () => {
     renderModal()
 
+    expect(screen.getByTestId('migration-hop-v2ToV3')).toBeInTheDocument()
+    expect(screen.queryByTestId('migration-hop-v1ToV2')).not.toBeInTheDocument()
     expect(
-      screen.getByText(/Version 2 ships with two major upgrades/)
+      screen.getByText(/Version 3 adds optional due dates on jobs/)
     ).toBeInTheDocument()
-    expect(screen.getByText('Audit logging')).toBeInTheDocument()
-    expect(
-      screen.getByText(/a permanent record of every change/)
-    ).toBeInTheDocument()
-    expect(screen.getByText('Archive & delete tracking')).toBeInTheDocument()
-    expect(
-      screen.getByText(/keep your workspace clean without losing history/)
-    ).toBeInTheDocument()
+    expect(screen.getByText('Due dates on jobs')).toBeInTheDocument()
+    expect(screen.getByText('Colours on materials')).toBeInTheDocument()
+    expect(screen.queryByText('Audit logging')).not.toBeInTheDocument()
     expect(
       screen.getByText(/No data is removed or altered/)
     ).toBeInTheDocument()
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
+  })
+
+  it('explains v1→v2 benefits only for a shop on major 1', () => {
+    resolvePlanChain.mockReturnValue([
+      {
+        fromMajor: 1,
+        toMajor: 2,
+        toVersion: '2.0.0',
+        steps: [{ id: 'clients' }],
+      },
+    ])
+    renderWithProviders(
+      <MigrationWizardModal
+        candidate={{
+          folderId: 'F1',
+          shopVersion: '1.0.0',
+          appVersion: '2.0.0',
+        }}
+        onLogOut={vi.fn()}
+      />
+    )
+
+    expect(screen.getByTestId('migration-hop-v1ToV2')).toBeInTheDocument()
+    expect(screen.queryByTestId('migration-hop-v2ToV3')).not.toBeInTheDocument()
+    expect(screen.getByText('Audit logging')).toBeInTheDocument()
+    expect(screen.queryByText('Due dates on jobs')).not.toBeInTheDocument()
+  })
+
+  it('explains every hop in order for a multi-hop shop', () => {
+    resolvePlanChain.mockReturnValue([
+      {
+        fromMajor: 1,
+        toMajor: 2,
+        toVersion: '2.0.0',
+        steps: [{ id: 'clients' }],
+      },
+      {
+        fromMajor: 2,
+        toMajor: 3,
+        toVersion: '3.0.0',
+        steps: [{ id: 'jobs' }],
+      },
+    ])
+    renderWithProviders(
+      <MigrationWizardModal
+        candidate={{
+          folderId: 'F1',
+          shopVersion: '1.0.0',
+          appVersion: '3.0.0',
+        }}
+        onLogOut={vi.fn()}
+      />
+    )
+
+    const sections = screen.getAllByTestId(/^migration-hop-/)
+    expect(sections.map((el) => el.getAttribute('data-testid'))).toEqual([
+      'migration-hop-v1ToV2',
+      'migration-hop-v2ToV3',
+    ])
+    expect(screen.getByText('Audit logging')).toBeInTheDocument()
+    expect(screen.getByText('Due dates on jobs')).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(4)
   })
 
   it('summarises progress against the idle grid', () => {
@@ -242,7 +304,7 @@ describe('MigrationWizardModal', () => {
     expect(screen.queryByTestId('wizard-cooldown-ring')).not.toBeInTheDocument()
   })
 
-  it('runs the migration with the chosen backup answer and enters the shop', async () => {
+  it('runs the migration with the chosen backup answer then confirm enters the shop', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     renderModal()
 
@@ -257,6 +319,10 @@ describe('MigrationWizardModal', () => {
         keepOriginalAsBackup: true,
       }
     )
+    act(() => {
+      useMigrationStore.getState().setPhase('awaiting-submit')
+    })
+    await user.click(screen.getByTestId('wizard-migration-confirm'))
     await waitFor(() =>
       expect(useShopStore.getState().activeShop).toEqual(shop)
     )
@@ -280,10 +346,13 @@ describe('MigrationWizardModal', () => {
     )
   })
 
-  it('locks the backup answers and Log out while the migration runs', async () => {
-    let release: ((value: { ok: true }) => void) | undefined
+  it('locks the backup answers while the migration runs but not while awaiting submit', async () => {
+    let release: ((value: { ok: true; session: { submit: () => Promise<void> } }) => void) | undefined
     runPlans.mockImplementation(
-      () => new Promise((resolve) => (release = resolve))
+      () =>
+        new Promise((resolve) => {
+          release = resolve
+        })
     )
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     renderModal()
@@ -299,8 +368,17 @@ describe('MigrationWizardModal', () => {
     expect(continueButton()).toBeDisabled()
 
     await act(async () => {
-      release?.({ ok: true })
+      release?.({
+        ok: true,
+        session: { submit: vi.fn().mockResolvedValue(undefined) },
+      })
     })
+    act(() => {
+      useMigrationStore.getState().setPhase('awaiting-submit')
+    })
+    await waitFor(() =>
+      expect(screen.getByTestId('wizard-migration-logout')).toBeEnabled()
+    )
   })
 
   it('shows the failure alert with the orchestrator message', async () => {

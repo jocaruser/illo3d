@@ -1,4 +1,8 @@
 import { useEffect } from 'react'
+import {
+  localFolderReopenHydrationReady,
+  type LocalFolderReopenPhase,
+} from '@/Hook/useLocalFolderReopenGate'
 import { useWorkbookService } from '@/Hook/useWorkbookService'
 import { useBackendStore } from '@/Store/backendStore'
 import { useShopStore } from '@/Store/shopStore'
@@ -23,7 +27,11 @@ const GIS_WAIT_MAX_MS = 5000
  * hydrating immediately would fail token renewal spuriously. Wait briefly for
  * `window.google`; on timeout hydrate anyway so the real error surfaces.
  */
-export function WorkbookBootstrap() {
+export function WorkbookBootstrap({
+  localFolderReopenPhase = 'ready',
+}: {
+  localFolderReopenPhase?: LocalFolderReopenPhase
+} = {}) {
   const activeShop = useShopStore((state) => state.activeShop)
   const status = useWorkbookStore((state) => state.status)
   const backend = useBackendStore((state) => state.backend)
@@ -31,6 +39,15 @@ export function WorkbookBootstrap() {
 
   useEffect(() => {
     if (activeShop === null || status !== 'idle') return
+    if (
+      !localFolderReopenHydrationReady(
+        backend,
+        activeShop,
+        localFolderReopenPhase
+      )
+    ) {
+      return
+    }
     if (backend === 'google-drive' && window.google === undefined) {
       const startedAt = Date.now()
       const timer = setInterval(() => {
@@ -44,7 +61,7 @@ export function WorkbookBootstrap() {
       return () => clearInterval(timer)
     }
     void hydrate()
-  }, [activeShop, status, backend, hydrate])
+  }, [activeShop, status, backend, hydrate, localFolderReopenPhase])
 
   return null
 }

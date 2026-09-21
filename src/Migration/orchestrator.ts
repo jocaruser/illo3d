@@ -1,18 +1,19 @@
 import { useMigrationStore } from '@/Store/migrationStore'
 import type { MigrationPlan } from './MigrationPlan'
 import { toErrorMessage, type ProgressReporter } from './MigrationStep'
-import type { MigrationTarget, WorkingCopy } from './MigrationTarget'
+import type { MigrationSession, MigrationTarget } from './MigrationTarget'
 
-export type RunResult = { ok: true } | { ok: false; failedAt: string }
+export type RunResult =
+  { ok: true; session: MigrationSession } | { ok: false; failedAt: string }
 
-type WorkingCopyResult =
-  { ok: true; working: WorkingCopy } | { ok: false; error: string }
+type SessionResult =
+  { ok: true; session: MigrationSession } | { ok: false; error: string }
 
-async function createWorkingCopySafely(
+async function openSessionSafely(
   target: MigrationTarget
-): Promise<WorkingCopyResult> {
+): Promise<SessionResult> {
   try {
-    return { ok: true, working: await target.createWorkingCopy() }
+    return { ok: true, session: await target.openSession() }
   } catch (error) {
     return { ok: false, error: toErrorMessage(error) }
   }
@@ -20,13 +21,9 @@ async function createWorkingCopySafely(
 
 /**
  * Drive a resolved plan chain against a migration target, streaming progress
- * through the migration store. Phases: 'backing-up' (create the working copy,
- * surfaced as the synthetic 'backup' step) → 'migrating' (every step of every
- * plan, in order) → 'committing' (atomic metadata flip) → 'done'.
- *
- * Any failure flips the phase to 'failed' and halts. The working copy is
- * deliberately left in place for inspection — the source shop is untouched
- * until commit succeeds.
+ * through the migration store. Phases: 'backing-up' (optional pre-upgrade
+ * backup) → 'migrating' (in-memory session + every plan step) →
+ * 'awaiting-submit' (owner must confirm before persistence).
  */
 export async function runPlans(
   plans: MigrationPlan[],
@@ -35,26 +32,40 @@ export async function runPlans(
 ): Promise<RunResult> {
   const store = useMigrationStore.getState()
   store.reset()
-  // Chained plans may repeat an id (e.g. 'jobs' in both v1→v2 and v2→v3);
-  // the wizard grid shows one row per entity, so seed each id once.
   const stepIds = [
     ...new Set(plans.flatMap((plan) => plan.steps.map((step) => step.id))),
   ]
   store.seedSteps(['backup', ...stepIds])
 
   store.setPhase('backing-up')
-  store.updateStep('backup', { status: 'running' })
-  const created = await createWorkingCopySafely(target)
-  if (!created.ok) {
-    store.updateStep('backup', { status: 'failed', error: created.error })
-    store.setFailureMessage(created.error)
+  if (options.keepOriginalAsBackup) {
+    store.updateStep('backup', { status: 'running' })
+    try {
+      await target.writePreUpgradeBackup()
+    } catch (error) {
+      const message = toErrorMessage(error)
+      store.updateStep('backup', { status: 'failed', error: message })
+      store.setFailureMessage(message)
+      store.setPhase('failed')
+      return { ok: false, failedAt: 'backup' }
+    }
+    store.updateStep('backup', { status: 'done' })
+  } else {
+    const backupRow = store.steps.find((step) => step.id === 'backup')
+    if (backupRow?.status === 'pending') {
+      store.updateStep('backup', { status: 'done' })
+    }
+  }
+
+  store.setPhase('migrating')
+  const opened = await openSessionSafely(target)
+  if (!opened.ok) {
+    store.setFailureMessage(opened.error)
     store.setPhase('failed')
     return { ok: false, failedAt: 'backup' }
   }
-  store.updateStep('backup', { status: 'done' })
-  const { working } = created
+  const { session } = opened
 
-  store.setPhase('migrating')
   for (const plan of plans) {
     for (const step of plan.steps) {
       store.updateStep(step.id, { status: 'running' })
@@ -62,7 +73,7 @@ export async function runPlans(
         update: (i18nKey) =>
           store.updateStep(step.id, { description: i18nKey }),
       }
-      const result = await step.execute(working.ctx, report)
+      const result = await step.execute(session.ctx, report)
       if (result.status === 'failed') {
         store.updateStep(step.id, { status: 'failed', error: result.error })
         store.setFailureMessage(result.error)
@@ -73,16 +84,6 @@ export async function runPlans(
     }
   }
 
-  store.setPhase('committing')
-  try {
-    await working.commit({ keepOriginalAsBackup: options.keepOriginalAsBackup })
-  } catch (error) {
-    const message = toErrorMessage(error)
-    store.setFailureMessage(message)
-    store.setPhase('failed')
-    return { ok: false, failedAt: 'commit' }
-  }
-
-  store.setPhase('done')
-  return { ok: true }
+  store.setPhase('awaiting-submit')
+  return { ok: true, session }
 }

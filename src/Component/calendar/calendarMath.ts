@@ -57,6 +57,24 @@ export function dayNumber(isoDay: string): number {
  * Whole weeks (Monday-first) covering the month: the leading and trailing
  * days belong to the neighbouring months and are rendered dimmed.
  */
+/** Jobs placed on the calendar by effective due day (UTC `YYYY-MM-DD`). */
+export interface CalendarPlacedJob {
+  effectiveDueDate(): string
+}
+
+/** Active jobs whose effective due date falls in `month`. */
+export function countActiveJobsInMonth(
+  jobs: Iterable<CalendarPlacedJob>,
+  month: CalendarMonth
+): number {
+  let count = 0
+  for (const job of jobs) {
+    const day = job.effectiveDueDate().slice(0, 10)
+    if (isInMonth(day, month)) count += 1
+  }
+  return count
+}
+
 export function buildMonthGrid({ year, month }: CalendarMonth): string[] {
   const first = new Date(Date.UTC(year, month, 1))
   const leading = (first.getUTCDay() + 6) % 7

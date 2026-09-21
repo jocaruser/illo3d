@@ -45,10 +45,16 @@ Committed with the merge to main, content still open to amendment:
 - [x] `not-found.spec.md`
   (own loose file per round 7; details specs link here for soft-deleted pages)
 
+Shared imports (cross-page behaviour):
+
+- [ ] `shared/pricing.spec.md` — average cost, job completeness, margin,
+  suggested price, expected benefit, client materials estimate
+  (**drafted (awaiting confirmation)**)
+
 Loose surfaces, not yet planned:
 
 - [ ] `search.spec.md` — global search
-- [ ] `profile.spec.md` — identity, sign out, version row
+- [x] `profile.spec.md` — identity, sign out, version row
   (whether theme/language stay inside it: TBD)
 - [ ] `entities/metadata.spec.md` — the shop metadata file
   (forward-referenced from `migration/wizard.spec.md`)

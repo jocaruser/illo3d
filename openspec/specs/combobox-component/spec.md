@@ -15,9 +15,12 @@ The Combobox component SHALL render a text input with `role="combobox"` and a dr
 - **THEN** an `<input type="text">` with `role="combobox"` SHALL be rendered
 - **AND** a dropdown list with `role="listbox"` SHALL appear when input is focused or has text
 
-#### Scenario: Search filters items
-- **WHEN** user types "fil" in the search input
-- **THEN** the listbox SHALL only show items whose label contains "fil" (case-insensitive)
+#### Scenario: Search filters items with the shared fuzzy matcher
+- **WHEN** user types a query of at least two characters in the search input
+- **THEN** the listbox SHALL only show items whose label matches through the shared
+  fuzzy matcher (`fuzzyFilter`), per ADR-0017
+- **AND** a small typo that substring matching would miss SHALL still surface the
+  intended option when fuzzy matching finds it
 
 ### Requirement: Combobox supports keyboard navigation
 

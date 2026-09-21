@@ -38,18 +38,6 @@ type SortKey =
 
 const COLUMN_COUNT = 7
 
-/**
- * Columns drop as the viewport narrows, keeping id/date/amount — the three a
- * user scans for. Driven from the table element so headers and cells hide
- * together without forking the shared table primitives.
- */
-const responsiveColumns = [
-  '[&_tr>*:nth-child(3)]:hidden sm:[&_tr>*:nth-child(3)]:table-cell',
-  '[&_tr>*:nth-child(5)]:hidden md:[&_tr>*:nth-child(5)]:table-cell',
-  '[&_tr>*:nth-child(6)]:hidden lg:[&_tr>*:nth-child(6)]:table-cell',
-  '[&_tr>*:nth-child(7)]:hidden md:[&_tr>*:nth-child(7)]:table-cell',
-].join(' ')
-
 /** Read-only: transactions are edited on the expense detail page, never in the list. */
 export function TransactionsTable({
   rows,
@@ -89,25 +77,30 @@ export function TransactionsTable({
     [rows, sort, t]
   )
 
-  const header = (key: SortKey, label: string) => (
+  const header = (
+    key: SortKey,
+    label: string,
+    viewportTier: 'always' | 'small' | 'medium' | 'wide' = 'always'
+  ) => (
     <SortableColumnHeader
       label={label}
       direction={directionFor(key)}
       onToggle={(dir) => toggle(key, dir)}
+      viewportTier={viewportTier}
     />
   )
 
   return (
-    <DataTable className={responsiveColumns}>
+    <DataTable>
       <TableHead>
         <TableRow>
           {header('id', t('transactions.colId'))}
           {header('date', t('transactions.date'))}
-          {header('type', t('transactions.type'))}
+          {header('type', t('transactions.type'), 'small')}
           {header('amount', t('transactions.amount'))}
-          {header('category', t('transactions.category'))}
-          {header('concept', t('transactions.concept'))}
-          {header('client', t('transactions.client'))}
+          {header('category', t('transactions.category'), 'medium')}
+          {header('concept', t('transactions.concept'), 'wide')}
+          {header('client', t('transactions.client'), 'medium')}
         </TableRow>
       </TableHead>
       <TableBody>
@@ -134,7 +127,7 @@ export function TransactionsTable({
                 <TableCell className="whitespace-nowrap">
                   {transaction.date}
                 </TableCell>
-                <TableCell>
+                <TableCell viewportTier="small">
                   {t(`transactions.type.${transaction.type}`)}
                 </TableCell>
                 <TableCell className="whitespace-nowrap text-right">
@@ -145,14 +138,14 @@ export function TransactionsTable({
                     {formatCurrency(amount)}
                   </ColouredNumber>
                 </TableCell>
-                <TableCell>{transaction.category}</TableCell>
-                <TableCell>
+                <TableCell viewportTier="medium">{transaction.category}</TableCell>
+                <TableCell viewportTier="wide">
                   <ConceptCell
                     transaction={transaction}
                     conceptLink={conceptLink}
                   />
                 </TableCell>
-                <TableCell>
+                <TableCell viewportTier="medium">
                   {transaction.clientId === '' || clientName === '' ? (
                     clientName
                   ) : (

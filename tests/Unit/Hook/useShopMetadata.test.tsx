@@ -1,5 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import type { ShopMetadata } from '@/Entity/ShopMetadata'
+import type { MetadataReadOutcome } from '@/Repository/MetadataReadOutcome'
 import { useShopMetadata } from '@/Hook/useShopMetadata'
 import { getFolderRepository } from '@/Repository/RepositoryFactory'
 import { useBackendStore } from '@/Store/backendStore'
@@ -21,7 +22,7 @@ const metadata: ShopMetadata = {
   userName: 'Carlos',
 }
 
-function mockReadMetadata(implementation: () => Promise<ShopMetadata | null>) {
+function mockReadMetadata(implementation: () => Promise<MetadataReadOutcome>) {
   vi.mocked(getFolderRepository).mockReturnValue({
     readMetadata: vi.fn(implementation),
     writeMetadata: vi.fn(),
@@ -76,7 +77,7 @@ describe('useShopMetadata', () => {
 
   it('reads the active shop metadata', async () => {
     openShop()
-    mockReadMetadata(() => Promise.resolve(metadata))
+    mockReadMetadata(() => Promise.resolve({ kind: 'present', metadata }))
 
     const { result } = renderHook(() => useShopMetadata())
 
@@ -108,10 +109,10 @@ describe('useShopMetadata', () => {
 
   it('ignores a read that lands after unmount', async () => {
     openShop()
-    let resolveRead: (value: ShopMetadata | null) => void = () => {}
+    let resolveRead: (value: MetadataReadOutcome) => void = () => {}
     mockReadMetadata(
       () =>
-        new Promise<ShopMetadata | null>((resolve) => {
+        new Promise<MetadataReadOutcome>((resolve) => {
           resolveRead = resolve
         })
     )
@@ -119,7 +120,7 @@ describe('useShopMetadata', () => {
 
     unmount()
     await act(async () => {
-      resolveRead(metadata)
+      resolveRead({ kind: 'present', metadata })
     })
 
     // No state update on an unmounted hook: React would warn and fail the run.
@@ -131,7 +132,7 @@ describe('useShopMetadata', () => {
     let rejectRead: (reason: unknown) => void = () => {}
     mockReadMetadata(
       () =>
-        new Promise<ShopMetadata | null>((_resolve, reject) => {
+        new Promise<MetadataReadOutcome>((_resolve, reject) => {
           rejectRead = reject
         })
     )

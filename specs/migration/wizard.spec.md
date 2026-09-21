@@ -5,7 +5,8 @@ from a [local folder](../welcome/local-folder.spec.md)
 or from [Google Drive](../welcome/google-drive.spec.md) —
 does not open it.
 Instead the **Migration Wizard** appears:
-a dialog that upgrades the shop before it can be used.
+a [wizard overlay](../shared/dialogs.spec.md#wizard-overlays) that upgrades
+the shop before it can be used.
 
 ## When it triggers
 
@@ -23,6 +24,15 @@ majors change only when the shop's data layout changes
 A shop from an older minor or patch release simply opens;
 a shop whose major is behind gets this wizard.
 
+The wizard only ever upgrades.
+A shop whose major is **ahead** of the app's is told so instead,
+back on the welcome screen:
+**"This shop was made by a newer version of this app.
+Update the app to open it."**
+A shop whose recorded version cannot be read at all gets
+**"This shop's version could not be read."**
+In neither case does the wizard open.
+
 However old the shop, one continuous run brings it to the current version:
 a very old shop simply has more steps in the same run.
 What each upgrade changes for the user is described per hop:
@@ -35,8 +45,9 @@ What each upgrade changes for the user is described per hop:
   [welcome screen](../welcome/welcome.spec.md) —
   a migrating user has not reached the app's own controls yet.
 - An explanation of what this particular upgrade unlocks
-  (each hop describes its own — see the hop files),
-  always ending with the same promise:
+  (each remaining major hop describes its own benefits — see the hop files),
+  in migration order when more than one hop applies,
+  always ending once with the same promise:
   **"No data is removed or altered."**
 - The backup question (below).
 - A grid of cards, one per upgrade step plus one for the backup,

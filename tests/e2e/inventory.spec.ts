@@ -141,7 +141,7 @@ test.describe('Inventory page', () => {
       timeout: 10000,
     })
 
-    await page.getByTestId('entity-detail-delete').click()
+    await page.getByTestId('entity-detail-archive').click()
     await page.getByRole('dialog').getByRole('button', { name: /^archive$/i }).click()
 
     await expect(page).toHaveURL(/\/inventory$/)

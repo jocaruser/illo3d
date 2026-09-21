@@ -53,9 +53,18 @@ describe('WorkbookBootstrap', () => {
     openShop()
     useBackendStore.getState().setBackend('local-csv')
 
-    render(<WorkbookBootstrap />)
+    render(<WorkbookBootstrap localFolderReopenPhase="ready" />)
 
     expect(hydrate).toHaveBeenCalledTimes(1)
+  })
+
+  it('defers local CSV hydrate until the reopen gate is ready', () => {
+    openShop()
+    useBackendStore.getState().setBackend('local-csv')
+
+    render(<WorkbookBootstrap localFolderReopenPhase="needs-reallow" />)
+
+    expect(hydrate).not.toHaveBeenCalled()
   })
 
   it('does nothing without an active shop', () => {

@@ -1,7 +1,13 @@
 import { create } from 'zustand'
 
 export type MigrationPhase =
-  'idle' | 'backing-up' | 'migrating' | 'committing' | 'done' | 'failed'
+  | 'idle'
+  | 'backing-up'
+  | 'migrating'
+  | 'awaiting-submit'
+  | 'committing'
+  | 'done'
+  | 'failed'
 
 export type MigrationStepStatus = 'pending' | 'running' | 'done' | 'failed'
 

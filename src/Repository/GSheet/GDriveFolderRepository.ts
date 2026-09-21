@@ -1,6 +1,11 @@
 import { METADATA_FILE_NAME } from '@/Config/schema'
 import { isShopMetadata, type ShopMetadata } from '@/Entity/ShopMetadata'
 import type { FolderRepositoryInterface } from '@/Repository/FolderRepositoryInterface'
+import {
+  INVALID_JSON_METADATA_DETAIL,
+  INVALID_SHOP_METADATA_DETAIL,
+  type MetadataReadOutcome,
+} from '@/Repository/MetadataReadOutcome'
 import { driveFetch, uploadMultipart } from './GoogleApiClient'
 
 export {
@@ -20,17 +25,19 @@ interface FileListResponse {
  * `illo3d.metadata.json` lives as a file inside it.
  */
 export class GDriveFolderRepository implements FolderRepositoryInterface {
-  async readMetadata(folderId: string): Promise<ShopMetadata | null> {
+  async readMetadata(folderId: string): Promise<MetadataReadOutcome> {
     const fileId = await this.findMetadataFileId(folderId)
-    if (fileId === null) return null
+    if (fileId === null) return { kind: 'absent' }
     const response = await driveFetch(`/files/${fileId}?alt=media`)
     let parsed: unknown
     try {
       parsed = JSON.parse(await response.text())
     } catch {
-      return null
+      return { kind: 'damaged', detail: INVALID_JSON_METADATA_DETAIL }
     }
-    return isShopMetadata(parsed) ? parsed : null
+    return isShopMetadata(parsed)
+      ? { kind: 'present', metadata: parsed }
+      : { kind: 'damaged', detail: INVALID_SHOP_METADATA_DETAIL }
   }
 
   async writeMetadata(folderId: string, metadata: ShopMetadata): Promise<void> {

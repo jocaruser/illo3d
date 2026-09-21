@@ -43,9 +43,17 @@ export function useShopMetadata(): UseShopMetadata {
     setState({ metadata: null, loading: true, error: null })
     getFolderRepository()
       .readMetadata(folderId)
-      .then((metadata) => {
+      .then((outcome) => {
         if (cancelled) return
-        setState({ metadata, loading: false, error: null })
+        if (outcome.kind === 'present') {
+          setState({ metadata: outcome.metadata, loading: false, error: null })
+          return
+        }
+        if (outcome.kind === 'damaged') {
+          setState({ metadata: null, loading: false, error: outcome.detail })
+          return
+        }
+        setState({ metadata: null, loading: false, error: null })
       })
       .catch((error: unknown) => {
         if (cancelled) return

@@ -258,6 +258,13 @@
     "saveNote": "Guardar nota",
     "deleteNoteTitle": "Eliminar nota",
     "deleteNoteMessage": "¿Eliminar esta nota? No se puede deshacer.",
+    "severity.info": "Info",
+    "severity.danger": "Peligro",
+    "severity.warning": "Aviso",
+    "severity.success": "Éxito",
+    "severity.primary": "Principal",
+    "severity.secondary": "Secundario",
+    "noteSaved": "Nota guardada",
     "tagsTitle": "Etiquetas",
     "tagsEmpty": "Sin etiquetas.",
     "tagsComboboxLabel": "Añadir etiqueta",
@@ -627,7 +634,13 @@
     "oauthPopupBlocked": "No se pudo abrir la ventana de inicio de sesión. Permite ventanas emergentes en este sitio e inténtalo de nuevo.",
     "oauthFailed": "El inicio de sesión no se completó. Inténtalo de nuevo.",
     "chromeRequired": "El almacenamiento en carpeta local necesita un navegador basado en Chromium (por ejemplo Chrome o Edge).",
+    "localFolderReallowTitle": "Vuelve a permitir el acceso a la carpeta",
+    "localFolderReallowMessage": "El navegador ya no concede acceso a la carpeta de la tienda. Vuelve a permitirlo para reabrir la misma carpeta sin elegirla otra vez en el selector de archivos.",
+    "localFolderReallowGrant": "Permitir acceso",
+    "localFolderReallowDecline": "Ahora no",
     "errorNotShop": "Esta carpeta no es una tienda illo3d.",
+    "errorShopNewerApp": "Esta tienda se creó con una versión más reciente de la app. Actualiza la app para abrirla.",
+    "errorShopVersionUnreadable": "No se pudo leer la versión de esta tienda.",
     "errorVersion": "Esta tienda fue creada con otra versión de la app y no puede abrirse.",
     "errorShopStructure": "A la hoja de Google de esta tienda le falta una pestaña o columna que esta versión de illo3d necesita. Actualiza la hoja al último modelo o crea una tienda nueva.",
     "errorShopStructureWithDetail": "Los archivos de esta tienda no coinciden con el formato que espera la app: {{detail}}",
@@ -637,14 +650,37 @@
     "migrationAppLabel": "Versión destino",
     "migrationContinue": "Continuar",
     "migrationLogOut": "Cerrar sesión",
-    "migrationDescriptionChanges": "La versión 2 incluye dos grandes mejoras. Tu tienda necesita una actualización rápida para desbloquearlas:",
-    "migrationDescriptionLabel1": "Registro de auditoría",
-    "migrationDescriptionItem1": "un registro permanente de cada cambio, para que puedas ver quién hizo qué y cuándo",
-    "migrationDescriptionLabel2": "Seguimiento de archivado/eliminado",
-    "migrationDescriptionItem2": "mantén tu espacio de trabajo limpio sin perder el historial",
-    "migrationDescriptionActions": "Añadiremos la hoja de registro de auditoría, registraremos un punto de partida e insertaremos las nuevas columnas. No se eliminarán ni modificarán datos.",
+    "migrationHop": {
+      "dataAssurance": "No se eliminarán ni modificarán datos.",
+      "v1ToV2": {
+        "intro": "La versión 2 incluye dos grandes mejoras. Tu tienda necesita una actualización rápida para desbloquearlas:",
+        "benefit1": {
+          "label": "Registro de auditoría",
+          "item": "un registro permanente de cada cambio, para que puedas ver quién hizo qué y cuándo"
+        },
+        "benefit2": {
+          "label": "Seguimiento de archivado/eliminado",
+          "item": "mantén tu espacio de trabajo limpio sin perder el historial"
+        },
+        "actions": "Añadiremos la hoja de registro de auditoría, registraremos un punto de partida e insertaremos las nuevas columnas."
+      },
+      "v2ToV3": {
+        "intro": "La versión 3 añade fechas de entrega opcionales en los trabajos y colores opcionales en los materiales. Tu tienda necesita una actualización rápida para desbloquearlas:",
+        "benefit1": {
+          "label": "Fechas de entrega en trabajos",
+          "item": "las fechas opcionales alimentan el calendario y los indicadores de retraso; hasta que se fije una, la antigüedad del trabajo se mide desde su creación como antes"
+        },
+        "benefit2": {
+          "label": "Colores en materiales",
+          "item": "los colores opcionales aparecen como una muestra junto a cada material en el inventario — útil para bobinas de filamento"
+        },
+        "actions": "Añadiremos la columna de fecha de entrega a los trabajos y la columna de color al inventario."
+      }
+    },
     "migrationSummary": "{{done}} de {{total}} completados",
     "migrationAllDone": "Todo completado",
+    "migrationAwaitingSubmit": "Revisa los pasos anteriores y confirma para guardar tu tienda actualizada.",
+    "migrationConfirmClose": "Confirmar y cerrar",
     "migrationBackupQuestion": "¿Quieres hacer una copia de seguridad antes de migrar?",
     "migrationBackupYes": "Sí, hacer copia de seguridad",
     "migrationBackupNo": "No, omitir copia",
@@ -714,6 +750,8 @@
     "viewLabel": "Calendario",
     "previousMonth": "Mes anterior",
     "nextMonth": "Mes siguiente",
+    "previousMonthWithCount": "Mes anterior ({{count}} trabajos)",
+    "nextMonthWithCount": "Mes siguiente ({{count}} trabajos)",
     "today": "Hoy",
     "empty": "No hay trabajos con vencimiento este mes.",
     "month": {

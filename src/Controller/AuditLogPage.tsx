@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Select, type SelectOption } from '@/Component/Select'
+import { Combobox, type ComboboxItem } from '@/Component/Combobox'
 import { AuditTable } from '@/Component/audit/AuditTable'
 import { ListTablePageHeader } from '@/Component/layout/ListTablePageHeader'
 import { ListTableSearchField } from '@/Component/layout/ListTableSearchField'
@@ -10,7 +10,7 @@ import {
   type AuditEntry,
 } from '@/Entity/AuditEntry'
 import { useEntityManager } from '@/Hook/useEntityManager'
-import { fuzzyFilter } from '@/Service/Search/fuzzyFilter'
+import { useListTableDiscovery } from '@/Hook/useListTableDiscovery'
 import { joinSearchParts } from '@/Service/Search/searchBlobs'
 
 /** '' means "no filter" for both selects. */
@@ -34,32 +34,48 @@ function auditSearchBlob(entry: AuditEntry): string {
 export function AuditLogPage() {
   const { t } = useTranslation()
   const em = useEntityManager()
-  const [query, setQuery] = useState('')
   const [action, setAction] = useState<string>(ALL)
   const [entityName, setEntityName] = useState<string>(ALL)
 
   const entries = useMemo(() => em.auditLog.findAll(), [em])
 
-  const visible = useMemo(() => {
-    const filtered = entries.filter(
-      (entry) =>
-        (action === ALL || entry.action === action) &&
-        (entityName === ALL || entry.entityName === entityName)
-    )
-    return fuzzyFilter(filtered, query, auditSearchBlob)
-  }, [entries, action, entityName, query])
+  const sourceRows = useMemo(
+    () =>
+      entries.filter(
+        (entry) =>
+          (action === ALL || entry.action === action) &&
+          (entityName === ALL || entry.entityName === entityName)
+      ),
+    [entries, action, entityName]
+  )
 
-  const actionOptions: SelectOption[] = [
-    { value: ALL, label: t('auditLog.filterAllActions') },
+  const {
+    query,
+    setQuery,
+    rows: visible,
+  } = useListTableDiscovery({
+    sourceRows,
+    getSearchBlob: auditSearchBlob,
+    messages: {
+      collectionEmpty: t('auditLog.empty'),
+      noMatches: t('listTable.noMatches'),
+    },
+  })
+
+  const emptyMessage =
+    entries.length === 0 ? t('auditLog.empty') : t('listTable.noMatches')
+
+  const actionOptions: ComboboxItem[] = [
+    { key: ALL, label: t('auditLog.filterAllActions') },
     ...AUDIT_ACTIONS.map((value) => ({
-      value,
+      key: value,
       label: t(`auditLog.action.${value}`),
     })),
   ]
-  const entityOptions: SelectOption[] = [
-    { value: ALL, label: t('auditLog.filterAllEntities') },
+  const entityOptions: ComboboxItem[] = [
+    { key: ALL, label: t('auditLog.filterAllEntities') },
     ...AUDIT_ENTITY_NAMES.map((value) => ({
-      value,
+      key: value,
       label: t(`auditLog.entity.${value}`),
     })),
   ]
@@ -77,29 +93,22 @@ export function AuditLogPage() {
         }
         actions={
           <>
-            <Select
-              aria-label={t('auditLog.filterActionAria')}
-              options={actionOptions}
+            <Combobox
+              ariaLabel={t('auditLog.filterActionAria')}
+              items={actionOptions}
               value={action}
-              onChange={(event) => setAction(event.target.value)}
-              className="w-auto"
+              onChange={setAction}
             />
-            <Select
-              aria-label={t('auditLog.filterEntityAria')}
-              options={entityOptions}
+            <Combobox
+              ariaLabel={t('auditLog.filterEntityAria')}
+              items={entityOptions}
               value={entityName}
-              onChange={(event) => setEntityName(event.target.value)}
-              className="w-auto"
+              onChange={setEntityName}
             />
           </>
         }
       />
-      <AuditTable
-        entries={visible}
-        emptyMessage={
-          entries.length === 0 ? t('auditLog.empty') : t('listTable.noMatches')
-        }
-      />
+      <AuditTable entries={visible} emptyMessage={emptyMessage} />
     </div>
   )
 }

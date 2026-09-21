@@ -126,6 +126,8 @@ For the `/jobs` list and the embedded jobs list on client detail, the **initial*
 
 Popup or inline search inputs that filter a list of **jobs** for selection (e.g. the job picker in `CreatePiecePopup`) SHALL use the same fuzzy matching logic (`filterRowsBySearchQuery`) as the in-scope list tables. Simple `includes` substring matching SHALL NOT be used for job search in those pickers.
 
+The shipped implementation exports `filterRowsBySearchQuery` from `src/Service/Search/fuzzyFilter.ts` as a documented alias of `fuzzyFilter`; both names refer to the same matcher and behaviour.
+
 #### Scenario: CreatePiecePopup job search matches fuzzy typos
 
 - **WHEN** the user types in the job search field in `CreatePiecePopup` with a minor typo

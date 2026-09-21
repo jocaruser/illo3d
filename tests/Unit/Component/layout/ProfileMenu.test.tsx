@@ -1,6 +1,7 @@
 import { act, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { fireEvent } from '@testing-library/react'
+import { APP_VERSION } from '@/Config/version'
 import { ProfileMenu } from '@/Component/layout/ProfileMenu'
 import { useShopMetadata } from '@/Hook/useShopMetadata'
 import { applyTheme } from '@/Theme/initTheme'
@@ -269,7 +270,7 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       expect(screen.getByTestId('profile-menu-version')).toHaveTextContent(
-        'App 3.0.1 · Shop 3.0.0'
+        `App ${APP_VERSION} · Shop 3.0.0`
       )
     })
 
@@ -279,7 +280,7 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       expect(screen.getByTestId('profile-menu-version')).toHaveTextContent(
-        'App 3.0.1 · Shop —'
+        `App ${APP_VERSION} · Shop —`
       )
     })
 
@@ -306,6 +307,9 @@ describe('ProfileMenu', () => {
       await openMenu()
 
       await userEvent.click(screen.getByRole('menuitem', { name: 'Sign out' }))
+      await userEvent.click(
+        screen.getByRole('button', { name: 'Discard and refresh' })
+      )
 
       expect(useAuthStore.getState().isAuthenticated).toBe(false)
       expect(useShopStore.getState().activeShop).toBeNull()

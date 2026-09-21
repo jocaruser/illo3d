@@ -3,21 +3,40 @@ import userEvent from '@testing-library/user-event'
 import { ClientDetailPage } from '@/Controller/ClientDetailPage'
 import type { ShopMetadata } from '@/Entity/ShopMetadata'
 import type { EntityManager } from '@/Repository/EntityManager'
-import { createWorld, renderRoute, type TestWorld } from '../Component/detail/helpers/renderDetail'
+import {
+  createWorld,
+  renderRoute,
+  type TestWorld,
+} from '../Component/detail/helpers/renderDetail'
 
 const { toastMock, metadataMock } = vi.hoisted(() => ({
   toastMock: { success: vi.fn(), error: vi.fn(), dismiss: vi.fn() },
   metadataMock: {
-    value: { metadata: null as ShopMetadata | null, loading: false, error: null as string | null },
+    value: {
+      metadata: null as ShopMetadata | null,
+      loading: false,
+      error: null as string | null,
+    },
   },
 }))
 
 let world: TestWorld
 
+function metricValue(metricsRoot: HTMLElement, label: string): HTMLElement {
+  const labelEl = within(metricsRoot).getByText(label)
+  const valueContainer = labelEl.parentElement?.nextElementSibling
+  if (valueContainer === null || valueContainer === undefined) {
+    throw new Error(`No value container for metric label "${label}"`)
+  }
+  return valueContainer as HTMLElement
+}
+
 vi.mock('@/Hook/useEntityManager', () => ({
   useEntityManager: (): EntityManager => world.em,
 }))
-vi.mock('@/Hook/useShopMetadata', () => ({ useShopMetadata: () => metadataMock.value }))
+vi.mock('@/Hook/useShopMetadata', () => ({
+  useShopMetadata: () => metadataMock.value,
+}))
 vi.mock('@/Component/Toast', () => ({ toast: toastMock }))
 
 function seedWorld(): TestWorld {
@@ -39,19 +58,83 @@ function seedWorld(): TestWorld {
       { id: 'CL4', name: 'Empty Co', created_at: '2024-01-05' },
     ],
     jobs: [
-      { id: 'J1', client_id: 'CL1', description: 'Phone case', status: 'paid', created_at: '2024-05-01T09:00:00.000Z', due_date: '2024-05-30' },
-      { id: 'J2', client_id: 'CL1', description: 'Bracket', status: 'draft', created_at: '2024-05-02T09:00:00.000Z', archived: 'true' },
-      { id: 'J3', client_id: 'CL1', description: 'Old gear', status: 'draft', created_at: '2024-05-03T09:00:00.000Z', deleted: 'true' },
-      { id: 'J4', client_id: 'CL2', description: 'Other client job', status: 'draft', created_at: '2024-05-04T09:00:00.000Z' },
+      {
+        id: 'J1',
+        client_id: 'CL1',
+        description: 'Phone case',
+        status: 'paid',
+        created_at: '2024-05-01T09:00:00.000Z',
+        due_date: '2024-05-30',
+      },
+      {
+        id: 'J2',
+        client_id: 'CL1',
+        description: 'Bracket',
+        status: 'draft',
+        created_at: '2024-05-02T09:00:00.000Z',
+        archived: 'true',
+      },
+      {
+        id: 'J3',
+        client_id: 'CL1',
+        description: 'Old gear',
+        status: 'draft',
+        created_at: '2024-05-03T09:00:00.000Z',
+        deleted: 'true',
+      },
+      {
+        id: 'J4',
+        client_id: 'CL2',
+        description: 'Other client job',
+        status: 'draft',
+        created_at: '2024-05-04T09:00:00.000Z',
+      },
     ],
     pieces: [
-      { id: 'P1', job_id: 'J1', name: 'Shell', status: 'done', price: '21', units: '2', created_at: '2024-05-01T10:00:00.000Z' },
+      {
+        id: 'P1',
+        job_id: 'J1',
+        name: 'Shell',
+        status: 'done',
+        price: '21',
+        units: '2',
+        created_at: '2024-05-01T10:00:00.000Z',
+      },
     ],
-    piece_items: [{ id: 'PI1', piece_id: 'P1', inventory_id: 'INV1', quantity: '10' }],
-    inventory: [{ id: 'INV1', type: 'filament', name: 'PLA White', qty_current: '900', created_at: '2024-01-01T00:00:00.000Z' }],
-    lots: [{ id: 'L1', inventory_id: 'INV1', transaction_id: 'T9', quantity: '1000', amount: '20', created_at: '2024-01-01T00:00:00.000Z' }],
+    piece_items: [
+      { id: 'PI1', piece_id: 'P1', inventory_id: 'INV1', quantity: '10' },
+    ],
+    inventory: [
+      {
+        id: 'INV1',
+        type: 'filament',
+        name: 'PLA White',
+        qty_current: '900',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
+    ],
+    lots: [
+      {
+        id: 'L1',
+        inventory_id: 'INV1',
+        transaction_id: 'T9',
+        quantity: '1000',
+        amount: '20',
+        created_at: '2024-01-01T00:00:00.000Z',
+      },
+    ],
     transactions: [
-      { id: 'T1', date: '2024-05-05', type: 'income', amount: '42', category: 'job', concept: 'Phone case', ref_type: 'job', ref_id: 'J1', client_id: 'CL1' },
+      {
+        id: 'T1',
+        date: '2024-05-05',
+        type: 'income',
+        amount: '42',
+        category: 'job',
+        concept: 'Phone case',
+        ref_type: 'job',
+        ref_id: 'J1',
+        client_id: 'CL1',
+      },
     ],
   })
 }
@@ -71,8 +154,13 @@ describe('ClientDetailPage', () => {
   it('shows every populated field, linkifying the lead source', () => {
     renderPage()
 
-    expect(screen.getByRole('heading', { name: 'Acme Corp' })).toBeInTheDocument()
-    expect(screen.getByTestId('entity-detail-back')).toHaveAttribute('href', '/clients')
+    expect(
+      screen.getByRole('heading', { name: 'Acme Corp' })
+    ).toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-back')).toHaveAttribute(
+      'href',
+      '/clients'
+    )
     expect(screen.getByText('CL1')).toBeInTheDocument()
     expect(screen.getByText('hi@acme.test')).toBeInTheDocument()
     expect(screen.getByText('600')).toBeInTheDocument()
@@ -80,9 +168,15 @@ describe('ClientDetailPage', () => {
     expect(screen.getByText('1 Main St')).toBeInTheDocument()
     expect(screen.getByText('2024-01-02')).toBeInTheDocument()
     expect(screen.getByText('sheet level note')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: '@CL2' })).toHaveAttribute('href', '/clients/CL2')
+    expect(screen.getByRole('link', { name: '@CL2' })).toHaveAttribute(
+      'href',
+      '/clients/CL2'
+    )
     // A piece mention resolves through to its job's detail anchor.
-    expect(screen.getByRole('link', { name: '@P1' })).toHaveAttribute('href', '/jobs/J1#piece-P1')
+    expect(screen.getByRole('link', { name: '@P1' })).toHaveAttribute(
+      'href',
+      '/jobs/J1#piece-P1'
+    )
     // An unresolvable one stays plain text.
     expect(screen.queryByRole('link', { name: '@P99' })).not.toBeInTheDocument()
   })
@@ -99,33 +193,87 @@ describe('ClientDetailPage', () => {
 
   it('shows the five client metrics', () => {
     renderPage()
-    const metrics = within(screen.getByTestId('client-metrics'))
+    const metrics = screen.getByTestId('client-metrics')
 
-    expect(metrics.getByText('Paid (ledger)').nextSibling).toHaveTextContent('€42.00')
+    expect(metricValue(metrics, 'Paid (ledger)')).toHaveTextContent('€42.00')
     // J1 is paid, so nothing is outstanding.
-    expect(metrics.getByText('Outstanding (jobs)').nextSibling).toHaveTextContent('€0.00')
+    expect(metricValue(metrics, 'Outstanding (jobs)')).toHaveTextContent('€0.00')
     // Only J1 is active: archived J2 and soft-deleted J3 are both excluded.
-    expect(metrics.getByText('Jobs').nextSibling).toHaveTextContent('1')
-    expect(metrics.getByText('Avg job price').nextSibling).toHaveTextContent('€42.00')
+    expect(metricValue(metrics, 'Jobs')).toHaveTextContent('1')
+    expect(metricValue(metrics, 'Avg job price')).toHaveTextContent('€42.00')
     // 10g/unit × 2 units × €0.02/g.
-    expect(metrics.getByText('Materials (estimate)').nextSibling).toHaveTextContent('€0.40')
+    expect(metricValue(metrics, 'Materials (estimate)')).toHaveTextContent('€0.40')
   })
 
   it('shows a dash for the average price when no job is priced', () => {
     renderPage('/clients/CL2')
-    const metrics = within(screen.getByTestId('client-metrics'))
-    expect(metrics.getByText('Avg job price').nextSibling).toHaveTextContent('—')
+    const metrics = screen.getByTestId('client-metrics')
+    expect(metricValue(metrics, 'Avg job price')).toHaveTextContent('—')
   })
 
   it('renders a NotFoundCard for an unknown client', () => {
     renderPage('/clients/CL404')
     expect(screen.getByText('Client not found.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Back to clients' })).toHaveAttribute('href', '/clients')
+    expect(
+      screen.getByRole('link', { name: 'Back to clients' })
+    ).toHaveAttribute('href', '/clients')
   })
 
   it('renders a NotFoundCard for a soft-deleted client', () => {
     renderPage('/clients/CL3')
     expect(screen.getByText('Client not found.')).toBeInTheDocument()
+  })
+
+  it('renders an archived client as read-only with un-archive and soft delete', async () => {
+    const user = userEvent.setup()
+    world.tabs.seed('clients', [
+      {
+        id: 'CL9',
+        name: 'Archived Co',
+        email: 'archived@test',
+        created_at: '2024-01-02',
+        archived: 'true',
+      },
+    ])
+    world.tabs.seed('jobs', [
+      {
+        id: 'J9',
+        client_id: 'CL9',
+        description: 'Still active job',
+        status: 'draft',
+        created_at: '2024-02-01',
+      },
+      {
+        id: 'J10',
+        client_id: 'CL9',
+        description: 'Archived child',
+        status: 'draft',
+        created_at: '2024-02-02',
+        archived: 'true',
+      },
+    ])
+    renderPage('/clients/CL9')
+
+    expect(
+      screen.getByRole('heading', { name: 'Archived Co' })
+    ).toBeInTheDocument()
+    expect(screen.queryByTestId('entity-detail-edit')).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('entity-detail-archive')
+    ).not.toBeInTheDocument()
+    expect(screen.queryByTestId('add-job-button')).not.toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-unarchive')).toBeInTheDocument()
+    expect(screen.getByTestId('entity-detail-soft-delete')).toBeInTheDocument()
+    expect(screen.queryByTestId('client-note-add')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('client-job-edit-J9')).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('client-job-archive-J9')
+    ).not.toBeInTheDocument()
+    expect(screen.getByTestId('client-job-unarchive-J10')).toBeInTheDocument()
+
+    await user.click(screen.getByTestId('entity-detail-unarchive'))
+    expect(world.em.clients.find('CL9')?.isArchived()).toBe(false)
+    expect(screen.getByTestId('entity-detail-edit')).toBeInTheDocument()
   })
 
   it('renders a NotFoundCard when the route binds no id', () => {
@@ -157,9 +305,13 @@ describe('ClientDetailPage', () => {
   it('labels a soft-deleted job and offers it no actions', () => {
     renderPage()
 
-    expect(screen.getByTestId('client-job-deleted-J3')).toHaveTextContent('Deleted entity')
+    expect(screen.getByTestId('client-job-deleted-J3')).toHaveTextContent(
+      'Deleted entity'
+    )
     expect(screen.queryByTestId('client-job-edit-J3')).not.toBeInTheDocument()
-    expect(screen.queryByTestId('client-job-archive-J3')).not.toBeInTheDocument()
+    expect(
+      screen.queryByTestId('client-job-archive-J3')
+    ).not.toBeInTheDocument()
   })
 
   it('sorts the jobs table by created date descending first', () => {
@@ -195,7 +347,9 @@ describe('ClientDetailPage', () => {
     const user = userEvent.setup()
     renderPage()
 
-    await user.click(screen.getByRole('button', { name: 'Created, sorted descending' }))
+    await user.click(
+      screen.getByRole('button', { name: 'Created, sorted descending' })
+    )
     const ids = screen
       .getAllByRole('row')
       .slice(1)
@@ -220,7 +374,9 @@ describe('ClientDetailPage', () => {
   it('hides the search and shows the empty message when the client has no job', () => {
     renderPage('/clients/CL4')
 
-    expect(screen.queryByPlaceholderText('Search jobs…')).not.toBeInTheDocument()
+    expect(
+      screen.queryByPlaceholderText('Search jobs…')
+    ).not.toBeInTheDocument()
     expect(screen.getByText('No jobs for this client yet.')).toBeInTheDocument()
   })
 
@@ -230,7 +386,9 @@ describe('ClientDetailPage', () => {
 
     await user.click(screen.getByTestId('add-job-button'))
     const dialog = within(screen.getByRole('dialog'))
-    expect(dialog.queryByPlaceholderText('Search clients…')).not.toBeInTheDocument()
+    expect(
+      dialog.queryByPlaceholderText('Search clients…')
+    ).not.toBeInTheDocument()
 
     await user.type(dialog.getByLabelText(/Description/), 'Fresh job')
     await user.click(dialog.getByRole('button', { name: 'Create job' }))
@@ -245,14 +403,18 @@ describe('ClientDetailPage', () => {
 
     await user.click(screen.getByTestId('client-job-edit-J1'))
     const dialog = within(screen.getByRole('dialog'))
-    expect(dialog.getByPlaceholderText('Search clients…')).toHaveValue('Acme Corp')
+    expect(dialog.getByPlaceholderText('Search clients…')).toHaveValue(
+      'Acme Corp'
+    )
 
     const description = dialog.getByLabelText(/Description/)
     await user.clear(description)
     await user.type(description, 'Phone case v2')
     await user.click(dialog.getByRole('button', { name: 'Save' }))
 
-    expect(screen.getByRole('cell', { name: 'Phone case v2' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('cell', { name: 'Phone case v2' })
+    ).toBeInTheDocument()
   })
 
   it('archives a job from its row after confirming', async () => {
@@ -261,7 +423,9 @@ describe('ClientDetailPage', () => {
 
     await user.click(screen.getByTestId('client-job-archive-J1'))
     const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByRole('heading', { name: 'Archive job' })).toBeInTheDocument()
+    expect(
+      within(dialog).getByRole('heading', { name: 'Archive job' })
+    ).toBeInTheDocument()
     await user.click(within(dialog).getByRole('button', { name: 'Archive' }))
 
     expect(world.em.jobs.find('J1')?.isArchived()).toBe(true)
@@ -290,7 +454,9 @@ describe('ClientDetailPage', () => {
     await user.type(name, 'Acme Renamed')
     await user.click(within(dialog).getByRole('button', { name: 'Save' }))
 
-    expect(screen.getByRole('heading', { name: 'Acme Renamed' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Acme Renamed' })
+    ).toBeInTheDocument()
   })
 
   it('archives the client and returns to the list', async () => {

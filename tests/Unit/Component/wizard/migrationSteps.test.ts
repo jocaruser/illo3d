@@ -106,9 +106,13 @@ describe('migrationStepStates', () => {
 })
 
 describe('doneCount', () => {
-  it('counts only done rows', () => {
-    expect(doneCount(live)).toBe(1)
-    expect(doneCount([])).toBe(0)
-    expect(doneCount([{ id: 'a', status: 'failed' }])).toBe(0)
+  it('counts only done rows while a run is in progress', () => {
+    expect(doneCount(live, 'migrating')).toBe(1)
+    expect(doneCount([], 'idle')).toBe(0)
+    expect(doneCount([{ id: 'a', status: 'failed' }], 'failed')).toBe(0)
+  })
+
+  it('treats awaiting submit as fully complete for the summary', () => {
+    expect(doneCount(live, 'awaiting-submit')).toBe(live.length)
   })
 })
