@@ -1,17 +1,20 @@
 import type { MigrationContext } from './MigrationContext'
 
 /**
- * A backend-specific migration surface. `createWorkingCopy` clones the shop
- * into an isolated working copy (sibling subfolder for Local CSV, spreadsheet
- * copy for Drive); all steps run against `ctx`. `commit` publishes the
- * migrated data back — the metadata version flip is the last, atomic write, so
- * a failure at any earlier point leaves the original shop untouched.
+ * In-memory upgrade state for one migration run. Steps mutate `ctx`; `submit`
+ * is the only persistence boundary back to the shop at rest.
  */
-export interface WorkingCopy {
+export interface MigrationSession {
   ctx: MigrationContext
-  commit(options: { keepOriginalAsBackup: boolean }): Promise<void>
+  submit(options: { keepOriginalAsBackup: boolean }): Promise<void>
 }
 
+/**
+ * Backend-specific migration port: optional pre-upgrade backup, then an
+ * in-memory session the orchestrator runs plans against until the owner
+ * confirms submit in the wizard.
+ */
 export interface MigrationTarget {
-  createWorkingCopy(): Promise<WorkingCopy>
+  writePreUpgradeBackup(): Promise<void>
+  openSession(): Promise<MigrationSession>
 }

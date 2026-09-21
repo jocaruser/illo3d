@@ -1,7 +1,7 @@
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { APP_VERSION, parseMajorVersion } from '@/Config/version'
 import type { MigrationPlan } from '@/Migration/MigrationPlan'
-import type { MigrationTarget } from '@/Migration/MigrationTarget'
+import type { MigrationSession, MigrationTarget } from '@/Migration/MigrationTarget'
 import { createGSheetMigrationTarget } from '@/Migration/Target/GSheetMigrationTarget'
 import { createLocalCsvMigrationTarget } from '@/Migration/Target/LocalCsvMigrationTarget'
 import { runPlans } from '@/Migration/orchestrator'
@@ -16,7 +16,7 @@ import {
   validationService,
 } from '@/Hook/useOpenShop'
 
-/** The synthetic first step of every run — the working copy / backup. */
+/** The synthetic first step of every run — the pre-upgrade backup. */
 export const BACKUP_STEP_ID = 'backup'
 
 /** Detail shown on the backup card when the user declined a backup. */
@@ -25,6 +25,11 @@ export const BACKUP_SKIPPED_KEY = 'wizard.migrationBackupSkipped'
 export interface StartMigrationArgs {
   folderId: string
   shopVersion: string
+  keepOriginalAsBackup: boolean
+}
+
+export interface ConfirmSubmitArgs {
+  folderId: string
   keepOriginalAsBackup: boolean
 }
 
@@ -96,15 +101,14 @@ async function buildTarget(
 }
 
 /**
- * Drives a migration run and, on success, opens the migrated shop.
- *
- * Progress lives entirely in `migrationStore` (the orchestrator streams it), so
- * the wizard grid and this hook read the same source of truth.
+ * Drives a migration run in memory; the owner confirms with `confirmSubmit`
+ * before the shop is persisted and opened.
  */
 export function useMigration(clock: Clock = new SystemClock()) {
   const phase = useMigrationStore((state) => state.phase)
   const steps = useMigrationStore((state) => state.steps)
   const failureMessage = useMigrationStore((state) => state.failureMessage)
+  const pendingSession = useRef<MigrationSession | null>(null)
 
   const start = useCallback(
     async ({
@@ -113,6 +117,7 @@ export function useMigration(clock: Clock = new SystemClock()) {
       keepOriginalAsBackup,
     }: StartMigrationArgs): Promise<MigrationResult> => {
       const store = useMigrationStore.getState()
+      pendingSession.current = null
 
       const fail = (error: unknown, failedAt: string): MigrationResult => {
         store.setFailureMessage(toErrorMessage(error))
@@ -124,8 +129,6 @@ export function useMigration(clock: Clock = new SystemClock()) {
       let target: MigrationTarget
       try {
         plans = planChain(shopVersion)
-        // Seed before the (possibly slow) target build so the grid is populated
-        // from the first frame; `runPlans` re-seeds identically.
         store.seedSteps(migrationStepIds(shopVersion))
         if (!keepOriginalAsBackup) {
           store.updateStep(BACKUP_STEP_ID, {
@@ -141,25 +144,58 @@ export function useMigration(clock: Clock = new SystemClock()) {
       const result = await runPlans(plans, target, { keepOriginalAsBackup })
       if (!result.ok) return result
 
-      // The metadata version has flipped; re-validate rather than trust it.
+      pendingSession.current = result.session
+      return { ok: true }
+    },
+    [clock]
+  )
+
+  const confirmSubmit = useCallback(
+    async ({
+      folderId,
+      keepOriginalAsBackup,
+    }: ConfirmSubmitArgs): Promise<MigrationResult> => {
+      const store = useMigrationStore.getState()
+      const session = pendingSession.current
+      if (session === null) {
+        store.setFailureMessage('No migration session to submit')
+        store.setPhase('failed')
+        return { ok: false, failedAt: 'commit' }
+      }
+
+      const failSubmit = (error: unknown, failedAt: string): MigrationResult => {
+        store.setFailureMessage(toErrorMessage(error))
+        store.setPhase('failed')
+        return { ok: false, failedAt }
+      }
+
+      store.setPhase('committing')
+      try {
+        await session.submit({ keepOriginalAsBackup })
+      } catch (error) {
+        return failSubmit(error, 'commit')
+      }
+
       try {
         const validation =
           await validationService().validateShopFolder(folderId)
         if (!validation.ok) {
-          return fail(
+          return failSubmit(
             new Error(`Migrated shop failed validation (${validation.error})`),
             'commit'
           )
         }
         await enterShop(validation.shop)
       } catch (error) {
-        return fail(error, 'commit')
+        return failSubmit(error, 'commit')
       }
 
+      store.setPhase('done')
+      pendingSession.current = null
       return { ok: true }
     },
-    [clock]
+    []
   )
 
-  return { start, phase, steps, failureMessage }
+  return { start, confirmSubmit, phase, steps, failureMessage }
 }

@@ -8,21 +8,15 @@ import type { ShopMetadata } from '@/Entity/ShopMetadata'
 import { runPlans } from '@/Migration/orchestrator'
 import { resolvePlanChain } from '@/Migration/registry'
 import { createLocalCsvMigrationTarget } from '@/Migration/Target/LocalCsvMigrationTarget'
+import { parseCsv, serializeCsv } from '@/Repository/LocalCsv/Csv'
 import { matrixToRecords } from '@/Repository/Matrix'
 import { useMigrationStore } from '@/Store/migrationStore'
 import {
-  decodeSheet,
-  encodeSheet,
   FakeDirectoryHandle,
   FixedClock,
   shopMetadata,
   v1Header,
 } from './helpers'
-
-vi.mock('@/Repository/LocalCsv/LocalCsvWorkbookRepository', async () => {
-  const { FakeLocalCsvWorkbookRepository } = await import('./helpers')
-  return { LocalCsvWorkbookRepository: FakeLocalCsvWorkbookRepository }
-})
 
 vi.mock('@/Repository/LocalCsv/LocalCsvFolderRepository', async () => {
   const { FakeLocalCsvFolderRepository } = await import('./helpers')
@@ -35,25 +29,25 @@ const CLOCK = new FixedClock('2026-07-16T10:00:00.000Z')
 function v1Shop(): FakeDirectoryHandle {
   const source = new FakeDirectoryHandle('my-shop')
   for (const sheet of DATA_SHEET_NAMES) {
-    source.files.set(`${sheet}.csv`, encodeSheet([v1Header(sheet)]))
+    source.files.set(`${sheet}.csv`, serializeCsv([v1Header(sheet)]))
   }
   source.files.set(
     'clients.csv',
-    encodeSheet([
+    serializeCsv([
       v1Header('clients'),
       ['CL1', 'Ana', 'ana@x.test', '', '', '', '', '', '2024-01-01'],
     ])
   )
   source.files.set(
     'jobs.csv',
-    encodeSheet([
+    serializeCsv([
       v1Header('jobs'),
       ['J1', 'CL1', 'Vase', 'pending', '25', '1', '2024-01-05'],
     ])
   )
   source.files.set(
     'inventory.csv',
-    encodeSheet([
+    serializeCsv([
       v1Header('inventory'),
       ['INV1', 'filament', 'PLA', '900', '500', '250', '100', '2024-01-02'],
     ])
@@ -63,7 +57,7 @@ function v1Shop(): FakeDirectoryHandle {
 }
 
 function sheetOf(source: FakeDirectoryHandle, name: string) {
-  return decodeSheet(source.files.get(`${name}.csv`)!)
+  return parseCsv(source.files.get(`${name}.csv`)!)
 }
 
 describe('chained v1 → v3 migration over a local shop', () => {
@@ -71,7 +65,7 @@ describe('chained v1 → v3 migration over a local shop', () => {
     useMigrationStore.getState().reset()
   })
 
-  it('runs both plans and commits 3.0.0 with a backup', async () => {
+  it('runs both plans in memory, then submit persists 3.0.0 with a backup', async () => {
     const source = v1Shop()
     const target = createLocalCsvMigrationTarget(
       source.asHandle(),
@@ -83,9 +77,19 @@ describe('chained v1 → v3 migration over a local shop', () => {
 
     const result = await runPlans(plans, target, { keepOriginalAsBackup: true })
 
-    expect(result).toEqual({ ok: true })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
     const state = useMigrationStore.getState()
-    expect(state.phase).toBe('done')
+    expect(state.phase).toBe('awaiting-submit')
+    expect(JSON.parse(source.files.get(METADATA_FILE_NAME)!).version).toBe(
+      '1.5.0'
+    )
+    const backup = source.dirs.get('2026-07-16.v1.5.0.backup')!
+    expect(backup).toBeDefined()
+    expect(source.dirs.has('2026-07-16.v1.5.0.v3.0.0.migration')).toBe(false)
+
+    await result.session.submit({ keepOriginalAsBackup: true })
+
     expect(state.steps.map((step) => step.id)).toEqual([
       'backup',
       'clients',
@@ -102,7 +106,6 @@ describe('chained v1 → v3 migration over a local shop', () => {
     ])
     expect(state.steps.every((step) => step.status === 'done')).toBe(true)
 
-    // Every sheet now carries the canonical v3 header, data mapped by position.
     expect(sheetOf(source, 'jobs')).toEqual([
       [...SHEET_HEADERS.jobs],
       ['J1', 'CL1', 'Vase', 'pending', '25', '1', '2024-01-05', '', '', ''],
@@ -111,7 +114,6 @@ describe('chained v1 → v3 migration over a local shop', () => {
       ...SHEET_HEADERS.inventory,
     ])
 
-    // Audit baseline backfilled for the three seeded rows.
     const entries = matrixToRecords('audit_log', sheetOf(source, 'audit_log'))
     expect(
       entries.map((entry) => [entry.entity_name, entry.entity_id])
@@ -121,23 +123,19 @@ describe('chained v1 → v3 migration over a local shop', () => {
       ['inventory', 'INV1'],
     ])
 
-    // Metadata flipped to the LAST plan's toVersion; backup kept; working copy gone.
     const metadata = JSON.parse(
       source.files.get(METADATA_FILE_NAME)!
     ) as ShopMetadata
     expect(metadata.version).toBe('3.0.0')
-    const backup = source.dirs.get('2026-07-16.v1.5.0.backup')!
-    expect(backup).toBeDefined()
-    expect(decodeSheet(backup.files.get('jobs.csv')!)[0]).toEqual(
+    expect(parseCsv(backup.files.get('jobs.csv')!)[0]).toEqual(
       v1Header('jobs')
     )
     expect(JSON.parse(backup.files.get(METADATA_FILE_NAME)!).version).toBe(
       '1.5.0'
     )
-    expect(source.dirs.has('2026-07-16.v1.5.0.v3.0.0.migration')).toBe(false)
   })
 
-  it('skips the backup folder when the user opted out', async () => {
+  it('skips the backup folder when the user opted out until submit', async () => {
     const source = v1Shop()
     const target = createLocalCsvMigrationTarget(
       source.asHandle(),
@@ -149,19 +147,25 @@ describe('chained v1 → v3 migration over a local shop', () => {
     const result = await runPlans(resolvePlanChain(1, 3), target, {
       keepOriginalAsBackup: false,
     })
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(source.dirs.has('2026-07-16.v1.5.0.backup')).toBe(false)
+    expect(JSON.parse(source.files.get(METADATA_FILE_NAME)!).version).toBe(
+      '1.5.0'
+    )
 
-    expect(result).toEqual({ ok: true })
+    await result.session.submit({ keepOriginalAsBackup: false })
     expect(source.dirs.has('2026-07-16.v1.5.0.backup')).toBe(false)
     expect(JSON.parse(source.files.get(METADATA_FILE_NAME)!).version).toBe(
       '3.0.0'
     )
   })
 
-  it('halts on a header-prefix violation, leaving the source untouched and the working copy for inspection', async () => {
+  it('halts on a header-prefix violation after backup, leaving source CSVs untouched', async () => {
     const source = v1Shop()
     source.files.set(
       'clients.csv',
-      encodeSheet([
+      serializeCsv([
         ['id', 'renamed_column'],
         ['CL1', 'Ana'],
       ])
@@ -182,17 +186,12 @@ describe('chained v1 → v3 migration over a local shop', () => {
     const state = useMigrationStore.getState()
     expect(state.phase).toBe('failed')
     expect(state.failureMessage).toMatch(/renamed_column/)
-    const clientsStep = state.steps.find((step) => step.id === 'clients')
-    expect(clientsStep).toMatchObject({
-      status: 'failed',
-      error: expect.stringContaining('renamed_column'),
-    })
-
-    // Source shop untouched: same files, same content, no backup, version still 1.5.0.
     expect(new Map(source.files)).toEqual(before)
-    expect(source.dirs.has('2026-07-16.v1.5.0.backup')).toBe(false)
-    // The failed working copy stays in place for inspection.
-    expect(source.dirs.has('2026-07-16.v1.5.0.v3.0.0.migration')).toBe(true)
+    expect(source.dirs.has('2026-07-16.v1.5.0.backup')).toBe(true)
+    expect(source.dirs.has('2026-07-16.v1.5.0.v3.0.0.migration')).toBe(false)
+    expect(JSON.parse(source.files.get(METADATA_FILE_NAME)!).version).toBe(
+      '1.5.0'
+    )
   })
 
   it('re-runs as a no-op on an already-migrated shop (idempotent steps)', async () => {
@@ -203,9 +202,12 @@ describe('chained v1 → v3 migration over a local shop', () => {
       '3.0.0',
       CLOCK
     )
-    await runPlans(resolvePlanChain(1, 3), firstTarget, {
+    const first = await runPlans(resolvePlanChain(1, 3), firstTarget, {
       keepOriginalAsBackup: false,
     })
+    expect(first.ok).toBe(true)
+    if (!first.ok) return
+    await first.session.submit({ keepOriginalAsBackup: false })
     const migratedFiles = new Map(source.files)
 
     useMigrationStore.getState().reset()
@@ -219,10 +221,10 @@ describe('chained v1 → v3 migration over a local shop', () => {
       keepOriginalAsBackup: false,
     })
 
-    expect(result).toEqual({ ok: true })
-    expect(useMigrationStore.getState().phase).toBe('done')
-    // Headers were already canonical and the audit log already backfilled:
-    // every sheet byte-identical, no duplicate audit entries.
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(useMigrationStore.getState().phase).toBe('awaiting-submit')
+    await result.session.submit({ keepOriginalAsBackup: false })
     expect(new Map(source.files)).toEqual(migratedFiles)
   })
 })

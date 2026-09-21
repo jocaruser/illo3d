@@ -14,7 +14,6 @@ import { PASTE_FOLDER_IDS, SEEDED_SPREADSHEET_ID } from './helpers/mockDriveApis
 
 test.use({ storageState: { cookies: [], origins: [] } })
 
-/** Mirrors migration-wizard.spec.ts's local-backend pattern: the 5s cooldown is genuine, not a race. */
 async function answerBackupAndContinue(
   page: Page,
   answer: 'wizard-backup-yes' | 'wizard-backup-no',
@@ -27,26 +26,27 @@ async function answerBackupAndContinue(
   await continueButton.click()
 }
 
+async function confirmMigration(page: Page): Promise<void> {
+  const confirm = page.getByTestId('wizard-migration-confirm')
+  await expect(confirm).toBeVisible({ timeout: 20000 })
+  await confirm.click()
+}
+
 interface ShopMetadataOnDisk {
   version: string
   spreadsheetId: string
 }
 
-/**
- * `google-drive-wizard.spec.ts`'s own `bad_version` test stops at this modal
- * and clicks "Log out" — the Google-backend migration engine
- * (`GSheetMigrationTarget`) is otherwise never run to completion by any e2e
- * spec. Declining the backup exercises `copyFile`, `renameFile` and
- * `deleteFile` together in one pass; `moveFileToFolder` already has coverage
- * via the "mocked OAuth creates a new Drive shop" test.
- */
 test.describe('Google Drive: migration wizard runs to completion', () => {
-  test('declining the backup completes copy + rename + delete against the live double', async ({
+  test('declining the backup keeps the same spreadsheet until confirm persists', async ({
     page,
   }) => {
     const fake = await mockDriveApis(page, { pasteFolderMode: 'bad_version' })
     const folderId = PASTE_FOLDER_IDS.bad_version
     const metadataPath = path.join(fake.store.pathOf(folderId), 'illo3d.metadata.json')
+    const metadataBefore = JSON.parse(
+      fs.readFileSync(metadataPath, 'utf8'),
+    ) as ShopMetadataOnDisk
 
     await mockGoogleOAuth(page)
     await page.goto('/#/dashboard', { waitUntil: 'load' })
@@ -56,7 +56,14 @@ test.describe('Google Drive: migration wizard runs to completion', () => {
     await expect(page.getByTestId('wizard-migration-continue')).toBeVisible({ timeout: 15000 })
 
     await answerBackupAndContinue(page, 'wizard-backup-no')
+    await expect
+      .poll(
+        () => (JSON.parse(fs.readFileSync(metadataPath, 'utf8')) as ShopMetadataOnDisk).version,
+        { timeout: 15000 },
+      )
+      .toBe(metadataBefore.version)
 
+    await confirmMigration(page)
     await waitForShopDataReady(page)
 
     await expect
@@ -67,9 +74,9 @@ test.describe('Google Drive: migration wizard runs to completion', () => {
       .toBe(APP_VERSION)
 
     const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf8')) as ShopMetadataOnDisk
-    expect(metadata.spreadsheetId).not.toBe(SEEDED_SPREADSHEET_ID)
+    expect(metadata.spreadsheetId).toBe(SEEDED_SPREADSHEET_ID)
 
     fake.store.sync()
-    expect(fake.store.get(SEEDED_SPREADSHEET_ID)).toBeUndefined()
+    expect(fake.store.get(SEEDED_SPREADSHEET_ID)).toBeDefined()
   })
 })

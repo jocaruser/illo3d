@@ -21,7 +21,7 @@ interface MigrationWizardModalProps {
 /**
  * Shown when a shop's major version trails the app's, on both backends. The
  * user picks whether to keep a backup, waits out a short cooldown, then runs
- * the migration — which enters the shop on success, unmounting this modal.
+ * the migration in memory — **Confirm and close** persists and opens the shop.
  */
 export function MigrationWizardModal({
   candidate,
@@ -33,7 +33,7 @@ export function MigrationWizardModal({
     boolean | null
   >(null)
   const [busy, setBusy] = useState(false)
-  const { start } = useMigration()
+  const { start, confirmSubmit } = useMigration()
   const phase = useMigrationStore((state) => state.phase)
   const liveSteps = useMigrationStore((state) => state.steps)
   const failureMessage = useMigrationStore((state) => state.failureMessage)
@@ -44,8 +44,11 @@ export function MigrationWizardModal({
     candidate.shopVersion,
     keepOriginalAsBackup
   )
-  const done = doneCount(rows)
+  const done = doneCount(rows, phase)
   const allDone = rows.length > 0 && done === rows.length
+  const awaitingSubmit = phase === 'awaiting-submit'
+  const runStarted =
+    phase !== 'idle' && phase !== 'failed' && phase !== 'awaiting-submit'
 
   // Null until the backup question is answered — which is exactly what makes
   // Continue eligible, so the button needs no separate "ready" flag.
@@ -116,7 +119,7 @@ export function MigrationWizardModal({
           <BackupQuestion
             value={keepOriginalAsBackup}
             onChange={setKeepOriginalAsBackup}
-            disabled={busy}
+            disabled={busy || runStarted || awaitingSubmit}
           />
         </div>
 
@@ -124,9 +127,11 @@ export function MigrationWizardModal({
           data-testid="wizard-migration-summary"
           className="mt-4 text-sm font-medium text-text-muted"
         >
-          {allDone
-            ? t('wizard.migrationAllDone')
-            : t('wizard.migrationSummary', { done, total: rows.length })}
+          {awaitingSubmit
+            ? t('wizard.migrationAwaitingSubmit')
+            : allDone
+              ? t('wizard.migrationAllDone')
+              : t('wizard.migrationSummary', { done, total: rows.length })}
         </p>
 
         <div className="mt-2">
@@ -152,17 +157,36 @@ export function MigrationWizardModal({
             type="button"
             data-testid="wizard-migration-logout"
             className="btn-secondary"
-            disabled={busy}
+            disabled={busy && phase !== 'awaiting-submit'}
             onClick={onLogOut}
           >
             {t('wizard.migrationLogOut')}
           </button>
-          <CooldownContinueButton
-            label={t('wizard.migrationContinue')}
-            resetKey={String(keepOriginalAsBackup)}
-            busy={busy}
-            onClick={runMigration === null ? null : () => void runMigration()}
-          />
+          {awaitingSubmit ? (
+            <button
+              type="button"
+              data-testid="wizard-migration-confirm"
+              className="btn-primary"
+              disabled={busy || keepOriginalAsBackup === null}
+              onClick={() => {
+                if (keepOriginalAsBackup === null) return
+                setBusy(true)
+                void confirmSubmit({
+                  folderId: candidate.folderId,
+                  keepOriginalAsBackup,
+                }).finally(() => setBusy(false))
+              }}
+            >
+              {t('wizard.migrationConfirmClose')}
+            </button>
+          ) : (
+            <CooldownContinueButton
+              label={t('wizard.migrationContinue')}
+              resetKey={String(keepOriginalAsBackup)}
+              busy={busy || runStarted}
+              onClick={runMigration === null ? null : () => void runMigration()}
+            />
+          )}
         </div>
       </div>
     </div>

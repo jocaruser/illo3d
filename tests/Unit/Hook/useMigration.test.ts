@@ -117,7 +117,7 @@ describe('useMigration', () => {
     installFakeLocalStorage()
     vi.clearAllMocks()
     resolvePlanChain.mockReturnValue(v1Chain)
-    runPlans.mockResolvedValue({ ok: true })
+    runPlans.mockResolvedValue({ ok: true, session: { submit: vi.fn() } })
     readMetadata.mockResolvedValue({
       kind: 'present',
       metadata: { spreadsheetId: 'SS-OLD' },
@@ -143,7 +143,7 @@ describe('useMigration', () => {
     expect(result.current.failureMessage).toBeNull()
   })
 
-  it('builds a local target from the directory handle and enters the migrated shop', async () => {
+  it('builds a local target from the directory handle and stops at awaiting submit', async () => {
     const { result } = renderHook(() => useMigration(clock))
 
     let outcome: Awaited<ReturnType<typeof result.current.start>> | undefined
@@ -164,6 +164,32 @@ describe('useMigration', () => {
         keepOriginalAsBackup: true,
       }
     )
+    expect(validateShopFolder).not.toHaveBeenCalled()
+    expect(hydrate).not.toHaveBeenCalled()
+    expect(useShopStore.getState().activeShop).toBeNull()
+    expect(outcome).toEqual({ ok: true })
+  })
+
+  it('confirmSubmit persists the session and enters the migrated shop', async () => {
+    const submit = vi.fn().mockResolvedValue(undefined)
+    runPlans.mockResolvedValue({ ok: true, session: { submit } })
+    const { result } = renderHook(() => useMigration(clock))
+
+    await act(async () => {
+      await result.current.start(args)
+    })
+
+    let outcome: Awaited<
+      ReturnType<typeof result.current.confirmSubmit>
+    > | undefined
+    await act(async () => {
+      outcome = await result.current.confirmSubmit({
+        folderId: 'F1',
+        keepOriginalAsBackup: true,
+      })
+    })
+
+    expect(submit).toHaveBeenCalledWith({ keepOriginalAsBackup: true })
     expect(validateShopFolder).toHaveBeenCalledWith('F1')
     expect(hydrate).toHaveBeenCalledTimes(1)
     expect(useShopStore.getState().activeShop).toEqual(shop)
@@ -203,7 +229,7 @@ describe('useMigration', () => {
     let seeded: unknown
     runPlans.mockImplementation(async () => {
       seeded = useMigrationStore.getState().steps
-      return { ok: true }
+      return { ok: true, session: { submit: vi.fn() } }
     })
     const { result } = renderHook(() => useMigration(clock))
 
@@ -223,7 +249,7 @@ describe('useMigration', () => {
     let seeded: unknown
     runPlans.mockImplementation(async () => {
       seeded = useMigrationStore.getState().steps
-      return { ok: true }
+      return { ok: true, session: { submit: vi.fn() } }
     })
     const { result } = renderHook(() => useMigration(clock))
 
@@ -322,7 +348,8 @@ describe('useMigration', () => {
     expect(useShopStore.getState().activeShop).toBeNull()
   })
 
-  it('fails when the migrated shop does not re-validate', async () => {
+  it('fails when the migrated shop does not re-validate on confirm', async () => {
+    runPlans.mockResolvedValue({ ok: true, session: { submit: vi.fn() } })
     validateShopFolder.mockResolvedValue({
       ok: false,
       error: 'structure',
@@ -330,9 +357,18 @@ describe('useMigration', () => {
     })
     const { result } = renderHook(() => useMigration(clock))
 
-    let outcome: Awaited<ReturnType<typeof result.current.start>> | undefined
     await act(async () => {
-      outcome = await result.current.start(args)
+      await result.current.start(args)
+    })
+
+    let outcome: Awaited<
+      ReturnType<typeof result.current.confirmSubmit>
+    > | undefined
+    await act(async () => {
+      outcome = await result.current.confirmSubmit({
+        folderId: 'F1',
+        keepOriginalAsBackup: true,
+      })
     })
 
     expect(outcome).toEqual({ ok: false, failedAt: 'commit' })
@@ -343,13 +379,23 @@ describe('useMigration', () => {
     expect(useShopStore.getState().activeShop).toBeNull()
   })
 
-  it('fails when hydrating the migrated shop throws', async () => {
+  it('fails when hydrating the migrated shop throws on confirm', async () => {
+    runPlans.mockResolvedValue({ ok: true, session: { submit: vi.fn() } })
     hydrate.mockRejectedValue(new Error('sheet unreachable'))
     const { result } = renderHook(() => useMigration(clock))
 
-    let outcome: Awaited<ReturnType<typeof result.current.start>> | undefined
     await act(async () => {
-      outcome = await result.current.start(args)
+      await result.current.start(args)
+    })
+
+    let outcome: Awaited<
+      ReturnType<typeof result.current.confirmSubmit>
+    > | undefined
+    await act(async () => {
+      outcome = await result.current.confirmSubmit({
+        folderId: 'F1',
+        keepOriginalAsBackup: true,
+      })
     })
 
     expect(outcome).toEqual({ ok: false, failedAt: 'commit' })

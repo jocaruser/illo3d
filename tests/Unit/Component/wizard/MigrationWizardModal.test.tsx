@@ -96,7 +96,10 @@ describe('MigrationWizardModal', () => {
     // the cooldown clock stays under the test's control.
     vi.useFakeTimers({ shouldAdvanceTime: true })
     resolvePlanChain.mockReturnValue(chain)
-    runPlans.mockResolvedValue({ ok: true })
+    runPlans.mockResolvedValue({
+      ok: true,
+      session: { submit: vi.fn().mockResolvedValue(undefined) },
+    })
     validateShopFolder.mockResolvedValue({ ok: true, shop, metadata: {} })
     hydrate.mockResolvedValue(undefined)
     useMigrationStore.getState().reset()
@@ -242,7 +245,7 @@ describe('MigrationWizardModal', () => {
     expect(screen.queryByTestId('wizard-cooldown-ring')).not.toBeInTheDocument()
   })
 
-  it('runs the migration with the chosen backup answer and enters the shop', async () => {
+  it('runs the migration with the chosen backup answer then confirm enters the shop', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     renderModal()
 
@@ -257,6 +260,10 @@ describe('MigrationWizardModal', () => {
         keepOriginalAsBackup: true,
       }
     )
+    act(() => {
+      useMigrationStore.getState().setPhase('awaiting-submit')
+    })
+    await user.click(screen.getByTestId('wizard-migration-confirm'))
     await waitFor(() =>
       expect(useShopStore.getState().activeShop).toEqual(shop)
     )
@@ -280,10 +287,13 @@ describe('MigrationWizardModal', () => {
     )
   })
 
-  it('locks the backup answers and Log out while the migration runs', async () => {
-    let release: ((value: { ok: true }) => void) | undefined
+  it('locks the backup answers while the migration runs but not while awaiting submit', async () => {
+    let release: ((value: { ok: true; session: { submit: () => Promise<void> } }) => void) | undefined
     runPlans.mockImplementation(
-      () => new Promise((resolve) => (release = resolve))
+      () =>
+        new Promise((resolve) => {
+          release = resolve
+        })
     )
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
     renderModal()
@@ -299,8 +309,17 @@ describe('MigrationWizardModal', () => {
     expect(continueButton()).toBeDisabled()
 
     await act(async () => {
-      release?.({ ok: true })
+      release?.({
+        ok: true,
+        session: { submit: vi.fn().mockResolvedValue(undefined) },
+      })
     })
+    act(() => {
+      useMigrationStore.getState().setPhase('awaiting-submit')
+    })
+    await waitFor(() =>
+      expect(screen.getByTestId('wizard-migration-logout')).toBeEnabled()
+    )
   })
 
   it('shows the failure alert with the orchestrator message', async () => {

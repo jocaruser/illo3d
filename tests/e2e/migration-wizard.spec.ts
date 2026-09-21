@@ -30,10 +30,15 @@ async function answerBackupAndContinue(
   const continueButton = page.getByTestId('wizard-migration-continue')
   await expect(continueButton).toBeDisabled()
   await page.getByTestId(answer).click()
-  // The 5s cooldown ring gives way to a checkmark; only then does Continue arm.
   await expect(page.getByTestId('wizard-cooldown-check')).toBeVisible({ timeout: 10000 })
   await expect(continueButton).toBeEnabled()
   await continueButton.click()
+}
+
+async function confirmMigration(page: Page): Promise<void> {
+  const confirm = page.getByTestId('wizard-migration-confirm')
+  await expect(confirm).toBeVisible({ timeout: 20000 })
+  await confirm.click()
 }
 
 test.describe('Migration wizard: v2 shop', () => {
@@ -54,6 +59,7 @@ test.describe('Migration wizard: v2 shop', () => {
     await expect(page.getByTestId('wizard-backup-warning')).not.toBeVisible()
 
     await answerBackupAndContinue(page, 'wizard-backup-no')
+    await confirmMigration(page)
 
     // The migrated shop opens without re-picking the folder.
     await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
@@ -87,6 +93,7 @@ test.describe('Migration wizard: v1 shop', () => {
     await expect(page.getByText(APP_VERSION)).toBeVisible()
 
     await answerBackupAndContinue(page, 'wizard-backup-yes')
+    await confirmMigration(page)
 
     await expect(page.getByRole('heading', { name: /dashboard|panel/i })).toBeVisible({
       timeout: 20000,

@@ -46,9 +46,8 @@ export function stepStatusKey(status: MigrationStepStatus): string {
  *
  * Idle runs show a static grid seeded from the resolved plan chain; once the
  * orchestrator takes over, the store is the source of truth. Declining a backup
- * pins the backup row to done/Skipped in both phases — the orchestrator still
- * makes a working copy (that is how a failed run stays recoverable), but from
- * the user's point of view no backup is being kept.
+ * pins the backup row to done/Skipped in both phases — the orchestrator skips
+ * writing a backup folder, but from the user's point of view no backup is kept.
  */
 export function migrationStepStates(
   phase: MigrationPhase,
@@ -76,6 +75,12 @@ export function migrationStepStates(
 }
 
 /** Count of finished rows, for the wizard's "{done} of {total} done" summary. */
-export function doneCount(rows: MigrationStepState[]): number {
+export function doneCount(
+  rows: MigrationStepState[],
+  phase: MigrationPhase
+): number {
+  if (phase === 'awaiting-submit' || phase === 'committing' || phase === 'done') {
+    return rows.length
+  }
   return rows.filter((row) => row.status === 'done').length
 }

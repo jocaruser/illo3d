@@ -658,6 +658,8 @@
     "migrationDescriptionActions": "Añadiremos la hoja de registro de auditoría, registraremos un punto de partida e insertaremos las nuevas columnas. No se eliminarán ni modificarán datos.",
     "migrationSummary": "{{done}} de {{total}} completados",
     "migrationAllDone": "Todo completado",
+    "migrationAwaitingSubmit": "Revisa los pasos anteriores y confirma para guardar tu tienda actualizada.",
+    "migrationConfirmClose": "Confirmar y cerrar",
     "migrationBackupQuestion": "¿Quieres hacer una copia de seguridad antes de migrar?",
     "migrationBackupYes": "Sí, hacer copia de seguridad",
     "migrationBackupNo": "No, omitir copia",

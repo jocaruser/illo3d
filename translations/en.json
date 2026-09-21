@@ -658,6 +658,8 @@
     "migrationDescriptionActions": "We'll add the audit log sheet, backfill a starting record, and insert the new columns. No data is removed or altered.",
     "migrationSummary": "{{done}} of {{total}} done",
     "migrationAllDone": "All done",
+    "migrationAwaitingSubmit": "Review the steps above, then confirm to save your upgraded shop.",
+    "migrationConfirmClose": "Confirm and close",
     "migrationBackupQuestion": "Would you like to back up your shop before migrating?",
     "migrationBackupYes": "Yes, back up my shop",
     "migrationBackupNo": "No, skip backup",
