@@ -44,7 +44,10 @@ export function NotesSection({
 
   const prefix = entityType === 'client' ? 'clientDetail' : 'jobDetail'
   const service = useMemo(() => new NoteService(em), [em])
-  const mentionResolvers = useMemo(() => activeWorkbookMentionResolvers(em), [em])
+  const mentionResolvers = useMemo(
+    () => activeWorkbookMentionResolvers(em),
+    [em]
+  )
   const notes = useMemo(() => {
     void revision // the workbook mutates in place; `revision` signals a change
     return em.crmNotes.findActiveByEntity(entityType, entityId)
@@ -62,7 +65,6 @@ export function NotesSection({
       })),
     [prefix, t]
   )
-
 
   const add = () => {
     const result = service.createNote(entityType, entityId, body, severity)
@@ -206,7 +208,11 @@ export function NotesSection({
               <div className="flex flex-wrap items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="whitespace-pre-wrap break-words text-sm text-text">
-                    <MentionLinkify text={note.body} em={em} {...mentionResolvers} />
+                    <MentionLinkify
+                      text={note.body}
+                      em={em}
+                      {...mentionResolvers}
+                    />
                   </p>
                   <p className="mt-1 text-xs text-text-muted">
                     {t(`${prefix}.severity.${note.severity}`)}

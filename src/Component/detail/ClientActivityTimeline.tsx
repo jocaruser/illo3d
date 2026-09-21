@@ -29,7 +29,10 @@ export function ClientActivityTimeline({
   const { t } = useTranslation()
   const em = useEntityManager()
 
-  const mentionResolvers = useMemo(() => activeWorkbookMentionResolvers(em), [em])
+  const mentionResolvers = useMemo(
+    () => activeWorkbookMentionResolvers(em),
+    [em]
+  )
   const entries = useMemo(() => {
     void revision // the workbook mutates in place; `revision` signals a change
     return buildClientActivityTimeline(em, clientId)
@@ -61,7 +64,11 @@ export function ClientActivityTimeline({
                 )}
               </div>
               <div className="mt-1 text-sm text-text">
-                <ActivityBody entry={entry} em={em} mentionResolvers={mentionResolvers} />
+                <ActivityBody
+                  entry={entry}
+                  em={em}
+                  mentionResolvers={mentionResolvers}
+                />
               </div>
             </li>
           ))}
