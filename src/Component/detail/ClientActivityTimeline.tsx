@@ -5,7 +5,10 @@ import { SectionHeading } from '@/Component/layout/SectionHeading'
 import { MentionLinkify } from '@/Component/MentionLinkify'
 import { RelativeTime } from '@/Component/RelativeTime'
 import { useEntityManager } from '@/Hook/useEntityManager'
-import { transactionNavigationTarget } from '@/Service/Linking/entityLinkTargets'
+import {
+  activeWorkbookMentionResolvers,
+  transactionNavigationTarget,
+} from '@/Service/Linking/entityLinkTargets'
 import { formatCurrency } from '@/Service/Pricing/money'
 import {
   buildClientActivityTimeline,
@@ -26,6 +29,7 @@ export function ClientActivityTimeline({
   const { t } = useTranslation()
   const em = useEntityManager()
 
+  const mentionResolvers = useMemo(() => activeWorkbookMentionResolvers(em), [em])
   const entries = useMemo(() => {
     void revision // the workbook mutates in place; `revision` signals a change
     return buildClientActivityTimeline(em, clientId)
@@ -57,7 +61,7 @@ export function ClientActivityTimeline({
                 )}
               </div>
               <div className="mt-1 text-sm text-text">
-                <ActivityBody entry={entry} em={em} />
+                <ActivityBody entry={entry} em={em} mentionResolvers={mentionResolvers} />
               </div>
             </li>
           ))}
@@ -70,9 +74,10 @@ export function ClientActivityTimeline({
 interface ActivityBodyProps {
   entry: ClientActivityEntry
   em: ReturnType<typeof useEntityManager>
+  mentionResolvers: ReturnType<typeof activeWorkbookMentionResolvers>
 }
 
-function ActivityBody({ entry, em }: ActivityBodyProps) {
+function ActivityBody({ entry, em, mentionResolvers }: ActivityBodyProps) {
   const { t } = useTranslation()
 
   if (entry.kind === 'income') {
@@ -104,14 +109,14 @@ function ActivityBody({ entry, em }: ActivityBodyProps) {
   }
 
   if (entry.kind === 'client_note') {
-    return <MentionLinkify text={entry.body} em={em} />
+    return <MentionLinkify text={entry.body} em={em} {...mentionResolvers} />
   }
 
   if (entry.kind === 'job_note') {
     return (
       <span className="space-y-1">
         <span className="block">
-          <MentionLinkify text={entry.body} em={em} />
+          <MentionLinkify text={entry.body} em={em} {...mentionResolvers} />
         </span>
         <Link
           to={`/jobs/${entry.jobId}`}

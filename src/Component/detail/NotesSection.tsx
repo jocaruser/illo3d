@@ -16,6 +16,7 @@ import {
   type NoteEntityType,
 } from '@/Entity/CrmNote'
 import { useEntityManager } from '@/Hook/useEntityManager'
+import { activeWorkbookMentionResolvers } from '@/Service/Linking/entityLinkTargets'
 import { NoteService } from '@/Service/NoteService'
 
 interface NotesSectionProps {
@@ -43,6 +44,7 @@ export function NotesSection({
 
   const prefix = entityType === 'client' ? 'clientDetail' : 'jobDetail'
   const service = useMemo(() => new NoteService(em), [em])
+  const mentionResolvers = useMemo(() => activeWorkbookMentionResolvers(em), [em])
   const notes = useMemo(() => {
     void revision // the workbook mutates in place; `revision` signals a change
     return em.crmNotes.findActiveByEntity(entityType, entityId)
@@ -110,7 +112,7 @@ export function NotesSection({
         >
           {prominent.map((note) => (
             <AlertStrip key={note.id} variant={note.severity as AlertVariant}>
-              <MentionLinkify text={note.body} em={em} />
+              <MentionLinkify text={note.body} em={em} {...mentionResolvers} />
             </AlertStrip>
           ))}
         </div>
@@ -204,7 +206,7 @@ export function NotesSection({
               <div className="flex flex-wrap items-start gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="whitespace-pre-wrap break-words text-sm text-text">
-                    <MentionLinkify text={note.body} em={em} />
+                    <MentionLinkify text={note.body} em={em} {...mentionResolvers} />
                   </p>
                   <p className="mt-1 text-xs text-text-muted">
                     {t(`${prefix}.severity.${note.severity}`)}

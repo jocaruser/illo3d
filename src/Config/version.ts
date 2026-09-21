@@ -3,7 +3,7 @@
  * `version` in each shop's `illo3d.metadata.json`; a mismatch opens the
  * migration wizard (see src/Migration).
  */
-export const APP_VERSION = '3.1.3'
+export const APP_VERSION = '3.1.4'
 
 /** Parse the major segment of a semver-ish string. Returns null when unparseable. */
 export function parseMajorVersion(version: string): number | null {

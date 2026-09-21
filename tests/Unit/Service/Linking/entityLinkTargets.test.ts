@@ -1,4 +1,5 @@
 import {
+  activeWorkbookMentionResolvers,
   auditEntityNavigationTarget,
   jobPathForPiece,
   mentionTokenTarget,
@@ -75,6 +76,22 @@ describe('entityLinkTargets', () => {
 
     expect(jobPathForPiece(em, 'P9')).toBeNull()
     expect(jobPathForPiece(em, 'P10')).toBeNull()
+  })
+
+  it('active workbook mention resolvers require active rows', () => {
+    const tabs = new FakeTabs()
+    tabs.seed('clients', { id: 'CL1', name: 'Live' })
+    tabs.seed('clients', { id: 'CL2', name: 'Archived', archived: 'true' })
+    tabs.seed('jobs', { id: 'J1', client_id: 'CL1', description: 'Run' })
+    tabs.seed('jobs', { id: 'J2', client_id: 'CL1', description: 'Gone', deleted: 'true' })
+    const em = createTestEm(tabs)
+    const { resolveClientTarget, resolveJobTarget } = activeWorkbookMentionResolvers(em)
+
+    expect(resolveClientTarget('CL1')).toBe('/clients/CL1')
+    expect(resolveClientTarget('CL2')).toBeNull()
+    expect(resolveClientTarget('CL9')).toBeNull()
+    expect(resolveJobTarget('J1')).toBe('/jobs/J1')
+    expect(resolveJobTarget('J2')).toBeNull()
   })
 
   it('maps mention tokens through the same paths', () => {

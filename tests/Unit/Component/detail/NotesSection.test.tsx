@@ -100,6 +100,16 @@ describe('NotesSection', () => {
     expect(screen.queryByTestId('client-note-row-CN4')).not.toBeInTheDocument()
   })
 
+  it('lists notes newest first', () => {
+    renderWithProviders(<NotesSection entityType="client" entityId="CL1" />)
+
+    const rows = screen.getAllByTestId(/^client-note-row-/)
+    expect(rows.map((row) => row.getAttribute('data-testid'))).toEqual([
+      'client-note-row-CN2',
+      'client-note-row-CN1',
+    ])
+  })
+
   it('surfaces prominent severities in an alert strip', () => {
     renderWithProviders(<NotesSection entityType="client" entityId="CL1" />)
 
@@ -124,6 +134,26 @@ describe('NotesSection', () => {
       '/jobs/J7#piece-P2'
     )
     expect(within(row).getByRole('link', { name: '@CL9' })).toHaveAttribute('href', '/clients/CL9')
+  })
+
+  it('leaves mentions of missing clients and jobs as plain text', () => {
+    world.tabs.seed('crm_notes', [
+      {
+        id: 'CN8',
+        entity_type: 'client',
+        entity_id: 'CL1',
+        body: 'ghost @CL88 and @J88 refs',
+        severity: 'info',
+        created_at: '2024-06-01T10:00:00.000Z',
+      },
+    ])
+    renderWithProviders(<NotesSection entityType="client" entityId="CL1" />)
+
+    const row = screen.getByTestId('client-note-row-CN8')
+    expect(within(row).queryByRole('link', { name: '@CL88' })).not.toBeInTheDocument()
+    expect(within(row).queryByRole('link', { name: '@J88' })).not.toBeInTheDocument()
+    expect(row).toHaveTextContent('@CL88')
+    expect(row).toHaveTextContent('@J88')
   })
 
   it('leaves an unresolvable piece mention as plain text', () => {

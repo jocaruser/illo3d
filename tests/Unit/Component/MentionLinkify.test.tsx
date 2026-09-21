@@ -27,6 +27,26 @@ describe('MentionLinkify', () => {
     expect(screen.getByText(/today/)).toBeInTheDocument()
   })
 
+  it('renders dead client and job mentions as plain text when resolvers return null', () => {
+    const tabs = new FakeTabs()
+    tabs.seed('clients', { id: 'CL1', name: 'Acme' })
+    const em = createTestEm(tabs)
+    renderWithProviders(
+      <p>
+        <MentionLinkify
+          text="see @CL9 and @J8"
+          em={em}
+          resolveClientTarget={() => null}
+          resolveJobTarget={() => null}
+        />
+      </p>
+    )
+
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+    expect(screen.getByText(/@CL9/)).toBeInTheDocument()
+    expect(screen.getByText(/@J8/)).toBeInTheDocument()
+  })
+
   it('renders unresolvable piece mentions as plain text', () => {
     const tabs = new FakeTabs()
     const em = createTestEm(tabs)
