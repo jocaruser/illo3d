@@ -1,5 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { useLocalFolderReopenGate } from '@/Hook/useLocalFolderReopenGate'
+import * as directoryPermission from '@/Repository/LocalCsv/directoryPermission'
 import { persistDirectoryHandle } from '@/Repository/LocalCsv/persistDirectoryHandle'
 import { useAuthStore } from '@/Store/authStore'
 import { useBackendStore } from '@/Store/backendStore'
@@ -51,6 +52,18 @@ describe('useLocalFolderReopenGate', () => {
   it('needs re-allow when permission is prompt', async () => {
     const { handle } = createFakeDirectory('shop', {}, 'prompt')
     openLocalShop(handle)
+
+    const { result } = renderHook(() => useLocalFolderReopenGate())
+
+    await waitFor(() => expect(result.current.phase).toBe('needs-reallow'))
+  })
+
+  it('needs re-allow when permission query fails', async () => {
+    const { handle } = createFakeDirectory('shop', {}, 'granted')
+    openLocalShop(handle)
+    vi.spyOn(directoryPermission, 'queryDirectoryPermission').mockRejectedValue(
+      new Error('permission probe failed')
+    )
 
     const { result } = renderHook(() => useLocalFolderReopenGate())
 

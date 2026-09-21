@@ -52,12 +52,15 @@ export function useLocalFolderReopenGate(): LocalFolderReopenGate {
 
     let cancelled = false
     setPhase('checking')
-    void queryDirectoryPermission(localDirectoryHandle, PERMISSION_MODE).then(
-      (permission) => {
+    void queryDirectoryPermission(localDirectoryHandle, PERMISSION_MODE)
+      .then((permission) => {
         if (cancelled) return
         setPhase(permission === 'granted' ? 'ready' : 'needs-reallow')
-      }
-    )
+      })
+      .catch(() => {
+        if (cancelled) return
+        setPhase('needs-reallow')
+      })
     return () => {
       cancelled = true
     }
