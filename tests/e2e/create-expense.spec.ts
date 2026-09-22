@@ -127,7 +127,9 @@ test.describe('Record purchase flow', () => {
     // read the CSVs back. The expense must land in transactions.csv while
     // inventory.csv stays free of it (INV1 is the positive control that we
     // are reading the right file).
-    await page.getByTestId('workbook-save').click()
+    await page.getByTestId('workbook-review').click()
+    await expect(page.getByTestId('save-preview-page')).toBeVisible({ timeout: 10000 })
+    await page.getByTestId('save-preview-save-all').click()
     await expect(page.getByText(/workbook saved|libro guardado/i)).toBeVisible({
       timeout: 20000,
     })

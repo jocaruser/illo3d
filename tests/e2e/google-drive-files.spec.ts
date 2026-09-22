@@ -57,7 +57,9 @@ test.describe('Google Drive: stateful client create/edit/save', () => {
     ])
     await expect(page.getByRole('heading', { name: newName })).toBeVisible({ timeout: 20000 })
 
-    await page.getByTestId('workbook-save').click()
+    await page.getByTestId('workbook-review').click()
+    await expect(page.getByTestId('save-preview-page')).toBeVisible({ timeout: 10000 })
+    await page.getByTestId('save-preview-save-all').click()
     await expect(page.getByText(/workbook saved|libro guardado/i)).toBeVisible({
       timeout: 20000,
     })

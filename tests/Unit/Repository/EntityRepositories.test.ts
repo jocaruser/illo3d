@@ -137,6 +137,45 @@ describe('CrmNoteRepository', () => {
     expect(em.crmNotes.findActiveByEntity('client', 'CL1').map((note) => note.id)).toEqual(['CN1'])
     expect(em.crmNotes.findActiveByEntity('job', 'J1').map((note) => note.id)).toEqual(['JN4'])
   })
+
+  it('sorts active notes newest first with id ascending tiebreak', () => {
+    const { em, tabs } = seeded()
+    tabs.seed('crm_notes', {
+      id: 'CN3',
+      entity_type: 'client',
+      entity_id: 'CL1',
+      body: 'older',
+      created_at: '2026-01-01T00:00:00.000Z',
+    })
+    tabs.seed('crm_notes', {
+      id: 'CN5',
+      entity_type: 'client',
+      entity_id: 'CL1',
+      body: 'newest',
+      created_at: '2026-01-03T00:00:00.000Z',
+    })
+    tabs.seed('crm_notes', {
+      id: 'CN4',
+      entity_type: 'client',
+      entity_id: 'CL1',
+      body: 'tie a',
+      created_at: '2026-01-02T00:00:00.000Z',
+    })
+    tabs.seed('crm_notes', {
+      id: 'CN6',
+      entity_type: 'client',
+      entity_id: 'CL1',
+      body: 'tie b',
+      created_at: '2026-01-02T00:00:00.000Z',
+    })
+    expect(em.crmNotes.findActiveByEntity('client', 'CL1').map((note) => note.id)).toEqual([
+      'CN5',
+      'CN4',
+      'CN6',
+      'CN3',
+      'CN1',
+    ])
+  })
 })
 
 describe('AuditLogRepository', () => {

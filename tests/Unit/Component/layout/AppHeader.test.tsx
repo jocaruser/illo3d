@@ -165,8 +165,8 @@ describe('AppHeader', () => {
       'workbook-actions-mobile',
     ]) {
       const row = within(screen.getByTestId(testId))
-      expect(row.getByRole('button', { name: 'Save' })).toBeInTheDocument()
-      expect(row.getByRole('button', { name: 'Refresh' })).toBeInTheDocument()
+      expect(row.getByRole('button', { name: 'Review' })).toBeInTheDocument()
+      expect(row.queryByRole('button', { name: 'Refresh' })).not.toBeInTheDocument()
     }
   })
 })

@@ -24,6 +24,7 @@ describe('workbookStore', () => {
     expect(state.error).toBeNull()
     expect(state.saveInProgress).toBe(false)
     expect(state.mutatedDuringSave).toBe(false)
+    expect(state.savedAuditRows).toBe(0)
   })
 
   it('hydrateTabs replaces the snapshot and marks ready + clean', () => {
@@ -85,14 +86,32 @@ describe('workbookStore', () => {
     expect(state.mutatedDuringSave).toBe(false)
   })
 
+  it('hydrateTabs counts the persisted audit rows', () => {
+    const tabs = emptyTabs()
+    tabs.audit_log = [
+      ...tabs.audit_log,
+      ['AL1', '2026-01-01T00:00:00.000Z', 'local', 'tag', 'TG1', 'create', '', '{}', 'name', '', ''],
+      ['AL2', '2026-01-02T00:00:00.000Z', 'local', 'tag', 'TG1', 'update', '{}', '{}', 'name', '', ''],
+    ]
+    useWorkbookStore.getState().hydrateTabs(tabs, 'wb-1')
+    expect(useWorkbookStore.getState().savedAuditRows).toBe(2)
+  })
+
+  it('setSavedAuditRows records the persisted audit row count', () => {
+    useWorkbookStore.getState().setSavedAuditRows(7)
+    expect(useWorkbookStore.getState().savedAuditRows).toBe(7)
+  })
+
   it('reset restores the initial state', () => {
     useWorkbookStore.getState().mutateTab('tags', (matrix) => matrix)
     useWorkbookStore.getState().setStatus('error', 'x')
+    useWorkbookStore.getState().setSavedAuditRows(3)
     useWorkbookStore.getState().reset()
     const state = useWorkbookStore.getState()
     expect(state.status).toBe('idle')
     expect(state.dirty).toBe(false)
     expect(state.error).toBeNull()
     expect(state.tabs.tags).toEqual(emptyMatrix('tags'))
+    expect(state.savedAuditRows).toBe(0)
   })
 })

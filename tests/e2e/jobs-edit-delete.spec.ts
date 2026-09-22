@@ -32,7 +32,9 @@ test.describe('Job edit and delete', () => {
     ).not.toBeVisible({ timeout: 15000 })
     await expect(page.getByRole('row', { name: /E2E disposable job/i })).toHaveCount(0)
 
-    await page.getByTestId('workbook-save').click()
+    await page.getByTestId('workbook-review').click()
+    await expect(page.getByTestId('save-preview-page')).toBeVisible({ timeout: 10000 })
+    await page.getByTestId('save-preview-save-all').click()
     await expect(page.getByText(/workbook saved|libro guardado/i)).toBeVisible({
       timeout: 20000,
     })

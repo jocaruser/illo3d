@@ -54,6 +54,14 @@ export class LifecycleService {
     this.em.jobs.save(job)
   }
 
+  restorePiece(pieceId: string): void {
+    const piece = this.em.pieces.find(pieceId)
+    if (!piece) return
+    piece.archived = ''
+    piece.deleted = ''
+    this.em.pieces.save(piece)
+  }
+
   restoreInventory(inventoryId: string): void {
     const item = this.em.inventory.find(inventoryId)
     if (!item) return

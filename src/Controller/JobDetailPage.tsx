@@ -58,7 +58,7 @@ export function JobDetailPage() {
   }, [em, jobId, revision])
   const pieces = useMemo(() => {
     void revision // the workbook mutates in place; `revision` signals a change
-    return em.pieces.findByJob(jobId).filter((piece) => !piece.isDeleted())
+    return em.pieces.findByJob(jobId)
   }, [em, jobId, revision])
   const pricing = useMemo(() => {
     void revision // the workbook mutates in place; `revision` signals a change
@@ -71,9 +71,7 @@ export function JobDetailPage() {
 
   const pieceRows = useMemo(() => {
     const jobLabel = job === null ? '' : job.description
-    return fuzzyFilter(pieces, query, (piece) =>
-      pieceSearchBlob(piece, { jobLabel }, t)
-    )
+    return fuzzyFilter(pieces, query, (piece) => pieceSearchBlob(piece, { jobLabel }, t))
   }, [pieces, query, job, t])
 
   if (job === null || job.isDeleted()) {
@@ -117,8 +115,7 @@ export function JobDetailPage() {
     bump()
   }
 
-  const piecesEmptyMessage =
-    pieces.length === 0 ? t('pieces.empty') : t('listTable.noMatches')
+  const piecesEmptyMessage = pieces.length === 0 ? t('pieces.empty') : t('listTable.noMatches')
 
   return (
     <div className="space-y-6">
@@ -149,9 +146,7 @@ export function JobDetailPage() {
       />
 
       {/* The flow blocks paid/cancelled until every counting piece is priced. */}
-      {statusFlow.error !== null && (
-        <AlertBox variant="warning">{t(statusFlow.error)}</AlertBox>
-      )}
+      {statusFlow.error !== null && <AlertBox variant="warning">{t(statusFlow.error)}</AlertBox>}
 
       <JobStatusFlowDialogs flow={statusFlow} />
 
@@ -188,6 +183,11 @@ export function JobDetailPage() {
           emptyMessage={piecesEmptyMessage}
           readOnly={readOnly}
           onChanged={bump}
+          onUnarchivePiece={(piece) => {
+            new LifecycleService(em).restorePiece(piece.id)
+            toast.success(t('toast.changeApplied'))
+            bump()
+          }}
         />
       </section>
 
@@ -207,21 +207,13 @@ export function JobDetailPage() {
 
       <ConfirmDialog
         open={lifecycle !== null}
-        title={
-          lifecycle === 'delete'
-            ? t('jobs.confirmDeleteTitle')
-            : t('jobs.archiveConfirmTitle')
-        }
+        title={lifecycle === 'delete' ? t('jobs.confirmDeleteTitle') : t('jobs.archiveConfirmTitle')}
         message={
           lifecycle === 'delete'
             ? t('jobs.confirmDeleteMessage', { id: job.id })
             : t('jobs.archiveConfirmMessage', { id: job.id })
         }
-        confirmLabel={
-          lifecycle === 'delete'
-            ? t('lifecycle.softDelete')
-            : t('lifecycle.archive')
-        }
+        confirmLabel={lifecycle === 'delete' ? t('lifecycle.softDelete') : t('lifecycle.archive')}
         onConfirm={confirmLifecycle}
         onCancel={() => setLifecycle(null)}
       />

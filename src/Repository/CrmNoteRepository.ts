@@ -25,14 +25,20 @@ export class CrmNoteRepository extends AbstractSheetRepository<CrmNote> {
   }
 
   findActiveByEntity(entityType: NoteEntityType, entityId: string): CrmNote[] {
-    return this.findActive().filter(
-      (note) => note.entityType === entityType && note.entityId === entityId,
-    )
+    return this.findActive()
+      .filter(
+        (note) => note.entityType === entityType && note.entityId === entityId
+      )
+      .sort((a, b) => {
+        if (a.createdAt !== b.createdAt)
+          return a.createdAt < b.createdAt ? 1 : -1
+        return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+      })
   }
 
   findByEntity(entityType: NoteEntityType, entityId: string): CrmNote[] {
     return this.findAll().filter(
-      (note) => note.entityType === entityType && note.entityId === entityId,
+      (note) => note.entityType === entityType && note.entityId === entityId
     )
   }
 }

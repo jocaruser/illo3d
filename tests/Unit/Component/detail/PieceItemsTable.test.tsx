@@ -342,4 +342,14 @@ describe('PieceItemsTable', () => {
     const row = screen.getByTestId('piece-item-row-PI2')
     expect(within(row).getByText('€0.20')).toBeInTheDocument()
   })
+
+  it('renders lines read-only without add or delete controls', () => {
+    renderWithProviders(
+      <PieceItemsTable piece={piece()} onChanged={vi.fn()} readOnly />
+    )
+
+    expect(screen.getByTestId('piece-item-qty-PI1')).toBeDisabled()
+    expect(screen.queryByTestId('piece-item-delete-PI1')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('add-line-P1')).not.toBeInTheDocument()
+  })
 })

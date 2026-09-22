@@ -94,6 +94,25 @@ export function mentionTokenTarget(
   return jobPathForPiece(em, id)
 }
 
+/** Mention links for notes: only active workbook rows, matching list/search membership. */
+export function activeWorkbookMentionResolvers(em: EntityManager): {
+  resolveClientTarget: (clientId: string) => string | null
+  resolveJobTarget: (jobId: string) => string | null
+} {
+  return {
+    resolveClientTarget(clientId: string) {
+      const client = em.clients.find(clientId)
+      if (client === null || !client.isActive()) return null
+      return `/clients/${clientId}`
+    },
+    resolveJobTarget(jobId: string) {
+      const job = em.jobs.find(jobId)
+      if (job === null || !job.isActive()) return null
+      return `/jobs/${jobId}`
+    },
+  }
+}
+
 export function auditEntityNavigationTarget(
   em: EntityManager,
   entityName: AuditEntityName | '',

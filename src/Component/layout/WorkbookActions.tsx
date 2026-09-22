@@ -1,6 +1,9 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ConfirmDialog } from '@/Component/dialog/ConfirmDialog'
+import { useNavigate } from 'react-router-dom'
 import { useWorkbookService } from '@/Hook/useWorkbookService'
+import { computeSaveDiff, countPendingSaveChanges, unsavedAuditEntries } from '@/Service/SaveReview/saveDiff'
+import { useWorkbookStore } from '@/Store/workbookStore'
 
 interface WorkbookActionsProps {
   /**
@@ -12,56 +15,39 @@ interface WorkbookActionsProps {
 }
 
 /**
- * Refresh and Save for the workbook snapshot. Refresh discards local edits, so
- * a dirty workbook forces a confirmation first; Save is offered only when
- * there is something to save.
+ * Opens the save preview from the workbook toolbar. Discard and the actual write
+ * live on that page; this control only navigates there.
  */
 export function WorkbookActions({ testIdPrefix = 'workbook' }: WorkbookActionsProps = {}) {
   const { t } = useTranslation()
-  const {
-    refresh,
-    confirmRefresh,
-    cancelRefresh,
-    needsConfirm,
-    save,
-    dirty,
-    ready,
-  } = useWorkbookService()
+  const navigate = useNavigate()
+  const { ready } = useWorkbookService()
+  const tabs = useWorkbookStore((state) => state.tabs)
+  const savedAuditRows = useWorkbookStore((state) => state.savedAuditRows)
+
+  const pendingCount = useMemo(() => {
+    const diff = computeSaveDiff(unsavedAuditEntries(tabs, savedAuditRows))
+    return countPendingSaveChanges(diff)
+  }, [tabs, savedAuditRows])
+
+  const reviewLabel =
+    pendingCount > 0
+      ? t('workbook.reviewChangesWithCount', { count: pendingCount })
+      : t('workbook.reviewChanges')
 
   return (
     <div className="flex items-center gap-2">
       <button
         type="button"
-        className="btn-secondary py-1.5 text-sm"
-        data-testid={`${testIdPrefix}-refresh`}
-        onClick={() => {
-          void refresh()
-        }}
-      >
-        {t('workbook.refresh')}
-      </button>
-      <button
-        type="button"
         className="btn-primary py-1.5 text-sm"
-        data-testid={`${testIdPrefix}-save`}
-        disabled={!ready || !dirty}
+        data-testid={`${testIdPrefix}-review`}
+        disabled={!ready}
         onClick={() => {
-          void save()
+          navigate('/save')
         }}
       >
-        {t('workbook.save')}
+        {reviewLabel}
       </button>
-      <ConfirmDialog
-        open={needsConfirm}
-        title={t('workbook.discardTitle')}
-        message={t('workbook.discardMessage')}
-        confirmLabel={t('workbook.discardConfirm')}
-        cancelLabel={t('workbook.cancel')}
-        onConfirm={() => {
-          void confirmRefresh()
-        }}
-        onCancel={cancelRefresh}
-      />
     </div>
   )
 }

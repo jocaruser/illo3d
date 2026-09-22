@@ -51,20 +51,24 @@ Nothing in this repository reads it, so it is never committed.
    make init
    ```
 
-   This builds the Docker image, starts the stack, copies `.env.example` to `.env` if needed, and installs dependencies inside the container.
+   This builds the Docker image, starts the stack, copies `.env.example` to `.env` if needed, installs dependencies inside the container, and starts the dev server. It prints the URL once that URL actually serves.
 
-3. Edit **`.env`** with your Google OAuth credentials as documented in `.env.example`. **Never commit `.env`** — it is already in `.gitignore`.
-4. Start the dev server:
-
-   ```bash
-   make dev
-   ```
-
-5. Open **http://localhost:5173**.
+3. Open **http://localhost:5173**.
 
    The app publishes host port `5173` by default. Set **`APP_PORT`** to change it, or `APP_PORT=0` to let Docker pick a free one — useful when another checkout, or a delivery-pipeline runner slot, already holds 5173. Either way **`make urls`** prints the address actually bound.
 
-Day-to-day development: use **`make dev`** after **`make up`** if containers were stopped (`make down`).
+4. Edit **`.env`** with your Google OAuth credentials as documented in `.env.example` when you need live Sheets/Drive. **Never commit `.env`** — it is already in `.gitignore`.
+
+Day-to-day development: **`make up`** brings the containers *and* the dev server back after a **`make down`**; it is idempotent, so running it when the server is already up just reprints the URL.
+
+The dev server runs in the background inside the app container:
+
+| Target | Purpose |
+|--------|---------|
+| `make serve` | Start it if it is not already serving (what `up`/`init` call) |
+| `make logs-dev` | Follow its log |
+| `make stop-dev` | Stop it |
+| `make dev` | Run it in the *foreground* instead, with the log attached to your terminal |
 
 ## Makefile commands (by category)
 
@@ -72,23 +76,26 @@ Day-to-day development: use **`make dev`** after **`make up`** if containers wer
 
 | Target | Purpose |
 |--------|---------|
-| `make init` | Build image, start containers, `pnpm install`, seed `.env` from example if missing |
+| `make init` | Build image, start containers, `pnpm install`, seed `.env` from example if missing, then serve the app |
 
 ### Docker
 
 | Target | Purpose |
 |--------|---------|
-| `make up` | Start containers in the background |
+| `make up` | Start containers **and** the dev server in the background; returns once the URL serves |
+| `make serve` | Start the dev server alone if it is not already serving (idempotent) |
+| `make stop-dev` | Stop the background dev server |
 | `make urls` | Reprint service addresses without restarting (reads the port Docker actually bound) |
 | `make down` | Stop containers |
 | `make logs` | Follow app container logs |
+| `make logs-dev` | Follow the background dev server log |
 | `make clean` | Remove containers, volumes, and local images for this project |
 
 ### Development
 
 | Target | Purpose |
 |--------|---------|
-| `make dev` | Vite dev server (with `--host` inside the app container) |
+| `make dev` | Vite dev server in the **foreground** (Ctrl-C to stop); reclaims the port from the background one |
 | `make build` | Typecheck and production build to `dist/` |
 | `make preview` | Preview production build |
 

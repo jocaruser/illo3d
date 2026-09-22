@@ -11,6 +11,7 @@ import { useWorkbookStore } from '@/Store/workbookStore'
 const operations = vi.hoisted(() => ({
   start: vi.fn(),
   progress: vi.fn(),
+  fail: vi.fn(),
   finish: vi.fn(),
 }))
 
@@ -115,21 +116,55 @@ describe('save', () => {
       message: 'workbook.savingWorkbook',
     })
     expect(operations.progress).toHaveBeenCalledTimes(SHEET_NAMES.length)
+    expect(operations.fail).not.toHaveBeenCalled()
     expect(operations.finish).toHaveBeenCalledTimes(1)
   })
 
-  it('ends the save unsuccessfully and rethrows on failure', async () => {
+  it('remembers how many audit rows the written snapshot held', async () => {
+    const repo = makeRepo()
+    const service = new WorkbookService(repo, 'wb-1')
+    await service.hydrate()
+    useWorkbookStore
+      .getState()
+      .mutateTab('audit_log', (matrix) => [
+        ...matrix,
+        ['AL1', '2026-01-01T00:00:00.000Z', 'local', 'tag', 'TG1', 'create', '', '{}', 'name', '', ''],
+      ])
+
+    await service.save()
+
+    expect(useWorkbookStore.getState().savedAuditRows).toBe(1)
+  })
+
+  it('starts a non-blocking operation when the caller shows its own progress', async () => {
+    const repo = makeRepo()
+    useWorkbookStore.getState().mutateTab('tags', (matrix) => matrix)
+
+    await new WorkbookService(repo, 'wb-1').save({ blocking: false })
+
+    expect(operations.start).toHaveBeenCalledWith('save', {
+      total: SHEET_NAMES.length,
+      blocking: false,
+      message: 'workbook.savingWorkbook',
+    })
+  })
+
+  it('ends the save unsuccessfully, reports the sheet and rethrows on failure', async () => {
     const repo = makeRepo({
-      replaceSheetMatrix: vi.fn(async () => {
-        throw new Error('quota')
+      replaceSheetMatrix: vi.fn(async (_workbookId: string, sheet: SheetName) => {
+        if (sheet === 'jobs') throw new Error('quota')
       }),
     })
     useWorkbookStore.getState().mutateTab('tags', (matrix) => matrix)
+    useWorkbookStore.getState().setSavedAuditRows(4)
 
     await expect(new WorkbookService(repo, 'wb-1').save()).rejects.toThrow('quota')
     const state = useWorkbookStore.getState()
     expect(state.dirty).toBe(true)
     expect(state.saveInProgress).toBe(false)
+    // A failed save persisted nothing new for certain — the baseline stays.
+    expect(state.savedAuditRows).toBe(4)
+    expect(operations.fail).toHaveBeenCalledWith('jobs')
     expect(operations.finish).toHaveBeenCalledTimes(1)
   })
 })

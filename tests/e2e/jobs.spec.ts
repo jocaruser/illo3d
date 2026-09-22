@@ -119,7 +119,9 @@ test.describe('Jobs page', () => {
     // read the CSV back. An income created for J2 would carry ref_type=job,
     // ref_id=J2 (the fixture's J4 row doubles as a positive control that we
     // are reading the right file).
-    await page.getByTestId('workbook-save').click()
+    await page.getByTestId('workbook-review').click()
+    await expect(page.getByTestId('save-preview-page')).toBeVisible({ timeout: 10000 })
+    await page.getByTestId('save-preview-save-all').click()
     await expect(page.getByText(/workbook saved|libro guardado/i)).toBeVisible({
       timeout: 20000,
     })
