@@ -68,13 +68,6 @@ interface StatusRequest {
 
 const COLUMN_COUNT = 10
 
-/** Line total (6th) and Benefit (7th) appear at md, Created (9th) at lg. */
-const responsiveColumns = cx(
-  '[&_tr>*:nth-child(6)]:hidden md:[&_tr>*:nth-child(6)]:table-cell',
-  '[&_tr>*:nth-child(7)]:hidden md:[&_tr>*:nth-child(7)]:table-cell',
-  '[&_tr>*:nth-child(9)]:hidden lg:[&_tr>*:nth-child(9)]:table-cell'
-)
-
 const bandClasses: Record<RedoBand, string> = {
   safe: 'text-success',
   tight: 'text-warning',
@@ -335,7 +328,7 @@ export function PiecesTable({
     <div className="space-y-3">
       {blocked !== '' && <AlertBox variant="warning">{blocked}</AlertBox>}
 
-      <DataTable className={responsiveColumns}>
+      <DataTable>
         <PiecesTableHead directionFor={directionFor} onToggle={toggle} />
         <TableBody>
           {sorted.length === 0 ? (
@@ -432,8 +425,9 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
           label={t('pieces.colLineTotal')}
           direction={directionFor('lineTotal')}
           onToggle={(next) => onToggle('lineTotal', next)}
+          viewportTier="medium"
         />
-        <TableHeader>{t('pieces.colBenefit')}</TableHeader>
+        <TableHeader viewportTier="medium">{t('pieces.colBenefit')}</TableHeader>
         <SortableColumnHeader
           label={t('pieces.colStatus')}
           direction={directionFor('status')}
@@ -443,6 +437,7 @@ function PiecesTableHead({ directionFor, onToggle }: PiecesTableHeadProps) {
           label={t('pieces.colCreated')}
           direction={directionFor('createdAt')}
           onToggle={(next) => onToggle('createdAt', next)}
+          viewportTier="wide"
         />
         <TableHeader>{t('jobs.actions')}</TableHeader>
       </TableRow>
@@ -491,7 +486,6 @@ function PieceRowGroup({
   const { t } = useTranslation()
   const lineTotal = piece.lineTotal()
   const inactive = !piece.isActive()
-  const fieldsLocked = readOnly || inactive
   const struck = inactive ? 'text-text-muted line-through' : ''
 
   return (
@@ -521,7 +515,7 @@ function PieceRowGroup({
         </TableCell>
         <TableCell className={cx('text-text-muted', struck)}>{piece.id}</TableCell>
         <TableCell className={struck}>
-          {fieldsLocked ? (
+          {inactive ? (
             <span data-testid={`piece-name-${piece.id}`}>{piece.name}</span>
           ) : (
             <FormInput
@@ -529,13 +523,15 @@ function PieceRowGroup({
               data-testid={`piece-name-${piece.id}`}
               aria-label={t('pieces.nameFieldAria', { id: piece.id })}
               defaultValue={piece.name}
+              readOnly={readOnly}
+              disabled={readOnly}
               key={`name-${piece.id}-${piece.name}`}
               onBlur={(event) => onCommitName(piece, event.target.value)}
             />
           )}
         </TableCell>
         <TableCell className={struck}>
-          {fieldsLocked ? (
+          {inactive ? (
             <span data-testid={`piece-units-${piece.id}`}>
               {piece.units ?? '—'}
             </span>
@@ -554,13 +550,15 @@ function PieceRowGroup({
                 piece.hasValidUnits() ? undefined : t('pieces.unitsUnsetHint')
               }
               defaultValue={piece.units ?? ''}
+              readOnly={readOnly}
+              disabled={readOnly}
               key={`units-${piece.id}-${piece.units ?? ''}`}
               onBlur={(event) => onCommitUnits(piece, event.target.value)}
             />
           )}
         </TableCell>
         <TableCell className={struck}>
-          {fieldsLocked ? (
+          {inactive ? (
             <span data-testid={`piece-price-${piece.id}`}>
               {piece.price === undefined ? '—' : formatCurrency(piece.price)}
             </span>
@@ -574,9 +572,12 @@ function PieceRowGroup({
                 data-testid={`piece-price-${piece.id}`}
                 aria-label={t('pieces.priceFieldAria', { id: piece.id })}
                 defaultValue={piece.price ?? ''}
+                readOnly={readOnly}
+                disabled={readOnly}
                 key={`price-${piece.id}-${piece.price ?? ''}`}
                 onBlur={(event) => onCommitPrice(piece, event.target.value)}
               />
+              {!readOnly && (
               <button
                 type="button"
                 className="btn-secondary whitespace-nowrap px-2 py-1 text-xs"
@@ -600,13 +601,14 @@ function PieceRowGroup({
                       price: formatCurrency(suggestion.suggestedPrice),
                     })}
               </button>
+              )}
             </div>
           )}
         </TableCell>
-        <TableCell className={cx('tabular-nums', struck)}>
+        <TableCell viewportTier="medium" className={cx('tabular-nums', struck)}>
           {lineTotal === undefined ? '—' : formatCurrency(lineTotal)}
         </TableCell>
-        <TableCell className={cx('tabular-nums', struck)}>
+        <TableCell viewportTier="medium" className={cx('tabular-nums', struck)}>
           {benefit === undefined ? (
             '—'
           ) : (
@@ -620,7 +622,7 @@ function PieceRowGroup({
             className="min-w-[8rem]"
             data-testid={`piece-status-${piece.id}`}
           >
-            {fieldsLocked ? (
+            {inactive || readOnly ? (
               <span>{t(`pieces.status.${piece.status}`)}</span>
             ) : (
               <Combobox
@@ -632,7 +634,7 @@ function PieceRowGroup({
             )}
           </div>
         </TableCell>
-        <TableCell className={cx('text-text-muted', struck)}>
+        <TableCell viewportTier="wide" className={cx('text-text-muted', struck)}>
           {piece.createdAt !== '' && <RelativeTime value={piece.createdAt} />}
         </TableCell>
         <TableCell>
@@ -659,7 +661,7 @@ function PieceRowGroup({
               <PieceItemsTable
                 piece={piece}
                 onChanged={onChanged}
-                readOnly={fieldsLocked}
+                readOnly={readOnly || inactive}
               />
             </div>
           </TableCell>

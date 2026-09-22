@@ -348,7 +348,7 @@ describe('PieceItemsTable', () => {
       <PieceItemsTable piece={piece()} onChanged={vi.fn()} readOnly />
     )
 
-    expect(screen.getByTestId('piece-item-qty-PI1').tagName).toBe('SPAN')
+    expect(screen.getByTestId('piece-item-qty-PI1')).toBeDisabled()
     expect(screen.queryByTestId('piece-item-delete-PI1')).not.toBeInTheDocument()
     expect(screen.queryByTestId('add-line-P1')).not.toBeInTheDocument()
   })
