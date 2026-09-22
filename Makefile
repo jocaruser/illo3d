@@ -1,7 +1,15 @@
-.PHONY: help init up urls down logs dev build preview install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
+.PHONY: help init up serve stop-dev urls down logs logs-dev dev build preview install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
 
 APP = docker compose exec app
 E2E_VITE_PORT ?= 5174
+
+# Background dev server (started by `make up` / `make init`). The container's
+# published port maps to 5173 inside, so the server must hold exactly that port:
+# --strictPort makes a clash fail loudly instead of silently moving to 5174,
+# which would leave the published host port dead.
+DEV_VITE_PORT = 5173
+DEV_PID = /tmp/illo3d-dev-vite.pid
+DEV_LOG = /tmp/illo3d-dev-vite.log
 
 .DEFAULT_GOAL := help
 
@@ -10,26 +18,73 @@ help: ## List available commands
 	@grep -hE '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
 # ============ SETUP ============
-init: ## Build images, start containers, install deps, seed .env
+init: ## Build images, start containers, install deps, seed .env, serve the app
 	@echo "🚀 Initializing illo3d..."
 	@test -f .env || cp .env.example .env
 	docker compose build
 	docker compose up -d
 	$(MAKE) install
+	$(MAKE) serve
 	@echo ""
-	@echo "✅ Ready! Next steps:"
-	@echo "   1. Edit .env with your Google credentials"
-	@echo "   2. Run 'make dev' to start dev server"
-	@echo "   3. Run 'make urls' for the address it is served on"
+	@echo "✅ Ready!"
+	@$(MAKE) --no-print-directory urls
+	@echo ""
+	@echo "   Edit .env with your Google credentials for live Sheets/Drive."
+	@echo "   'make logs-dev' follows the server, 'make stop-dev' stops it."
 
 # ============ DOCKER ============
-up: ## Start containers in the background
+up: ## Start containers and the dev server in the background
 	docker compose up -d
+	$(MAKE) serve
+	@$(MAKE) --no-print-directory urls
+
+# Probes the PUBLISHED host URL, not just the in-container port: Vite prints
+# "ready" and answers on 127.0.0.1 a moment before it reliably accepts forwarded
+# connections, which is how `make up` used to finish on a URL that still hung.
+# Requires 3 consecutive successes: Vite's dep optimizer intermittently blocks the
+# event loop during warm-up, so a single passing probe can be followed by a hang.
+# Falls back to curl -> wget -> in-container probe so it works on a bare host.
+# Idempotent: if something already answers, leave it alone.
+serve: ## Start the Vite dev server in the background inside the app container
+	@bound=$$(docker compose port app $(DEV_VITE_PORT) 2>/dev/null | head -n1); \
+	port=$${bound##*:}; port=$${port:-$(DEV_VITE_PORT)}; \
+	probe() { \
+		if command -v curl >/dev/null 2>&1; then curl -fs -m 2 -o /dev/null "http://localhost:$$port/" 2>/dev/null; \
+		elif command -v wget >/dev/null 2>&1; then wget -q -T 2 -O- "http://localhost:$$port/" >/dev/null 2>&1; \
+		else docker compose exec -T app wget -q -O- "http://127.0.0.1:$(DEV_VITE_PORT)/" >/dev/null 2>&1; fi; \
+	}; \
+	if probe; then \
+		echo "Dev server already serving http://localhost:$$port"; \
+	else \
+		docker compose exec -d -T app sh -c 'rm -f $(DEV_LOG); nohup pnpm exec vite --host --port $(DEV_VITE_PORT) --strictPort >>$(DEV_LOG) 2>&1 & echo $$! > $(DEV_PID)'; \
+		ok=0; n=0; \
+		while [ $$ok -lt 3 ]; do \
+			if probe; then ok=$$((ok+1)); else ok=0; fi; \
+			n=$$((n+1)); \
+			if [ $$n -gt 180 ]; then \
+				echo "Dev server did not serve http://localhost:$$port within 90s. Last log lines:"; \
+				docker compose exec -T app sh -c 'tail -20 $(DEV_LOG) 2>/dev/null'; \
+				exit 1; \
+			fi; \
+			sleep 0.5; \
+		done; \
+		echo "Dev server serving http://localhost:$$port"; \
+	fi
+
+stop-dev: ## Stop the background dev server
+	@docker compose exec -T app sh -c 'kill $$(cat $(DEV_PID) 2>/dev/null) 2>/dev/null; pkill -f "vite --host --port $(DEV_VITE_PORT)" 2>/dev/null; rm -f $(DEV_PID); true' 2>/dev/null || true
 
 urls: ## Reprint service addresses without restarting
-	@bound=$$(docker compose port app 5173 2>/dev/null) && [ -n "$$bound" ] \
-		&& echo "App (make dev):      http://localhost:$${bound##*:}" \
-		|| echo "App (make dev):      not running — 'make up' first (host port: $${APP_PORT:-5173})"
+	@bound=$$(docker compose port app $(DEV_VITE_PORT) 2>/dev/null | head -n1); \
+	port=$${bound##*:}; \
+	if [ -z "$$bound" ]; then \
+		echo "App:                 not running — run 'make up' (host port: $${APP_PORT:-5173})"; \
+	elif curl -fs -m 2 -o /dev/null "http://localhost:$$port/" 2>/dev/null \
+		|| wget -q -T 2 -O- "http://localhost:$$port/" >/dev/null 2>&1; then \
+		echo "App:                 http://localhost:$$port"; \
+	else \
+		echo "App:                 http://localhost:$$port — container up, not serving yet; run 'make serve'"; \
+	fi
 	@echo "E2E preview (in-container): http://localhost:$(E2E_VITE_PORT)"
 
 down: ## Stop containers
@@ -37,6 +92,9 @@ down: ## Stop containers
 
 logs: ## Follow app container logs
 	docker compose logs -f app
+
+logs-dev: ## Follow the background dev server log
+	docker compose exec app sh -c 'touch $(DEV_LOG); tail -f $(DEV_LOG)'
 
 clean: ## Remove containers, volumes, and local images
 	docker compose down -v --rmi local
@@ -48,8 +106,11 @@ sync-main: ## Checkout main and pull --rebase (autostash)
 	git checkout main && git pull --rebase --autostash
 
 # ============ DEVELOPMENT ============
-dev: ## Vite dev server on :5173
-	$(APP) pnpm dev --host
+# `make up` already leaves a server running in the background; this reclaims the
+# port and runs one in the foreground instead, when you want the log stream
+# attached to your terminal. Ctrl-C stops it (then `make serve` to get it back).
+dev: stop-dev ## Vite dev server in the foreground on :5173 (Ctrl-C to stop)
+	$(APP) pnpm exec vite --host --port $(DEV_VITE_PORT) --strictPort
 
 build: ## Typecheck and production build
 	$(APP) pnpm build
