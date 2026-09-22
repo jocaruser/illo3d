@@ -56,4 +56,6 @@ test-results-*/
 tests/e2e/.auth/storage-state-*.json
 
 # Aircury AI Framework
-specs/changes/
+specs/changes/*
+!specs/changes/kpAlk5K1Yu6M/
+!specs/changes/kpAlk5K1Yu6M/**
