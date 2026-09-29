@@ -2,6 +2,11 @@ name: Deploy to GitHub Pages
 
 on:
   workflow_dispatch:
+  # Called by release.yml, so a failed deploy fails the release run too.
+  workflow_call:
+    secrets:
+      VITE_GOOGLE_CLIENT_ID:
+        required: false
 
 permissions:
   contents: read
@@ -18,21 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install pnpm
-        run: npm install -g pnpm
-
-      - name: Install dependencies
-        run: pnpm install
-
+      # The same build CI's `build` job gates on every PR.
       - name: Build
-        run: pnpm build
-        env:
-          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+        uses: ./.github/actions/build-app
+        with:
+          google-client-id: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

@@ -1,4 +1,4 @@
-.PHONY: help init up serve stop-dev urls down logs logs-dev dev build preview install add add-dev lint format test e2e-test quality-gate ci audit budget react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
+.PHONY: help init up serve stop-dev urls down logs logs-dev dev build preview install add add-dev lint format test e2e-test quality-gate ci audit budget toolchain react-doctor bash-exec shell clean sa-drive-empty sync-main restore-fixtures imports-fixture
 
 APP = docker compose exec app
 E2E_VITE_PORT ?= 5174
@@ -112,8 +112,12 @@ sync-main: ## Checkout main and pull --rebase (autostash)
 dev: stop-dev ## Vite dev server in the foreground on :5173 (Ctrl-C to stop)
 	$(APP) pnpm exec vite --host --port $(DEV_VITE_PORT) --strictPort
 
+# The container runs with NODE_ENV=development, which makes `vite build` bundle
+# development React; force production so this is the exact bundle deploy ships.
+# VITE_GOOGLE_CLIENT_ID is forwarded only when set (the deploy workflow sets it),
+# so a local build keeps reading it from .env.
 build: ## Typecheck and production build
-	$(APP) pnpm build
+	docker compose exec -e NODE_ENV=production $(if $(VITE_GOOGLE_CLIENT_ID),-e VITE_GOOGLE_CLIENT_ID) app pnpm build
 
 preview: ## Preview the production build
 	$(APP) pnpm preview --host
@@ -130,18 +134,21 @@ add-dev: ## Add dev dependency (PKG=<name>)
 
 # ============ QUALITY ============
 # Local quality gate: build, lint, unit tests, and e2e tests. Use before finishing any code change.
-quality-gate: build lint react-doctor test e2e-test ## Sequential full gate: build, lint, react-doctor, unit, e2e
+quality-gate: toolchain build lint react-doctor test e2e-test ## Sequential full gate: build, lint, react-doctor, unit, e2e
 	@echo ""
 	@echo "✅ Quality gate passed (build, lint, react-doctor, unit tests, e2e tests)"
 
 # CI entrypoint: the independent checks run in parallel, then e2e (it owns the
 # container's Vite port and CPU, so racing it against the unit suite flakes).
 ci: ## Run all checks; fast ones in parallel, then e2e
-	$(MAKE) -j4 budget lint react-doctor test audit
+	$(MAKE) -j4 toolchain budget lint react-doctor test audit
 	$(MAKE) e2e-test
 
 audit: ## Dependency vulnerability gate (fails on high/critical)
 	$(APP) pnpm audit --audit-level=high
+
+toolchain: ## Fail when a Dockerfile drifts from the pinned pnpm or a workflow sets up Node/pnpm on the runner
+	$(APP) node scripts/check-toolchain.mjs
 
 budget: build ## Performance budget: gzipped bundle within limits (P2)
 	$(APP) node scripts/check-bundle-budget.mjs
@@ -172,6 +179,7 @@ imports-fixture: ## Regenerate fixtures/imports from docs/sources
 # The suite exercises the PRODUCTION bundle: `vite build` with the e2e env baked in (import.meta.env
 # is inlined at build time), served by `vite preview` so minification/CSP/chunking issues fail e2e.
 # `--base=/` because specs address the server root (GitHub Pages' /illo3d/ base is path-only).
+# NODE_ENV=production overrides the container's development value, which would bundle dev React.
 # `tsc` is skipped here — typechecking is the build gate's job.
 # Start the server with nohup so it survives the exec shell exiting (plain `vite &` can be SIGHUP'd).
 # -T disables pseudo-TTY allocation to prevent signal issues when the exec session detaches.
@@ -180,7 +188,7 @@ e2e-test: ## Playwright e2e suite against a production build (Vite preview on :5
 	docker compose exec app rm -rf .e2e-fixtures
 	docker compose exec app mkdir -p .e2e-google-mock
 	docker compose exec app sh -c 'kill $$(cat /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid 2>/dev/null) 2>/dev/null; rm -f /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).log; true'
-	docker compose exec -T app sh -c 'VITE_E2E=true VITE_GOOGLE_CLIENT_ID=e2e-mock-google-client-id VITE_GOOGLE_DRIVE_API_BASE=http://google-mock:8790/drive/v3 VITE_GOOGLE_DRIVE_UPLOAD_API_BASE=http://google-mock:8790/upload/drive/v3 VITE_GOOGLE_SHEETS_API_BASE=http://google-mock:8790/v4 pnpm exec vite build --base=/ --outDir dist-e2e --logLevel warn'
+	docker compose exec -T app sh -c 'NODE_ENV=production VITE_E2E=true VITE_GOOGLE_CLIENT_ID=e2e-mock-google-client-id VITE_GOOGLE_DRIVE_API_BASE=http://google-mock:8790/drive/v3 VITE_GOOGLE_DRIVE_UPLOAD_API_BASE=http://google-mock:8790/upload/drive/v3 VITE_GOOGLE_SHEETS_API_BASE=http://google-mock:8790/v4 pnpm exec vite build --base=/ --outDir dist-e2e --logLevel warn'
 	docker compose exec -d -T app sh -c 'VITE_FIXTURES_ROOT=/app/.e2e-fixtures nohup pnpm exec vite preview --base=/ --port $(E2E_VITE_PORT) --host 0.0.0.0 --outDir dist-e2e >>/tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).log 2>&1 & echo $$! > /tmp/illo3d-e2e-vite-$(E2E_VITE_PORT).pid'
 	@n=0; until docker compose exec app wget -q -O- http://127.0.0.1:$(E2E_VITE_PORT)/ >/dev/null 2>&1; do \
 		n=$$((n+1)); \

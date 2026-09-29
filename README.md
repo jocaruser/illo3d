@@ -137,10 +137,17 @@ The dev server runs in the background inside the app container:
 
 ## Deployment
 
-The app is deployed to **GitHub Pages** automatically on every push to `main`.
+The app is deployed to **GitHub Pages** by the **Release** workflow (run it manually from
+`main`): when `APP_VERSION` has no GitHub release yet, it creates one and then calls the deploy
+workflow, so a failed deploy fails the release run.
 
 - **Live URL:** `https://<your-username>.github.io/illo3d/`
-- **Workflow:** `.github/workflows/deploy.yml`
+- **Workflows:** `.github/workflows/release.yml` → `.github/workflows/deploy.yml` (also runnable
+  on its own to redeploy). If the deploy fails, re-run only the failed jobs or run the deploy
+  workflow on its own: a fresh Release run sees the release already exists and skips the deploy.
+- **Build:** deploy ships the output of `.github/actions/build-app`, the same build CI's `build`
+  job runs on every PR — inside the app image, with the pnpm pinned in `package.json`
+  `packageManager`. `make toolchain` fails if a Dockerfile or workflow drifts from that.
 
 ### Required repository setup
 
@@ -148,7 +155,7 @@ The app is deployed to **GitHub Pages** automatically on every push to `main`.
    - `VITE_GOOGLE_CLIENT_ID` — your Google OAuth client ID
 2. Go to **Settings → Pages** and set **Source** to **GitHub Actions**.
 
-The next push to `main` will trigger the deploy workflow.
+The next Release run deploys the app.
 
 ## Tests
 

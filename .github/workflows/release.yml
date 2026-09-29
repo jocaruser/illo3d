@@ -5,11 +5,12 @@ on:
 
 permissions:
   contents: write
-  actions: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      created: ${{ steps.check.outputs.exists == 'false' }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -70,8 +71,15 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Trigger deploy
-        if: steps.check.outputs.exists == 'false'
-        run: gh workflow run deploy.yml
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # Called rather than dispatched, so a failed deploy turns this run red instead
+  # of failing unnoticed in a separate workflow run.
+  deploy:
+    needs: release
+    if: needs.release.outputs.created == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy.yml
+    secrets:
+      VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
