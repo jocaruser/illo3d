@@ -1,6 +1,7 @@
 FROM node:25-alpine
 
-# Pin pnpm to v9 to avoid breaking changes in v10 regarding build scripts
+# Must match "packageManager" in package.json (`make toolchain` enforces it).
+# Held on v9 to avoid breaking changes in v10 regarding build scripts.
 RUN npm install -g pnpm@9.15.0
 
 # Git is required by react-doctor for --scope changed / --diff mode
