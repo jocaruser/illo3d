@@ -55,6 +55,16 @@ runs:
       env:
         VITE_GOOGLE_CLIENT_ID: ${{ inputs.google-client-id }}
 
+    # google-drive-api-mock is the e2e-only Drive/Sheets emulator; it must never
+    # reach the bundle CI gates and deploy ships.
+    - name: Assert emulator absent from bundle
+      shell: bash
+      run: |
+        if grep -rl "google-drive-api-mock" dist/; then
+          echo "::error::google-drive-api-mock is bundled in dist/ (files above)"
+          exit 1
+        fi
+
     - name: Bundle budget (P2)
       shell: bash
       run: docker compose exec app node scripts/check-bundle-budget.mjs
