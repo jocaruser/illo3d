@@ -51,23 +51,37 @@ Shared imports (cross-page behaviour):
   suggested price, expected benefit, client materials estimate
   (**drafted (awaiting confirmation)**)
 
-Loose surfaces, not yet planned:
+Loose surfaces:
 
-- [ ] `search.spec.md` — global search
+- [x] [`search.spec.md`](search.spec.md) — global search
 - [x] `profile.spec.md` — identity, sign out, version row
   (whether theme/language stay inside it: TBD)
-- [ ] `entities/metadata.spec.md` — the shop metadata file
+- [x] [`entities/metadata.spec.md`](entities/metadata.spec.md) — the shop metadata file
   (forward-referenced from `migration/wizard.spec.md`)
 
-Pages, not yet planned:
+Pages, imported from the reconciled draft branches and re-checked against the current product:
 
-- [ ] `dashboard/` — stats, kanban, calendar, stock alerts, recent transactions
-- [ ] `clients/` — list; details (profile, metrics, timeline, notes, tags, jobs table)
-- [ ] `jobs/` — list; details (widgets, pieces table, materials summary, notes, tags)
+- [x] [`dashboard/`](dashboard/dashboard.spec.md) — [stats](dashboard/stats.spec.md),
+  [kanban](dashboard/kanban.spec.md), [calendar](dashboard/calendar.spec.md),
+  [stock alerts](dashboard/stock-alerts.spec.md),
+  [recent transactions](dashboard/recent-transactions.spec.md)
+- [x] `clients/` — list; details ([details](clients/details/details.spec.md),
+  [metrics](clients/details/metrics.spec.md), [timeline](clients/details/timeline.spec.md),
+  jobs table)
+- [x] `jobs/` — list; details ([details](jobs/details/details.spec.md),
+  [widgets](jobs/details/widgets.spec.md),
+  [materials summary](jobs/details/materials-summary.spec.md), pieces table)
   — owns totals, benefit, due-date colours, consumption
-- [ ] `inventory/` — list; details (item, lots, consumption)
-- [ ] `transactions/` — list, purchase, expense details
-- [ ] `audit-log/`
+- [x] `inventory/` — [list](inventory/list.spec.md); details
+  ([item](inventory/details/item.spec.md), [lots](inventory/details/lots.spec.md),
+  [consumption](inventory/details/consumption.spec.md))
+- [x] `transactions/` — [list](transactions/list.spec.md),
+  [purchase](transactions/purchase.spec.md), expense details
+- [x] [`audit-log/`](audit-log/audit-log.spec.md)
+- [x] [`shared/lists.spec.md`](shared/lists.spec.md) — how every list behaves
+
+Decision: [ADR-0015](decisions/ADR-0015-derived-pricing-and-income-on-paid.md)
+(derived pricing and income on paid).
 
 ## Spec-led deviations awaiting implementation
 
