@@ -11,6 +11,12 @@ DEV_VITE_PORT = 5173
 DEV_PID = /tmp/illo3d-dev-vite.pid
 DEV_LOG = /tmp/illo3d-dev-vite.log
 
+# Published ports open on the Docker daemon's host. That is localhost for a local
+# daemon, but a remote one (DOCKER_HOST=tcp://<host>:<port>, as the Overboards
+# runner's isolated daemon is) publishes on <host>, so probing localhost there
+# would time out against a server that is up.
+APP_HOST := $(or $(firstword $(subst :, ,$(subst /, ,$(patsubst tcp://%,%,$(filter tcp://%,$(DOCKER_HOST)))))),localhost)
+
 .DEFAULT_GOAL := help
 
 # ============ HELP ============
@@ -38,7 +44,7 @@ up: ## Start containers and the dev server in the background
 	$(MAKE) serve
 	@$(MAKE) --no-print-directory urls
 
-# Probes the PUBLISHED host URL, not just the in-container port: Vite prints
+# Probes the PUBLISHED URL on $(APP_HOST), not just the in-container port: Vite prints
 # "ready" and answers on 127.0.0.1 a moment before it reliably accepts forwarded
 # connections, which is how `make up` used to finish on a URL that still hung.
 # Requires 3 consecutive successes: Vite's dep optimizer intermittently blocks the
@@ -49,12 +55,12 @@ serve: ## Start the Vite dev server in the background inside the app container
 	@bound=$$(docker compose port app $(DEV_VITE_PORT) 2>/dev/null | head -n1); \
 	port=$${bound##*:}; port=$${port:-$(DEV_VITE_PORT)}; \
 	probe() { \
-		if command -v curl >/dev/null 2>&1; then curl -fs -m 2 -o /dev/null "http://localhost:$$port/" 2>/dev/null; \
-		elif command -v wget >/dev/null 2>&1; then wget -q -T 2 -O- "http://localhost:$$port/" >/dev/null 2>&1; \
+		if command -v curl >/dev/null 2>&1; then curl -fs -m 2 -o /dev/null "http://$(APP_HOST):$$port/" 2>/dev/null; \
+		elif command -v wget >/dev/null 2>&1; then wget -q -T 2 -O- "http://$(APP_HOST):$$port/" >/dev/null 2>&1; \
 		else docker compose exec -T app wget -q -O- "http://127.0.0.1:$(DEV_VITE_PORT)/" >/dev/null 2>&1; fi; \
 	}; \
 	if probe; then \
-		echo "Dev server already serving http://localhost:$$port"; \
+		echo "Dev server already serving http://$(APP_HOST):$$port"; \
 	else \
 		docker compose exec -d -T app sh -c 'rm -f $(DEV_LOG); nohup pnpm exec vite --host --port $(DEV_VITE_PORT) --strictPort >>$(DEV_LOG) 2>&1 & echo $$! > $(DEV_PID)'; \
 		ok=0; n=0; \
@@ -62,13 +68,13 @@ serve: ## Start the Vite dev server in the background inside the app container
 			if probe; then ok=$$((ok+1)); else ok=0; fi; \
 			n=$$((n+1)); \
 			if [ $$n -gt 180 ]; then \
-				echo "Dev server did not serve http://localhost:$$port within 90s. Last log lines:"; \
+				echo "Dev server did not serve http://$(APP_HOST):$$port within 90s. Last log lines:"; \
 				docker compose exec -T app sh -c 'tail -20 $(DEV_LOG) 2>/dev/null'; \
 				exit 1; \
 			fi; \
 			sleep 0.5; \
 		done; \
-		echo "Dev server serving http://localhost:$$port"; \
+		echo "Dev server serving http://$(APP_HOST):$$port"; \
 	fi
 
 stop-dev: ## Stop the background dev server
@@ -79,11 +85,11 @@ urls: ## Reprint service addresses without restarting
 	port=$${bound##*:}; \
 	if [ -z "$$bound" ]; then \
 		echo "App:                 not running — run 'make up' (host port: $${APP_PORT:-5173})"; \
-	elif curl -fs -m 2 -o /dev/null "http://localhost:$$port/" 2>/dev/null \
-		|| wget -q -T 2 -O- "http://localhost:$$port/" >/dev/null 2>&1; then \
-		echo "App:                 http://localhost:$$port"; \
+	elif curl -fs -m 2 -o /dev/null "http://$(APP_HOST):$$port/" 2>/dev/null \
+		|| wget -q -T 2 -O- "http://$(APP_HOST):$$port/" >/dev/null 2>&1; then \
+		echo "App:                 http://$(APP_HOST):$$port"; \
 	else \
-		echo "App:                 http://localhost:$$port — container up, not serving yet; run 'make serve'"; \
+		echo "App:                 http://$(APP_HOST):$$port — container up, not serving yet; run 'make serve'"; \
 	fi
 	@echo "E2E preview (in-container): http://localhost:$(E2E_VITE_PORT)"
 
