@@ -10,7 +10,7 @@ experience through the same routing as today.
 
 When a shop is open and the workbook has **unsaved changes**, sign-out asks
 **"Discard unsaved changes?"** before clearing anything — the same prompt as
-[Refresh](saving.spec.md#refreshing).
+[Refresh](../saving.spec.md#refreshing).
 Confirming discards local edits and completes sign-out; cancelling leaves the
 user signed in with edits intact.
 

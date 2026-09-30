@@ -27,6 +27,14 @@ Where Carlos has declared intent that the code does not yet implement,
 the spec records the intent and the gap is listed below —
 specs lead, code follows.
 
+## Layout notes
+
+Two layout rulings from the draft behaviour-specs work were deliberately not applied:
+decision records keep the folder name `specs/decisions/`
+(no rename to `ADRs`),
+and `schema.dbml` stays at the repository root.
+Decision records are numbered 0001 to 0016 with no gap.
+
 ## Checklist
 
 Statuses: unplanned → questions answered → **drafted (awaiting confirmation)** → confirmed & committed.
@@ -38,8 +46,8 @@ Done:
 
 Committed with the merge to main, content still open to amendment:
 
-- [x] `navigation.spec.md`
-  (breadcrumb rule lives here; page specs must link to it, never restate it)
+- [x] `topnavbar/navbar.spec.md`, `topnavbar/breadcrumbs.spec.md`
+  (the breadcrumb rule lives in its own spec; page specs must link to it, never restate it)
 - [x] `saving.spec.md`
   (two-tabs truth backed by ADR-0013)
 - [x] `not-found.spec.md`
@@ -53,8 +61,8 @@ Shared imports (cross-page behaviour):
 
 Loose surfaces, not yet planned:
 
-- [ ] `search.spec.md` — global search
-- [x] `profile.spec.md` — identity, sign out, version row
+- [x] `shared/search.spec.md` and `topnavbar/navbar.spec.md`'s Search section — global search
+- [x] `topnavbar/profile.spec.md` — identity, sign out, version row
   (whether theme/language stay inside it: TBD)
 - [ ] `entities/metadata.spec.md` — the shop metadata file
   (forward-referenced from `migration/wizard.spec.md`)

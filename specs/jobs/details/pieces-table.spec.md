@@ -5,7 +5,6 @@ The making, piece by piece.
 new pieces start Pending.
 A piece missing its units count is highlighted amber —
 it blocks the job's total
-([ADR-0015](../../decisions/ADR-0015-derived-pricing-and-income-on-paid.md))
 and cannot be completed.
 
 Each row edits in place:
@@ -23,8 +22,7 @@ Each row edits in place:
 
 **The suggested price** — "Use ‹price› / unit" —
 is the piece's material cost times three,
-a starting point, not a rule
-([ADR-0015](../../decisions/ADR-0015-derived-pricing-and-income-on-paid.md)).
+a starting point, not a rule.
 While any material's cost is unknown the button stays,
 disabled, reading "No suggested price available".
 
