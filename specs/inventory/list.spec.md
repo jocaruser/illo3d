@@ -8,7 +8,7 @@ and the empty state teaches exactly that:
 Record a purchase with "Add to inventory" to create items."
 
 The table behaves
-[as all lists do](../shared/lists.spec.md).
+[as all lists do](../shared/list.spec.md).
 
 | Column | Notes |
 |---|---|
