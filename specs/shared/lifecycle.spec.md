@@ -16,13 +16,14 @@ there, the same way:
 
 (Today's code lags parts of this machine —
 editable archived pages, missing Un-archive controls —
-[queued](../DIVERGENCES.md) as one piece of work.)
+queued as **QUEUE-L02** in the
+[reconciliation backlog](../changes/kpAlk5K1Yu6M/reconciliation-backlog.md).)
 
 ## Children are history, not clutter
 
 Embedded tables on a details page —
 a job's pieces, a client's jobs —
-show *all* children, whatever their state:
+show _all_ children, whatever their state:
 archived ones struck through, read-only, with an Un-archive action;
 soft-deleted ones struck through as "Deleted entity".
 The full story of a parent stays visible in one place,

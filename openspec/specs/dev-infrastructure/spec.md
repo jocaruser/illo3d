@@ -374,34 +374,15 @@ The CI workflow SHALL cache Docker BuildKit layers and `node_modules` between ru
 - **WHEN** `pnpm-lock.yaml` has changed since the last CI run
 - **THEN** the `node_modules` cache misses and `pnpm install` fetches updated dependencies
 
-### Requirement: Dependabot configuration is tracked in the repository
+### Requirement: Auto-merge runs after CI quality passes
 
-The repository SHALL include a `.github/dependabot.yml` file that configures automated dependency update checks for npm, Docker, and GitHub Actions ecosystems on a weekly schedule.
+The repository SHALL run an `auto-merge` job as part of `.github/workflows/ci.yml`: after the quality jobs succeed, that job SHALL enable merge-commit auto-merge via GitHub for pull requests that are not drafts and whose head branch lives in the same repository (not a fork). The job SHALL NOT approve the pull request and SHALL rely on branch protection to enforce human review.
 
-#### Scenario: Dependabot opens PRs for outdated dependencies
+The repository SHALL have branch protection on `main` requiring at least one approved review.
 
-- **WHEN** a weekly scheduled check detects an outdated npm, Docker, or GitHub Actions dependency
-- **THEN** Dependabot opens a pull request with the update
+#### Scenario: Pull request waits for human approval
 
-#### Scenario: Dependabot skips semver-major bumps
-
-- **WHEN** the only available update for a dependency is a semver-major version increase
-- **THEN** Dependabot does not open a pull request for that bump
-
-### Requirement: Auto-merge runs after CI quality passes with dependabot exemption
-
-The repository SHALL run an `auto-merge` job as part of `.github/workflows/ci.yml`: after the quality jobs succeed, that job SHALL enable merge-commit auto-merge via GitHub for pull requests that are not drafts and whose head branch lives in the same repository (not a fork). The job SHALL approve the pull request ONLY when the PR author is `dependabot[bot]`. For all other authors, the job SHALL NOT approve the PR and SHALL rely on branch protection to enforce human review.
-
-The repository SHALL have branch protection on `main` requiring at least one approved review, with `dependabot[bot]` exempted from that requirement so its auto-approved PRs can merge.
-
-#### Scenario: Dependabot PR is auto-approved and merged after green CI
-
-- **WHEN** a pull request authored by `dependabot[bot]` exists and is not a draft, is from the same repository, and all CI quality jobs pass
-- **THEN** the `auto-merge` job approves the PR and enables auto-merge
-
-#### Scenario: Non-dependabot PR waits for human approval
-
-- **WHEN** a pull request authored by a user other than `dependabot[bot]` exists and is not a draft, is from the same repository, and all CI quality jobs pass
+- **WHEN** a pull request exists and is not a draft, is from the same repository, and all CI quality jobs pass
 - **THEN** the `auto-merge` job enables auto-merge but does NOT approve the PR
 - **AND** auto-merge waits for a human to approve the PR before merging
 

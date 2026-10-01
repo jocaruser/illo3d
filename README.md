@@ -165,7 +165,7 @@ The next Release run deploys the app.
 
 ### Branch protection
 
-The `main` branch requires **1 approved review** before merging. `dependabot[bot]` is exempted — its pull requests are auto-approved by CI and merge automatically once all quality checks pass. These settings are configured in **GitHub → Settings → Branches**.
+The `main` branch requires **1 approved review** before merging; CI never approves a pull request on anyone's behalf. These settings are configured in **GitHub → Settings → Branches**.
 
 ## Tech stack summary
 
