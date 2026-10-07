@@ -24,9 +24,8 @@ What it records, in user terms:
 | kanban *(optional)* | Board tuning — how many days until paid or cancelled jobs leave [the dashboard's board](../dashboard/kanban.spec.md) |
 | defaultDueDate *(optional)* | How many days from now a new job's due date suggests |
 
-The reference for the exact shape is the code's own definition
-([`src/Entity/ShopMetadata.ts`](../../src/Entity/ShopMetadata.ts));
-the shop's *data* layout is [`schema.dbml`](../../schema.dbml)'s.
+The shop's *data* layout is recorded separately,
+in [`schema.dbml`](../../schema.dbml).
 
 Editing this file by hand is possible but unguarded:
 a damaged file makes the folder unrecognisable as a shop —

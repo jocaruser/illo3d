@@ -23,8 +23,8 @@ When both are empty, one line covers them:
 "No purchase lots or consumption recorded for this material yet."
 
 **Archive** asks with the consequence and the way back both named:
-"Archive "‹name›" and all its purchase lots?
-You can un-archive it later." —
+"Archive “‹name›” and all its purchase lots?
+You can unarchive from the sheet if needed." —
 the cascade of
 [ADR-0014](../../decisions/ADR-0014-archive-then-delete-lifecycle.md).
 Breadcrumbs behave as [navigation](../../navigation.spec.md) says;
