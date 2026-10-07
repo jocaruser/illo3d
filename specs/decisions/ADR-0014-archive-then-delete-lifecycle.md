@@ -47,8 +47,7 @@ with a single step back: un-archive.
 
 - Only an archived record can be deleted, and there is no undo.
 - In the app's eyes the record never existed:
-  repositories drop deleted rows before anything else runs
-  ([ADR-0016](ADR-0016-repositories-filter-deleted.md)),
+  repositories drop deleted rows before anything else runs,
   so no page, total, search or link can ever meet one.
 - Deletion cascades along the same edges as archiving,
   and takes the connections too:
