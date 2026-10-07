@@ -27,5 +27,5 @@ When both are empty, one line covers them:
 You can unarchive from the sheet if needed." —
 the cascade of
 [ADR-0014](../../decisions/ADR-0014-archive-then-delete-lifecycle.md).
-Breadcrumbs behave as [navigation](../../navigation.spec.md) says;
+Breadcrumbs behave as [the breadcrumbs spec](../../topnavbar/breadcrumbs.spec.md) says;
 lifecycle as [every details page does](../../shared/lifecycle.spec.md).

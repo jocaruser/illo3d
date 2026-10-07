@@ -20,4 +20,4 @@ a spinner until then — and offers, top to bottom:
   [stock alerts](stock-alerts.spec.md)
   and [recent transactions](recent-transactions.spec.md).
 
-Breadcrumbs behave as [navigation](../navigation.spec.md) says.
+Breadcrumbs behave as [the breadcrumbs spec](../topnavbar/breadcrumbs.spec.md) says.

@@ -17,7 +17,7 @@ Everything about one client:
   creating one already assigned to them.
 
 A back link returns to [the list](../list.spec.md);
-breadcrumbs behave as [navigation](../../navigation.spec.md) says.
+breadcrumbs behave as [the breadcrumbs spec](../../topnavbar/breadcrumbs.spec.md) says.
 
 Lifecycle behaves as
 [every details page does](../../shared/lifecycle.spec.md).

@@ -1,4 +1,4 @@
-# Navigation
+# Navigation bar
 
 The app's chrome: what is always on screen once a shop is open,
 and how the user moves between pages.
@@ -14,8 +14,8 @@ From left to right:
 - **The section links** — Dashboard, Clients, Jobs, Transactions,
   Inventory, Audit Log.
 - **Refresh and Save** — the workbook controls
-  (their meaning is [saving](saving.spec.md)'s).
-- **Search** — [the global search box](search.spec.md).
+  (their meaning is [saving](../saving.spec.md)'s).
+- **Search** — the global search box ([below](#search)).
 - **The profile avatar** — opening [the profile menu](profile.spec.md).
 
 The current section's link is visibly active,
@@ -28,22 +28,36 @@ On a narrow screen the section links fold behind a menu button,
 and Refresh and Save move to their own row.
 None of it disappears; it only rearranges.
 
-## Breadcrumbs
+Under the header: [breadcrumbs](breadcrumbs.spec.md).
 
-Under the header, a trail places the user:
-**Home → section → item**.
-The item is named by what it is —
-a job's description, a client's name, a material's name —
-falling back to its id when it has no name.
-Pages earlier in the trail are links; the last entry is where you are.
+## Search
 
-This rule is written once, here.
-Every page spec that shows breadcrumbs links to this section
-rather than restating it.
+One box, [rendering results as every search does](../shared/search.spec.md),
+promising exactly what it says: **"Search everything…"** —
+clients, jobs, pieces, notes, transactions, materials and tags,
+all at once, as you type.
 
-## Dead ends
+It reads what is currently loaded
+(including unsaved edits — see [saving](../saving.spec.md));
+archived and deleted things do not appear.
+Up to ten results at a time;
+searching an id (like "J4") puts that exact thing first.
+Nothing matching says "No matches".
 
-Addresses that lead nowhere show the [not-found card](not-found.spec.md),
-inside the normal chrome.
-Two addresses from older versions redirect instead:
-`#/login` goes home, and `#/expenses` opens the transactions.
+A result shows what kind of thing it is, then its name with its context:
+a piece shows its job,
+a note shows its opening words and what it is written on.
+
+Scenarios — choosing a result:
+
+- Pressing one, or Enter on it highlighted,
+  → goes to that thing:
+  clients, jobs and materials open their own pages;
+  a piece opens its job, scrolled to the piece;
+  a note opens whatever it is written on;
+  a transaction opens the ledger;
+  a tag opens the clients list,
+  or the jobs list when only jobs carry it.
+- Enter with nothing highlighted → the first result.
+
+Searching never changes which section link is lit — only going somewhere does.

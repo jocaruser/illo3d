@@ -1,6 +1,6 @@
 # Profile menu
 
-The avatar at the right end of the [header](navigation.spec.md)
+The avatar at the right end of the [header](navbar.spec.md)
 opens a small menu about *you and this shop*.
 It closes on a click elsewhere or Escape.
 
@@ -18,7 +18,7 @@ Top to bottom:
   Locally: the folder's name.
 - **Preferences.**
   The same language and theme (light/dark) choices
-  as [the welcome screen](welcome/welcome.spec.md) —
+  as [the welcome screen](../welcome/welcome.spec.md) —
   one preference, editable from either place,
   though here the Spanish choice is spelt "Español"
   where the welcome toggle says "ES".
@@ -29,12 +29,12 @@ Top to bottom:
   They drift apart with every minor and patch release
   and stay apart;
   only a major upgrade —
-  [the migration wizard](migration/wizard.spec.md) — closes the gap.
+  [the migration wizard](../migration/wizard.spec.md) — closes the gap.
 - Two placeholders that do nothing yet,
   visibly disabled: "Edit metadata.json" and "Changelog".
 - **Sign out.**
   Closes the shop and returns to the
-  [welcome screen](welcome/welcome.spec.md);
+  [welcome screen](../welcome/welcome.spec.md);
   the rules are [below](#sign-out).
 
 ## Sign out
@@ -44,7 +44,7 @@ experience through the same routing as today.
 
 When a shop is open and the workbook has **unsaved changes**, sign-out asks
 **"Discard unsaved changes?"** before clearing anything — the same prompt as
-[Refresh](saving.spec.md#refreshing).
+[Refresh](../saving.spec.md#refreshing).
 Confirming discards local edits and completes sign-out; cancelling leaves the
 user signed in with edits intact.
 
