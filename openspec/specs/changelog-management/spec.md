@@ -74,3 +74,20 @@ Regardless of whether the changelog file is used or generated notes are used, th
 #### Scenario: Generated notes body has compare URL
 - **WHEN** the release workflow uses `--generate-notes`
 - **THEN** the generated release body contains a `Full Changelog` compare URL
+
+### Requirement: A stale branch lands under one renumbered changelog file
+When a branch lands carrying its own version bump(s) that are stale relative to the integration tip, the landed tree SHALL carry exactly one `changelog/v<version>.md` for the branch, named for the integration tip's next version of the warranted bump class, and none for the branch's superseded versions.
+
+#### Scenario: Superseded file would merge without a path conflict
+- **WHEN** a branch adds `changelog/v3.1.0.md` and the integration tip is at `3.1.4`, which never had a `v3.1.0` file
+- **THEN** the landed tree contains `changelog/v3.2.0.md` for a minor change
+- **AND** `changelog/v3.1.0.md` is absent
+
+#### Scenario: Several successive bumps are consolidated
+- **WHEN** a branch carries two of its own bumps, each with a changelog file
+- **THEN** the landed tree contains one target-version file covering the user-facing changes of both
+- **AND** `APP_VERSION` equals that target version
+
+#### Scenario: Branch bump is not stale
+- **WHEN** a branch's own bump already targets the integration tip's next version of its class
+- **THEN** landing leaves its version and changelog file unchanged

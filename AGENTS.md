@@ -64,6 +64,17 @@ When fixing a confirmed bug or regression, follow the TDD workflow:
 - Every PR **must** increment `APP_VERSION` in `src/Config/version.ts`.
 - Follow semver: bump major for breaking changes, minor for new features, patch for bug fixes.
 - Do this **before** creating the PR commit so the version reflects the change being merged.
+- **Landing a stale branch renumbers its own bump.**
+  A branch carrying its own `APP_VERSION` bump(s) and `changelog/v<version>.md` file(s)
+  is stale when its version does not already equal the next version of the warranted bump class
+  relative to the integration tip's current `APP_VERSION`.
+  Whenever it is stale, even where the merge would add its changelog file without a path conflict:
+  keep the bump class the branch's own change warrants (never default to patch);
+  set `APP_VERSION` to the integration tip's next version of that class;
+  fold every superseded `changelog/v<version>.md` from the branch's own bumps
+  into one `changelog/v<target>.md` and remove the superseded filenames;
+  leave the root `CHANGELOG.md` index and unrelated paths to ordinary conflict resolution.
+  A branch with no bump of its own, or whose bump already targets that next version, is left unchanged.
 
 ### 7. Use `gh` CLI for GitHub Operations
 - Prefer `gh` CLI over GitHub MCP tools for PR, branch, and other GitHub operations.
