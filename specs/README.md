@@ -28,6 +28,14 @@ Where Carlos has declared intent that the code does not yet implement,
 the spec records the intent and the gap is listed below —
 specs lead, code follows.
 
+## Layout notes
+
+Two layout rulings from the draft behaviour-specs work were deliberately not applied:
+decision records keep the folder name `specs/decisions/`
+(no rename to `ADRs`),
+and `schema.dbml` stays at the repository root.
+Decision records are numbered 0001 to 0017 with no gap.
+
 ## Checklist
 
 Statuses: unplanned → questions answered → **drafted (awaiting confirmation)** → confirmed & committed.
@@ -36,12 +44,14 @@ Reviewed and confirmed in session:
 
 - [x] `welcome/` — welcome, local-folder, google-drive
 - [x] `migration/` — wizard, v1-to-v2, v2-to-v3
-- [x] `navigation.spec.md`, `saving.spec.md`, `not-found.spec.md`
+- [x] `topnavbar/` — navbar, breadcrumbs (the breadcrumb rule lives there;
+  page specs link to it, never restate it), `saving.spec.md`, `not-found.spec.md`
   (committed with the merge; content amendable)
 
 Imported from the unshipped `feat/spec-divergences-implementation` corpus on card **kpAlk5K1Yu6M** — **drafted, awaiting confirmation**:
 
-- [x] `search.spec.md`, `profile.spec.md`, `entities/metadata.spec.md`
+- [x] `topnavbar/profile.spec.md`, `entities/metadata.spec.md`;
+  global search is `shared/search.spec.md` plus the Search section of `topnavbar/navbar.spec.md`
 - [x] `dashboard/` — overview, stats, kanban, calendar, stock-alerts, recent-transactions
 - [x] `shared/` — notes, tags, lifecycle (page-agnostic mechanics);
   lists, tables and search boxes are `shared/list.spec.md`, `table.spec.md`
