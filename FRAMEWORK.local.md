@@ -22,3 +22,14 @@ the status field alone.
 cited `ADR-0012-in-memory-migration-with-explicit-submit` — Accepted — as
 proof a migration behaviour had shipped, while `src/Migration/orchestrator.ts`
 still implemented the pre-ADR design.)
+
+## Landing a stale branch renumbers its own version bump
+
+A long-dormant feature branch carries `APP_VERSION` and `changelog/v<version>.md` bumps
+aimed at a version the integration branch has since moved past,
+and may collide with an unrelated changelog file of the same name
+or add a file for a version the integration branch never shipped.
+Renumber it to the integration tip's next version at landing,
+whenever it is stale, not only on conflict.
+The normative procedure is the Golden Rule 6 paragraph in `AGENTS.md`.
+(First caught landing `PAGyVweOnKXm`, `feat/save-preview-step-cards`; filed as card 3D-4.)

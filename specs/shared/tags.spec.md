@@ -22,4 +22,4 @@ Scenarios — submitting the box:
 - A tag the owner already has → quietly refused.
 
 Tags surface wherever their owner does:
-in list tooltips, and in [search](../search.spec.md).
+in list tooltips, and in [search](search.spec.md).

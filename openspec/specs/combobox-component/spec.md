@@ -18,7 +18,7 @@ The Combobox component SHALL render a text input with `role="combobox"` and a dr
 #### Scenario: Search filters items with the shared fuzzy matcher
 - **WHEN** user types a query of at least two characters in the search input
 - **THEN** the listbox SHALL only show items whose label matches through the shared
-  fuzzy matcher (`fuzzyFilter`), per ADR-0017
+  fuzzy matcher (`fuzzyFilter`), per ADR-0016
 - **AND** a small typo that substring matching would miss SHALL still surface the
   intended option when fuzzy matching finds it
 

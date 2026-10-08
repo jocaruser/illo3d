@@ -44,3 +44,8 @@ The project uses semantic versioning with one bump per pull request:
   cannot be handled by it;
   the intended experience for that case is an open question
   tracked alongside the wizard spec.
+- A revived branch whose own version bumps lag the integration tip
+  is renumbered at landing, under the rule in `AGENTS.md` Golden Rule 6:
+  it lands under the tip's next version of the bump class it warrants,
+  with one `changelog/v<version>.md` file,
+  and its superseded per-version changelog files are not preserved.

@@ -1,4 +1,4 @@
-# ADR-0017: Every search matches fuzzily, with one shared matcher
+# ADR-0016: Every search matches fuzzily, with one shared matcher
 
 - Status: Accepted
 - Date: 2026-07-18
