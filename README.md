@@ -114,7 +114,7 @@ The dev server runs in the background inside the app container:
 | `make lint` | ESLint (0 errors required). `FILES="<paths>"` scopes to specific files (default `.`) |
 | `make format` | Prettier (write) |
 | `make test` | Vitest unit tests with **100% coverage thresholds**. `FILES="<paths>"` scopes which test files run — the coverage thresholds still apply globally, so a scoped run can fail on coverage even when every test it ran passed |
-| `make audit` | Dependency vulnerability gate — fails on high/critical advisories |
+| `make audit` | Dependency vulnerability gate — fails on high/critical advisories unless `audit-exceptions.json` holds an unexpired exception for that advisory and package (see [Audit exceptions](#audit-exceptions)) |
 | `make budget` | Performance budget — gzipped bundle must stay within `scripts/check-bundle-budget.mjs` limits |
 | `make e2e-test` | Playwright e2e (dedicated Vite on port 5174, ephemeral fixtures); also runs in GitHub CI on PRs |
 | `make quality-gate` | Sequential full gate: `build` → `lint` → `react-doctor` → `test` → `e2e-test` |
@@ -162,6 +162,15 @@ The next Release run deploys the app.
 - **Unit tests:** `make test` (Vitest). Prefer strong coverage on changed code so logic bugs surface before CI.
 - **E2E tests:** `make e2e-test` (Playwright; uses Dev Login and isolated fixture root — does not modify `public/fixtures/`). Every PR runs this in GitHub Actions; run it locally when changing flows Playwright covers or when reproducing a CI e2e failure.
 - **Local quality gate:** `make quality-gate` (sequential) or `make ci` (parallel fast checks, then e2e) — both cover build, lint, react-doctor, unit tests; `make ci` adds the dependency audit.
+
+### Audit exceptions
+
+`make audit` runs `scripts/check-audit.mjs`, which wraps `pnpm audit --audit-level=high --json`. An advisory with no patched release can be accepted for a limited time in `audit-exceptions.json`, a list of entries with `id` (GHSA id), `package`, `reason`, `granted` and `expires` (all dates `YYYY-MM-DD`).
+
+- An exception covers only its own advisory in its own package, and stops covering it on the `expires` date: the gate fails again until the dependency is patched or the entry is renewed.
+- `expires` is required and may be at most one calendar month after `granted`. An entry without it, or with a longer window, fails the gate.
+- To renew, add a new dated entry (or change `granted` and `expires`) in a reviewed PR; delete the entry as soon as a patched release is installed.
+- Unreadable `pnpm audit` output fails the gate rather than passing it.
 
 ### Branch protection
 

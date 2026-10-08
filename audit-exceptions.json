@@ -1,0 +1,9 @@
+[
+  {
+    "id": "GHSA-vfj7-8cjw-p6xm",
+    "package": "braces",
+    "reason": "Stack-exhaustion DoS in braces <=3.0.3; no patched release exists. Reached only through dev tooling (react-doctor, tailwindcss, fast-glob).",
+    "granted": "2026-10-07",
+    "expires": "2026-11-07"
+  }
+]

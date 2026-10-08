@@ -150,8 +150,8 @@ ci: ## Run all checks; fast ones in parallel, then e2e
 	$(MAKE) -j4 toolchain budget lint react-doctor test audit
 	$(MAKE) e2e-test
 
-audit: ## Dependency vulnerability gate (fails on high/critical)
-	$(APP) pnpm audit --audit-level=high
+audit: ## Dependency vulnerability gate (fails on high/critical; audit-exceptions.json holds time-boxed exceptions)
+	$(APP) node scripts/check-audit.mjs
 
 toolchain: ## Fail when a Dockerfile drifts from the pinned pnpm or a workflow sets up Node/pnpm on the runner
 	$(APP) node scripts/check-toolchain.mjs
